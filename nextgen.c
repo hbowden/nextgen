@@ -1,4 +1,5 @@
 
+#include "types.h"
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
@@ -6,19 +7,7 @@
 #include <dtrace.h>
 #include <sys/mman.h>
 
-struct shared_map
-{
-    char *path_to_dir;
-    char *path_to_exec;
-    char *bin_start_addr;
-    char *bin_end_addr;
-};
-
-/*static int start_reaper(void)
-{
-
-	return 0;
-}*/
+struct shared_map *map;
 
 static int create_shared(void **pointer, int size)
 {
@@ -41,7 +30,7 @@ static struct option longopts[] = {
     { NULL, 0, NULL, 0 }
 };
 
-static int parse_cmd_line(int argc, char *argv[], struct shared_map *map)
+static int parse_cmd_line(int argc, char *argv[])
 {
     int ch, rtrn;
 
@@ -79,9 +68,9 @@ static int parse_cmd_line(int argc, char *argv[], struct shared_map *map)
 /** Entry point to the program. */
 int main(int argc, char *argv[])
 {
-	struct shared_map *map;
     int rtrn;
 
+    /* Create a shared memory map so that we can share state with other threads and procceses. */
     rtrn = create_shared((void **)&map, sizeof(struct shared_map));
     if(rtrn < 0)
     {
@@ -89,15 +78,21 @@ int main(int argc, char *argv[])
     	return -1;
     }
 
-    rtrn = parse_cmd_line(argc, argv, map);
+    /* Parse the command line for user input. */
+    rtrn = parse_cmd_line(argc, argv);
     if(rtrn < 0)
     {
         printf("Can't parse command line. \n");
         return -1;
     }
 
-
-    
+    /* Setup the program running enviroment. */
+    rtrn = set_up_runtime();
+    if(rtrn < 0)
+    {
+        printf("Can't parse command line. \n");
+        return -1;
+    }
     
     return 0;
 }

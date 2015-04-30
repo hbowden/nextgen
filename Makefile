@@ -1,10 +1,10 @@
 
 
-SOURCES = nextgen.c disas.c probe.c
+SOURCES = nextgen.c disas.c probe.c utils.c crypto.c runtime.c reaper.c
 
 INCLUDES = -I/usr/src/cddl/compat/opensolaris/include -I/usr/src/cddl/contrib/opensolaris/lib/libdtrace/common/ -I/usr/src/sys/cddl/compat/opensolaris -I/usr/src/sys/cddl/contrib/opensolaris/uts/common/
 
-LIBS = -lpthread -ldtrace -lproc -lctf -lelf -lz -lrtld_db -lpthread -lutil -ldistorm3
+LIBS = -lpthread -ldtrace -lproc -lctf -lelf -lz -lrtld_db -lpthread -lutil /usr/local/lib/libdistorm3.so
 
 DPATH =
 
