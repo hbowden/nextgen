@@ -3,37 +3,99 @@
 #include "runtime.h"
 #include "utils.h"
 #include "crypto.h"
+#include "disas.h"
+#include "reaper.h"
+#include "nextgen.h"
+#include <sys/wait.h>
+#include <signal.h>
+#include <string.h>
+#include <stdio.h>
+#include <errno.h>
 
-static void set_up_signal_handler(void)
+static void start_main_loop(void)
 {
 
     return;
 }
 
-int set_up_runtime(void)
+static void ctrlc_handler(int sig)
 {
-    unsigned int core_count;
 
-    int rtrn = get_core_count(&core_count);
+    sig = 0; // We do this to temprorarly silence a unused parameter warning.
+    shutdown();
+    
+    return;
+}
+
+static void setup_signal_handler(void)
+{
+    signal(SIGINT, ctrlc_handler);
+
+    return;
+}
+
+int setup_runtime(void)
+{
+    /* Lets grab the system's core count and use that for the number of child proceses. */
+    int rtrn = get_core_count(&map->number_of_children);
     if(rtrn < 0)
     {
-    	printf("Can't get core count\n");
+    	output(ERROR, "Can't get core count\n");
     	return -1;
     }
 
-    set_up_signal_handler();
+    /* This function sets up the other crypto functions  */
+    setup_crypto();
 
-    /* This function checks to see if your cpu has crypto acceleration and if it does
-    turn it on. */
-    set_up_hardware_acceleration();
+    printf("p1: %s\n", map->path_to_exec);
 
-    /* Now lets pause the target binary, then inject dtrace probes into the target binary, then resume it. */
-    rtrn = load_probes(map->path_to_exec);
+    /*  */
+    disas_executable(map->path_to_exec);
+
+    /* Lets set up the signal handler for the main process. */
+    setup_signal_handler();
+
+    rtrn = setup_and_run_reaper();
     if(rtrn < 0)
     {
-        printf("Can't load dtrace probes.")
+    	output(ERROR, "Can't set up the reaper\n");
+    	return -1;
     }
 
+    return 0;
+}
 
-	return 0;
+int start_runtime(void)
+{
+    map->runloop_pid = fork();
+    if(map->runloop_pid == 0)
+    {
+    	start_main_loop();
+    }
+    else if(map->runloop_pid > 0)
+    {
+        int status;
+
+        waitpid(map->runloop_pid, &status, 0);
+
+        waitpid(map->reaper_pid, &status, 0);
+
+        output(STD, "Exiting\n");
+
+        return 0;
+    }
+    else
+    {
+    	output(ERROR, "runloop fork failed: %s\n", strerror(errno));
+    	return -1;
+    }
+
+    return 0;
+}
+
+int shutdown(void)
+{
+    map->stop = 0;
+
+    return 0;
 }

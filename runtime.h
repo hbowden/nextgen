@@ -4,8 +4,11 @@
 #define RUNTIME_H
 
 #include "private.h"
-#include "types.h"
 
-private extern int set_up_runtime()
+private extern int shutdown(void);
+
+private extern int setup_runtime(void);
+
+private extern int start_runtime(void);
 
 #endif

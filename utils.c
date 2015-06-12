@@ -15,7 +15,7 @@ int get_file_size(int fd, off_t *size)
 
     if((fstat(fd, &stbuf) != 0) || (!S_ISREG(stbuf.st_mode)))
     {
-        perror("fstat");
+        output(ERROR, "fstat: %s\n", strerror(errno));
         return -1;
     }
 
@@ -24,21 +24,21 @@ int get_file_size(int fd, off_t *size)
     return 0;
 }
 
-int map_file_in(int *fd, char **buf, off_t *size)
+int map_file_in(int fd, char **buf, off_t *size)
 {
 	int rtrn;
 
-    rtrn = get_file_size(*fd, size);
+    rtrn = get_file_size(fd, size);
     if(rtrn < 0)
     {
-    	printf("Can't get file size\n");
+    	output(ERROR, "Can't get file size\n");
     	return -1;
     }
 
-    *buf = mmap(0, (unsigned long) *size, PROT_READ | PROT_WRITE, MAP_PRIVATE, *fd, 0);
+    *buf = mmap(0, (unsigned long) *size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
     if(*buf == MAP_FAILED)
     {
-    	perror("mmap");
+    	output(ERROR, "mmap: %s\n", strerror(errno));
     	return -1;
     }
 
@@ -52,27 +52,27 @@ int map_file_out(char *path, char *buf, off_t *size)
     fd = open(path, O_RDWR | O_CREAT | O_TRUNC, 0777);
     if(fd < 0)
     {
-    	perror("open");
+    	output(ERROR, "open: %s\n", strerror(errno));
     	return -1;
     }
 
     if(lseek(fd, *size - 1, SEEK_SET) == -1)
     {
-    	perror("lseek");
+    	output(ERROR, "lseek: %s\n", strerror(errno));
     	return -1;
     }
 
     ssize_t ret = write(fd, "", 1);
     if(ret != 1)
     {
-    	perror("write");
+    	output(ERROR, "write: %s\n", strerror(errno));
     	return -1;
     }
 
     char *dst = mmap(0, (unsigned long) size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
     if(dst == MAP_FAILED)
     {
-    	perror("mmap");
+    	output(ERROR, "mmap: %s\n", strerror(errno));
     	return -1;
     }
 
@@ -100,6 +100,12 @@ void output(enum out_type type, const char *format, ...)
 		case STD:
 		    vfprintf(stdout, format, args);
 		    break;
+
+        /* We default to stdout when ERROR or STD is not set so that
+        we don't have any errors. */
+		default:
+		    vfprintf(stdout, format, args);
+		    break;
 	}
 
 	va_end(args);
@@ -119,14 +125,14 @@ int get_core_count(unsigned int *core_count)
     int rtrn = sysctl(mib, 2, core_count, &len, NULL, 0);
     if(rtrn < 0)
     {
-        perror("sysctl");
+        output(ERROR, "sysctl: %s\n", strerror(errno));
         return -1;
     }
 
     if(*core_count < 1)
     {
-    	core_count = 1;
+    	*core_count = (unsigned int) 1;
     }
 
-	return;
+	return 0;
 }

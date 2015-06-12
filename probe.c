@@ -25,6 +25,10 @@ int load_probes(char *path_to_exec)
 
     /* Disasemble the target binary so we can figure out the first and last address of the binary. */
     rtrn = disas_executable(path_to_exec);
+    if(rtrn < 0)
+    {
+    	printf("Can't disas \n");
+    }
 
     /* Lets create a dtrace handle. */
     dtrace_hdl_t *handle;
