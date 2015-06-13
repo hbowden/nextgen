@@ -1,11 +1,18 @@
 
 #include "disas.h"
-#include "/usr/home/nah/distorm-read-only/include/distorm.h"
+#include "/users/nahnig/desktop/distorm/include/distorm.h"
 #include "utils.h"
+
+#ifndef MAC_OSX
+
 #include <libelf.h>
+
+#endif
+
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
+
 
 // The number of the array of instructions the decoder function will use to return the disassembled instructions.
 // Play with this value for performance...
@@ -34,7 +41,7 @@ int disas_executable(char *path)
     char *file_buffer;
     off_t size;
     int offset = 0;
-printf("path: %s\n", path);
+    
     fd = open(path, O_RDONLY);
     if(fd < 0)
     {

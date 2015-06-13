@@ -93,7 +93,9 @@ int rand_range(unsigned int range, int *number)
 
 static int setup_hardware_acceleration(void)
 {
+#ifndef MAC_OSX
     ENGINE_load_rdrand();
+#endif
 
     ENGINE* engine = ENGINE_by_id("rdrand");
     if(engine == NULL)
