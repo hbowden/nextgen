@@ -6,6 +6,7 @@
 #include "disas.h"
 #include "reaper.h"
 #include "nextgen.h"
+#include <stdint.h>
 #include <sys/wait.h>
 #include <signal.h>
 #include <string.h>
@@ -47,10 +48,10 @@ int setup_runtime(void)
     /* This function sets up the other crypto functions  */
     setup_crypto();
 
-    printf("p1: %s\n", map->path_to_exec);
-
     /*  */
-    disas_executable(map->path_to_exec);
+    uint32_t address;
+    get_load_address(map->path_to_exec, &address);
+    printf("address: %u\n", address);
 
     /* Lets set up the signal handler for the main process. */
     setup_signal_handler();

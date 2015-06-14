@@ -3,34 +3,44 @@
 #include "/users/nahnig/desktop/distorm/include/distorm.h"
 #include "utils.h"
 
-#ifndef MAC_OSX
+#include <stdio.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <string.h>
+#include <errno.h>
+
+#ifdef FREEBSD
 
 #include <libelf.h>
 
 #endif
 
-#include <stdio.h>
-#include <fcntl.h>
-#include <unistd.h>
+#ifdef MAC_OSX
 
+#include "libmacho/macho.h"
+
+#endif
 
 // The number of the array of instructions the decoder function will use to return the disassembled instructions.
 // Play with this value for performance...
 #define MAX_INSTRUCTIONS 1000
 
 /* This function looks up the address that main starts at
+in the target executable. On Mac OSX 10.8 and beyond this means
+looking at the mach-o header in the executable, and looking
+for LC_MAIN. The address at LC_MAIN is the address of _main
 in the target executable. */
-int get_load_address(char *path)
+int get_load_address(char *path,  uint32_t *start_address)
 {
-
-    int fd;
-
-    fd = open(path, O_RDONLY);
-    if(fd < 0)
+    macho_t *macho = macho_open(path);
+    if(macho == NULL)
     {
-        perror("open");
+        output(ERROR, "Unable to open macho file\n");
         return -1;
     }
+
+    macho_command_t *command = macho_command_load(macho->data, MACHO_CMD_UNIXTHREAD);
+    *start_address = command->offset;
 
     return 0;
 }
@@ -41,18 +51,18 @@ int disas_executable(char *path)
     char *file_buffer;
     off_t size;
     int offset = 0;
-    
+
     fd = open(path, O_RDONLY);
     if(fd < 0)
     {
-    	perror("open");
+    	output(ERROR, "open: %s\n", strerror(errno));
     	return -1;
     }
 
     rtrn = map_file_in(fd, &file_buffer, &size);
     if(rtrn < 0)
     {
-    	printf("Can't memory map file\n");
+    	output(ERROR, "Can't memory map file\n");
     	return -1;
     }
 
