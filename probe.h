@@ -5,6 +5,13 @@
 
 #include "private.h"
 
-private extern int load_probes(char *path_to_exec);
+#define REGISTER_IP RIP
+#define TRAP_LEN    1
+#define TRAP_INST   0xCC
+#define TRAP_MASK   0xFFFFFFFFFFFFFF00
+
+private extern int inject_probes(void);
+
+private extern int inject_fork_server(void);
 
 #endif

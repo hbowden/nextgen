@@ -156,7 +156,7 @@ int setup_crypto(void)
 	}
 	else
 	{
-		rtrn = setup_rand_range("crypto");
+		rtrn = setup_rand_range((char *)"crypto");
         if(rtrn < 0)
         {
         	output(ERROR,"Can't setup random range function.\n");

@@ -7,8 +7,8 @@
 
 #include <stdint.h>
 
-private extern int disas_executable(char *path);
+private extern int disas_executable(void);
 
-private extern int get_load_address(char *path, uint32_t *start_address);
+private extern int get_load_address(void);
 
 #endif

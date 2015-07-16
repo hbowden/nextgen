@@ -4,18 +4,39 @@
 #define NEXTGEN_H
 
 #include <unistd.h>
-//#include <stdatomics.h>
+#include <stdlib.h>
 #include <stdbool.h>
 
 #define FALSE 0
 #define TRUE 1
 
+#define MODE_SYSCALL 0
+#define MODE_NETWORK 1
+#define MODE_FILE 2
+
+#define autofree __attribute((cleanup(__autofree)))
+
+static inline void __autofree(void *pointer)  
+{
+    free(pointer);
+    return;
+}
+
 struct executable_context
 {
-    unsigned char *main_start_address;
+    pid_t pid;
+
+    /* The virtual memory address found in the execuatble header. */
+    unsigned long main_start_address;
+
+    /* The virtual memory offset of where the executable begins. */
+    unsigned long start_offset;
+
+    unsigned long end_offset;
 
     unsigned long number_of_branchs;
 
+    char *args[];
 };
 
 struct child_proc
@@ -25,10 +46,10 @@ struct child_proc
 
 struct shared_map
 {
-    char *path_to_dir;
+    int mode;
+    char *path_to_in_dir;
+    char *path_to_out_dir;
     char *path_to_exec;
-    char *bin_start_addr;
-    char *bin_end_addr;
 
     struct executable_context *exec_ctx;
 

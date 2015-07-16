@@ -28,8 +28,12 @@ static const char *optstring = "p:e:";
 
 static struct option longopts[] = {
 
-    { "path", required_argument, NULL, 'p' },
-    { "exec", required_argument, NULL, 'e' },
+    { "in", required_argument, NULL, 'i' },
+    { "out", required_argument, NULL, 'o' },
+    { "exec", required_argument, NULL, 'e'},
+    { "file", 0, NULL, 'f'},
+    { "network", required_argument, NULL, 'n'},
+    { "syscall", required_argument, NULL, 's'},
     { "crypto", required_argument, NULL, 'c' },
     { NULL, 0, NULL, 0 }
 };
@@ -37,7 +41,7 @@ static struct option longopts[] = {
 static int parse_cmd_line(int argc, char *argv[])
 {
     int ch, rtrn;
-    int eFlag = 0, pFlag = 0;
+    int iFlag = 0, oFlag = 0, fFlag = 0, nFlag = 0, sFlag = 0, eFlag = 0;
 
     while((ch = getopt_long(argc, argv, optstring, longopts, NULL)) != -1)
     {
@@ -52,19 +56,43 @@ static int parse_cmd_line(int argc, char *argv[])
                 }
 
                 eFlag = 1;
-
                 break;
 
-            case 'p':
-                rtrn = asprintf(&map->path_to_dir, "%s", optarg);
+            case 'i':
+                rtrn = asprintf(&map->path_to_in_dir, "%s", optarg);
                 if(rtrn < 0)
                 {
                     output(ERROR, "asprintf: %s\n", strerror(errno));
                     return -1;
                 }
 
-                pFlag = 1;
+                iFlag = 1;
+                break;
 
+            case 'o':
+                rtrn = asprintf(&map->path_to_out_dir, "%s", optarg);
+                if(rtrn < 0)
+                {
+                    output(ERROR, "asprintf: %s\n", strerror(errno));
+                    return -1;
+                }
+
+                oFlag = 1;
+                break;
+
+            case 'f':
+                fFlag = 1;
+                map->mode = MODE_FILE;
+                break;
+
+            case 'n':
+                nFlag = 1;
+                map->mode = MODE_NETWORK;
+                break;
+
+            case 's':
+                sFlag = 1;
+                map->mode = MODE_SYSCALL;
                 break;
 
             case 'c':
@@ -87,19 +115,54 @@ static int parse_cmd_line(int argc, char *argv[])
         }
     }
 
-    if(eFlag == 0 || pFlag == 0)
+    /* Make sure a fuzzing mode was selected. */
+    if(fFlag != 1 && nFlag != 1 && sFlag != 1)
     {
-        output(STD, "No args passed\n");
+        output(STD, "Specify a fuzzing mode\n");
         return -1;
     }
 
+    /* If file mode was selected lets make sure all the right ars were passed.*/
+    if(fFlag == 1)
+    {
+        if(iFlag == 0 || oFlag == 0 || eFlag == 0)
+        {
+            output(STD, "Pass --exec , --in and --out for file mode\n");
+            return -1;
+        }
+    }
+
     return 0;
+}
+
+static int check_root(void)
+{
+
+    output(STD, "Making sure the fuzzer has root privileges\n");
+
+    uid_t check;
+
+    check = getuid();
+    if(check == 0)
+    {
+        return 0;
+    }
+
+    return -1;
 }
 
 /** Entry point to the program. */
 int main(int argc, char *argv[])
 {
     int rtrn;
+
+    /* We have to make sure that we were started with root privileges so that we can use dtrace. */
+    rtrn = check_root();
+    if(rtrn < 0)
+    {
+        output(ERROR, "Run as root.\n");
+        return -1;
+    }
 
     /* Create a shared memory map so that we can share state with other threads and procceses. */
     rtrn = create_shared((void **)&map, sizeof(struct shared_map));
