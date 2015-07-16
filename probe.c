@@ -34,7 +34,7 @@ int inject_fork_server(void)
         int status;
 
         /* Let's wait until the target binary has stopped. */
-        wait4(map->exec_ctx->pid, &status);
+        wait4(map->exec_ctx->pid, &status, 0, NULL);
 
         /* Lets check the reason why were not waiting anymore. Hopefully it's
          because the target executable is stopped. */

@@ -11,7 +11,7 @@ INCLUDES = -I/usr/src/cddl/compat/opensolaris/include -I/usr/local/include/ -I/u
 
 LIBS = -lpthread -ldtrace -lproc -lctf -lelf -lz -lrtld_db -lpthread -lutil -lcrypto -lcapstone
 
-CFLAGS = -DFREEBSD -std=c11 -Wall -Weverything -g -fstack-protector-all -Wno-reserved-id-macro -Wno-documentation -Wno-disabled-macro-expansion -Wno-switch-enum -Wno-deprecated-declarations -Wno-newline-eof -Wno-padded -Wno-pedantic -Wno-sign-conversion -Wno-unknown-pragmas -Wno-format-nonliteral 
+CFLAGS = -DFREEBSD -O3 -std=c11 -Wall -Weverything -g -fstack-protector-all -Wno-reserved-id-macro -Wno-documentation -Wno-disabled-macro-expansion -Wno-switch-enum -Wno-deprecated-declarations -Wno-newline-eof -Wno-padded -Wno-pedantic -Wno-sign-conversion -Wno-unknown-pragmas -Wno-format-nonliteral 
 
 endif
 
@@ -26,8 +26,6 @@ INCLUDES =
 endif
 
 all:
-
-	cd libmacho && make;
 
 	$(CC) $(CFLAGS) $(INCLUDES) -o nextgen $(SOURCES) $(LIBS)
 

@@ -20,7 +20,7 @@
 
 #ifdef MAC_OSX
 
-#include "libmacho/macho.h"
+
 
 #endif
 
@@ -32,15 +32,7 @@ for LC_MAIN. The address at LC_MAIN is the address of _main
 in the target executable. */
 int get_load_address(char *path,  uint64_t *start_address)
 {
-    macho_t *macho = macho_open(path);
-    if(macho == NULL)
-    {
-        output(ERROR, "Unable to open macho file\n");
-        return -1;
-    }
-
-    macho_command_t *command = macho_command_load(macho->data, MACHO_CMD_UNIXTHREAD);
-    *start_address = command->offset;
+   
 
     return 0;
 }

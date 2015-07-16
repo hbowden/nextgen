@@ -151,7 +151,7 @@ static int check_root(void)
     return -1;
 }
 
-/** Entry point to the program. */
+/* Entry point to the program. */
 int main(int argc, char *argv[])
 {
     int rtrn;
