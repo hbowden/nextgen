@@ -1,26 +1,36 @@
 
 
+/**
+ * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
+ * 
+ * Permission to use, copy, modify, and/or distribute this software for any purpose
+ * with or without fee is hereby granted, provided that the above copyright notice 
+ * and this permission notice appear in all copies.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH 
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY 
+ * AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, 
+ * WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
+ * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ **/
+
 #ifndef NEXTGEN_H
 #define NEXTGEN_H
+
+#include "child.h"
 
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stdatomic.h>
+
+enum child_state {EMPTY};
 
 #define FALSE 0
 #define TRUE 1
 
-#define MODE_SYSCALL 0
-#define MODE_NETWORK 1
-#define MODE_FILE 2
-
-#define autofree __attribute((cleanup(__autofree)))
-
-static inline void __autofree(void *pointer)  
-{
-    free(pointer);
-    return;
-}
+enum fuzz_mode { MODE_FILE, MODE_SYSCALL, MODE_NETWORK};
 
 struct executable_context
 {
@@ -39,14 +49,11 @@ struct executable_context
     char *args[];
 };
 
-struct child_proc
-{
-    pid_t child_pid;
-};
-
 struct shared_map
 {
-    int mode;
+    /* This tells us what fuzzing mode to execute. */
+    enum fuzz_mode mode;
+
     char *path_to_in_dir;
     char *path_to_out_dir;
     char *path_to_exec;
@@ -59,10 +66,11 @@ struct shared_map
     char *crypto_method;
     bool crypto_flag;
 
-    bool stop;
+    atomic_bool stop;
 
+    unsigned int running_children;
     unsigned int number_of_children;
-    struct child_proc **children[];
+    struct child_ctx **children;
 };
 
 extern struct shared_map *map;

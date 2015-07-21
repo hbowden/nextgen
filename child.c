@@ -15,15 +15,14 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#ifndef DISAS_H
-#define DISAS_H
+#include "child.h"
 
-#include "private.h"
+void create_children(void)
+{
+	return;
+}
 
-#include <stdint.h>
-
-private extern int disas_executable(void);
-
-private extern int get_load_address(void);
-
-#endif
+void manage_children(void)
+{
+	return;
+}

@@ -15,15 +15,22 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#ifndef DISAS_H
-#define DISAS_H
+#ifndef CHILD_H
+#define CHILD_H
 
 #include "private.h"
 
-#include <stdint.h>
+#include <unistd.h>
 
-private extern int disas_executable(void);
+struct child_ctx
+{
+    pid_t pid;
+};
 
-private extern int get_load_address(void);
+private extern void create_children(void);
+
+private extern void manage_children(void);
+
+//private extern 
 
 #endif

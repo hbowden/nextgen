@@ -1,5 +1,5 @@
 
-SOURCES = nextgen.c disas.c probe.c utils.c crypto.c runtime.c reaper.c
+SOURCES = nextgen.c disas.c probe.c utils.c crypto.c runtime.c reaper.c child.c
 
 OPERATING_SYSTEM = $(shell uname)
 

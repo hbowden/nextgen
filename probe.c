@@ -1,5 +1,20 @@
 
 
+/**
+ * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
+ * 
+ * Permission to use, copy, modify, and/or distribute this software for any purpose
+ * with or without fee is hereby granted, provided that the above copyright notice 
+ * and this permission notice appear in all copies.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH 
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY 
+ * AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, 
+ * WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
+ * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ **/
+
 #include "probe.h"
 #include "disas.h"
 #include "utils.h"
@@ -43,18 +58,72 @@ int inject_fork_server(void)
 
         /* Lets check the reason why were not waiting anymore. Hopefully it's
          because the target executable is stopped. */
-        
 
+        if(WIFCONTINUED(status) != 0)
+        {
+            output(ERROR, "The process we are testing is continuing?\n");
+            return -1;
+        }
+
+        /* Check if the process exited. */
+        if(WIFEXITED(status) != 0)
+        {
+            output(ERROR, "The process we are testing has exited prematurely\n");
+            return -1;
+        }
+
+        /* Check if the process was terminated due to a signal. */
+        if(WIFSIGNALED(status) != 0)
+        {
+            output(ERROR, "The process we are testing has exited due to a signal\n");
+            return -1;
+        }
+
+        /* Check if the process exited stopped due to ptrace. This is the Macro that we hope
+        evaluates to true. */
+        if(WIFSTOPPED(status) != 0)
+        {
+            
+        }
+        
         /* Lets save the code at main in the target process. */
         int orig = ptrace(PT_READ_I, map->exec_ctx->pid, (caddr_t)&map->exec_ctx->main_start_address, 0);
 
         /* Let's set a breakpoint on main. */
         ptrace(PT_WRITE_I, map->exec_ctx->pid, (caddr_t)&map->exec_ctx->main_start_address, (orig & TRAP_MASK) | TRAP_INST);
 
-        /* Lets continue until the breakpoint. */
+        /* Now we continue until the breakpoint. */
         ptrace(PT_CONTINUE, map->exec_ctx->pid, (caddr_t)1, 0);
 
-        waitpid(map->exec_ctx->pid, &status, 0);
+        /* Wait until the breakpoint is hit. */
+        wait4(map->exec_ctx->pid, &status, 0, NULL);
+
+        if(WIFCONTINUED(status) != 0)
+        {
+            output(ERROR, "The process we are testing is continuing?\n");
+            return -1;
+        }
+
+        /* Check if the process exited. */
+        if(WIFEXITED(status) != 0)
+        {
+            output(ERROR, "The process we are testing has exited prematurely\n");
+            return -1;
+        }
+
+        /* Check if the process was terminated due to a signal. */
+        if(WIFSIGNALED(status) != 0)
+        {
+            output(ERROR, "The process we are testing has exited due to a signal\n");
+            return -1;
+        }
+
+        /* Check if the process exited stopped due to ptrace. This is the Macro that we hope
+        evaluates to true. */
+        if(WIFSTOPPED(status) != 0)
+        {
+            
+        }
 
         /* Lets grab the registers at main/breakpoint .*/
         ptrace(PT_GETREGS, map->exec_ctx->pid, (caddr_t)&regs, 0);
@@ -74,16 +143,23 @@ int inject_fork_server(void)
     return 0;
 }
 
-/* We use this funcction to create and return a dtrace script that sticks a probe every 5th address. */
-static char *createDtraceScript(uint64_t end_address_offset)
+/* We use this function to create and return a dtrace script that sticks a probe every 5th address. */
+static char *create_dtrace_script(uint64_t end_address_offset)
 {
     char *script = NULL;
+    int start_offset = 0;
 
-    int rtrn = asprintf(&script, "#!/usr/sbin/dtrace -s\n");
+    int rtrn = asprintf(&script, "#!/usr/sbin/dtrace -s\n pid%d:::%d\n", map->exec_ctx->pid, start_offset);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't create Dtrace script: %s\n", strerror(errno));
+        output(ERROR, "Can't create dtrace script: %s\n", strerror(errno));
         return NULL;
+    }
+
+    /* We can't loop in dtrace so we will unroll our script loop. */
+    while(1)
+    {
+        
     }
 
     return script;
@@ -108,7 +184,7 @@ int inject_probes(void)
         return -1;
     }
 
-    /* Lets get the end  virtual memory address for the binary. */
+    /* Get the end virtual memory address for the binary. */
     disas_executable();
 
     /*
@@ -118,8 +194,8 @@ int inject_probes(void)
     (void) dtrace_setopt(dtrace_handle, "bufsize", "4m");
     (void) dtrace_setopt(dtrace_handle, "aggsize", "4m");
 
-    /* Lets create a dtrace script that inserts probes every 0x5 address. */
-    char *dtrace_prog = createDtraceScript(map->exec_ctx->end_offset);
+    /* Lets create a dtrace script that inserts probes every 0x5 virtual address. */
+    char *dtrace_prog = create_dtrace_script(map->exec_ctx->end_offset);
     if(dtrace_prog == NULL)
     {
         output(ERROR, "Can't create dtrace script. \n");
@@ -137,7 +213,7 @@ int inject_probes(void)
         return -1;
     }
 
-    /* Now lets execute the dtrace scripts. */
+    /* Now we execute the dtrace scripts. */
     rtrn = dtrace_program_exec(dtrace_handle, prog, &info);
     if(rtrn < 0)
     {

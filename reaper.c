@@ -1,14 +1,86 @@
 
 
+/**
+ * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
+ * 
+ * Permission to use, copy, modify, and/or distribute this software for any purpose
+ * with or without fee is hereby granted, provided that the above copyright notice 
+ * and this permission notice appear in all copies.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH 
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY 
+ * AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, 
+ * WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
+ * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ **/
+
 #include "nextgen.h"
 #include "reaper.h"
+#include "child.h"
 #include "utils.h"
+#include <signal.h>
+#include <sys/types.h>
 #include <string.h>
 #include <errno.h>
 
-static int check_progess(void)
+static int check_progess(struct child_ctx *child)
 {
 	return 0;
+}
+
+static void reap_child(struct child_ctx *child)
+{
+
+    return;
+}
+
+static void reap_dead_children(void)
+{
+    int rtrn;
+    unsigned int i;
+    unsigned int number_of_children = map->number_of_children;
+
+    for(i = 0; i < number_of_children; i++)
+    {
+        if(map->children[i]->pid == EMPTY)
+        {
+            continue;
+        }
+
+        rtrn = kill(map->children[i]->pid, 0);
+        if(rtrn < 0)
+        {
+            if(errno == ESRCH)
+            {
+                reap_child(map->children[i]);
+            }
+        }
+
+        if(map->running_children == 0)
+        {
+            return;
+        }
+
+        map->children[i]->pid = EMPTY;
+    }
+}
+
+static void kill_all_children(void)
+{
+    int rtrn;
+    unsigned int i;
+    unsigned int number_of_children = map->number_of_children;
+
+    for(i = 0; i < number_of_children; i++)
+    {
+        rtrn = kill(map->children[i]->pid, SIGKILL);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't kill child: %s\n", strerror(errno));
+            return;
+        }
+    }
 }
 
 static void reaper(void)
@@ -23,17 +95,18 @@ static void reaper(void)
 
     	for(i = 0; i <number_of_children; i++)
     	{
-    		check_progess();
+    		check_progess(map->children[i]);
     	}
     }
-	return;
+
+    /* We are exiting either due to error or the user wants us to. So lets kill all child processes. */
+    kill_all_children();
+	
+    return;
 }
 
-int reap_dead_children(void)
-{
-	return 0;
-}
-
+/* This function sets up and run's the reaper process. The reaper kills and replaces child
+processes that are not functioning properly. */
 int setup_and_run_reaper(void)
 {
     map->reaper_pid = fork();
