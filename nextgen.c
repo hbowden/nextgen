@@ -48,6 +48,9 @@ static struct option longopts[] = {
 
 static void display_help_banner(void)
 {
+    output(STD, "Nextgen is a Genetic File, Syscall, and Network Fuzzer.\n");
+    output(STD, "To use the file fuzzer run the command below.\n");
+    output(STD, "sudo ./nextgen --file --in /path/to/in/directory --out /path/to/out/directory --exec /path/to/target/exec .\n");
     return;
 }
 
@@ -113,7 +116,6 @@ static int parse_cmd_line(int argc, char *argv[])
 
             case 'f':
                 fFlag = TRUE;
-                map->mode = MODE_FILE;
                 break;
 
             case 'n':
@@ -147,38 +149,44 @@ static int parse_cmd_line(int argc, char *argv[])
     }
 
     /* Make sure a fuzzing mode was selected. */
-    if(fFlag != 1 && nFlag != 1 && sFlag != 1)
+    if(fFlag != TRUE && nFlag != TRUE && sFlag != TRUE)
     {
         output(STD, "Specify a fuzzing mode\n");
         return -1;
     }
 
     /* If file mode was selected lets make sure all the right args were passed.*/
-    if(fFlag == 1)
+    if(fFlag == TRUE)
     {
-        if(iFlag == 0 || oFlag == 0 || eFlag == 0)
+        if(iFlag == FALSE || oFlag == FALSE || eFlag == FALSE)
         {
             output(STD, "Pass --exec , --in and --out for file mode\n");
             return -1;
         }
+
+        map->mode = MODE_FILE;
     }
 
-    if(nFlag == 1)
+    if(nFlag == TRUE)
     {
-        if(aFlag == 0 || tFlag == 0 || oFlag == 0)
+        if(aFlag == FALSE || tFlag == FALSE || oFlag == FALSE)
         {
             output(STD, "Pass --address , --port, --protocol, and --out for network mode\n");
             return -1;
         }
+
+        map->mode = MODE_NETWORK;
     }
 
-    if(sFlag == 1)
+    if(sFlag == TRUE)
     {
-        if(oFlag == 0)
+        if(oFlag == FALSE)
         {
             output(STD, "Pass --in and --out for syscall mode\n");
             return -1;
         }
+
+        map->mode = MODE_SYSCALL;
     }
 
     return 0;
@@ -225,10 +233,10 @@ static int intit_shared_mapping(struct shared_map *mapping)
     }
 
     /* Set the stop flag to FALSE, when set to TRUE all processes start their exit routines. */
-    atomic_init(&map->stop, FALSE);
+    atomic_flag_clear(&mapping->stop);
 
     /* Create the child process structures. */
-    map->children = malloc(map->number_of_children * sizeof(struct child_ctx *));
+    map->children = malloc(mapping->number_of_children * sizeof(struct child_ctx *));
     if(map->children == NULL)
     {
         output(ERROR, "Can't create children object.\n");
@@ -237,13 +245,13 @@ static int intit_shared_mapping(struct shared_map *mapping)
 
     unsigned int i;
 
-    for(i = 0; i < map->number_of_children; i++)
+    for(i = 0; i < mapping->number_of_children; i++)
     {
         struct child_ctx *child;
 
         create_shared((void **)&child, sizeof(struct child_ctx));
 
-        map->children[i] = child;
+        mapping->children[i] = child;
         
         child->pid = EMPTY;
     }
@@ -252,7 +260,11 @@ static int intit_shared_mapping(struct shared_map *mapping)
 
 }
 
-/* Entry point to the program. */
+/**
+ * Main is the entry point to nextgen. In main we check for root, unfortunetly we need root to execute.
+ * This is because we have to use dtrace, as well as bypass sandboxes, inject code into processes and 
+ * other activities that require root access.
+ **/
 int main(int argc, char *argv[])
 {
     int rtrn;

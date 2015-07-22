@@ -31,13 +31,24 @@
 #include <stdio.h>
 #include <errno.h>
 
-static void start_main_loop(void)
+static void ctrlc_handler(int sig)
 {
-    /* Make sure the stop flag is not set. */
-    atomic_store(&map->stop, FALSE);
+
+    sig = 0; // We do this to temprorarly silence a unused parameter warning.
+    shutdown();
     
+    return;
+}
+
+static void start_main_syscall_loop(void)
+{
+    return;
+}
+
+static void start_main_file_loop(void)
+{
     /* Check if we should stop or continue running. */
-    while(atomic_load(&map->stop) == FALSE)
+    while(atomic_flag_test_and_set(&map->stop) == false)
     {
         /* Check if we have the right number of children processes running, if not create a new one. */
         if(map->running_children < map->number_of_children)
@@ -55,15 +66,6 @@ static void start_main_loop(void)
     return;
 }
 
-static void ctrlc_handler(int sig)
-{
-
-    sig = 0; // We do this to temprorarly silence a unused parameter warning.
-    shutdown();
-    
-    return;
-}
-
 static void setup_signal_handler(void)
 {
     (void) signal(SIGINT, ctrlc_handler);
@@ -78,6 +80,30 @@ static int start_network_mode_runtime(void)
 
 static int start_syscall_mode_runtime(void)
 {
+    
+    map->runloop_pid = fork();
+    if(map->runloop_pid == 0)
+    {
+        start_main_syscall_loop();
+    }
+    else if(map->runloop_pid > 0)
+    {
+        int status;
+
+        waitpid(map->runloop_pid, &status, 0);
+
+        waitpid(map->reaper_pid, &status, 0);
+
+        output(STD, "Exiting\n");
+
+        return 0;
+    }
+    else
+    {
+        output(ERROR, "runloop fork failed: %s\n", strerror(errno));
+        return -1;
+    }
+
     return 0;
 }
 
@@ -86,7 +112,7 @@ static int start_file_mode_runtime(void)
     map->runloop_pid = fork();
     if(map->runloop_pid == 0)
     {
-        start_main_loop();
+        start_main_file_loop();
     }
     else if(map->runloop_pid > 0)
     {
@@ -218,7 +244,8 @@ int start_runtime(void)
 int shutdown(void)
 {
     /* Set the atomic flag so that other processes know to start their shutdown procedure. */
-    compare_and_swap_loop(map->stop, TRUE);
+    //compare_and_swap_loop(map->stop, TRUE);
+    atomic_flag_test_and_set(&map->stop);
 
     return 0;
 }

@@ -66,7 +66,7 @@ struct shared_map
     char *crypto_method;
     bool crypto_flag;
 
-    atomic_bool stop;
+    atomic_flag stop;
 
     unsigned int running_children;
     unsigned int number_of_children;
