@@ -50,7 +50,7 @@ static void start_main_file_loop(void)
     /* Check if we should stop or continue running. */
     while(atomic_flag_test_and_set(&map->stop) == false)
     {
-        /* Check if we have the right number of children processes running, if not create a new one. */
+        /* Check if we have the right number of children processes running, if not create a new ones until we do. */
         if(map->running_children < map->number_of_children)
         {
             /* Create children process. */
@@ -187,13 +187,13 @@ int setup_runtime(void)
     /* This function sets up the other crypto functions and crypto library.  */
     setup_crypto();
 
-    /* Now let's start the reaper process, so it can clean up misbehaving processes. */
+    /* Now let's start the reaper process, so it can clean up misbehaving processes. 
     rtrn = setup_and_run_reaper();
     if(rtrn < 0)
     {
         output(ERROR, "Can't set up the reaper\n");
         return -1;
-    }
+    } */
 
     /* We are done doing common init work now we call the specific init routines. */ 
     switch((int)map->mode)
@@ -209,6 +209,10 @@ int setup_runtime(void)
         case MODE_SYSCALL:
             setup_syscall_mode_runtime();
             break;
+
+        default:
+            output(ERROR, "Unknown fuzzing mode\n");
+            return -1;
     }
 
     return 0;

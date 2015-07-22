@@ -186,6 +186,8 @@ static int sha512(char *input, char **output)
 /*  */
 static int seed_prng(void)
 {
+    output(STD, "Seeding PRNG\n");
+
     /* The variables used in seedPrng(). */
     int rtrn, randomFd;
     unsigned int bufLen, iterations, i;
@@ -308,6 +310,8 @@ static int seed_prng(void)
 
 int setup_crypto(void)
 {
+    output(STD, "Setting up crypto\n");
+
 	int rtrn;
 
     /* Check if the user want's to use a non crypto graphic random number generator. */

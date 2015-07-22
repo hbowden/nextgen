@@ -89,6 +89,8 @@ static int parse_cmd_line(int argc, char *argv[])
                     return -1;
                 }
 
+                printf("origExec: %p\n", map->path_to_exec);
+
                 eFlag = TRUE;
                 break;
 
@@ -220,24 +222,34 @@ static int check_root(void)
     return -1;
 }
 
-static int intit_shared_mapping(struct shared_map *mapping)
+static int intit_shared_mapping(struct shared_map **mapping)
 {
     int rtrn;
 
     /* Memory map the file as shared memory so we can share it with other processes. */
-    rtrn = create_shared((void **)&mapping, sizeof(struct shared_map));
+    rtrn = create_shared((void **)mapping, sizeof(struct shared_map));
     if(rtrn < 0)
     {
         output(ERROR, "Can't create shared object.\n");
         return -1;
     }
 
+    unsigned int core_count;
+    rtrn = get_core_count(&core_count);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't get core count\n");
+        return -1;
+    }
+
+    (*mapping)->number_of_children = core_count;
+
     /* Set the stop flag to FALSE, when set to TRUE all processes start their exit routines. */
-    atomic_flag_clear(&mapping->stop);
+    atomic_flag_clear(&(*mapping)->stop);
 
     /* Create the child process structures. */
-    map->children = malloc(mapping->number_of_children * sizeof(struct child_ctx *));
-    if(map->children == NULL)
+    (*mapping)->children = malloc((*mapping)->number_of_children * sizeof(struct child_ctx *));
+    if((*mapping)->children == NULL)
     {
         output(ERROR, "Can't create children object.\n");
         return -1;
@@ -245,17 +257,17 @@ static int intit_shared_mapping(struct shared_map *mapping)
 
     unsigned int i;
 
-    for(i = 0; i < mapping->number_of_children; i++)
+    for(i = 0; i < (*mapping)->number_of_children; i++)
     {
         struct child_ctx *child;
 
         create_shared((void **)&child, sizeof(struct child_ctx));
 
-        mapping->children[i] = child;
+        (*mapping)->children[i] = child;
         
         child->pid = EMPTY;
     }
-
+    
     return 0;
 
 }
@@ -263,7 +275,10 @@ static int intit_shared_mapping(struct shared_map *mapping)
 /**
  * Main is the entry point to nextgen. In main we check for root, unfortunetly we need root to execute.
  * This is because we have to use dtrace, as well as bypass sandboxes, inject code into processes and 
- * other activities that require root access.
+ * other activities that require root access. We then create shared memory so we can share information
+ * between processes. Next we parse the command line for user arguments and we stick the results in the
+ * shared memory map. After parsing we set up the enviroment to the user's specfications and then finnaly
+ * start the runtime, ie start fuzzing.
  **/
 int main(int argc, char *argv[])
 {
@@ -278,7 +293,7 @@ int main(int argc, char *argv[])
     }
 
     /* Create a shared memory map so that we can share state with other threads and procceses. */
-    rtrn = intit_shared_mapping(map);
+    rtrn = intit_shared_mapping(&map);
     if(rtrn < 0)
     {
         output(ERROR, "Can't initialize.\n");
