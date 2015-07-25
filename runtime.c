@@ -48,7 +48,7 @@ static void start_main_syscall_loop(void)
 static void start_main_file_loop(void)
 {
     /* Check if we should stop or continue running. */
-    while(atomic_flag_test_and_set(&map->stop) == false)
+    while(atomic_load(&map->stop) == FALSE)
     {
         /* Check if we have the right number of children processes running, if not create a new ones until we do. */
         if(map->running_children < map->number_of_children)
@@ -80,7 +80,6 @@ static int start_network_mode_runtime(void)
 
 static int start_syscall_mode_runtime(void)
 {
-    
     map->runloop_pid = fork();
     if(map->runloop_pid == 0)
     {
@@ -140,6 +139,9 @@ static int setup_file_mode_runtime(void)
     /* Lets parse the binary and figure out the virtual memory address it's going to be loaded at. */
     get_load_address();
 
+    /* Announce address we will be injecting code into. */
+    output(STD, "Target executable's start address: Ox%x\n", map->exec_ctx->main_start_address);
+
      /* Now inject dtrace probes into the target process. We will use these probes to calculate
      the code coverage of fuzzing proccess. We must do this before injecting the fork server so we can
      avoid injecting probes on each fork(). */
@@ -176,24 +178,16 @@ int setup_runtime(void)
      then we call the init function for the selected fuzzing. */
     int rtrn;
 
-    /* Create executable context structure. */
-    map->exec_ctx = malloc(sizeof(struct executable_context));
-    if(map->exec_ctx == NULL)
-    {
-        output(ERROR, "Can't malloc space for exec_ctx: %s\n", strerror(errno));
-        return -1;
-    }
-
     /* This function sets up the other crypto functions and crypto library.  */
     setup_crypto();
 
-    /* Now let's start the reaper process, so it can clean up misbehaving processes. 
+    /* Now let's start the reaper process, so it can clean up misbehaving processes. */
     rtrn = setup_and_run_reaper();
     if(rtrn < 0)
     {
         output(ERROR, "Can't set up the reaper\n");
         return -1;
-    } */
+    }
 
     /* We are done doing common init work now we call the specific init routines. */ 
     switch((int)map->mode)
@@ -248,8 +242,7 @@ int start_runtime(void)
 int shutdown(void)
 {
     /* Set the atomic flag so that other processes know to start their shutdown procedure. */
-    //compare_and_swap_loop(map->stop, TRUE);
-    atomic_flag_test_and_set(&map->stop);
+    compare_and_swap_loop(&map->stop, TRUE);
 
     return 0;
 }

@@ -89,8 +89,6 @@ static int parse_cmd_line(int argc, char *argv[])
                     return -1;
                 }
 
-                printf("origExec: %p\n", map->path_to_exec);
-
                 eFlag = TRUE;
                 break;
 
@@ -222,11 +220,15 @@ static int check_root(void)
     return -1;
 }
 
+
+/**
+ * We use this function to allocate a struct as shared memory and to initialize all the values.
+ **/
 static int intit_shared_mapping(struct shared_map **mapping)
 {
     int rtrn;
 
-    /* Memory map the file as shared memory so we can share it with other processes. */
+    /* Memory map the file as shared anonymous memory so we can share it with other processes. */
     rtrn = create_shared((void **)mapping, sizeof(struct shared_map));
     if(rtrn < 0)
     {
@@ -235,17 +237,31 @@ static int intit_shared_mapping(struct shared_map **mapping)
     }
 
     unsigned int core_count;
+
+    /* Grab the core count. */
     rtrn = get_core_count(&core_count);
     if(rtrn < 0)
     {
         output(ERROR, "Can't get core count\n");
         return -1;
     }
-
+    
+    /* Set the number of child processes to the number of cores detected. */
     (*mapping)->number_of_children = core_count;
 
-    /* Set the stop flag to FALSE, when set to TRUE all processes start their exit routines. */
-    atomic_flag_clear(&(*mapping)->stop);
+    /* Set running children to zero. */
+    (*mapping)->running_children = 0;
+
+    /* Set the stop flag to FALSE, when set to TRUE all processes start their exit routines and eventually exit. */
+    atomic_init(&(*mapping)->stop, FALSE);
+
+    /* Allocate the executable context object. */
+    rtrn = create_shared((void **)&map->exec_ctx, sizeof(struct executable_context));
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't create shared object\n");
+        return -1;
+    }
 
     /* Create the child process structures. */
     (*mapping)->children = malloc((*mapping)->number_of_children * sizeof(struct child_ctx *));
@@ -257,11 +273,17 @@ static int intit_shared_mapping(struct shared_map **mapping)
 
     unsigned int i;
 
+    /* Loop for each child and allocate the child context object as shared anonymous memory. */
     for(i = 0; i < (*mapping)->number_of_children; i++)
     {
         struct child_ctx *child;
 
-        create_shared((void **)&child, sizeof(struct child_ctx));
+        rtrn = create_shared((void **)&child, sizeof(struct child_ctx));
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't create shared object\n");
+            return -1;
+        }
 
         (*mapping)->children[i] = child;
         

@@ -46,6 +46,7 @@ struct executable_context
 
     unsigned long number_of_branchs;
 
+    /* The arguments to pass to the target executable. */
     char *args[];
 };
 
@@ -58,18 +59,23 @@ struct shared_map
     char *path_to_out_dir;
     char *path_to_exec;
 
+    /* Here is where we keep data about the executable we are fuzzing. */
     struct executable_context *exec_ctx;
 
+    /* The pids of our helper processes. */
     pid_t reaper_pid;
     pid_t runloop_pid;
 
+    /* These variables let us know how to derive our random numbers. */
     char *crypto_method;
     bool crypto_flag;
 
-    atomic_flag stop;
+    /* An atomic value used to tell the processes whether to run or not. */
+    atomic_bool stop;
 
     unsigned int running_children;
     unsigned int number_of_children;
+    
     struct child_ctx **children;
 };
 

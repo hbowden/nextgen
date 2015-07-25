@@ -22,7 +22,7 @@
 
 #include <stdint.h>
 
-private extern int disas_executable(void);
+private extern int disas_executable_and_examine(void);
 
 private extern int get_load_address(void);
 

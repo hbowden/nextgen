@@ -63,8 +63,6 @@ int get_load_address(void)
     Elf *elf = NULL;
     int fd, rtrn;
 
-    printf("exec: %s\n", map->path_to_exec);
-
     /* Open the file. */
     fd = open(map->path_to_exec, O_RDONLY);
     if(fd < 0)
@@ -119,7 +117,7 @@ int get_load_address(void)
 }
 #endif
 
-int disas_executable(void)
+int disas_executable_and_examine(void)
 {
     int fd, rtrn;
     char *file_buffer;

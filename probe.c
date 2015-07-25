@@ -128,7 +128,7 @@ int inject_fork_server(void)
         /* Lets grab the registers at main/breakpoint .*/
         ptrace(PT_GETREGS, map->exec_ctx->pid, (caddr_t)&regs, 0);
 
-        printf("rax: %lu\n", regs.r_rax);
+        printf("rax: Ox%lx\n", regs.r_rax);
 
         /* Now we have to */
 
@@ -185,7 +185,7 @@ int inject_probes(void)
     }
 
     /* Get the end virtual memory address for the binary. */
-    disas_executable();
+    disas_executable_and_examine();
 
     /*
      * Set our buffer size and aggregation buffer size to the de facto
