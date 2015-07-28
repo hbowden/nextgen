@@ -156,12 +156,6 @@ static char *create_dtrace_script(uint64_t end_address_offset)
         return NULL;
     }
 
-    /* We can't loop in dtrace so we will unroll our script loop. */
-    while(1)
-    {
-        
-    }
-
     return script;
 }
 

@@ -54,10 +54,10 @@ static void start_main_file_loop(void)
         if(map->running_children < map->number_of_children)
         {
             /* Create children process. */
-            create_children();
+            create_file_children();
 
             /* Make sure the child struct is setup properly. */
-            manage_children();
+            manage_file_children();
         }
         
         output(STD, "Exiting main loop\n");
@@ -136,8 +136,15 @@ static int start_file_mode_runtime(void)
 
 static int setup_file_mode_runtime(void)
 {
+    int rtrn;
+
     /* Lets parse the binary and figure out the virtual memory address it's going to be loaded at. */
-    get_load_address();
+    rtrn = get_load_address();
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't get load address for target executable\n");
+        return -1;
+    }
 
     /* Announce address we will be injecting code into. */
     output(STD, "Target executable's start address: Ox%x\n", map->exec_ctx->main_start_address);
@@ -145,14 +152,24 @@ static int setup_file_mode_runtime(void)
      /* Now inject dtrace probes into the target process. We will use these probes to calculate
      the code coverage of fuzzing proccess. We must do this before injecting the fork server so we can
      avoid injecting probes on each fork(). */
-    inject_probes();
+    rtrn = inject_probes();
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't inject instrumentation probes\n");
+        return -1;
+    }
     
     /* Inject the fork server. One can learn more about the fork server idea at:
     http://lcamtuf.blogspot.com/2014/10/fuzzing-binaries-without-execve.html .
     We use the fork server so that we can avoid the cost of dtrace probe injection and execv
     calls on each fuzz test. This implementation of the fork server use's ptrace as opposed to
     a custom C/C++ compiler like the orignal implementation. */
-    inject_fork_server();
+    rtrn = inject_fork_server();
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't inject fork server\n");
+        return -1;
+    }
 
     /* Lets set up the signal handler for the main process. */
     setup_signal_handler();
@@ -179,7 +196,12 @@ int setup_runtime(void)
     int rtrn;
 
     /* This function sets up the other crypto functions and crypto library.  */
-    setup_crypto();
+    rtrn = setup_crypto();
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't set up crypto\n");
+        return -1;
+    }
 
     /* Now let's start the reaper process, so it can clean up misbehaving processes. */
     rtrn = setup_and_run_reaper();
@@ -193,15 +215,30 @@ int setup_runtime(void)
     switch((int)map->mode)
     {
         case MODE_FILE:
-            setup_file_mode_runtime();
+            rtrn = setup_file_mode_runtime();
+            if(rtrn < 0)
+            {
+                output(ERROR, "Can't setup file mode runtime\n");
+                return -1;
+            }
             break;
 
         case MODE_NETWORK:
-            setup_network_mode_runtime();
+            rtrn = setup_network_mode_runtime();
+            if(rtrn < 0)
+            {
+                output(ERROR, "Can't setup network mode runtime\n");
+                return -1;
+            }
             break;
 
         case MODE_SYSCALL:
-            setup_syscall_mode_runtime();
+            rtrn = setup_syscall_mode_runtime();
+            if(rtrn < 0)
+            {
+                output(ERROR, "Can't setup syscall mode runtime\n");
+                return -1;
+            }
             break;
 
         default:

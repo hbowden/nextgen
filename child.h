@@ -19,7 +19,6 @@
 #define CHILD_H
 
 #include "private.h"
-
 #include <unistd.h>
 
 struct child_ctx
@@ -27,10 +26,8 @@ struct child_ctx
     pid_t pid;
 };
 
-private extern void create_children(void);
+private extern void create_file_children(void);
 
-private extern void manage_children(void);
-
-//private extern 
+private extern void manage_file_children(void);
 
 #endif

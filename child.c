@@ -17,12 +17,12 @@
 
 #include "child.h"
 
-void create_children(void)
+void create_file_children(void)
 {
 	return;
 }
 
-void manage_children(void)
+void manage_file_children(void)
 {
 	return;
 }
