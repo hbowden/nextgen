@@ -15,34 +15,9 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#ifndef ENTRY_H
-#define ENTRY_H
+#ifndef ARG_TYPES_H
+#define ARG_TYPES_H
 
-#include "nextgen.h"
-
-#include <stdbool.h>
-
-#define ON TRUE
-#define OFF FALSE
-
-#define YES TRUE
-#define NO FALSE
-
-struct syscall_entry
-{
-    char *name_of_syscall;
-    bool status;
-    bool need_alarm;
-    bool requires_root;
-
-    unsigned int number_of_args;
-    unsigned int entry_number;
-
-    unsigned long arg_value_index[7];
-    int arg_type_index[7];
-    int (*arg_get_index[7])(unsigned long);
-
-    unsigned long return_value;
-};
+enum arg_types { FILE_DESC, VOID_BUFF, SIZE_T };
 
 #endif

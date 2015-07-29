@@ -15,34 +15,16 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#ifndef ENTRY_H
-#define ENTRY_H
+#include "syscall_list.h"
 
-#include "nextgen.h"
+struct syscall_entry entry_read = {
 
-#include <stdbool.h>
+    .name = "read",
+    .number_of_args = 3,
+    .status = OFF,
+    .requires_root = NO,
+    .need_alarm = YES,
 
-#define ON TRUE
-#define OFF FALSE
+    .arg_type_index[0] = 
 
-#define YES TRUE
-#define NO FALSE
-
-struct syscall_entry
-{
-    char *name_of_syscall;
-    bool status;
-    bool need_alarm;
-    bool requires_root;
-
-    unsigned int number_of_args;
-    unsigned int entry_number;
-
-    unsigned long arg_value_index[7];
-    int arg_type_index[7];
-    int (*arg_get_index[7])(unsigned long);
-
-    unsigned long return_value;
-};
-
-#endif
+}

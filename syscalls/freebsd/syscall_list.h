@@ -19,6 +19,7 @@
 #define SYSCALL_LIST_H
 
 #include "../../private.h"
+#include "../../arg_types.h"
 
 private extern struct syscall_entry entry_read;
 
