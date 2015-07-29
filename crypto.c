@@ -33,8 +33,8 @@ static int (*rand_range_pointer)(unsigned int range, int *number);
 
 static int rand_range_no_crypto(unsigned int range, int *number)
 {
-	*number = (int) rand() % range + 1;
-	return 0;
+    *number = (int) rand() % range + 1;
+    return 0;
 }
 
 static int rand_range_crypto(unsigned int range, int *number)
@@ -83,7 +83,7 @@ static int rand_range_crypto(unsigned int range, int *number)
     	return -1;
     }
 
-	return 0;
+    return 0;
 }
 
 static int setup_rand_range(char *method)
@@ -101,7 +101,8 @@ static int setup_rand_range(char *method)
     	output(ERROR, "Bad argument to crypto option, try again\n");
     	return -1;
     }
-	return 0;
+    
+    return 0;
 }
 
 int rand_range(unsigned int range, int *number)
@@ -138,7 +139,7 @@ static int setup_hardware_acceleration(void)
         return -1;
     }
     
-	return 0;
+    return 0;
 }
 
 static int sha512(char *input, char **output)
@@ -312,27 +313,27 @@ int setup_crypto(void)
 {
     output(STD, "Setting up crypto\n");
 
-	int rtrn;
+    int rtrn;
 
     /* Check if the user want's to use a non crypto graphic random number generator. */
-	if(map->crypto_flag == TRUE)
-	{
+    if(map->crypto_flag == TRUE)
+    {
         /* Pass the crypto method the user want's to setup_rand_range(). */
         rtrn = setup_rand_range(map->crypto_method);
         if(rtrn < 0)
         {
-        	output(ERROR,"Can't setup random range function.\n");
-        	return -1;
+            output(ERROR,"Can't setup random range function.\n");
+            return -1;
         }
-	}
-	else
-	{
+    }
+    else
+    {
         /* We default to a crytographic random number generator. */
-		rtrn = setup_rand_range((char *)"crypto");
+        rtrn = setup_rand_range((char *)"crypto");
         if(rtrn < 0)
         {
-        	output(ERROR,"Can't setup random range function.\n");
-        	return -1;
+            output(ERROR,"Can't setup random range function.\n");
+            return -1;
         }
 
         /* Check for hardware crypto accelators and use them if present, otherwise use
@@ -340,12 +341,13 @@ int setup_crypto(void)
         rtrn = setup_hardware_acceleration();
         switch(rtrn)
         {
-        	case 0: output(STD, "Using hardware crypto accelerator\n"); break;
+            case 0: output(STD, "Using hardware crypto accelerator\n"); break;
 
-        	case 1: output(STD, "Switching to /dev/urandom \n"); return seed_prng();
+            case 1: output(STD, "Switching to /dev/urandom \n"); return seed_prng();
 
-        	default: output(ERROR, "Error while trying to setup hardware acceleration\n"); return -1;
+            default: output(ERROR, "Error while trying to setup hardware acceleration\n"); return -1;
         }  
-	}
-	return 0;
+    }
+    
+    return 0;
 }
