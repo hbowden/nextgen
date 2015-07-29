@@ -16,7 +16,15 @@
  **/
 
 #include "shim.h"
+#include "utils.h"
 #include "nextgen.h"
+#include "freebsd_syscall_table.h"
+
+#include <gelf.h>
+#include <string.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 struct syscall_table *get_table(void)
 {

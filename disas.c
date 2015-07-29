@@ -32,6 +32,8 @@ int get_load_address(void)
 {
     /* Call the platform specific get_load_address() function.  */
     _get_load_address();
+
+    return 0;
 }
 
 int disas_executable_and_examine(void)

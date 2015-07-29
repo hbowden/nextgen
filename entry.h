@@ -30,17 +30,12 @@
 
 struct syscallEntry
 {
-    unsigned int numberOfArgs;
-    int entryNumber;
-    char *nameOfSyscall;
+    unsigned int number_of_args;
+    int entry_number;
+    char *name_of_syscall;
     bool status;
-    bool needAlarm;
-    bool requiresRoot;
-    
-    int argTypeIndex[7];
-    char *argNameIndex[7];
-    int (*callSyscall)(argumentEntry *);
-    char * (*decode)(argumentEntry *entry, unsigned int argnum);
+    bool need_alarm;
+    bool requires_root;
 };
 
 #endif

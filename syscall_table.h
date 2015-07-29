@@ -23,7 +23,7 @@ struct syscall_table
     int number_of_syscalls;
     struct syscall_entry *sys_entry;
     
-}syscall_table;
+};
 
 private extern struct syscall_table freebsd_syscall_table[];
 

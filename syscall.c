@@ -7,7 +7,7 @@
 void get_syscall_table(void)
 {
 	/* Set the syscall table with the operating specific get_table() function. */
-    map->table = get_table();
+    map->sys_table = get_table();
 
 	return;
 }

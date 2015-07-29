@@ -18,7 +18,7 @@
 #ifndef SYSCALL_LIST_H
 #define SYSCALL_LIST_H
 
-#include "private.h"
+#include "../../private.h"
 
 private extern struct syscall_entry entry_read;
 

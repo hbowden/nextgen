@@ -21,7 +21,7 @@
 #include "syscall_list.h"
 #include "syscall_table.h"
 
-struct syscallTable freebsd_syscall_table[] = {
+struct syscall_table freebsd_syscall_table[] = {
     
     { .number_of_syscalls = 11 },
     { .sys_entry = &entry_read },

@@ -17,6 +17,7 @@
 
 #include "runtime.h"
 #include "network.h"
+#include "syscall.h"
 #include "child.h"
 #include "utils.h"
 #include "crypto.h"
@@ -235,12 +236,7 @@ static int setup_syscall_mode_runtime(void)
     }
 
     /* Grab the system call table for the operating system we are running on. */
-    rtrn = get_syscall_table();
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't get system call table\n");
-        return -1;
-    }
+    get_syscall_table();
 
     /* Set up the signal handler for the main process. */
     setup_signal_handler();

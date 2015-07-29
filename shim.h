@@ -19,6 +19,7 @@
 #define SHIM_H
 
 #include "private.h"
+#include "syscall_table.h"
 
 #ifdef FREEBSD
 
@@ -28,6 +29,6 @@
 
 private extern struct syscall_table *get_table(void);
 
-private extern _get_load_address(void);
+private extern int _get_load_address(void);
 
 #endif
