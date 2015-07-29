@@ -15,23 +15,19 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#ifndef CHILD_H
-#define CHILD_H
+#ifndef SHIM_H
+#define SHIM_H
 
 #include "private.h"
-#include <unistd.h>
 
-struct child_ctx
-{
-    pid_t pid;
-};
+#ifdef FREEBSD
 
-private extern void create_syscall_children(void);
+#include "freebsd_syscall_table.h"
 
-private extern void manage_syscall_children(void);
+#endif
 
-private extern void create_file_children(void);
+private extern struct syscall_table *get_table(void);
 
-private extern void manage_file_children(void);
+private extern _get_load_address(void);
 
 #endif

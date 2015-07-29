@@ -20,6 +20,6 @@
 
 #include "private.h"
 
-
+private extern int start_socket_server(void);
 
 #endif

@@ -19,6 +19,7 @@
 #define NEXTGEN_H
 
 #include "child.h"
+#include "syscall_table.h"
 
 #include <unistd.h>
 #include <stdlib.h>
@@ -65,6 +66,7 @@ struct shared_map
     /* The pids of our helper processes. */
     pid_t reaper_pid;
     pid_t runloop_pid;
+    pid_t socket_server_pid;
 
     /* These variables let us know how to derive our random numbers. */
     char *crypto_method;
@@ -75,6 +77,10 @@ struct shared_map
 
     /* If this mode is TRUE then we don't use the binary feedback and genetic algorithm. */
     bool dumb_mode;
+
+    struct syscall_table *sys_table;
+
+    int socket_server_port;
 
     unsigned int running_children;
     unsigned int number_of_children;

@@ -15,23 +15,32 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#ifndef CHILD_H
-#define CHILD_H
+#ifndef ENTRY_H
+#define ENTRY_H
 
-#include "private.h"
-#include <unistd.h>
+#include "nextgen.h"
 
-struct child_ctx
+#include <stdbool.h>
+
+#define ON TRUE
+#define OFF FALSE
+
+#define YES TRUE
+#define NO FALSE
+
+struct syscallEntry
 {
-    pid_t pid;
+    unsigned int numberOfArgs;
+    int entryNumber;
+    char *nameOfSyscall;
+    bool status;
+    bool needAlarm;
+    bool requiresRoot;
+    
+    int argTypeIndex[7];
+    char *argNameIndex[7];
+    int (*callSyscall)(argumentEntry *);
+    char * (*decode)(argumentEntry *entry, unsigned int argnum);
 };
-
-private extern void create_syscall_children(void);
-
-private extern void manage_syscall_children(void);
-
-private extern void create_file_children(void);
-
-private extern void manage_file_children(void);
 
 #endif

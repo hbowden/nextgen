@@ -59,8 +59,7 @@ static int parse_cmd_line(int argc, char *argv[])
 {
     int ch, rtrn;
     int iFlag = FALSE, oFlag = FALSE, fFlag = FALSE, nFlag = FALSE, 
-    sFlag = FALSE, eFlag = FALSE, pFlag = FALSE, aFlag = FALSE, tFlag = FALSE,
-    dFlag = FALSE;
+    sFlag = FALSE, eFlag = FALSE, pFlag = FALSE, aFlag = FALSE, tFlag = FALSE;
 
     while((ch = getopt_long(argc, argv, optstring, longopts, NULL)) != -1)
     {
@@ -244,8 +243,18 @@ static int intit_shared_mapping(struct shared_map **mapping)
         return -1;
     }
 
+     /* Allocate the system call table. */
+    rtrn = create_shared((void **)&map->sys_table, sizeof(struct syscall_table));
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't create shared object\n");
+        return -1;
+    }
+
     /* We default to dumb_mode being off. */
-    map->dumb_mode = FALSE;
+    (*mapping)->dumb_mode = FALSE;
+
+    (*mapping)->socket_server_port = 0;
 
     unsigned int core_count;
 

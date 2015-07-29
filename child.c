@@ -27,6 +27,49 @@ static void start_file_child(void)
 	return;
 }
 
+static void start_syscall_child(void)
+{
+	return;
+}
+
+void create_syscall_children(void)
+{
+	/* Walk the child structure and find the first empty child slot. */
+	unsigned int i;
+	unsigned int number_of_children = map->number_of_children;
+
+	for(i = 0; i < number_of_children; i++)
+	{
+		/* If the child has a pid of EMPTY let's create a new one. */
+		if(map->children[i]->pid == EMPTY)
+		{
+            map->children[i]->pid = fork();
+            if(map->runloop_pid == 0)
+            {
+            	/* Start the child main loop. */
+                start_syscall_child();
+            }
+            else if(map->runloop_pid > 0)
+            {
+               /* This is the parent process, so let's keep looping. */
+                continue;
+            
+            }
+            else
+            {
+                output(ERROR, "Can't create child process: %s\n", strerror(errno));
+                return;
+            }
+		}
+	}
+	return;
+}
+
+void manage_syscall_children(void)
+{
+	return;
+}
+
 void create_file_children(void)
 {
 	/* Walk the child structure and find the first empty child slot. */

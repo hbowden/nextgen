@@ -1,5 +1,3 @@
-
-
 /**
  * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
  * 
@@ -15,23 +13,18 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#ifndef CHILD_H
-#define CHILD_H
+#ifndef SYSCALL_TABLE_H
+#define SYSCALL_TABLE_H
 
-#include "private.h"
-#include <unistd.h>
+#include "entry.h"
 
-struct child_ctx
+struct syscall_table
 {
-    pid_t pid;
-};
+    int number_of_syscalls;
+    struct syscall_entry *sys_entry;
+    
+}syscall_table;
 
-private extern void create_syscall_children(void);
-
-private extern void manage_syscall_children(void);
-
-private extern void create_file_children(void);
-
-private extern void manage_file_children(void);
+private extern struct syscall_table freebsd_syscall_table[];
 
 #endif

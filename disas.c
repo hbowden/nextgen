@@ -17,6 +17,7 @@
 
 #include "disas.h"
 #include "utils.h"
+#include "shim.h"
 #include "nextgen.h"
 
 #include <stdio.h>
@@ -24,98 +25,14 @@
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
-
 #include <inttypes.h>
 #include <capstone/capstone.h>
 
-#ifdef FREEBSD
-
-#include <gelf.h>
-
-#endif
-
-#ifdef MAC_OSX
-
-
-
-#endif
-
-#ifdef MAC_OSX
-/* This function looks up the address that main starts at
-in the target executable. On Mac OSX 10.8 and beyond this means
-looking at the mach-o header in the executable, and looking
-for LC_MAIN. The address at LC_MAIN is the address of _main
-in the target executable. */
-int get_load_address(char *path,  uint64_t *start_address)
-{
-   
-
-    return 0;
-}
-
-#endif
-
-#ifdef FREEBSD
-
 int get_load_address(void)
 {
-    GElf_Ehdr ehdr;
-    Elf *elf = NULL;
-    int fd, rtrn;
-
-    /* Open the file. */
-    fd = open(map->path_to_exec, O_RDONLY);
-    if(fd < 0)
-    {
-        output(ERROR, "open: %s\n", strerror(errno));
-        return -1;
-    }
-
-    rtrn = elf_version(EV_CURRENT);
-    if(rtrn == EV_NONE)
-    {
-        output(ERROR, "Can't init elf library: %s\n", elf_errmsg(elf_errno()));
-        return -1;
-    }
-
-   /* Let's read the file. */
-    elf = elf_begin(fd, ELF_C_READ, NULL);
-    if(elf == NULL)
-    {
-        output(ERROR, "Can't read an elf file: %s\n", elf_errmsg(elf_errno()));
-        return -1;
-    }
-
-    /* Let's make sure the file is a elf file. */
-    switch (elf_kind(elf))
-    {
-        case ELF_K_NONE:
-            output(ERROR, "Not a ELF file.\n");
-            return -1;
-
-        case ELF_K_ELF:
-            if(gelf_getehdr(elf, &ehdr) == NULL)
-            {
-                output(ERROR, "Can't rget elf header: %s\n", elf_errmsg(elf_errno()));
-                return -1;
-            }
-
-            map->exec_ctx->main_start_address = ehdr.e_entry;
-            
-            break;
-
-        case ELF_K_AR:
-            output(ERROR, "This is an archive not an executable.\n");
-            return -1;
-
-        default:
-            output(ERROR, "Unknown file type.\n");
-            return -1;
-    }
-    elf_end(elf);
-    return 0;
+    /* Call the platform specific get_load_address() function.  */
+    _get_load_address();
 }
-#endif
 
 int disas_executable_and_examine(void)
 {

@@ -15,23 +15,11 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#ifndef CHILD_H
-#define CHILD_H
+#ifndef SYSCALL_H
+#define SYSCALL_H
 
 #include "private.h"
-#include <unistd.h>
 
-struct child_ctx
-{
-    pid_t pid;
-};
-
-private extern void create_syscall_children(void);
-
-private extern void manage_syscall_children(void);
-
-private extern void create_file_children(void);
-
-private extern void manage_file_children(void);
+private extern void get_syscall_table(void);
 
 #endif

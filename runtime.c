@@ -16,6 +16,7 @@
  **/
 
 #include "runtime.h"
+#include "network.h"
 #include "child.h"
 #include "utils.h"
 #include "crypto.h"
@@ -108,6 +109,8 @@ static int start_syscall_mode_runtime(void)
 
         waitpid(map->reaper_pid, &status, 0);
 
+        waitpid(map->socket_server_pid, &status, 0);
+
         output(STD, "Exiting\n");
 
         return 0;
@@ -153,37 +156,45 @@ static int setup_file_mode_runtime(void)
 {
     int rtrn;
 
-    /* Lets parse the binary and figure out the virtual memory address it's going to be loaded at. */
-    rtrn = get_load_address();
-    if(rtrn < 0)
+    /* Check if the user want's dumb or smart mode. */
+    if(map->dumb_mode == FALSE)
     {
-        output(ERROR, "Can't get load address for target executable\n");
-        return -1;
-    }
+        /* Lets parse the binary and figure out the virtual memory address it's going to be loaded at. */
+        rtrn = get_load_address();
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't get load address for target executable\n");
+            return -1;
+        }
 
-    /* Announce address we will be injecting code into. */
-    output(STD, "Target executable's start address: Ox%x\n", map->exec_ctx->main_start_address);
+        /* Announce address we will be injecting code into. */
+        output(STD, "Target executable's start address: Ox%x\n", map->exec_ctx->main_start_address);
 
-     /* Now inject dtrace probes into the target process. We will use these probes to calculate
-     the code coverage of fuzzing proccess. We must do this before injecting the fork server so we can
-     avoid injecting probes on each fork(). */
-    rtrn = inject_probes();
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't inject instrumentation probes\n");
-        return -1;
-    }
+        /* Now inject dtrace probes into the target process. We will use these probes to calculate
+        the code coverage of fuzzing proccess. We must do this before injecting the fork server so we can
+        avoid injecting probes on each fork(). */
+        rtrn = inject_probes();
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't inject instrumentation probes\n");
+            return -1;
+        }
     
-    /* Inject the fork server. One can learn more about the fork server idea at:
-    http://lcamtuf.blogspot.com/2014/10/fuzzing-binaries-without-execve.html .
-    We use the fork server so that we can avoid the cost of dtrace probe injection and execv
-    calls on each fuzz test. This implementation of the fork server use's ptrace as opposed to
-    a custom C/C++ compiler like the orignal implementation. */
-    rtrn = inject_fork_server();
-    if(rtrn < 0)
+        /* Inject the fork server. One can learn more about the fork server idea at:
+        http://lcamtuf.blogspot.com/2014/10/fuzzing-binaries-without-execve.html .
+        We use the fork server so that we can avoid the cost of dtrace probe injection and execv
+        calls on each fuzz test. This implementation of the fork server use's ptrace as opposed to
+        a custom C/C++ compiler like the orignal implementation. */
+        rtrn = inject_fork_server();
+        if(rtrn < 0)
+        {
+           output(ERROR, "Can't inject fork server\n");
+           return -1;
+        }
+    }
+    else
     {
-        output(ERROR, "Can't inject fork server\n");
-        return -1;
+    
     }
 
     /* Lets set up the signal handler for the main process. */
@@ -199,6 +210,41 @@ static int setup_network_mode_runtime(void)
 
 static int setup_syscall_mode_runtime(void)
 {
+    int rtrn;
+
+    /* Check if the user want's dumb or smart mode. */
+    if(map->dumb_mode == FALSE)
+    {
+        /* Do init work specific to smart mode. */
+
+    }
+    else
+    {
+        /* Do init work specific to dumb mode. */
+        
+    }
+
+    /* Below is init work common to both smart and dumb mode. */
+
+    /* Start socket server. We use this to connect to, to create loopback sockets. */
+    rtrn = start_socket_server();
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't start socket server\n");
+        return -1;
+    }
+
+    /* Grab the system call table for the operating system we are running on. */
+    rtrn = get_syscall_table();
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't get system call table\n");
+        return -1;
+    }
+
+    /* Set up the signal handler for the main process. */
+    setup_signal_handler();
+
     return 0;
 }
 

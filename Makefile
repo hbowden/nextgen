@@ -1,5 +1,5 @@
 
-SOURCES = nextgen.c disas.c probe.c utils.c crypto.c runtime.c reaper.c child.c
+SOURCES = nextgen.c disas.c probe.c utils.c crypto.c runtime.c reaper.c child.c network.c syscall.c freebsd_shim.c
 
 OPERATING_SYSTEM = $(shell uname)
 
@@ -7,7 +7,7 @@ ifeq ($(OPERATING_SYSTEM), FreeBSD)
 
 CC = clang
 
-INCLUDES = -I/usr/src/cddl/compat/opensolaris/include -I/usr/local/include/ -I/usr/src/cddl/contrib/opensolaris/lib/libdtrace/common/ -I/usr/src/sys/cddl/compat/opensolaris -I/usr/src/sys/cddl/contrib/opensolaris/uts/common/ -I/usr/home/nah/distorm-read-only/include/distorm.h
+INCLUDES = -I/usr/src/cddl/compat/opensolaris/include -I/usr/local/include/ -I/usr/src/cddl/contrib/opensolaris/lib/libdtrace/common/ -I/usr/src/sys/cddl/compat/opensolaris -I/usr/src/sys/cddl/contrib/opensolaris/uts/common/ -I/usr/home/nah/distorm-read-only/include/distorm.h freebsd_syscall_table.h -Isyscalls/freebsd/
 
 LIBS = -lpthread -ldtrace -lproc -lctf -lelf -lz -lrtld_db -lpthread -lutil -lcrypto -lcapstone
 

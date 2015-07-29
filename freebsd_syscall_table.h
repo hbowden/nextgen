@@ -15,23 +15,27 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#ifndef CHILD_H
-#define CHILD_H
+#ifndef FREEBSD_SYSCALL_TABLE_H
+#define FREEBSD_SYSCALL_TABLE_H
 
-#include "private.h"
-#include <unistd.h>
+#include "syscall_list.h"
+#include "syscall_table.h"
 
-struct child_ctx
-{
-    pid_t pid;
+struct syscallTable freebsd_syscall_table[] = {
+    
+    { .number_of_syscalls = 11 },
+    { .sys_entry = &entry_read },
+    { .sys_entry = &entry_write },
+    { .sys_entry = &entry_open },
+    { .sys_entry = &entry_close },
+    { .sys_entry = &entry_wait4 },
+    { .sys_entry = &entry_link },
+    { .sys_entry = &entry_unlink },
+    { .sys_entry = &entry_chdir },
+    { .sys_entry = &entry_fchdir },
+    { .sys_entry = &entry_mknod },
+    { .sys_entry = &entry_getfsstat },
+    
 };
-
-private extern void create_syscall_children(void);
-
-private extern void manage_syscall_children(void);
-
-private extern void create_file_children(void);
-
-private extern void manage_file_children(void);
 
 #endif
