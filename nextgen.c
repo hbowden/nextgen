@@ -43,6 +43,7 @@ static struct option longopts[] = {
     { "address", required_argument, NULL, 'a'},
     { "protocol", required_argument, NULL, 'c'},
     { "help", 0, NULL, 'h'},
+    { "dumb", 0, NULL, 'd'},
     { NULL, 0, NULL, 0 }
 };
 
@@ -58,7 +59,8 @@ static int parse_cmd_line(int argc, char *argv[])
 {
     int ch, rtrn;
     int iFlag = FALSE, oFlag = FALSE, fFlag = FALSE, nFlag = FALSE, 
-    sFlag = FALSE, eFlag = FALSE, pFlag = FALSE, aFlag = FALSE, tFlag = FALSE;
+    sFlag = FALSE, eFlag = FALSE, pFlag = FALSE, aFlag = FALSE, tFlag = FALSE,
+    dFlag = FALSE;
 
     while((ch = getopt_long(argc, argv, optstring, longopts, NULL)) != -1)
     {
@@ -139,6 +141,12 @@ static int parse_cmd_line(int argc, char *argv[])
                 }
                 
                 map->crypto_flag = TRUE;
+
+                break;
+
+            case 'd':
+
+                map->dumb_mode = TRUE;
 
                 break;
 
@@ -235,6 +243,9 @@ static int intit_shared_mapping(struct shared_map **mapping)
         output(ERROR, "Can't create shared object.\n");
         return -1;
     }
+
+    /* We default to dumb_mode being off. */
+    map->dumb_mode = FALSE;
 
     unsigned int core_count;
 

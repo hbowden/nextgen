@@ -143,13 +143,18 @@ int inject_fork_server(void)
     return 0;
 }
 
-/* We use this function to create and return a dtrace script that sticks a probe every 5th address. */
-static char *create_dtrace_script(uint64_t end_address_offset)
+static char *create_dtrace_script(void)
 {
-    char *script = NULL;
-    int start_offset = 0;
+    
+    char *script = malloc(256);
+    if(script == NULL)
+    {
+        output(ERROR, "Can't malloc dprog\n");
+        return NULL;
+    }
 
-    int rtrn = asprintf(&script, "#!/usr/sbin/dtrace -s\n pid%d:::%d\n", map->exec_ctx->pid, start_offset);
+    /* Create dtrace script to instrument all instructon in the target process. */
+    int rtrn = sprintf(script, "pid%d:::", map->exec_ctx->pid);
     if(rtrn < 0)
     {
         output(ERROR, "Can't create dtrace script: %s\n", strerror(errno));
@@ -188,8 +193,8 @@ int inject_probes(void)
     (void) dtrace_setopt(dtrace_handle, "bufsize", "4m");
     (void) dtrace_setopt(dtrace_handle, "aggsize", "4m");
 
-    /* Lets create a dtrace script that inserts probes every 0x5 virtual address. */
-    char *dtrace_prog = create_dtrace_script(map->exec_ctx->end_offset);
+    /* Lets create a dtrace script that inserts probes at every instruction. */
+    char *dtrace_prog = create_dtrace_script();
     if(dtrace_prog == NULL)
     {
         output(ERROR, "Can't create dtrace script. \n");

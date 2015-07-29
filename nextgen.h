@@ -73,6 +73,9 @@ struct shared_map
     /* An atomic value used to tell the processes whether to run or not. */
     atomic_bool stop;
 
+    /* If this mode is TRUE then we don't use the binary feedback and genetic algorithm. */
+    bool dumb_mode;
+
     unsigned int running_children;
     unsigned int number_of_children;
     

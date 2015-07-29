@@ -42,6 +42,21 @@ static void ctrlc_handler(int sig)
 
 static void start_main_syscall_loop(void)
 {
+    /* Check if we should stop or continue running. */
+    while(atomic_load(&map->stop) == FALSE)
+    {
+        /* Check if we have the right number of children processes running, if not create a new ones until we do. */
+        if(map->running_children < map->number_of_children)
+        {
+            /* Create children process. */
+            create_syscall_children();
+
+            /* Make sure the child struct is setup properly. */
+            manage_syscall_children();
+        }
+        
+        output(STD, "Exiting main loop\n");
+    }
     return;
 }
 
