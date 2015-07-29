@@ -39,7 +39,7 @@ static int rand_range_no_crypto(unsigned int range, int *number)
 
 static int rand_range_crypto(unsigned int range, int *number)
 {
-	BIGNUM *random, *range1;
+    BIGNUM *random, *range1;
 
     random = BN_new();
     if(random == NULL)
