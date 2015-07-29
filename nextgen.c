@@ -19,6 +19,7 @@
 #include "utils.h"
 #include "crypto.h"
 #include "runtime.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
@@ -35,13 +36,13 @@ static struct option longopts[] = {
     { "in", required_argument, NULL, 'i' },
     { "out", required_argument, NULL, 'o' },
     { "exec", required_argument, NULL, 'e'},
-    { "file", 0, NULL, 'f'},
-    { "network", required_argument, NULL, 'n'},
-    { "syscall", required_argument, NULL, 's'},
     { "crypto", required_argument, NULL, 'c' },
     { "port", required_argument, NULL, 'p'},
     { "address", required_argument, NULL, 'a'},
     { "protocol", required_argument, NULL, 'c'},
+    { "file", 0, NULL, 'f'},
+    { "network", 0, NULL, 'n'},
+    { "syscall", 0, NULL, 's'},
     { "help", 0, NULL, 'h'},
     { "dumb", 0, NULL, 'd'},
     { NULL, 0, NULL, 0 }
@@ -226,7 +227,6 @@ static int check_root(void)
 
     return -1;
 }
-
 
 /**
  * We use this function to allocate a struct as shared memory and to initialize all the values.

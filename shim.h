@@ -21,12 +21,6 @@
 #include "private.h"
 #include "syscall_table.h"
 
-#ifdef FREEBSD
-
-#include "freebsd_syscall_table.h"
-
-#endif
-
 private extern struct syscall_table *get_table(void);
 
 private extern int _get_load_address(void);

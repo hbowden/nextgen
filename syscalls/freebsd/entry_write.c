@@ -17,12 +17,12 @@
 
 #include "syscall_list.h"
 
-struct syscall_entry entry_read = {
+struct syscall_entry entry_write = {
 
-    .name_of_syscall = "read",
+    .name_of_syscall = "write",
     .number_of_args = 3,
     .status = OFF,
     .requires_root = NO,
-    .need_alarm = YES
+    .need_alarm = NO
 
 };

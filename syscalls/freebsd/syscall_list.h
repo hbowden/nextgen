@@ -20,6 +20,10 @@
 
 #include "../../private.h"
 #include "../../arg_types.h"
+#include "../../entry.h"
+
+/* FreeBSD's system call list. This file declares all the syscalls entries
+on the FreeBSD platform. These syscall entries tell us how to fuzz each syscall on the system.  */
 
 private extern struct syscall_entry entry_read;
 
@@ -43,62 +47,64 @@ private extern struct syscall_entry entry_fchdir;
 
 private extern struct syscall_entry entry_mknod;
 
+private extern struct syscall_entry entry_chmod;
+
 private extern struct syscall_entry entry_getfsstat;
 
 private extern struct syscall_entry entry_lseek;
 
 private extern struct syscall_entry entry_mount;
 
-private extern struct syscall_entry entryUnmount;
+private extern struct syscall_entry entry_unmount;
 
-private extern struct syscall_entry entrySetuid;
+private extern struct syscall_entry entry_setuid;
 
-private extern struct syscall_entry entryPtrace;
+private extern struct syscall_entry entry_ptrace;
 
-private extern struct syscall_entry entryRecvmsg;
+private extern struct syscall_entry entry_recvmsg;
 
-private extern struct syscall_entry entrySendmsg;
+private extern struct syscall_entry entry_sendmsg;
 
-private extern struct syscall_entry entryRecvfrom;
+private extern struct syscall_entry entry_recvfrom;
 
-private extern struct syscall_entry entryAccept;
+private extern struct syscall_entry entry_accept;
 
-private extern struct syscall_entry entryGetPeername;
+private extern struct syscall_entry entry_getpeername;
 
-private extern struct syscall_entry entryGetSockname;
+private extern struct syscall_entry entry_getsockname;
 
-private extern struct syscall_entry entryAccess;
+private extern struct syscall_entry entry_access;
 
-private extern struct syscall_entry entryChflags;
+private extern struct syscall_entry entry_chflags;
 
-private extern struct syscall_entry entryFchflags;
+private extern struct syscall_entry entry_fchflags;
 
-private extern struct syscall_entry entryKill;
+private extern struct syscall_entry entry_kill;
 
-private extern struct syscall_entry entryStat;
+private extern struct syscall_entry entry_stat;
 
-private extern struct syscall_entry entryLstat;
+private extern struct syscall_entry entry_lstat;
 
-private extern struct syscall_entry entryDup;
+private extern struct syscall_entry entry_dup;
 
-private extern struct syscall_entry entryProfil;
+private extern struct syscall_entry entry_profile;
 
-private extern struct syscall_entry entryKtrace;
+private extern struct syscall_entry entry_ktrace;
 
-private extern struct syscall_entry entrySigaction;
+private extern struct syscall_entry entry_sigaction;
 
-private extern struct syscall_entry entrySigProcMask;
+private extern struct syscall_entry entry_sigprocmask;
 
-private extern struct syscall_entry entryGetlogin;
+private extern struct syscall_entry entry_getlogin;
 
-private extern struct syscall_entry entrySetlogin;
+private extern struct syscall_entry entry_setlogin;
 
-private extern struct syscall_entry entryAcct;
+private extern struct syscall_entry entry_acct;
 
-private extern struct syscall_entry entrySigpending;
+private extern struct syscall_entry entry_sigpending;
 
-private extern struct syscall_entry entrySigaltstack;
+private extern struct syscall_entry entry_sigaltstack;
 
-private extern struct syscall_entry entryIoctl;
+private extern struct syscall_entry entry_ioctl;
 
 #endif

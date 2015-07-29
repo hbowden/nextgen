@@ -38,9 +38,8 @@ struct syscall_entry
     unsigned int number_of_args;
     unsigned int entry_number;
 
-    unsigned long arg_value_index[7];
     int arg_type_index[7];
-    int (*arg_get_index[7])(unsigned long);
+    int (*get_arg_index[7])(unsigned long *);
 
     unsigned long return_value;
 };

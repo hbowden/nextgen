@@ -44,6 +44,7 @@ private extern void output(enum out_type type, const char *format, ...);
 /* Get the core count of the system we are on. This will include virtual cores on hyperthreaded systems. */
 private extern int get_core_count(unsigned int *core_count);
 
+/* CAS loop for swapping atomic values. */ 
 private extern int compare_and_swap_loop(atomic_bool target, int value);
 
 #endif

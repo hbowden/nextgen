@@ -19,12 +19,33 @@
 #define CHILD_H
 
 #include "private.h"
+#include "syscall_table.h"
+
+#include <setjmp.h>
 #include <unistd.h>
 
 struct child_ctx
 {
+	/* The child's process PID. */
     pid_t pid;
+
+    /* A varible to store the address of where to jump back to in the child
+    process on signals. */
+    jmp_buf return_jump;
+
+    /* The child's copy of the syscall table. */
+    struct syscall_table *sys_table;
+
+    /* This is the number used to identify and choose the syscall that's going to be tested. */
+    unsigned int syscall_number;
+
+    /* This index is where we store the arguments we generate. */
+    unsigned long arg_value_index[7];
+
 };
+
+/* Use  */
+private extern int init_syscall_child(struct child_ctx *child);
 
 private extern void create_syscall_children(void);
 

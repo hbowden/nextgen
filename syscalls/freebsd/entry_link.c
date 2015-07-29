@@ -17,12 +17,12 @@
 
 #include "syscall_list.h"
 
-struct syscall_entry entry_read = {
+struct syscall_entry entry_link = {
 
-    .name_of_syscall = "read",
-    .number_of_args = 3,
+    .name_of_syscall = "link",
+    .number_of_args = 2,
     .status = OFF,
     .requires_root = NO,
-    .need_alarm = YES
+    .need_alarm = NO
 
 };

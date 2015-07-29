@@ -17,10 +17,37 @@
 
 #include "child.h"
 #include "utils.h"
+#include "syscall.h"
 #include "nextgen.h"
 
 #include <string.h>
 #include <errno.h>
+
+int init_syscall_child(struct child_ctx *child)
+{
+    
+    return 0;
+}
+
+static struct child_ctx *get_child_ctx(void)
+{
+    struct child_ctx *ctx = NULL;
+
+    unsigned int i;
+    unsigned int number_of_children = map->number_of_children;
+    int pid = getpid();
+
+    for(i = 0; i <number_of_children; i++)
+    {
+        if(map->children[i]->pid == pid)
+        {
+            ctx = map->children[i];
+            return ctx;
+        }
+    }
+
+    return ctx;
+}
 
 static void start_file_child(void)
 {
@@ -29,6 +56,46 @@ static void start_file_child(void)
 
 static void start_syscall_child(void)
 {
+    int rtrn;
+
+    /* grab the child_ctx struct for this child process. */
+    struct child_ctx *ctx = get_child_ctx();
+    if(ctx == NULL)
+    {
+        output(ERROR, "Can't grab child context\n");
+        return;
+    }
+
+    /* Set the return jump so that we can try fuzzing again on a signal. */
+    rtrn = setjmp(ctx->return_jump);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't set return jump\n");
+        return;
+    }
+
+    /* Check if we should stop or continue running. */
+    while(atomic_load(&map->stop) == FALSE)
+    {
+        /* Randomly pick the syscall to test. */
+        rtrn = pick_syscall(ctx);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't pick syscall to test\n");
+            return;
+        }
+
+        rtrn = generate_arguments(ctx);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't pick syscall to test\n");
+            return;
+        }
+
+
+
+    }
+
 	return;
 }
 
@@ -46,6 +113,9 @@ void create_syscall_children(void)
             map->children[i]->pid = fork();
             if(map->runloop_pid == 0)
             {
+                /* Initialize the new syscall child. */
+                init_syscall_child(map->children[i]);
+
             	/* Start the child main loop. */
                 start_syscall_child();
             }

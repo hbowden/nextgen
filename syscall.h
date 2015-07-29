@@ -19,7 +19,12 @@
 #define SYSCALL_H
 
 #include "private.h"
+#include "child.h"
 
 private extern void get_syscall_table(void);
+
+private extern int pick_syscall(struct child_ctx *ctx);
+
+private extern int generate_arguments(struct child_ctx *ctx);
 
 #endif
