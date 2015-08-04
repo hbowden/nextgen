@@ -16,6 +16,7 @@
  **/
 
 #include "runtime.h"
+#include "signal.h"
 #include "network.h"
 #include "syscall.h"
 #include "child.h"
@@ -33,15 +34,6 @@
 #include <stdio.h>
 #include <errno.h>
 
-static void ctrlc_handler(int sig)
-{
-
-    sig = 0; // We do this to temprorarly silence a unused parameter warning.
-    shutdown();
-    
-    return;
-}
-
 static void start_main_syscall_loop(void)
 {
     /* Check if we should stop or continue running. */
@@ -56,14 +48,18 @@ static void start_main_syscall_loop(void)
             /* Make sure the child struct is setup properly. */
             manage_syscall_children();
         }
-        
-        output(STD, "Exiting main loop\n");
     }
+
+    output(STD, "Exiting main loop\n");
+
     return;
 }
 
 static void start_main_file_loop(void)
 {
+    /* Set up signal handler. */
+    setup_signal_handler();
+
     /* Check if we should stop or continue running. */
     while(atomic_load(&map->stop) == FALSE)
     {
@@ -76,16 +72,9 @@ static void start_main_file_loop(void)
             /* Make sure the child struct is setup properly. */
             manage_file_children();
         }
-        
-        output(STD, "Exiting main loop\n");
     }
 
-    return;
-}
-
-static void setup_signal_handler(void)
-{
-    (void) signal(SIGINT, ctrlc_handler);
+    output(STD, "Exiting main loop\n");
 
     return;
 }

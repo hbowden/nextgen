@@ -235,7 +235,7 @@ static int intit_shared_mapping(struct shared_map **mapping)
 {
     int rtrn;
 
-    /* Memory map the file as shared anonymous memory so we can share it with other processes. */
+    /* Memory map the struct as shared anonymous memory so we can share it with other processes. */
     rtrn = create_shared((void **)mapping, sizeof(struct shared_map));
     if(rtrn < 0)
     {
@@ -251,14 +251,18 @@ static int intit_shared_mapping(struct shared_map **mapping)
         return -1;
     }
 
-    /* We default to dumb_mode being off. */
+    /* We default to dumb_mode being off, otherwise known as smart mode.. */
     (*mapping)->dumb_mode = FALSE;
 
-    (*mapping)->socket_server_port = 0;
+    /* Check if were in syscall mode, if we are set the socket_server_port. */
+    if((*mapping)->mode == MODE_SYSCALL)
+    {
+        (*mapping)->socket_server_port = 0;
+    }
 
     unsigned int core_count;
 
-    /* Grab the core count. */
+    /* Grab the core count of the machine we are on. */
     rtrn = get_core_count(&core_count);
     if(rtrn < 0)
     {
@@ -326,7 +330,7 @@ int main(int argc, char *argv[])
 {
     int rtrn;
 
-    /* We have to make sure that we were started with root privileges so that we can use dtrace. */
+    /* We have to make sure that we were started with root privileges so that we can use dtrace an dother functionality. */
     rtrn = check_root();
     if(rtrn < 0)
     {
@@ -343,7 +347,7 @@ int main(int argc, char *argv[])
     }
 
     /* Parse the command line for user input. parse_cmd_line() will set variables
-    in map, the shared memory object. */
+    in map, the shared memory object. This will tell the fuzzer how to run. */
     rtrn = parse_cmd_line(argc, argv);
     if(rtrn < 0)
     {
@@ -359,7 +363,7 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    /* Start the main loop. */
+    /* Start the main fuzzing loop. */
     rtrn = start_runtime();
     if(rtrn < 0)
     {

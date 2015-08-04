@@ -20,9 +20,17 @@
 
 struct syscall_table
 {
-    int number_of_syscalls;
+    unsigned int number_of_syscalls;
     struct syscall_entry *sys_entry;
     
+};
+
+struct syscall_table_shadow
+{
+	unsigned int number_of_syscalls;
+
+    struct syscall_entry_shadow *sys_entry;
+
 };
 
 private extern struct syscall_table freebsd_syscall_table[];

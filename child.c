@@ -18,6 +18,7 @@
 #include "child.h"
 #include "utils.h"
 #include "syscall.h"
+#include "signal.h"
 #include "nextgen.h"
 
 #include <string.h>
@@ -25,11 +26,13 @@
 
 int init_syscall_child(struct child_ctx *child)
 {
-    
+
+    setup_syscall_child_signal_handler();
+
     return 0;
 }
 
-static struct child_ctx *get_child_ctx(void)
+struct child_ctx *get_child_ctx(void)
 {
     struct child_ctx *ctx = NULL;
 
@@ -54,6 +57,9 @@ static void start_file_child(void)
 	return;
 }
 
+/**
+ * This is the fuzzing loop for syscall fuzzing mode.
+ */
 static void start_syscall_child(void)
 {
     int rtrn;
@@ -91,8 +97,6 @@ static void start_syscall_child(void)
             output(ERROR, "Can't pick syscall to test\n");
             return;
         }
-
-
 
     }
 

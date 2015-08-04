@@ -28,8 +28,7 @@
 
 enum child_state {EMPTY};
 
-#define FALSE 0
-#define TRUE 1
+enum local_bool { FALSE, TRUE };
 
 enum fuzz_mode { MODE_FILE, MODE_SYSCALL, MODE_NETWORK};
 

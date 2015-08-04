@@ -21,13 +21,31 @@
 #include "nextgen.h"
 
 #include <stdbool.h>
+#include <stdatomic.h>
 
-#define ON TRUE
-#define OFF FALSE
+enum syscall_status { ON, OFF };
 
-#define YES TRUE
-#define NO FALSE
+enum alarm_status { YES, NO };
 
+/* In memory format. */
+struct syscall_entry_shadow
+{
+    char *name_of_syscall;
+    atomic_bool status;
+
+    bool need_alarm;
+    bool requires_root;
+
+    unsigned int number_of_args;
+    unsigned int entry_number;
+
+    int arg_type_index[7];
+    int (*get_arg_index[7])(unsigned long *);
+
+    atomic_uint_least64_t return_value;
+};
+
+/* The on disk format. */
 struct syscall_entry
 {
     char *name_of_syscall;
@@ -40,8 +58,6 @@ struct syscall_entry
 
     int arg_type_index[7];
     int (*get_arg_index[7])(unsigned long *);
-
-    unsigned long return_value;
 };
 
 #endif

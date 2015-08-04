@@ -34,7 +34,7 @@ struct child_ctx
     jmp_buf return_jump;
 
     /* The child's copy of the syscall table. */
-    struct syscall_table *sys_table;
+    struct syscall_table_shadow *sys_table;
 
     /* This is the number used to identify and choose the syscall that's going to be tested. */
     unsigned int syscall_number;
@@ -46,6 +46,8 @@ struct child_ctx
 
 /* Use  */
 private extern int init_syscall_child(struct child_ctx *child);
+
+private extern struct child_ctx *get_child_ctx(void);
 
 private extern void create_syscall_children(void);
 
