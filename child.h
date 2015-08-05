@@ -22,6 +22,7 @@
 #include "syscall_table.h"
 
 #include <setjmp.h>
+#include <sys/time.h>
 #include <unistd.h>
 
 struct child_ctx
@@ -41,6 +42,8 @@ struct child_ctx
 
     /* This index is where we store the arguments we generate. */
     unsigned long arg_value_index[7];
+
+    struct timeval time_of_syscall;
 
 };
 

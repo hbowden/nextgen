@@ -19,14 +19,63 @@
 #include "reaper.h"
 #include "child.h"
 #include "utils.h"
+
 #include <signal.h>
+#include <sys/time.h>
 #include <sys/types.h>
 #include <string.h>
 #include <errno.h>
 
-static int check_progess(struct child_ctx *child)
+static void check_progess(struct child_ctx *child)
 {
-	return 0;
+    /* Our variables. */
+    int rtrn;
+    struct timeval tv;
+    time_t dif, time_of_syscall, time_now;
+
+    /* Return early if there is no child. */
+    if(child->pid == EMPTY)
+    {
+        return;
+    }
+
+    /* Grab the time the syscall was done. */
+    time_of_syscall = child->time_of_syscall.tv_sec;
+    
+    /* Return  */
+    if(time_of_syscall == 0)
+    {
+        return;
+    }
+
+    gettimeofday(&tv, NULL);
+
+    time_now = tv.tv_sec;
+    
+    if(time_of_syscall > time_now)
+    {
+        dif = time_of_syscall - time_now;
+    }
+    else
+    {
+        dif = time_now - time_of_syscall;
+    }
+    
+    if(dif < 10)
+    {
+        return;
+    }
+    else
+    {
+        rtrn = kill(child->pid, SIGKILL);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't kill child: %s\n", strerror(errno));
+            return;
+        }
+    }
+
+	return;
 }
 
 static void reap_child(struct child_ctx *child)
@@ -96,6 +145,8 @@ static void reaper(void)
     	for(i = 0; i <number_of_children; i++)
     	{
     		check_progess(map->children[i]);
+
+
     	}
     }
 

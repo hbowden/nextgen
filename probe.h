@@ -27,6 +27,8 @@
 
 private extern int inject_probes(void);
 
+private extern int inject_kernel_probes(void);
+
 private extern int inject_fork_server(void);
 
 #endif

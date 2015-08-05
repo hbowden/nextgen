@@ -17,6 +17,7 @@
 
 #include "child.h"
 #include "utils.h"
+#include "crypto.h"
 #include "syscall.h"
 #include "signal.h"
 #include "nextgen.h"
@@ -24,32 +25,74 @@
 #include <string.h>
 #include <errno.h>
 
+static int get_child_syscall_table(struct child_ctx *child)
+{
+    
+    return 0;
+}
+
 int init_syscall_child(struct child_ctx *child)
 {
+    int rtrn;
 
+    /* Set up the child signal handler. */
     setup_syscall_child_signal_handler();
+
+    /* Grab a pointer to the syscall table and store it in the child context object. */
+    rtrn = get_child_syscall_table(child);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't init syscall \n");
+        return -1;
+    }
+
+    /* We got to seed the prng so that the child process trys different syscalls. */
+    rtrn = seed_prng();
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't init syscall \n");
+        return -1;
+    }
+
+    map->running_children++;
 
     return 0;
 }
 
+/* This function returns a pointer to the childs context object. */
 struct child_ctx *get_child_ctx(void)
 {
-    struct child_ctx *ctx = NULL;
+    struct child_ctx *ctx = malloc(sizeof(struct child_ctx));
+    if(ctx == NULL)
+    {
+        output(ERROR, "Can't malloc child context: %s\n", strerror(errno));
+        return NULL;
+    }
 
     unsigned int i;
     unsigned int number_of_children = map->number_of_children;
+
     int pid = getpid();
 
-    for(i = 0; i <number_of_children; i++)
+    output(STD, "PID: %d\n", pid);
+    output(STD, "number_of_children: %d\n", number_of_children);
+
+    for(i = 0; i < number_of_children; i++)
     {
+        output(STD, "CHILD_PID: %d\n", map->children[i]->pid );
+
         if(map->children[i]->pid == pid)
         {
+            output(STD, "Match: %d\n", pid);
+
             ctx = map->children[i];
+
             return ctx;
         }
     }
 
-    return ctx;
+    /* Should not get here. */
+    return NULL;
 }
 
 static void start_file_child(void)
@@ -83,6 +126,10 @@ static void start_syscall_child(void)
     /* Check if we should stop or continue running. */
     while(atomic_load(&map->stop) == FALSE)
     {
+
+
+        sleep(4); // Temp until ctrl-c bug is fixed.
+
         /* Randomly pick the syscall to test. */
         rtrn = pick_syscall(ctx);
         if(rtrn < 0)
@@ -109,24 +156,23 @@ void create_syscall_children(void)
 	unsigned int i;
 	unsigned int number_of_children = map->number_of_children;
 
-	for(i = 0; i < number_of_children; i++)
-	{
-		/* If the child has a pid of EMPTY let's create a new one. */
-		if(map->children[i]->pid == EMPTY)
-		{
+    for(i = 0; i < number_of_children; i++)
+    {
+        /* If the child has a pid of EMPTY let's create a new one. */
+        if(map->children[i]->pid == EMPTY)
+        {
             map->children[i]->pid = fork();
             if(map->runloop_pid == 0)
             {
                 /* Initialize the new syscall child. */
                 init_syscall_child(map->children[i]);
 
-            	/* Start the child main loop. */
+                /* Start the child main loop. */
                 start_syscall_child();
             }
             else if(map->runloop_pid > 0)
             {
-               /* This is the parent process, so let's keep looping. */
-                continue;
+                 /* This is the parent process, so let's keep looping. */
             
             }
             else
@@ -134,8 +180,8 @@ void create_syscall_children(void)
                 output(ERROR, "Can't create child process: %s\n", strerror(errno));
                 return;
             }
-		}
-	}
+        }
+    }
 	return;
 }
 

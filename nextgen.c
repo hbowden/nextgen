@@ -271,7 +271,8 @@ static int intit_shared_mapping(struct shared_map **mapping)
     }
     
     /* Set the number of child processes to the number of cores detected. */
-    (*mapping)->number_of_children = core_count;
+    //(*mapping)->number_of_children = core_count;
+    (*mapping)->number_of_children = 1; // Use one until bug with ctrl-c is fixed.
 
     /* Set running children to zero. */
     (*mapping)->running_children = 0;

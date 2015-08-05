@@ -185,7 +185,7 @@ static int sha512(char *input, char **output)
 }
 
 /*  */
-static int seed_prng(void)
+int seed_prng(void)
 {
     output(STD, "Seeding PRNG\n");
 

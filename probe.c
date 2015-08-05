@@ -29,6 +29,12 @@
 #include <sys/types.h>
 #include <sys/ptrace.h>
 
+int inject_kernel_probes(void)
+{
+    
+    return 0;
+}
+
 int inject_fork_server(void)
 {
     output(STD, "Creating fork server\n");

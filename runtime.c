@@ -36,9 +36,14 @@
 
 static void start_main_syscall_loop(void)
 {
+    /* Set up signal handler. */
+    setup_signal_handler();
+
     /* Check if we should stop or continue running. */
     while(atomic_load(&map->stop) == FALSE)
     {
+        output(STD, "map->stop: %d\n", atomic_load(&map->stop));
+
         /* Check if we have the right number of children processes running, if not create a new ones until we do. */
         if(map->running_children < map->number_of_children)
         {
@@ -90,6 +95,8 @@ static int start_syscall_mode_runtime(void)
     if(map->runloop_pid == 0)
     {
         start_main_syscall_loop();
+
+        _exit(0);
     }
     else if(map->runloop_pid > 0)
     {
@@ -110,8 +117,6 @@ static int start_syscall_mode_runtime(void)
         output(ERROR, "runloop fork failed: %s\n", strerror(errno));
         return -1;
     }
-
-    return 0;
 }
 
 static int start_file_mode_runtime(void)
@@ -200,6 +205,9 @@ static int setup_network_mode_runtime(void)
 
 static int setup_syscall_mode_runtime(void)
 {
+
+    output(STD, "Starting syscall mode\n");
+
     int rtrn;
 
     /* Check if the user want's dumb or smart mode. */
@@ -207,6 +215,13 @@ static int setup_syscall_mode_runtime(void)
     {
         /* Do init work specific to smart mode. */
 
+        /* Inject probes into the kernel so we can track the code coverage of our fuzz tests. */
+        rtrn = inject_kernel_probes();
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't inject kernel probes\n");
+            return -1;
+        }
     }
     else
     {

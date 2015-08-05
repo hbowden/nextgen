@@ -20,6 +20,7 @@
 
 #include "private.h"
 
+/* Calling this function will cause all nextgen processes to start exiting. */
 private extern int shutdown(void);
 
 private extern int setup_runtime(void);
