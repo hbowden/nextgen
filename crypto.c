@@ -29,15 +29,15 @@
 #include <openssl/evp.h>
 #include <openssl/engine.h>
 
-static int (*rand_range_pointer)(unsigned int range, int *number);
+static int (*rand_range_pointer)(unsigned int range, unsigned int *number);
 
-static int rand_range_no_crypto(unsigned int range, int *number)
+static int rand_range_no_crypto(unsigned int range, unsigned int *number)
 {
     *number = (int) rand() % range + 1;
     return 0;
 }
 
-static int rand_range_crypto(unsigned int range, int *number)
+static int rand_range_crypto(unsigned int range, unsigned int *number)
 {
     BIGNUM *random, *range1;
 
@@ -77,7 +77,7 @@ static int rand_range_crypto(unsigned int range, int *number)
     }
 
     *number = (unsigned int)strtol(buf, NULL, 10);
-    if(*number > (int) range || *number < 0)
+    if(*number == 0)
     {
     	output(ERROR, "Can't convert to int.");
     	return -1;
@@ -105,7 +105,7 @@ static int setup_rand_range(char *method)
     return 0;
 }
 
-int rand_range(unsigned int range, int *number)
+int rand_range(unsigned int range, unsigned int *number)
 {
     return rand_range_pointer(range, number);
 }
@@ -239,7 +239,7 @@ int seed_prng(void)
     
     /* Lets pick a number in the range of zero to 256 and
      we will use that as the number of loops to do. */
-    rtrn = rand_range(256, (int *)&iterations);
+    rtrn = rand_range(256, &iterations);
     if(rtrn < 0)
     {
         output(ERROR, "Can't generate random number\n");
@@ -255,7 +255,7 @@ int seed_prng(void)
     for(i = 0; i < iterations; i++)
     {
         /* Generate a random buffer length. */
-        rtrn = rand_range(4096, (int *)&bufLen);
+        rtrn = rand_range(4096, &bufLen);
         if(rtrn < 0)
         {
             output(ERROR, "Can't generate random number\n");

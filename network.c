@@ -206,7 +206,8 @@ static int _start_socket_server(int listenFd4, int listenFd6)
 
 static int select_port_number(void)
 {
-    int offset, rtrn;
+    unsigned int offset;
+    int rtrn;
     
     rtrn = rand_range(10000, &offset);
     if(rtrn < 0)
