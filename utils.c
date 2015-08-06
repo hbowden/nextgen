@@ -34,12 +34,17 @@ int compare_and_swap_loop(atomic_bool target, int value)
         /* Grab a snapshot of the value that need to be updated. */
         bool snapshot = atomic_load(&target);
 
-        if(atomic_compare_exchange_strong(&target, &snapshot, value) == TRUE)
+        output(STD, "Swapping\n");
+
+        if(atomic_compare_exchange_weak(&target, &snapshot, value) == TRUE)
         {
-            /* We succesfully update the value let's exit this loop and return. */
+            output(STD, "Done\n");
+            /* We succesfully updated the value let's exit this loop and return. */
             break;
         }
     }
+
+    output(STD, "RESULT: %d\n", atomic_load(&target));
 
     return 0;
 }

@@ -30,7 +30,7 @@ enum child_state {EMPTY};
 
 enum local_bool { FALSE, TRUE };
 
-enum fuzz_mode { MODE_FILE, MODE_SYSCALL, MODE_NETWORK};
+enum fuzz_mode { MODE_FILE, MODE_SYSCALL, MODE_NETWORK };
 
 struct executable_context
 {

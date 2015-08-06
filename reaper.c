@@ -134,7 +134,7 @@ static void kill_all_children(void)
 
 static void reaper(void)
 {
-    while(atomic_load(&map->stop) == FALSE)
+    while(atomic_load(&map->stop) != TRUE)
     {
     	unsigned int i;
 

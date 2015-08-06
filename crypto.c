@@ -76,12 +76,7 @@ static int rand_range_crypto(unsigned int range, unsigned int *number)
     	return -1;
     }
 
-    *number = (unsigned int)strtol(buf, NULL, 10);
-    if(*number == 0)
-    {
-    	output(ERROR, "Can't convert to int.");
-    	return -1;
-    }
+    *number = (unsigned int)buf;
 
     return 0;
 }
@@ -151,28 +146,28 @@ static int sha512(char *input, char **output)
     rtrn = SHA512_Init(&ctx);
     if(rtrn < 0)
     {
-        printf("Sha init\n");
+        output(ERROR, "Sha init\n");
         return -1;
     }
     
     rtrn = SHA512_Update(&ctx, input, strlen(input));
     if(rtrn < 0)
     {
-        printf("Can't update input string\n");
+        output(ERROR, "Can't update input string\n");
         return -1;
     }
     
     rtrn = SHA512_Final(hash, &ctx);
     if(rtrn < 0)
     {
-        printf("Can't do this\n");
+        output(ERROR, "Can't do this\n");
         return -1;
     }
     
     *output = malloc((SHA512_DIGEST_LENGTH * 2) + 1);
     if(*output == NULL)
     {
-        printf("malloc");
+        output(ERROR, "malloc");
         return -1;
     }
     
@@ -208,7 +203,7 @@ int seed_prng(void)
     randomFd = open("/dev/urandom", O_RDONLY);
     if(randomFd < 0)
     {
-        output(ERROR, "open 'dev/urandom': %s\n", strerror(errno));
+        output(ERROR, "open '/dev/urandom': %s\n", strerror(errno));
         return -1;
     }
     

@@ -25,15 +25,18 @@
 #include <string.h>
 #include <errno.h>
 
-static int get_child_syscall_table(struct child_ctx *child)
+static int get_child_syscall_table(struct child_ctx **child)
 {
     
     return 0;
 }
 
-int init_syscall_child(struct child_ctx *child)
+static int init_syscall_child(struct child_ctx *child)
 {
     int rtrn;
+
+    /* Set the pid of the child. */
+    child->pid = getpid();
 
     /* Set up the child signal handler. */
     setup_syscall_child_signal_handler();
@@ -100,6 +103,12 @@ static void start_file_child(void)
 	return;
 }
 
+static void exit_child(void)
+{
+    map->running_children--;
+    _exit(0);
+}
+
 /**
  * This is the fuzzing loop for syscall fuzzing mode.
  */
@@ -112,7 +121,7 @@ static void start_syscall_child(void)
     if(ctx == NULL)
     {
         output(ERROR, "Can't grab child context\n");
-        return;
+        exit_child();
     }
 
     /* Set the return jump so that we can try fuzzing again on a signal. */
@@ -120,14 +129,12 @@ static void start_syscall_child(void)
     if(rtrn < 0)
     {
         output(ERROR, "Can't set return jump\n");
-        return;
+        exit_child();
     }
 
     /* Check if we should stop or continue running. */
-    while(atomic_load(&map->stop) == FALSE)
+    while(atomic_load(&map->stop) != TRUE)
     {
-
-
         sleep(4); // Temp until ctrl-c bug is fixed.
 
         /* Randomly pick the syscall to test. */
@@ -135,19 +142,19 @@ static void start_syscall_child(void)
         if(rtrn < 0)
         {
             output(ERROR, "Can't pick syscall to test\n");
-            return;
+            exit_child();
         }
 
         rtrn = generate_arguments(ctx);
         if(rtrn < 0)
         {
             output(ERROR, "Can't pick syscall to test\n");
-            return;
+            exit_child();
         }
 
     }
 
-	return;
+    exit_child();
 }
 
 void create_syscall_children(void)
@@ -162,7 +169,7 @@ void create_syscall_children(void)
         if(map->children[i]->pid == EMPTY)
         {
             map->children[i]->pid = fork();
-            if(map->runloop_pid == 0)
+            if(map->children[i]->pid == 0)
             {
                 /* Initialize the new syscall child. */
                 init_syscall_child(map->children[i]);
@@ -170,7 +177,7 @@ void create_syscall_children(void)
                 /* Start the child main loop. */
                 start_syscall_child();
             }
-            else if(map->runloop_pid > 0)
+            else if(map->children[i]->pid > 0)
             {
                  /* This is the parent process, so let's keep looping. */
             

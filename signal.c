@@ -32,6 +32,8 @@ static void ctrlc_handler(int sig)
 
 void setup_signal_handler(void)
 {
+	(void) signal(SIGFPE, SIG_DFL);
+    (void) signal(SIGCHLD, SIG_DFL);
     (void) signal(SIGINT, ctrlc_handler);
 
     return;
