@@ -25,7 +25,7 @@
 #include <string.h>
 #include <errno.h>
 
-static int get_child_syscall_table(struct child_ctx **child)
+static int get_child_syscall_table(struct child_ctx *child)
 {
     
     return 0;
@@ -65,29 +65,17 @@ static int init_syscall_child(struct child_ctx *child)
 /* This function returns a pointer to the childs context object. */
 struct child_ctx *get_child_ctx(void)
 {
-    struct child_ctx *ctx = malloc(sizeof(struct child_ctx));
-    if(ctx == NULL)
-    {
-        output(ERROR, "Can't malloc child context: %s\n", strerror(errno));
-        return NULL;
-    }
+    struct child_ctx *ctx;
 
     unsigned int i;
     unsigned int number_of_children = map->number_of_children;
 
     int pid = getpid();
 
-    output(STD, "PID: %d\n", pid);
-    output(STD, "number_of_children: %d\n", number_of_children);
-
     for(i = 0; i < number_of_children; i++)
     {
-        output(STD, "CHILD_PID: %d\n", map->children[i]->pid );
-
         if(map->children[i]->pid == pid)
         {
-            output(STD, "Match: %d\n", pid);
-
             ctx = map->children[i];
 
             return ctx;

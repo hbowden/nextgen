@@ -26,25 +26,20 @@
 #include <sys/mman.h>
 #include <errno.h>
 
-int compare_and_swap_loop(atomic_bool target, int value)
+int compare_and_swap_loop(atomic_bool *target, int value)
 {
     /* Loop until we can succesfully update the the value. */
     while(1)
     {
         /* Grab a snapshot of the value that need to be updated. */
-        bool snapshot = atomic_load(&target);
+        bool snapshot = atomic_load(target);
 
-        output(STD, "Swapping\n");
-
-        if(atomic_compare_exchange_weak(&target, &snapshot, value) == TRUE)
+        if(atomic_compare_exchange_weak(target, &snapshot, value) == TRUE)
         {
-            output(STD, "Done\n");
             /* We succesfully updated the value let's exit this loop and return. */
             break;
         }
     }
-
-    output(STD, "RESULT: %d\n", atomic_load(&target));
 
     return 0;
 }

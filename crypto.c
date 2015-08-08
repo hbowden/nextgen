@@ -76,7 +76,12 @@ static int rand_range_crypto(unsigned int range, unsigned int *number)
     	return -1;
     }
 
-    *number = (unsigned int)buf;
+    *number = (unsigned int)strtol(buf, NULL, 10);
+    if(*number > (int) range || *number < 0)
+    {
+        output(ERROR, "Can't convert to int.");
+        return -1;
+    }
 
     return 0;
 }
@@ -130,14 +135,14 @@ static int setup_hardware_acceleration(void)
     rtrn = ENGINE_set_default(engine, ENGINE_METHOD_RAND);
     if(rtrn == 0)
     {
-        printf("Can't set default method\n");
+        output(ERROR, "Can't set default method\n");
         return -1;
     }
     
     return 0;
 }
 
-static int sha512(char *input, char **output)
+static int sha512(char *in, char **out)
 {
     unsigned char hash[SHA512_DIGEST_LENGTH];
     SHA512_CTX ctx;
@@ -150,7 +155,7 @@ static int sha512(char *input, char **output)
         return -1;
     }
     
-    rtrn = SHA512_Update(&ctx, input, strlen(input));
+    rtrn = SHA512_Update(&ctx, in, strlen(in));
     if(rtrn < 0)
     {
         output(ERROR, "Can't update input string\n");
@@ -164,8 +169,8 @@ static int sha512(char *input, char **output)
         return -1;
     }
     
-    *output = malloc((SHA512_DIGEST_LENGTH * 2) + 1);
-    if(*output == NULL)
+    *out = malloc((SHA512_DIGEST_LENGTH * 2) + 1);
+    if(*out == NULL)
     {
         output(ERROR, "malloc");
         return -1;
@@ -173,7 +178,7 @@ static int sha512(char *input, char **output)
     
     for(i = 0; i < SHA512_DIGEST_LENGTH; i++)
     {
-        sprintf(*output + (i * 2), "%02x", hash[i]);
+        sprintf(*out + (i * 2), "%02x", hash[i]);
     }
 
     return 0;
