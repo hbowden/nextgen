@@ -40,6 +40,8 @@ static void start_main_syscall_loop(void)
     /* Check if we should stop or continue running. */
     while(atomic_load(&map->stop) == FALSE)
     {
+        //output(STD, "running_children: %d\n", map->running_children);
+
         /* Check if we have the right number of children processes running, if not create a new ones until we do. */
         if(atomic_load(&map->running_children) < map->number_of_children)
         {

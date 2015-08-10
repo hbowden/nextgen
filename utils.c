@@ -68,12 +68,14 @@ int compare_and_swap_int32(atomic_int_fast32_t *target, int value)
     /* Loop until we can succesfully update the the value. */
     while(1)
     {
+        printf("Swaping\n");
         /* Grab a snapshot of the value that need to be updated. */
         int snapshot = atomic_load(target);
 
         if(atomic_compare_exchange_weak(target, &snapshot, value) == TRUE)
         {
             /* We succesfully updated the value let's exit this loop and return. */
+            printf("Done\n");
             break;
         }
     }
@@ -217,6 +219,8 @@ void output(enum out_type type, const char *format, ...)
 	}
 
 	va_end(args);
+
+    (void)fflush(stdout);
 
 	return;
 }

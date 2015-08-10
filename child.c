@@ -25,7 +25,7 @@
 #include <string.h>
 #include <errno.h>
 
-static int init_syscall_child(struct child_ctx *child)
+static int init_syscall_child(struct child_ctx **child)
 {
     int rtrn;
 
@@ -33,7 +33,9 @@ static int init_syscall_child(struct child_ctx *child)
     pid_t child_pid = getpid();
 
     /* Set the child pid. */
-    compare_and_swap_int32(&child->pid, child_pid);
+    compare_and_swap_int32(&(*child)->pid, child_pid);
+
+    output(STD, "og: %d\n", atomic_load(&(*child)->pid));
 
     /* Set up the child signal handler. */
     setup_syscall_child_signal_handler();
@@ -147,14 +149,13 @@ void create_syscall_children(void)
         /* If the child has a pid of EMPTY let's create a new one. */
         if(atomic_load(&map->children[i]->pid) == EMPTY)
         {
-
             pid_t child_pid;
 
             child_pid = fork();
             if(child_pid == 0)
             {
                 /* Initialize the new syscall child. */
-                init_syscall_child(map->children[i]);
+                init_syscall_child(&map->children[i]);
 
                 /* Start the child main loop. */
                 start_syscall_child();
@@ -162,7 +163,7 @@ void create_syscall_children(void)
             else if(child_pid > 0)
             {
                  /* This is the parent process, so let's keep looping. */
-            
+                // sleep(1);
             }
             else
             {

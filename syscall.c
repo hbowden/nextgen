@@ -60,17 +60,19 @@ int get_syscall_table(void)
 /* This function is used to randomly pick the syscall to test. */
 int pick_syscall(struct child_ctx *ctx)
 {
-
 	/* Our variables we will be using. */
     int rtrn;
+    unsigned int syscall_number;
 
     /* Use rand_range to pick a number between 0 and the number_of_syscalls.  */
-    rtrn = rand_range(map->sys_table->number_of_syscalls, &ctx->syscall_number);
+    rtrn = rand_range(map->sys_table->number_of_syscalls, &syscall_number);
     if(rtrn < 0)
     {
         output(ERROR, "Can't generate random number\n");
         return -1;
     }
+
+    ctx->syscall_number = syscall_number + 1;
 
     return 0;
 }
@@ -78,6 +80,9 @@ int pick_syscall(struct child_ctx *ctx)
 int generate_arguments(struct child_ctx *ctx)
 {
     unsigned int i;
+
+    output(STD, "syscall_number: %d\n", ctx->syscall_number);
+
     unsigned int number_of_args = map->sys_table->sys_entry[ctx->syscall_number].number_of_args;
     int rtrn;
 
