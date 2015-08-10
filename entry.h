@@ -30,14 +30,14 @@ enum alarm_status { YES, NO };
 /* In memory format. */
 struct syscall_entry_shadow
 {
-    char *name_of_syscall;
+    const char *name_of_syscall;
+
     atomic_bool status;
+    const bool need_alarm;
+    const bool requires_root;
 
-    bool need_alarm;
-    bool requires_root;
-
-    unsigned int number_of_args;
-    unsigned int entry_number;
+    const unsigned int number_of_args;
+    const unsigned int entry_number;
 
     int arg_type_index[7];
     int (*get_arg_index[7])(unsigned long *);
@@ -48,13 +48,14 @@ struct syscall_entry_shadow
 /* The on disk format. */
 struct syscall_entry
 {
-    char *name_of_syscall;
-    bool status;
-    bool need_alarm;
-    bool requires_root;
+    const char *name_of_syscall;
 
-    unsigned int number_of_args;
-    unsigned int entry_number;
+    bool status;
+    const bool need_alarm;
+    const bool requires_root;
+
+    const unsigned int number_of_args;
+    const unsigned int entry_number;
 
     int arg_type_index[7];
     int (*get_arg_index[7])(unsigned long *);

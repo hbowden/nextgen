@@ -21,18 +21,91 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <string.h>
+#include <sys/wait.h>
 #include <sys/sysctl.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <errno.h>
 
-int compare_and_swap_loop(atomic_bool *target, int value)
+int compare_and_swap_bool(atomic_bool *target, int value)
 {
     /* Loop until we can succesfully update the the value. */
     while(1)
     {
         /* Grab a snapshot of the value that need to be updated. */
         bool snapshot = atomic_load(target);
+
+        if(atomic_compare_exchange_weak(target, &snapshot, value) == TRUE)
+        {
+            /* We succesfully updated the value let's exit this loop and return. */
+            break;
+        }
+    }
+
+    return 0;
+}
+
+int compare_and_swap_uint32(atomic_uint_fast32_t *target, unsigned int value)
+{
+    /* Loop until we can succesfully update the the value. */
+    while(1)
+    {
+        /* Grab a snapshot of the value that need to be updated. */
+        unsigned int snapshot = atomic_load(target);
+
+        if(atomic_compare_exchange_weak(target, &snapshot, value) == TRUE)
+        {
+            /* We succesfully updated the value let's exit this loop and return. */
+            break;
+        }
+    }
+
+    return 0;
+}
+
+int compare_and_swap_int32(atomic_int_fast32_t *target, int value)
+{
+    /* Loop until we can succesfully update the the value. */
+    while(1)
+    {
+        /* Grab a snapshot of the value that need to be updated. */
+        int snapshot = atomic_load(target);
+
+        if(atomic_compare_exchange_weak(target, &snapshot, value) == TRUE)
+        {
+            /* We succesfully updated the value let's exit this loop and return. */
+            break;
+        }
+    }
+
+    return 0;
+}
+
+int compare_and_swap_uint64(atomic_uint_fast64_t *target, unsigned long value)
+{
+    /* Loop until we can succesfully update the the value. */
+    while(1)
+    {
+        /* Grab a snapshot of the value that need to be updated. */
+        unsigned long snapshot = atomic_load(target);
+
+        if(atomic_compare_exchange_weak(target, &snapshot, value) == TRUE)
+        {
+            /* We succesfully updated the value let's exit this loop and return. */
+            break;
+        }
+    }
+
+    return 0;
+}
+
+int compare_and_swap_int64(atomic_int_fast64_t *target, long value)
+{
+    /* Loop until we can succesfully update the the value. */
+    while(1)
+    {
+        /* Grab a snapshot of the value that need to be updated. */
+        long snapshot = atomic_load(target);
 
         if(atomic_compare_exchange_weak(target, &snapshot, value) == TRUE)
         {
@@ -146,6 +219,14 @@ void output(enum out_type type, const char *format, ...)
 	va_end(args);
 
 	return;
+}
+
+int wait_on(atomic_int_fast32_t *pid, int *status)
+{
+
+    waitpid(atomic_load(pid), status, 0);
+
+    return 0;
 }
 
 int get_core_count(unsigned int *core_count)

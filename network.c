@@ -225,6 +225,7 @@ int start_socket_server(void)
 {
 	int sockFd4 = 0, sockFd6 = 0;
 	int rtrn;
+    pid_t socket_server_pid;
 
 	rtrn = select_port_number();
 	if(rtrn < 0)
@@ -233,9 +234,11 @@ int start_socket_server(void)
         return -1;
 	}
 
-    map->socket_server_pid = fork();
-    if(map->socket_server_pid == 0)
+    socket_server_pid = fork();
+    if(socket_server_pid == 0)
     {
+        compare_and_swap_int32(&map->socket_server_pid, socket_server_pid);
+
         // Socket server process
         rtrn = setup_socket_server(&sockFd4, &sockFd6);
         if(rtrn < 0)
@@ -252,7 +255,7 @@ int start_socket_server(void)
         }
         
     }
-    else if(map->socket_server_pid > 0)
+    else if(socket_server_pid > 0)
     {
         // Parent process
         

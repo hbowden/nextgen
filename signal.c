@@ -41,11 +41,15 @@ void setup_signal_handler(void)
 
 static void syscall_child_signal_handler(int sig)
 {
-    struct child_ctx *child = get_child_ctx();
-    if(child == NULL)
-    {
-        _exit(0);
-    }
+	int child_number;
+
+	child_number = get_child_index_number();
+	if(child_number < 0)
+	{
+		_exit(0);
+	}
+
+    struct child_ctx *child  = map->children[child_number];
 
     switch(sig)
     {

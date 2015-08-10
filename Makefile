@@ -13,7 +13,7 @@ INCLUDES = -I/usr/src/cddl/compat/opensolaris/include -I/usr/local/include/ -I/u
 
 LIBS = -lpthread -ldtrace -lproc -lctf -lelf -lz -lrtld_db -lpthread -lutil -lcrypto -lcapstone
 
-CFLAGS = -DFREEBSD -O3 -std=c11 -fsanitize=address -Wall -Weverything -g -fstack-protector-all -Wno-reserved-id-macro -Wno-documentation -Wno-disabled-macro-expansion -Wno-switch-enum -Wno-deprecated-declarations -Wno-newline-eof -Wno-padded -Wno-pedantic -Wno-sign-conversion -Wno-unknown-pragmas -Wno-format-nonliteral
+CFLAGS = -DFREEBSD -O3 -std=c11 -fsanitize=address -Wall -Weverything -g -fstack-protector-all -Wno-missing-noreturn -Wno-unreachable-code-return -Wno-reserved-id-macro -Wno-documentation -Wno-disabled-macro-expansion -Wno-switch-enum -Wno-deprecated-declarations -Wno-newline-eof -Wno-padded -Wno-pedantic -Wno-sign-conversion -Wno-unknown-pragmas -Wno-format-nonliteral
 
 ENTRY_SOURCES = syscalls/freebsd/entry_read.c syscalls/freebsd/entry_write.c syscalls/freebsd/entry_open.c syscalls/freebsd/entry_close.c syscalls/freebsd/entry_wait4.c syscalls/freebsd/entry_creat.c syscalls/freebsd/entry_link.c syscalls/freebsd/entry_unlink.c syscalls/freebsd/entry_chdir.c syscalls/freebsd/entry_fchdir.c syscalls/freebsd/entry_mknod.c syscalls/freebsd/entry_chmod.c syscalls/freebsd/entry_getfsstat.c
 

@@ -77,7 +77,7 @@ static int rand_range_crypto(unsigned int range, unsigned int *number)
     }
 
     *number = (unsigned int)strtol(buf, NULL, 10);
-    if(*number > (int) range || *number < 0)
+    if(*number == 0)
     {
         output(ERROR, "Can't convert to int.");
         return -1;
@@ -187,8 +187,6 @@ static int sha512(char *in, char **out)
 /*  */
 int seed_prng(void)
 {
-    output(STD, "Seeding PRNG\n");
-
     /* The variables used in seedPrng(). */
     int rtrn, randomFd;
     unsigned int bufLen, iterations, i;
@@ -204,7 +202,7 @@ int seed_prng(void)
         return -1;
     }
     
-    /* Lets open /dev/urandom/ */
+    /* Open /dev/urandom/ */
     randomFd = open("/dev/urandom", O_RDONLY);
     if(randomFd < 0)
     {
@@ -343,7 +341,7 @@ int setup_crypto(void)
         {
             case 0: output(STD, "Using hardware crypto accelerator\n"); break;
 
-            case 1: output(STD, "Switching to /dev/urandom \n"); return seed_prng();
+            case 1: output(STD, "Switching to /dev/urandom \n");  output(STD, "Seeding PRNG\n"); return seed_prng();
 
             default: output(ERROR, "Error while trying to setup hardware acceleration\n"); return -1;
         }  

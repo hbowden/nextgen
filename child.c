@@ -25,29 +25,18 @@
 #include <string.h>
 #include <errno.h>
 
-static int get_child_syscall_table(struct child_ctx *child)
-{
-    
-    return 0;
-}
-
 static int init_syscall_child(struct child_ctx *child)
 {
     int rtrn;
 
-    /* Set the pid of the child. */
-    child->pid = getpid();
+    /* Get the pid of the child. */
+    pid_t child_pid = getpid();
+
+    /* Set the child pid. */
+    compare_and_swap_int32(&child->pid, child_pid);
 
     /* Set up the child signal handler. */
     setup_syscall_child_signal_handler();
-
-    /* Grab a pointer to the syscall table and store it in the child context object. */
-    rtrn = get_child_syscall_table(child);
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't init syscall \n");
-        return -1;
-    }
 
     /* We got to seed the prng so that the child process trys different syscalls. */
     rtrn = seed_prng();
@@ -57,33 +46,33 @@ static int init_syscall_child(struct child_ctx *child)
         return -1;
     }
 
-    map->running_children++;
+    /* Increment the running child counter. */
+    atomic_fetch_add(&map->running_children, 1);
 
     return 0;
 }
 
 /* This function returns a pointer to the childs context object. */
-struct child_ctx *get_child_ctx(void)
+int get_child_index_number(void)
 {
-    struct child_ctx *ctx;
-
     unsigned int i;
     unsigned int number_of_children = map->number_of_children;
 
     int pid = getpid();
+    output(STD, "PID: %d\n", pid);
 
     for(i = 0; i < number_of_children; i++)
     {
-        if(map->children[i]->pid == pid)
-        {
-            ctx = map->children[i];
+        output(STD, "PID2: %d\n", atomic_load(&map->children[i]->pid));
 
-            return ctx;
+        if(atomic_load(&map->children[i]->pid) == pid)
+        {
+            return i;
         }
     }
-
+output(STD, "Why\n");
     /* Should not get here. */
-    return NULL;
+    return -1;
 }
 
 static void start_file_child(void)
@@ -93,7 +82,8 @@ static void start_file_child(void)
 
 static void exit_child(void)
 {
-    map->running_children--;
+    /* Decrement the running child counter and exit. */
+    atomic_fetch_sub(&map->running_children, 1);
     _exit(0);
 }
 
@@ -103,14 +93,17 @@ static void exit_child(void)
 static void start_syscall_child(void)
 {
     int rtrn;
+    int child_number;
 
     /* grab the child_ctx struct for this child process. */
-    struct child_ctx *ctx = get_child_ctx();
-    if(ctx == NULL)
+    child_number = get_child_index_number();
+    if(child_number < 0)
     {
-        output(ERROR, "Can't grab child context\n");
+        output(ERROR, "Can't grab child number\n");
         exit_child();
     }
+
+    struct child_ctx *ctx = map->children[child_number];
 
     /* Set the return jump so that we can try fuzzing again on a signal. */
     rtrn = setjmp(ctx->return_jump);
@@ -123,8 +116,6 @@ static void start_syscall_child(void)
     /* Check if we should stop or continue running. */
     while(atomic_load(&map->stop) != TRUE)
     {
-        sleep(4); // Temp until ctrl-c bug is fixed.
-
         /* Randomly pick the syscall to test. */
         rtrn = pick_syscall(ctx);
         if(rtrn < 0)
@@ -154,10 +145,13 @@ void create_syscall_children(void)
     for(i = 0; i < number_of_children; i++)
     {
         /* If the child has a pid of EMPTY let's create a new one. */
-        if(map->children[i]->pid == EMPTY)
+        if(atomic_load(&map->children[i]->pid) == EMPTY)
         {
-            map->children[i]->pid = fork();
-            if(map->children[i]->pid == 0)
+
+            pid_t child_pid;
+
+            child_pid = fork();
+            if(child_pid == 0)
             {
                 /* Initialize the new syscall child. */
                 init_syscall_child(map->children[i]);
@@ -165,7 +159,7 @@ void create_syscall_children(void)
                 /* Start the child main loop. */
                 start_syscall_child();
             }
-            else if(map->children[i]->pid > 0)
+            else if(child_pid > 0)
             {
                  /* This is the parent process, so let's keep looping. */
             

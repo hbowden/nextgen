@@ -34,7 +34,7 @@ static void check_progess(struct child_ctx *child)
     time_t dif, time_of_syscall, time_now;
 
     /* Return early if there is no child. */
-    if(child->pid == EMPTY)
+    if(atomic_load(&child->pid) == EMPTY)
     {
         return;
     }
@@ -67,7 +67,7 @@ static void check_progess(struct child_ctx *child)
     }
     else
     {
-        rtrn = kill(child->pid, SIGKILL);
+        rtrn = kill(atomic_load(&child->pid), SIGKILL);
         if(rtrn < 0)
         {
             output(ERROR, "Can't kill child: %s\n", strerror(errno));
@@ -80,6 +80,8 @@ static void check_progess(struct child_ctx *child)
 
 static void reap_child(struct child_ctx *child)
 {
+    child->pid = EMPTY;
+    child->time_of_syscall.tv_sec = 0;
 
     return;
 }

@@ -22,20 +22,18 @@
 #include "syscall_table.h"
 
 #include <setjmp.h>
+#include <stdatomic.h>
 #include <sys/time.h>
 #include <unistd.h>
 
 struct child_ctx
 {
 	/* The child's process PID. */
-    pid_t pid;
+    atomic_int_fast32_t pid;
 
     /* A varible to store the address of where to jump back to in the child
     process on signals. */
     jmp_buf return_jump;
-
-    /* The child's copy of the syscall table. */
-    struct syscall_table_shadow *sys_table;
 
     /* This is the number used to identify and choose the syscall that's going to be tested. */
     unsigned int syscall_number;
@@ -47,7 +45,7 @@ struct child_ctx
 
 };
 
-private extern struct child_ctx *get_child_ctx(void);
+private extern int get_child_index_number(void);
 
 private extern void create_syscall_children(void);
 

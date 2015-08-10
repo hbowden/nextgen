@@ -275,10 +275,14 @@ static int intit_shared_mapping(struct shared_map **mapping)
     (*mapping)->number_of_children = 1; // Use one until bug with ctrl-c is fixed.
 
     /* Set running children to zero. */
-    (*mapping)->running_children = 0;
+    atomic_init(&(*mapping)->running_children, 0);
 
     /* Set the stop flag to FALSE, when set to TRUE all processes start their exit routines and eventually exit. */
     atomic_init(&(*mapping)->stop, FALSE);
+
+    atomic_init(&(*mapping)->reaper_pid, 0);
+    atomic_init(&(*mapping)->runloop_pid, 0);
+    atomic_init(&(*mapping)->socket_server_pid, 0);
 
     /* Allocate the executable context object. */
     rtrn = create_shared((void **)&map->exec_ctx, sizeof(struct executable_context));

@@ -44,7 +44,22 @@ private extern void output(enum out_type type, const char *format, ...);
 /* Get the core count of the system we are on. This will include virtual cores on hyperthreaded systems. */
 private extern int get_core_count(unsigned int *core_count);
 
-/* CAS loop for swapping atomic values. */ 
-private extern int compare_and_swap_loop(atomic_bool *target, int value);
+/* CAS loop for swapping atomic bool values. */ 
+private extern int compare_and_swap_bool(atomic_bool *target, int value);
+
+/* CAS loop for swapping atomic int32 values. */ 
+private extern int compare_and_swap_int32(atomic_int_fast32_t *target, int value);
+
+/* CAS loop for swapping atomic uint_32_t values. */
+private extern int compare_and_swap_uint32(atomic_uint_fast32_t *target, unsigned int value);
+
+/* CAS loop for swapping atomic int_64_t values. */
+private extern int compare_and_swap_int64(atomic_int_fast64_t *target, long value);
+
+/* CAS loop for swapping atomic uint_64_t values. */
+private extern int compare_and_swap_uint64(atomic_uint_fast64_t *target, unsigned long value);
+
+/* Simple wrapper function so we can wait on atomic pid values.  */
+private extern int wait_on(atomic_int_fast32_t *pid, int *status);
 
 #endif
