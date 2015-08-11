@@ -21,7 +21,8 @@
 #include "private.h"
 #include <stdarg.h>
 #include <unistd.h>
-#include <stdatomic.h>
+
+#include "stdatomic.h"
 
 /* The enum used to tell output how to output the message. */
 enum out_type { ERROR, STD };

@@ -80,7 +80,8 @@ static void check_progess(struct child_ctx *child)
 
 static void reap_child(struct child_ctx *child)
 {
-    child->pid = EMPTY;
+    compare_and_swap_int32(&child->pid, EMPTY);
+
     child->time_of_syscall.tv_sec = 0;
 
     return;
@@ -94,12 +95,12 @@ static void reap_dead_children(void)
 
     for(i = 0; i < number_of_children; i++)
     {
-        if(map->children[i]->pid == EMPTY)
+        if(atomic_load(&map->children[i]->pid) == EMPTY)
         {
             continue;
         }
 
-        rtrn = kill(map->children[i]->pid, 0);
+        rtrn = kill(atomic_load(&map->children[i]->pid), 0);
         if(rtrn < 0)
         {
             if(errno == ESRCH)
@@ -108,12 +109,12 @@ static void reap_dead_children(void)
             }
         }
 
-        if(map->running_children == 0)
+        if(atomic_load(&map->running_children) == 0)
         {
             return;
         }
 
-        map->children[i]->pid = EMPTY;
+        compare_and_swap_int32(&map->children[i]->pid, EMPTY);
     }
 }
 
@@ -125,7 +126,7 @@ static void kill_all_children(void)
 
     for(i = 0; i < number_of_children; i++)
     {
-        rtrn = kill(map->children[i]->pid, SIGKILL);
+        rtrn = kill(atomic_load(&map->children[i]->pid), SIGKILL);
         if(rtrn < 0)
         {
             output(ERROR, "Can't kill child: %s\n", strerror(errno));
@@ -162,12 +163,16 @@ static void reaper(void)
 processes that are not functioning properly. */
 int setup_and_run_reaper(void)
 {
-    map->reaper_pid = fork();
-    if(map->reaper_pid == 0)
+    pid_t reaper_pid;
+
+    reaper_pid = fork();
+    if(reaper_pid == 0)
     {
+        compare_and_swap_int32(&map->reaper_pid, reaper_pid);
+
     	reaper();
     }
-    else if(map->reaper_pid > 0)
+    else if(reaper_pid > 0)
     {
     	return 0;
     }

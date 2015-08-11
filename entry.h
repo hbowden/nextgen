@@ -21,7 +21,8 @@
 #include "nextgen.h"
 
 #include <stdbool.h>
-#include <stdatomic.h>
+
+#include "stdatomic.h"
 
 enum syscall_status { ON, OFF };
 

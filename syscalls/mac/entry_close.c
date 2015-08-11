@@ -1,3 +1,5 @@
+
+
 /**
  * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
  * 
@@ -13,28 +15,14 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#ifndef SYSCALL_TABLE_H
-#define SYSCALL_TABLE_H
+#include "syscall_list.h"
 
-#include "entry.h"
+struct syscall_entry entry_close = {
 
-struct syscall_table
-{
-    unsigned int number_of_syscalls;
-    struct syscall_entry *sys_entry;
-    
-};
-
-struct syscall_table_shadow
-{
-	unsigned int number_of_syscalls;
-
-    struct syscall_entry_shadow *sys_entry;
+    .name_of_syscall = "close",
+    .number_of_args = 1,
+    .status = OFF,
+    .requires_root = NO,
+    .need_alarm = NO
 
 };
-
-private extern struct syscall_table freebsd_syscall_table[];
-
-private extern struct syscall_table mac_osx_syscall_table[];
-
-#endif

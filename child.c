@@ -189,15 +189,19 @@ void create_file_children(void)
 	for(i = 0; i < number_of_children; i++)
 	{
 		/* If the child has a pid of EMPTY let's create a new one. */
-		if(map->children[i]->pid == EMPTY)
+		if(atomic_load(&map->children[i]->pid) == EMPTY)
 		{
-            map->children[i]->pid = fork();
-            if(map->runloop_pid == 0)
+            pid_t child_pid;
+
+            child_pid = fork();
+            if(child_pid == 0)
             {
+                compare_and_swap_int32(&map->children[i]->pid, child_pid);
+
             	/* Start the child main loop. */
                 start_file_child();
             }
-            else if(map->runloop_pid > 0)
+            else if(child_pid > 0)
             {
                /* This is the parent process, so let's keep looping. */
                 continue;

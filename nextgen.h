@@ -24,7 +24,8 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <stdatomic.h>
+
+#include "stdatomic.h"
 
 enum child_state {EMPTY};
 

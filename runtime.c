@@ -67,7 +67,7 @@ static void start_main_file_loop(void)
     while(atomic_load(&map->stop) == FALSE)
     {
         /* Check if we have the right number of children processes running, if not create a new ones until we do. */
-        if(map->running_children < map->number_of_children)
+        if(atomic_load(&map->running_children) < map->number_of_children)
         {
             /* Create children process. */
             create_file_children();
@@ -123,12 +123,16 @@ static int start_syscall_mode_runtime(void)
 
 static int start_file_mode_runtime(void)
 {
-    map->runloop_pid = fork();
-    if(map->runloop_pid == 0)
+    pid_t runloop_pid;
+
+    runloop_pid = fork();
+    if(runloop_pid == 0)
     {
+        compare_and_swap_int32(&map->runloop_pid, runloop_pid);
+
         start_main_file_loop();
     }
-    else if(map->runloop_pid > 0)
+    else if(runloop_pid > 0)
     {
         int status;
 

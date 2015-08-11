@@ -183,8 +183,8 @@ static int sha512(char *in, char **out)
 int seed_prng(void)
 {
     /* The variables used in seedPrng(). */
-    int rtrn, randomFd;
-    unsigned int bufLen, iterations, i;
+    int rtrn, randomFd, iterations, bufLen;
+    unsigned int i;
     char *randomBuffer, *hash;
     ssize_t ret;
     
@@ -307,6 +307,11 @@ int setup_crypto(void)
     output(STD, "Setting up crypto\n");
 
     int rtrn;
+
+    /* Init openssl/libressl library. */
+    OPENSSL_cpuid_setup();
+    OpenSSL_add_all_ciphers();
+    OpenSSL_add_all_digests();
 
     /* Check if the user want's to use a non crypto graphic random number generator. */
     if(map->crypto_flag == TRUE)

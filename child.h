@@ -22,9 +22,10 @@
 #include "syscall_table.h"
 
 #include <setjmp.h>
-#include <stdatomic.h>
 #include <sys/time.h>
 #include <unistd.h>
+
+#include "stdatomic.h"
 
 struct child_ctx
 {

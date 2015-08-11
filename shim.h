@@ -25,4 +25,6 @@ private extern struct syscall_table *get_table(void);
 
 private extern int _get_load_address(void);
 
+private extern int _inject_fork_server(void);
+
 #endif

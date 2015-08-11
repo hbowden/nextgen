@@ -314,9 +314,9 @@ static int intit_shared_mapping(struct shared_map **mapping)
             return -1;
         }
 
+        atomic_init(&child->pid, EMPTY);
+
         (*mapping)->children[i] = child;
-        
-        child->pid = EMPTY;
     }
     
     return 0;

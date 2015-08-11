@@ -1,3 +1,5 @@
+
+
 /**
  * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
  * 
@@ -13,28 +15,27 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#ifndef SYSCALL_TABLE_H
-#define SYSCALL_TABLE_H
+#ifndef MAC_OSX_SYSCALL_TABLE_H
+#define MAC_OSX_SYSCALL_TABLE_H
 
-#include "entry.h"
+#include "syscall_list.h"
+#include "syscall_table.h"
 
-struct syscall_table
-{
-    unsigned int number_of_syscalls;
-    struct syscall_entry *sys_entry;
+struct syscall_table mac_osx_syscall_table[] = {
+    
+    { .number_of_syscalls = 11 },
+    { .sys_entry = &entry_read },
+    { .sys_entry = &entry_write },
+    { .sys_entry = &entry_open },
+    { .sys_entry = &entry_close },
+    { .sys_entry = &entry_wait4 },
+    { .sys_entry = &entry_link },
+    { .sys_entry = &entry_unlink },
+    { .sys_entry = &entry_chdir },
+    { .sys_entry = &entry_fchdir },
+    { .sys_entry = &entry_mknod },
+    { .sys_entry = &entry_getfsstat },
     
 };
-
-struct syscall_table_shadow
-{
-	unsigned int number_of_syscalls;
-
-    struct syscall_entry_shadow *sys_entry;
-
-};
-
-private extern struct syscall_table freebsd_syscall_table[];
-
-private extern struct syscall_table mac_osx_syscall_table[];
 
 #endif

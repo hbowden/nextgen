@@ -1,5 +1,3 @@
-
-
 /**
  * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
  * 
@@ -22,10 +20,8 @@
 #include "../../arg_types.h"
 #include "../../entry.h"
 
-/* FreeBSD's system call list. This file declares all the syscalls entries
-on the FreeBSD platform. These syscall entries tell us how to fuzz each syscall on the system.  */
-
-/* Skip the fork syscall.  */
+/* Mac OSX's system call list. This file declares all the syscalls entries
+on the Mac OSX platform. These syscall entries tell us how to fuzz each syscall on the system.  */
 
 private extern struct syscall_entry entry_read;
 
@@ -36,8 +32,6 @@ private extern struct syscall_entry entry_open;
 private extern struct syscall_entry entry_close;
 
 private extern struct syscall_entry entry_wait4;
-
-private extern struct syscall_entry entry_creat;
 
 private extern struct syscall_entry entry_link;
 
