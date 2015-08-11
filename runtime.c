@@ -158,8 +158,10 @@ static int setup_file_mode_runtime(void)
     int rtrn;
 
     /* Check if the user want's dumb or smart mode. */
-    if(map->dumb_mode == FALSE)
+    if(map->dumb_mode != TRUE)
     {
+        output(STD, "Starting file fuzzer in smart mode\n");
+
         /* Lets parse the binary and figure out the virtual memory address it's going to be loaded at. */
         rtrn = get_load_address();
         if(rtrn < 0)
@@ -184,8 +186,8 @@ static int setup_file_mode_runtime(void)
         /* Inject the fork server. One can learn more about the fork server idea at:
         http://lcamtuf.blogspot.com/2014/10/fuzzing-binaries-without-execve.html .
         We use the fork server so that we can avoid the cost of dtrace probe injection and execv
-        calls on each fuzz test. This implementation of the fork server use's ptrace as opposed to
-        a custom C/C++ compiler like the orignal implementation. */
+        calls on each fuzz test. This implementation of the fork server use's mach traps and ptrace on non mac osx systems
+        as opposed to a custom C/C++ compiler like the orignal implementation. */
         rtrn = inject_fork_server();
         if(rtrn < 0)
         {
@@ -195,7 +197,8 @@ static int setup_file_mode_runtime(void)
     }
     else
     {
-    
+        output(STD, "Starting file fuzzer in dumb mode\n");
+
     }
 
     /* Lets set up the signal handler for the main process. */
@@ -211,15 +214,13 @@ static int setup_network_mode_runtime(void)
 
 static int setup_syscall_mode_runtime(void)
 {
-
-    output(STD, "Starting syscall mode\n");
-
     int rtrn;
 
     /* Check if the user want's dumb or smart mode. */
-    if(map->dumb_mode == FALSE)
+    if(map->dumb_mode != TRUE)
     {
         /* Do init work specific to smart mode. */
+        output(STD, "Starting syscall fuzzer in smart mode\n");
 
         /* Inject probes into the kernel so we can track the code coverage of our fuzz tests. */
         rtrn = inject_kernel_probes();
@@ -232,6 +233,7 @@ static int setup_syscall_mode_runtime(void)
     else
     {
         /* Do init work specific to dumb mode. */
+        output(STD, "Starting syscall fuzzer in dumb mode\n");
         
     }
 

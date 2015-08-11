@@ -56,6 +56,22 @@ static void display_help_banner(void)
     return;
 }
 
+static int check_root(void)
+{
+
+    output(STD, "Making sure the fuzzer has root privileges\n");
+
+    uid_t check;
+
+    check = getuid();
+    if(check == 0)
+    {
+        return 0;
+    }
+
+    return -1;
+}
+
 static int parse_cmd_line(int argc, char *argv[])
 {
     int ch, rtrn;
@@ -163,6 +179,18 @@ static int parse_cmd_line(int argc, char *argv[])
         return -1;
     }
 
+    /* Check if we have root, if we don't have root make sure the user passed
+    --dumb or -d to specify they want dumb mode. */
+    rtrn = check_root();
+    if(rtrn != 0)
+    {
+        if(map->dumb_mode != TRUE)
+        {
+            output(STD, "Either run as root to use smart mode or pass --dumb so that you do not have run as root\n");
+            return -1;
+        }
+    }
+
     /* If file mode was selected lets make sure all the right args were passed.*/
     if(fFlag == TRUE)
     {
@@ -171,8 +199,6 @@ static int parse_cmd_line(int argc, char *argv[])
             output(STD, "Pass --exec , --in and --out for file mode\n");
             return -1;
         }
-
-        map->mode = MODE_FILE;
     }
 
     if(nFlag == TRUE)
@@ -182,19 +208,17 @@ static int parse_cmd_line(int argc, char *argv[])
             output(STD, "Pass --address , --port, --protocol, and --out for network mode\n");
             return -1;
         }
-
-        map->mode = MODE_NETWORK;
     }
 
+    /* Check to see if syscall mode was selected. */
     if(sFlag == TRUE)
     {
+        /* Make sure the user set an output path. */
         if(oFlag == FALSE)
         {
             output(STD, "Pass --in and --out for syscall mode\n");
             return -1;
         }
-
-        map->mode = MODE_SYSCALL;
     }
 
     return 0;
@@ -210,22 +234,6 @@ static int create_shared(void **pointer, int size)
     }
 
     return 0;
-}
-
-static int check_root(void)
-{
-
-    output(STD, "Making sure the fuzzer has root privileges\n");
-
-    uid_t check;
-
-    check = getuid();
-    if(check == 0)
-    {
-        return 0;
-    }
-
-    return -1;
 }
 
 /**
@@ -334,14 +342,6 @@ static int intit_shared_mapping(struct shared_map **mapping)
 int main(int argc, char *argv[])
 {
     int rtrn;
-
-    /* We have to make sure that we were started with root privileges so that we can use dtrace an dother functionality. */
-    rtrn = check_root();
-    if(rtrn < 0)
-    {
-        output(ERROR, "Run as root.\n");
-        return -1;
-    }
 
     /* Create a shared memory map so that we can share state with other threads and procceses. */
     rtrn = intit_shared_mapping(&map);
