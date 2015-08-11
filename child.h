@@ -42,8 +42,12 @@ struct child_ctx
     /* This index is where we store the arguments we generate. */
     unsigned long arg_value_index[7];
 
+    /* Time that we made the syscall fuzz test. */
     struct timeval time_of_syscall;
 
+    /* This pipe is used to inform the main-loop process we are done
+    creating and setting up the child process. */
+    int msg_port[2];
 };
 
 private extern int get_child_index_number(void);

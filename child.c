@@ -51,6 +51,9 @@ static int init_syscall_child(struct child_ctx **child)
     /* Increment the running child counter. */
     atomic_fetch_add(&map->running_children, 1);
 
+    /* Inform main loop we are done setting up. */
+    write((*child)->msg_port[1], "1", 1);
+
     return 0;
 }
 
@@ -140,6 +143,8 @@ static void start_syscall_child(void)
 
 void create_syscall_children(void)
 {
+    int rtrn;
+
 	/* Walk the child structure and find the first empty child slot. */
 	unsigned int i;
 	unsigned int number_of_children = map->number_of_children;
@@ -150,6 +155,14 @@ void create_syscall_children(void)
         if(atomic_load(&map->children[i]->pid) == EMPTY)
         {
             pid_t child_pid;
+
+            /* Create pipe here so we can avoid a race condition. */
+            rtrn = pipe(map->children[i]->msg_port);
+            if(rtrn < 0)
+            {
+                output(ERROR, "Can't create msg port: %s\n", strerror(errno));
+                return;
+            }
 
             child_pid = fork();
             if(child_pid == 0)
@@ -162,8 +175,15 @@ void create_syscall_children(void)
             }
             else if(child_pid > 0)
             {
-                 /* This is the parent process, so let's keep looping. */
-                // sleep(1);
+                char *msg_buf;
+
+                /* Wait for the child to be done setting up. */
+                size_t ret = read(map->children[i]->msg_port[0], msg_buf, 1);
+                if(ret < 1)
+                {
+                    output(ERROR, "Problem waiting for child setup: %s\n", strerror(errno));
+                    return;
+                }
             }
             else
             {
