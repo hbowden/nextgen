@@ -37,6 +37,18 @@ static int rand_range_no_crypto(unsigned int range, int *number)
     return 0;
 }
 
+int rand_bytes(char **buf, unsigned int length)
+{
+    int rtrn = RAND_bytes((unsigned char *)*buf, (int) length);
+    if(rtrn != 1)
+    {
+        output(STD, "Can't get random bytes\n");
+        return -1;
+    }
+
+    return 0;
+}
+
 static int rand_range_crypto(unsigned int range, int *number)
 {
     BIGNUM *random, *range1;
@@ -137,7 +149,7 @@ static int setup_hardware_acceleration(void)
     return 0;
 }
 
-static int sha512(char *in, char **out)
+int sha512(char *in, char **out)
 {
     unsigned char hash[SHA512_DIGEST_LENGTH];
     SHA512_CTX ctx;

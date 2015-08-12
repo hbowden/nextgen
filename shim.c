@@ -22,8 +22,11 @@
 
 #include <string.h>
 #include <errno.h>
+#include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <sys/wait.h>
+#include <sys/ptrace.h>
 
 #ifdef FREEBSD
 

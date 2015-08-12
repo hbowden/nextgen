@@ -21,6 +21,7 @@
 #include "../../private.h"
 #include "../../arg_types.h"
 #include "../../entry.h"
+#include "../../generate.h"
 
 /* FreeBSD's system call list. This file declares all the syscalls entries
 on the FreeBSD platform. These syscall entries tell us how to fuzz each syscall on the system.  */

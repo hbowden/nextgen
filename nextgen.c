@@ -288,6 +288,7 @@ static int intit_shared_mapping(struct shared_map **mapping)
     /* Set the stop flag to FALSE, when set to TRUE all processes start their exit routines and eventually exit. */
     atomic_init(&(*mapping)->stop, FALSE);
 
+    /* We use atomic values for the pids, so let's init them. */
     atomic_init(&(*mapping)->reaper_pid, 0);
     atomic_init(&(*mapping)->runloop_pid, 0);
     atomic_init(&(*mapping)->socket_server_pid, 0);

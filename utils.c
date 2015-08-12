@@ -16,6 +16,7 @@
  **/
 
 #include "utils.h"
+#include "crypto.h"
 #include "nextgen.h"
 
 #include <stdio.h>
@@ -253,4 +254,72 @@ int get_core_count(unsigned int *core_count)
     }
 
 	return 0;
+}
+
+int generate_name(char **name, char *extension, enum name_type type)
+{
+    /* Declare some variables. */
+    int rtrn;
+    char *random_data, *tmp_buf;
+    
+    /* Create some space in memory. */
+    random_data = malloc(1024);
+    if(random_data == NULL)
+    {
+        output(STD, "Can't Allocate Space: %s\n", strerror(errno));
+        return -1;
+    }
+
+    tmp_buf = malloc(129);
+    if(tmp_buf == NULL)
+    {
+        output(STD, "Can't Allocate Space: %s\n", strerror(errno));
+        return -1;
+    }
+    
+    rtrn = rand_bytes(&random_data, 1023);
+    if(rtrn < 0)
+    {
+        output(STD, "Can't get random bytes\n");
+        return -1;
+    }
+    
+    /* SHA 512 hash the random output string. */
+    rtrn = sha512(random_data, &tmp_buf);
+    if(rtrn < 0)
+    {
+        output(STD, "Can't Hash Random Data\n");
+        return -1;
+    }
+    
+    switch((int)type)
+    {
+        case DIR_NAME:
+            
+            rtrn = asprintf(name, "%s", tmp_buf);
+            if(rtrn < 0)
+            {
+                output(STD, "Can't create dir path: %s\n", strerror(errno));
+                return -1;
+            }
+            
+            break;
+            
+        case FILE_NAME:
+            
+            rtrn = asprintf(name, "%s%s", tmp_buf, extension);
+            if(rtrn < 0)
+            {
+                output(STD, "Can't create file path: %s\n", strerror(errno));
+                return -1;
+            }
+            
+            break;
+            
+        default:
+            output(STD, "Should not get here\n");
+            return -1;
+    }
+
+    return 0;
 }

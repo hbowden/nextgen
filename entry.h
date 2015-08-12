@@ -28,6 +28,8 @@ enum syscall_status { ON, OFF };
 
 enum alarm_status { YES, NO };
 
+enum argnums { FIRST_ARG, SECOND_ARG, THIRD_ARG, FOURTH_ARG, FIFTH_ARG, SIXTH_ARG};
+
 /* In memory format. */
 struct syscall_entry_shadow
 {

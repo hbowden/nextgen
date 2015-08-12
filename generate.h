@@ -15,19 +15,21 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#ifndef CRYPTO_H
-#define CRYPTO_H
+#ifndef GENERATE_H
+#define GENERATE_H
 
 #include "private.h"
 
-private extern int setup_crypto(void);
+private extern int generate_fd(unsigned long *fd);
 
-private extern int seed_prng(void);
+private extern int generate_socket(unsigned long *socket);
 
-private extern int rand_range(unsigned int range, int *number);
+private extern int generate_buf(unsigned long *buf);
 
-private extern int rand_bytes(char **buf, unsigned int length);
+private extern int generate_length(unsigned long *length);
 
-private extern int sha512(char *in, char **out);
+private extern int generate_path(unsigned long *path);
+
+private extern int generate_open_flag(unsigned long *flag);
 
 #endif

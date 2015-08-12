@@ -15,19 +15,49 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#ifndef CRYPTO_H
-#define CRYPTO_H
+#include "generate.h"
+#include "utils.h"
 
-#include "private.h"
+int generate_fd(unsigned long *fd)
+{
 
-private extern int setup_crypto(void);
+	return 0;
+}
 
-private extern int seed_prng(void);
+int generate_socket(unsigned long *socket)
+{
 
-private extern int rand_range(unsigned int range, int *number);
+	return 0;
+}
 
-private extern int rand_bytes(char **buf, unsigned int length);
+int generate_buf(unsigned long *buf)
+{
 
-private extern int sha512(char *in, char **out);
+	return 0;
+}
 
-#endif
+int generate_length(unsigned long *length)
+{
+
+	return 0;
+}
+
+int generate_path(unsigned long *path)
+{
+    int rtrn;
+
+    rtrn = generate_name((char **)&path, ".txt", FILE_NAME);
+    if(rtrn < 0)
+    {
+    	output(STD, "Can't generate file path\n");
+    	return -1;
+    }
+
+	return 0;
+}
+
+int generate_open_flag(unsigned long *flag)
+{
+
+	return 0;
+}

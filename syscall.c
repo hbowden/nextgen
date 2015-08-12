@@ -22,7 +22,7 @@ int get_syscall_table(void)
     }
 
     /* Create a shadow syscall table.*/
-    struct syscall_table_shadow *shadow_table = malloc(sizeof(struct syscall_table));
+    struct syscall_table_shadow *shadow_table = malloc(sizeof(struct syscall_table_shadow));
     if(shadow_table == NULL)
     {
         output(ERROR, "Can't create shadow table\n");
@@ -34,7 +34,7 @@ int get_syscall_table(void)
     unsigned int i;
 
     /* Allocate heap memory for the list of syscalls. */
-    shadow_table->sys_entry = malloc(shadow_table->number_of_syscalls * sizeof(struct syscall_entry));
+    shadow_table->sys_entry = malloc(shadow_table->number_of_syscalls * sizeof(struct syscall_entry_shadow));
     if(shadow_table->sys_entry == NULL)
     {
         output(ERROR, "Can't create new entry\n");
@@ -44,11 +44,6 @@ int get_syscall_table(void)
     /* Loop for each entry syscall and build a table from the on disk format. */
     for(i = 0; i < shadow_table->number_of_syscalls; i++)
     {
-        output(STD, "table: %p\n", sys_table);
-        output(STD, "entry: %p\n", sys_table[i + 1].sys_entry);
-        output(STD, "number_of_args: %d\n", sys_table[i + 1].sys_entry->number_of_args);
-        output(STD, "name_of_syscall: %s\n", sys_table[i + 1].sys_entry->name_of_syscall);
-
         struct syscall_entry_shadow entry = {  .number_of_args = sys_table[i + 1].sys_entry->number_of_args, .name_of_syscall = sys_table[i + 1].sys_entry->name_of_syscall };
         
         if(sys_table[i + 1].sys_entry->status == ON)
@@ -90,10 +85,10 @@ int pick_syscall(struct child_ctx *ctx)
 int generate_arguments(struct child_ctx *ctx)
 {
     unsigned int i;
-
+output(STD, "1\n");
     unsigned int number_of_args = map->sys_table->sys_entry[ctx->syscall_number].number_of_args;
     int rtrn;
-
+output(STD, "2\n");
     for(i = 0; i < number_of_args; i++)
     {
     	/* This crazy line allows us to avoid a large switch stament in the code. */
@@ -104,6 +99,6 @@ int generate_arguments(struct child_ctx *ctx)
             return -1;
         }
     }
-
+output(STD, "3\n");
 	return 0;
 }

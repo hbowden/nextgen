@@ -29,6 +29,8 @@ enum out_type { ERROR, STD };
 
 enum csp { SET, UNSET };
 
+enum name_type { DIR_NAME, FILE_NAME };
+
 /* This function as the name implies gets the file size. */
 private extern int get_file_size(int fd, off_t *size);
 
@@ -44,6 +46,8 @@ private extern void output(enum out_type type, const char *format, ...);
 
 /* Get the core count of the system we are on. This will include virtual cores on hyperthreaded systems. */
 private extern int get_core_count(unsigned int *core_count);
+
+private extern int generate_name(char **name, char *extension, enum name_type type);
 
 /* CAS loop for swapping atomic bool values. */ 
 private extern int compare_and_swap_bool(atomic_bool *target, int value);

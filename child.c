@@ -25,7 +25,7 @@
 #include <string.h>
 #include <errno.h>
 
-static int init_syscall_child(struct child_ctx **child)
+static int init_syscall_child(unsigned int i)
 {
     int rtrn;
 
@@ -33,9 +33,7 @@ static int init_syscall_child(struct child_ctx **child)
     pid_t child_pid = getpid();
 
     /* Set the child pid. */
-    compare_and_swap_int32(&(*child)->pid, child_pid);
-
-    output(STD, "og: %d\n", atomic_load(&(*child)->pid));
+    compare_and_swap_int32(&map->children[i]->pid, child_pid);
 
     /* Set up the child signal handler. */
     setup_syscall_child_signal_handler();
@@ -52,7 +50,7 @@ static int init_syscall_child(struct child_ctx **child)
     atomic_fetch_add(&map->running_children, 1);
 
     /* Inform main loop we are done setting up. */
-    write((*child)->msg_port[1], "1", 1);
+    write(map->children[i]->msg_port[1], "1", 1);
 
     return 0;
 }
@@ -64,18 +62,14 @@ int get_child_index_number(void)
     unsigned int number_of_children = map->number_of_children;
 
     int pid = getpid();
-    output(STD, "PID: %d\n", pid);
 
     for(i = 0; i < number_of_children; i++)
     {
-        output(STD, "PID2: %d\n", atomic_load(&map->children[i]->pid));
-
         if(atomic_load(&map->children[i]->pid) == pid)
         {
             return i;
         }
     }
-output(STD, "Why\n");
     /* Should not get here. */
     return -1;
 }
@@ -168,7 +162,7 @@ void create_syscall_children(void)
             if(child_pid == 0)
             {
                 /* Initialize the new syscall child. */
-                init_syscall_child(&map->children[i]);
+                init_syscall_child(i);
 
                 /* Start the child main loop. */
                 start_syscall_child();

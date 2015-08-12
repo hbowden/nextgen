@@ -23,6 +23,12 @@ struct syscall_entry entry_open = {
     .number_of_args = 3,
     .status = OFF,
     .requires_root = NO,
-    .need_alarm = NO
+    .need_alarm = NO,
+
+    .arg_type_index[FIRST_ARG] = FILE_PATH,
+    .get_arg_index[FIRST_ARG] = &generate_path,
+
+
+
 
 };

@@ -1,5 +1,5 @@
 
-SOURCES = nextgen.c disas.c probe.c utils.c crypto.c runtime.c reaper.c child.c network.c syscall.c shim.c signal.c
+SOURCES = nextgen.c disas.c probe.c utils.c crypto.c runtime.c reaper.c child.c network.c syscall.c shim.c signal.c generate.c
 
 CURRENT_DIR = $(shell pwd)
 
