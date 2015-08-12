@@ -78,9 +78,6 @@ struct shared_map
     /* If this mode is TRUE then we don't use the binary feedback and genetic algorithm. */
     bool dumb_mode;
 
-    /* */
-    struct syscall_table *system_table;
-
     struct syscall_table_shadow *sys_table;
 
     int socket_server_port;

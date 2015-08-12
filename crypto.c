@@ -292,7 +292,6 @@ int seed_prng(void)
         
         /* Clean up hash buffer. */
         free(hash);
-        
     }
     
     /* Clean up. */
@@ -309,7 +308,6 @@ int setup_crypto(void)
     int rtrn;
 
     /* Init openssl/libressl library. */
-    OPENSSL_cpuid_setup();
     OpenSSL_add_all_ciphers();
     OpenSSL_add_all_digests();
 

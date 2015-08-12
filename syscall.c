@@ -15,9 +15,11 @@ int get_syscall_table(void)
 
 	/* Grab a copy of the syscall table in on disk format. */ 
 	struct syscall_table *sys_table = get_table();
-
-    /* Check how many syscalls entries there are in the syscall table. */
-    unsigned int number_of_syscalls = map->sys_table->number_of_syscalls;
+    if(sys_table == NULL)
+    {
+        output(STD, "Can't grab syscall table\n");
+        return -1;
+    }
 
     /* Create a shadow syscall table.*/
     struct syscall_table_shadow *shadow_table = malloc(sizeof(struct syscall_table));
@@ -27,10 +29,12 @@ int get_syscall_table(void)
         return -1;
     }
 
+    shadow_table->number_of_syscalls = sys_table->number_of_syscalls;
+
     unsigned int i;
 
     /* Allocate heap memory for the list of syscalls. */
-    shadow_table->sys_entry = malloc(number_of_syscalls * sizeof(struct syscall_entry));
+    shadow_table->sys_entry = malloc(shadow_table->number_of_syscalls * sizeof(struct syscall_entry));
     if(shadow_table->sys_entry == NULL)
     {
         output(ERROR, "Can't create new entry\n");
@@ -38,11 +42,16 @@ int get_syscall_table(void)
     }
 
     /* Loop for each entry syscall and build a table from the on disk format. */
-    for(i = 0; i < number_of_syscalls; i++)
+    for(i = 0; i < shadow_table->number_of_syscalls; i++)
     {
-        struct syscall_entry_shadow entry = {  .number_of_args = sys_table->sys_entry[i].number_of_args, .name_of_syscall = sys_table->sys_entry[i].name_of_syscall };
+        output(STD, "table: %p\n", sys_table);
+        output(STD, "entry: %p\n", sys_table[i + 1].sys_entry);
+        output(STD, "number_of_args: %d\n", sys_table[i + 1].sys_entry->number_of_args);
+        output(STD, "name_of_syscall: %s\n", sys_table[i + 1].sys_entry->name_of_syscall);
 
-        if(sys_table->sys_entry[i].status == ON)
+        struct syscall_entry_shadow entry = {  .number_of_args = sys_table[i + 1].sys_entry->number_of_args, .name_of_syscall = sys_table[i + 1].sys_entry->name_of_syscall };
+        
+        if(sys_table[i + 1].sys_entry->status == ON)
         {
             atomic_init(&entry.status, ON);
         }
@@ -54,6 +63,8 @@ int get_syscall_table(void)
         shadow_table->sys_entry[i] = entry;
     }
 
+    map->sys_table = shadow_table;
+
 	return 0;
 }
 
@@ -62,17 +73,16 @@ int pick_syscall(struct child_ctx *ctx)
 {
 	/* Our variables we will be using. */
     int rtrn;
-    unsigned int syscall_number;
 
     /* Use rand_range to pick a number between 0 and the number_of_syscalls.  */
-    rtrn = rand_range(map->sys_table->number_of_syscalls, &syscall_number);
+    rtrn = rand_range(map->sys_table->number_of_syscalls, &ctx->syscall_number);
     if(rtrn < 0)
     {
         output(ERROR, "Can't generate random number\n");
         return -1;
     }
 
-    ctx->syscall_number = syscall_number + 1;
+    output(STD, "syscall_number: %d\n", ctx->syscall_number);
 
     return 0;
 }
@@ -80,8 +90,6 @@ int pick_syscall(struct child_ctx *ctx)
 int generate_arguments(struct child_ctx *ctx)
 {
     unsigned int i;
-
-    output(STD, "syscall_number: %d\n", ctx->syscall_number);
 
     unsigned int number_of_args = map->sys_table->sys_entry[ctx->syscall_number].number_of_args;
     int rtrn;

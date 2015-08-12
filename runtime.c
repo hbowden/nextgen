@@ -322,7 +322,7 @@ int start_runtime(void)
 {
     output(STD, "Starting fuzzer\n");
 
-     /* Start the selected fuzzer runtime. */ 
+    /* Start the selected fuzzer runtime. */ 
     switch((int)map->mode)
     {
         case MODE_FILE:
