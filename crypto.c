@@ -29,9 +29,9 @@
 #include <openssl/evp.h>
 #include <openssl/engine.h>
 
-static int (*rand_range_pointer)(unsigned int range, int *number);
+static int (*rand_range_pointer)(unsigned int range, unsigned int *number);
 
-static int rand_range_no_crypto(unsigned int range, int *number)
+static int rand_range_no_crypto(unsigned int range, unsigned int *number)
 {
     *number = (int) rand() % range + 1;
     return 0;
@@ -49,7 +49,7 @@ int rand_bytes(char **buf, unsigned int length)
     return 0;
 }
 
-static int rand_range_crypto(unsigned int range, int *number)
+static int rand_range_crypto(unsigned int range, unsigned int *number)
 {
     BIGNUM *random, *range1;
 
@@ -88,7 +88,7 @@ static int rand_range_crypto(unsigned int range, int *number)
     	return -1;
     }
 
-    *number = (int)strtol(buf, NULL, 10);
+    *number = (unsigned int)strtol(buf, NULL, 10);
 
     return 0;
 }
@@ -112,7 +112,7 @@ static int setup_rand_range(char *method)
     return 0;
 }
 
-int rand_range(unsigned int range, int *number)
+int rand_range(unsigned int range, unsigned int *number)
 {
     return rand_range_pointer(range, number);
 }
@@ -195,8 +195,8 @@ int sha512(char *in, char **out)
 int seed_prng(void)
 {
     /* The variables used in seedPrng(). */
-    int rtrn, randomFd, iterations, bufLen;
-    unsigned int i;
+    int rtrn, randomFd;
+    unsigned int i, iterations, bufLen;
     char *randomBuffer, *hash;
     ssize_t ret;
     

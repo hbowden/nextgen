@@ -21,8 +21,14 @@ struct syscall_entry entry_link = {
 
     .name_of_syscall = "link",
     .number_of_args = 2,
-    .status = OFF,
+    .status = ON,
     .requires_root = NO,
-    .need_alarm = NO
+    .need_alarm = NO,
+
+    .arg_type_index[FIRST_ARG] = FILE_PATH,
+    .get_arg_index[FIRST_ARG] = &generate_path,
+
+    .arg_type_index[SECOND_ARG] = FILE_PATH,
+    .get_arg_index[SECOND_ARG] = &generate_path,
 
 };

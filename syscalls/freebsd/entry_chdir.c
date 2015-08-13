@@ -21,8 +21,10 @@ struct syscall_entry entry_chdir = {
 
     .name_of_syscall = "chdir",
     .number_of_args = 1,
-    .status = OFF,
+    .status = ON,
     .requires_root = NO,
-    .need_alarm = NO
+    .need_alarm = NO,
 
+    .arg_type_index[FIRST_ARG] = FILE_PATH,
+    .get_arg_index[FIRST_ARG] = &generate_path
 };

@@ -25,6 +25,7 @@
 #include <sys/wait.h>
 #include <sys/sysctl.h>
 #include <sys/stat.h>
+#include <pwd.h>
 #include <sys/mman.h>
 #include <errno.h>
 
@@ -321,5 +322,33 @@ int generate_name(char **name, char *extension, enum name_type type)
             return -1;
     }
 
+    return 0;
+}
+
+int get_home(char **home)
+{
+    uid_t uid;
+    struct passwd *pwd;
+    int rtrn;
+    
+    /* Get User UID */
+    uid = getuid();
+    
+    /* If getuid succedes get user password struct */
+    if (!(pwd = getpwuid(uid)))
+    {
+        output(ERROR, "Can't Get pwd struct: %s\n", strerror(errno));
+        return -1;
+    }
+    
+    /* Copy User Home Directory to buffer supplied to function */
+    rtrn = asprintf(home, "%s", pwd->pw_dir);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't Create home string: %s\n", strerror(errno));
+        return -1;
+    }
+    
+    /* Exit */
     return 0;
 }

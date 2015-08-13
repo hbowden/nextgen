@@ -31,7 +31,7 @@ int get_syscall_table(void)
 
     shadow_table->number_of_syscalls = sys_table->number_of_syscalls;
 
-    unsigned int i;
+    unsigned int i, ii;
 
     /* Allocate heap memory for the list of syscalls. */
     shadow_table->sys_entry = malloc(shadow_table->number_of_syscalls * sizeof(struct syscall_entry_shadow));
@@ -45,6 +45,15 @@ int get_syscall_table(void)
     for(i = 0; i < shadow_table->number_of_syscalls; i++)
     {
         struct syscall_entry_shadow entry = {  .number_of_args = sys_table[i + 1].sys_entry->number_of_args, .name_of_syscall = sys_table[i + 1].sys_entry->name_of_syscall };
+
+        for(ii = 0; ii < entry.number_of_args; ii++)
+        {
+            output(STD, "table: %p\n", sys_table[ii + 1]);
+            output(STD, "entry: %p\n", sys_table[ii + 1].sys_entry);
+            output(STD, "index: %p\n", sys_table[ii + 1].sys_entry->get_arg_index[ii]);
+
+            entry.get_arg_index[ii] = sys_table[i + 1].sys_entry->get_arg_index[ii];
+        }
         
         if(sys_table[i + 1].sys_entry->status == ON)
         {
@@ -77,18 +86,16 @@ int pick_syscall(struct child_ctx *ctx)
         return -1;
     }
 
-    output(STD, "syscall_number: %d\n", ctx->syscall_number);
-
     return 0;
 }
 
 int generate_arguments(struct child_ctx *ctx)
 {
     unsigned int i;
-output(STD, "1\n");
+
     unsigned int number_of_args = map->sys_table->sys_entry[ctx->syscall_number].number_of_args;
     int rtrn;
-output(STD, "2\n");
+
     for(i = 0; i < number_of_args; i++)
     {
     	/* This crazy line allows us to avoid a large switch stament in the code. */
@@ -99,6 +106,6 @@ output(STD, "2\n");
             return -1;
         }
     }
-output(STD, "3\n");
+
 	return 0;
 }

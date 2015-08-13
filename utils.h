@@ -20,9 +20,23 @@
 
 #include "private.h"
 #include <stdarg.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #include "stdatomic.h"
+
+static inline void cleanup_buf(char **buf)
+{
+	if(*buf == NULL)
+	{
+		return;
+	}
+
+	free(*buf);
+}
+
+/* Use this attribute for variables that we want to automatically cleanup. */
+#define auto_clean_buf __attribute__((cleanup (cleanup_buf)))
 
 /* The enum used to tell output how to output the message. */
 enum out_type { ERROR, STD };
@@ -47,7 +61,14 @@ private extern void output(enum out_type type, const char *format, ...);
 /* Get the core count of the system we are on. This will include virtual cores on hyperthreaded systems. */
 private extern int get_core_count(unsigned int *core_count);
 
+/* Can be used to create random file and directory paths. */
 private extern int generate_name(char **name, char *extension, enum name_type type);
+
+/* Simple wrapper function so we can wait on atomic pid values.  */
+private extern int wait_on(atomic_int_fast32_t *pid, int *status);
+
+/* Grabs the path to the user's home directory\n*/
+private extern int get_home(char **home);
 
 /* CAS loop for swapping atomic bool values. */ 
 private extern int compare_and_swap_bool(atomic_bool *target, int value);
@@ -63,8 +84,5 @@ private extern int compare_and_swap_int64(atomic_int_fast64_t *target, long valu
 
 /* CAS loop for swapping atomic uint_64_t values. */
 private extern int compare_and_swap_uint64(atomic_uint_fast64_t *target, unsigned long value);
-
-/* Simple wrapper function so we can wait on atomic pid values.  */
-private extern int wait_on(atomic_int_fast32_t *pid, int *status);
 
 #endif

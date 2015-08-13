@@ -22,4 +22,8 @@
 
 private extern int start_socket_server(void);
 
+private extern int connect_ipv4(int *sockFd);
+
+private extern int connect_ipv6(int *sockFd);
+
 #endif

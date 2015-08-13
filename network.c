@@ -33,6 +33,70 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
+int connect_ipv4(int *sockFd)
+{
+    int rtrn;
+    
+    union
+    {
+        struct sockaddr_in in;
+        struct sockaddr_in6 in6;
+        
+    }addr;
+    
+    addr.in.sin_family = AF_INET;
+    addr.in.sin_port = htons(map->socket_server_port);
+    inet_pton(AF_INET, "127.0.0.1", &addr.in.sin_addr);
+    
+    *sockFd = socket(AF_INET, SOCK_STREAM, 0);
+    if(*sockFd < 0)
+    {
+        output(ERROR, "socket: %s\n", strerror(errno));
+        return -1;
+    }
+    
+    rtrn = connect(*sockFd, (struct sockaddr *)&addr.in, sizeof(addr.in));
+    if(rtrn < 0)
+    {
+        output(ERROR, "connect: %s\n", strerror(errno));
+        return -1;
+    }
+    
+    return 0;
+}
+
+int connect_ipv6(int *sockFd)
+{
+    int rtrn;
+    
+    union
+    {
+        struct sockaddr_in in;
+        struct sockaddr_in6 in6;
+        
+    }addr;
+    
+    addr.in6.sin6_family = AF_INET6;
+    addr.in6.sin6_port = htons(map->socket_server_port + 1);
+    inet_pton(AF_INET6, "::1", &addr.in6.sin6_addr);
+    
+    *sockFd = socket(AF_INET6, SOCK_STREAM, 0);
+    if(*sockFd < 0)
+    {
+        output(ERROR, "socket: %s\n", strerror(errno));
+        return -1;
+    }
+    
+    rtrn = connect(*sockFd, (struct sockaddr *)&addr.in6, sizeof(addr.in6));
+    if(rtrn < 0)
+    {
+        output(ERROR, "connect: %s\n", strerror(errno));
+        return -1;
+    }
+    
+    return 0;
+}
+
 static int setup_ipv4_tcp_server(int *sockFd)
 {
     /* Declarations */

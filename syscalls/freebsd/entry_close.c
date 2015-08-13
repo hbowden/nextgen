@@ -21,8 +21,11 @@ struct syscall_entry entry_close = {
 
     .name_of_syscall = "close",
     .number_of_args = 1,
-    .status = OFF,
+    .status = ON,
     .requires_root = NO,
-    .need_alarm = NO
+    .need_alarm = NO,
+
+    .arg_type_index[FIRST_ARG] = FILE_DESC,
+    .get_arg_index[FIRST_ARG] = &generate_fd
 
 };

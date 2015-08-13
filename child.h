@@ -40,7 +40,7 @@ struct child_ctx
     unsigned int syscall_number;
 
     /* This index is where we store the arguments we generate. */
-    unsigned long arg_value_index[7];
+    unsigned long **arg_value_index;
 
     /* Time that we made the syscall fuzz test. */
     struct timeval time_of_syscall;

@@ -21,8 +21,17 @@ struct syscall_entry entry_read = {
 
     .name_of_syscall = "read",
     .number_of_args = 3,
-    .status = OFF,
+    .status = YES,
     .requires_root = NO,
-    .need_alarm = YES
+    .need_alarm = YES,
+
+    .arg_type_index[FIRST_ARG] = FILE_DESC,
+    .get_arg_index[FIRST_ARG] = &generate_fd,
+
+    .arg_type_index[SECOND_ARG] = VOID_BUFF,
+    .get_arg_index[SECOND_ARG] = generate_buf,
+
+    .arg_type_index[THIRD_ARG] = SIZE_T,
+    .get_arg_index[THIRD_ARG] = &generate_length
 
 };

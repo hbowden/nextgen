@@ -18,6 +18,7 @@
 #include "probe.h"
 #include "disas.h"
 #include "utils.h"
+#include "shim.h"
 #include "nextgen.h"
 #include <inttypes.h>
 #include <capstone/capstone.h>

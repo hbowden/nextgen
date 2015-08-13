@@ -150,7 +150,7 @@ void create_syscall_children(void)
         {
             pid_t child_pid;
 
-            /* Create pipe here so we can avoid a race condition. */
+             /* Create pipe here so we can avoid a race condition. */
             rtrn = pipe(map->children[i]->msg_port);
             if(rtrn < 0)
             {

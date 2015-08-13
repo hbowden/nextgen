@@ -21,14 +21,17 @@ struct syscall_entry entry_open = {
 
     .name_of_syscall = "open",
     .number_of_args = 3,
-    .status = OFF,
+    .status = ON,
     .requires_root = NO,
     .need_alarm = NO,
 
     .arg_type_index[FIRST_ARG] = FILE_PATH,
     .get_arg_index[FIRST_ARG] = &generate_path,
 
+    .arg_type_index[SECOND_ARG] = OPEN_FLAG,
+    .get_arg_index[SECOND_ARG] = &generate_open_flag,
 
-
+    .arg_type_index[THIRD_ARG] = MODE_T,
+    .get_arg_index[THIRD_ARG] = &generate_mode    
 
 };

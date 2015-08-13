@@ -310,6 +310,7 @@ static int intit_shared_mapping(struct shared_map **mapping)
     }
 
     unsigned int i;
+    unsigned int ii;
 
     /* Loop for each child and allocate the child context object as shared anonymous memory. */
     for(i = 0; i < (*mapping)->number_of_children; i++)
@@ -321,6 +322,23 @@ static int intit_shared_mapping(struct shared_map **mapping)
         {
             output(ERROR, "Can't create shared object\n");
             return -1;
+        }
+
+        child->arg_value_index = malloc(7 * sizeof(unsigned long *));
+        if(child->arg_value_index == NULL)
+        {
+            output(ERROR, "Can't create arg value index: %s\n", strerror(errno));
+            return -1;
+        }
+
+        for(ii = 0; ii < 6; ii++)
+        {
+            rtrn = create_shared((void **)&child->arg_value_index[i], sizeof(unsigned long));
+            if(rtrn < 0)
+            {
+                output(ERROR, "Can't create arg value\n");
+                return -1;
+            }
         }
 
         atomic_init(&child->pid, EMPTY);
