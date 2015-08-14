@@ -25,14 +25,14 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <sys/wait.h>
-#include <sys/ptrace.h>
 
 #ifdef FREEBSD
 
 #include "freebsd_syscall_table.h"
 
 #include <gelf.h>
+#include <sys/wait.h>
+#include <sys/ptrace.h>
 #include <machine/reg.h>
 
 struct syscall_table *get_table(void)
