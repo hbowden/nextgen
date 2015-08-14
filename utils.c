@@ -155,7 +155,7 @@ int map_file_in(int fd, char **buf, off_t *size)
 	return 0;
 }
 
-int map_file_out(char *path, char *buf, off_t *size)
+int map_file_out(char *path, char *buf, off_t size)
 {
     int fd;
 
@@ -166,7 +166,7 @@ int map_file_out(char *path, char *buf, off_t *size)
     	return -1;
     }
 
-    if(lseek(fd, *size - 1, SEEK_SET) == -1)
+    if(lseek(fd, size - 1, SEEK_SET) == -1)
     {
     	output(ERROR, "lseek: %s\n", strerror(errno));
     	return -1;
@@ -261,18 +261,12 @@ int generate_name(char **name, char *extension, enum name_type type)
 {
     /* Declare some variables. */
     int rtrn;
-    char *random_data, *tmp_buf;
+    char *random_data auto_clean_buf = NULL;
+    char *tmp_buf auto_clean_buf = NULL;
     
     /* Create some space in memory. */
     random_data = malloc(1024);
     if(random_data == NULL)
-    {
-        output(STD, "Can't Allocate Space: %s\n", strerror(errno));
-        return -1;
-    }
-
-    tmp_buf = malloc(129);
-    if(tmp_buf == NULL)
     {
         output(STD, "Can't Allocate Space: %s\n", strerror(errno));
         return -1;
@@ -284,6 +278,8 @@ int generate_name(char **name, char *extension, enum name_type type)
         output(STD, "Can't get random bytes\n");
         return -1;
     }
+
+    random_data[1023] = '\0';
     
     /* SHA 512 hash the random output string. */
     rtrn = sha512(random_data, &tmp_buf);

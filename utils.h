@@ -35,8 +35,15 @@ static inline void cleanup_buf(char **buf)
 	free(*buf);
 }
 
+static inline void close_fd(int *fd)
+{
+	close(*fd);
+}
+
 /* Use this attribute for variables that we want to automatically cleanup. */
 #define auto_clean_buf __attribute__((cleanup (cleanup_buf)))
+
+#define auto_close_fd __attribute__((cleanup (close_fd)))
 
 /* The enum used to tell output how to output the message. */
 enum out_type { ERROR, STD };
@@ -53,7 +60,7 @@ and puts the files size in size.  */
 private extern int map_file_in(int fd, char **buf, off_t *size);
 
 /* This function maps a buffer of size to a file path.  */
-private extern int map_file_out(char *path, char *buf, off_t *size);
+private extern int map_file_out(char *path, char *buf, off_t size);
 
 /* This function replaces printf and perror in the code so we can aggregate output to one point. */
 private extern void output(enum out_type type, const char *format, ...);

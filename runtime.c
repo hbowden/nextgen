@@ -34,6 +34,8 @@
 
 static void start_main_syscall_loop(void)
 {
+    output(STD, "Starting fuzzer\n");
+
     /* Set up signal handler. */
     setup_signal_handler();
 
@@ -58,6 +60,8 @@ static void start_main_syscall_loop(void)
 
 static void start_main_file_loop(void)
 {
+    output(STD, "Starting fuzzer\n");
+
     /* Set up signal handler. */
     setup_signal_handler();
 

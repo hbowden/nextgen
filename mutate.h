@@ -15,18 +15,12 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#ifndef SYSCALL_H
-#define SYSCALL_H
+#ifndef MUTATE_H
+#define MUTATE_H
 
 #include "private.h"
 #include "child.h"
 
-private extern int get_syscall_table(void);
-
-private extern int pick_syscall(struct child_ctx *ctx);
-
-private extern int generate_arguments(struct child_ctx *ctx);
-
-private extern int test_syscall(struct child_ctx *ctx);
+private extern int mutate_arguments(struct child_ctx *ctx);
 
 #endif

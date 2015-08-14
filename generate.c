@@ -31,9 +31,10 @@
 
 int generate_fd(unsigned long **fd)
 {
-	int rtrn;
-    char *name, *file_path;
-    ssize_t ret;
+	int rtrn, file_desc;
+    char *name auto_clean_buf = NULL;
+    char *file_path auto_clean_buf = NULL;
+    char *junk auto_clean_buf = NULL;
 
     rtrn = generate_name(&name, (char *)".txt", FILE_NAME);
     if(rtrn < 0)
@@ -46,27 +47,38 @@ int generate_fd(unsigned long **fd)
     if(rtrn < 0)
     {
         output(ERROR, "asprintf: %s\n", strerror(errno));
-        free(name);
         return -1;
     }
-    
-    *fd = open(file_path, O_CREAT | O_TRUNC | O_RDWR, 777);
-    if(*fd < 0)
+
+    junk = malloc(4096);
+    if(junk < 0)
     {
-        output(ERROR, "open\n", strerror(errno));
-        free(name);
+    	output(ERROR, "malloc: %s\n", strerror(errno));
         return -1;
     }
-    
-    ret = write(*fd, "73097984ye39p8yohruewnkf4897irghu43fg4fiub4", 4095);
-    if(ret < 4095)
+
+    rtrn = rand_bytes(&junk, 4095);
+    if(rtrn < 0)
     {
-        output(ERROR, "write: %s\n", strerror(errno));
-        free(name);
+    	output(ERROR, "Can't create junk\n");
         return -1;
     }
-    
-    free(file_path);
+
+    rtrn = map_file_out(file_path, junk, 4095);
+    if(rtrn < 0)
+    {
+    	output(ERROR, "Can't write junk to disk\n");
+    	return -1;
+    }
+
+    file_desc = open(file_path, O_RDONLY, 777);
+    if(file_desc < 0)
+    {
+        output(ERROR, "open: %s\n", strerror(errno));
+        return -1;
+    }
+
+    **fd = (unsigned long)file_desc;
 
 	return 0;
 }
@@ -136,7 +148,7 @@ int generate_buf(unsigned long **buf)
 
 int generate_length(unsigned long **length)
 {
-
+    printf("Not Allocated\n");
 	return 0;
 }
 
@@ -148,8 +160,8 @@ int generate_path(unsigned long **path)
     don't have to worry about calling free. */
     char *home auto_clean_buf = NULL;
     char *file_name auto_clean_buf = NULL;
-    char *file_path auto_clean_buf = NULL;
     char *junk auto_clean_buf = NULL;
+    char *file_path = NULL;
 
     /* Use generate_name to create a random file name with the text extension.  */
     rtrn = generate_name((char **)&file_name, ".txt", FILE_NAME);
@@ -180,6 +192,7 @@ int generate_path(unsigned long **path)
     if(junk == NULL)
     {
         output(ERROR, "Can't alloc junk buf: %s\n", strerror(errno));
+        free(file_path);
     	return -1;
     }
 
@@ -188,6 +201,7 @@ int generate_path(unsigned long **path)
     if(rtrn < 0)
     {
     	output(ERROR, "Can't alloc junk buf: %s\n", strerror(errno));
+    	free(file_path);
     	return -1;
     }
 
@@ -196,6 +210,7 @@ int generate_path(unsigned long **path)
     if(rtrn < 0)
     {
     	output(ERROR, "Can't write junk to disk\n");
+    	free(file_path);
     	return -1;
     }
 
@@ -207,23 +222,24 @@ int generate_path(unsigned long **path)
 
 int generate_open_flag(unsigned long **flag)
 {
-
+    printf("Not Allocated\n");
 	return 0;
 }
 
 int generate_mode(unsigned long **mode)
 {
-
+    printf("Not Allocated\n");
 	return 0;
 }
 
 int generate_fs_stat(unsigned long **stat)
 {
+	printf("Not Allocated\n");
 	return 0;
 }
 
 int generate_fs_stat_flag(unsigned long **flag)
 {
-	
+    printf("Not Allocated\n");
 	return 0;
 }

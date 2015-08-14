@@ -86,6 +86,24 @@ static void exit_child(void)
     _exit(0);
 }
 
+static void clean_old_arguments(struct child_ctx *ctx)
+{
+    unsigned int i;
+    unsigned int number_of_args = map->sys_table->sys_entry[ctx->syscall_number].number_of_args;
+
+    for(i = 0; i < number_of_args; i++)
+    {
+        if(ctx->arg_value_index[i] == NULL)
+        {
+            continue;
+        }
+
+        free(ctx->arg_value_index[i]);
+    }
+
+    return;
+}
+
 /**
  * This is the fuzzing loop for syscall fuzzing mode.
  */
@@ -123,6 +141,7 @@ static void start_syscall_child(void)
             exit_child();
         }
 
+        /* Generate arguments for the syscall selected. */
         rtrn = generate_arguments(ctx);
         if(rtrn < 0)
         {
@@ -130,8 +149,45 @@ static void start_syscall_child(void)
             exit_child();
         }
 
+        /* Mutate the arguments randomly. */
+        rtrn = mutate_arguments(ctx);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't mutate arguments\n");
+            exit_child();
+        }
+
+        /* Log the arguments before we use them, in case we cause a
+        kernel panic, so we know what caused the panic. */
+        rtrn = log_arguments(ctx);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't log arguments\n");
+            exit_child();
+        }
+
+        /* Run the syscall we selected with the arguments we generated and mutated. This call usually
+        crashes and causes us to jumb back to the setjmp call above.*/
+        rtrn = test_syscall(ctx);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Syscall call failed\n");
+            exit_child();
+        }
+
+        rtrn = log_results(ctx);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't log results\n");
+            exit_child();
+        }
+
+        /* If we didn't crash cleanup are mess. If we don't do this the generate
+        functions will crash in a hard to understand way. */
+        clean_old_arguments(ctx);
     }
 
+    /* We should not get here, but if we do exit so we can be restarted. */
     exit_child();
 }
 

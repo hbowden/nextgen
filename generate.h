@@ -34,8 +34,6 @@ private extern int generate_mode(unsigned long **mode);
 
 private extern int generate_open_flag(unsigned long **flag);
 
-private extern int generate_mode(unsigned long **mode);
-
 private extern int generate_fs_stat(unsigned long **stat);
 
 private extern int generate_fs_stat_flag(unsigned long **flag);

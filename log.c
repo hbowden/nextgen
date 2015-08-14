@@ -15,18 +15,16 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#ifndef SYSCALL_H
-#define SYSCALL_H
+#include "log.h"
 
-#include "private.h"
-#include "child.h"
+int log_arguments(struct child_ctx *ctx)
+{
 
-private extern int get_syscall_table(void);
+	return 0;
+}
 
-private extern int pick_syscall(struct child_ctx *ctx);
-
-private extern int generate_arguments(struct child_ctx *ctx);
-
-private extern int test_syscall(struct child_ctx *ctx);
-
-#endif
+int log_results(struct child_ctx *ctx)
+{
+	
+	return 0;
+}

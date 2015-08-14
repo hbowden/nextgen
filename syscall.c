@@ -48,9 +48,6 @@ int get_syscall_table(void)
 
         for(ii = 0; ii < entry.number_of_args; ii++)
         {
-            output(STD, "table: %p\n", sys_table[ii + 1]);
-            output(STD, "entry: %p\n", sys_table[ii + 1].sys_entry);
-            output(STD, "index: %p\n", sys_table[ii + 1].sys_entry->get_arg_index[ii]);
 
             entry.get_arg_index[ii] = sys_table[i + 1].sys_entry->get_arg_index[ii];
         }
@@ -86,6 +83,8 @@ int pick_syscall(struct child_ctx *ctx)
         return -1;
     }
 
+    output(STD, "syscall_number: %d\n", ctx->syscall_number);
+
     return 0;
 }
 
@@ -98,6 +97,8 @@ int generate_arguments(struct child_ctx *ctx)
 
     for(i = 0; i < number_of_args; i++)
     {
+    	output(STD, "Loop\n");
+
     	/* This crazy line allows us to avoid a large switch stament in the code. */
         rtrn = map->sys_table->sys_entry[ctx->syscall_number].get_arg_index[i](&ctx->arg_value_index[i]);
         if(rtrn < 0)
@@ -107,5 +108,11 @@ int generate_arguments(struct child_ctx *ctx)
         }
     }
 
+	return 0;
+}
+
+int test_syscall(struct child_ctx *ctx)
+{
+	
 	return 0;
 }
