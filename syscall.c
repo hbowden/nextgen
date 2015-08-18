@@ -83,8 +83,6 @@ int pick_syscall(struct child_ctx *ctx)
         return -1;
     }
 
-    output(STD, "syscall_number: %d\n", ctx->syscall_number);
-
     return 0;
 }
 
@@ -97,10 +95,8 @@ int generate_arguments(struct child_ctx *ctx)
 
     for(i = 0; i < number_of_args; i++)
     {
-    	output(STD, "Loop\n");
-
     	/* This crazy line allows us to avoid a large switch stament in the code. */
-        rtrn = map->sys_table->sys_entry[ctx->syscall_number].get_arg_index[i](&ctx->arg_value_index[i]);
+        rtrn = map->sys_table->sys_entry[ctx->syscall_number].get_arg_index[i](&ctx->arg_value_index[i], i);
         if(rtrn < 0)
         {
         	output(ERROR, "Can't generate arguments for: %s\n", map->sys_table->sys_entry[ctx->syscall_number].name_of_syscall);
@@ -113,6 +109,6 @@ int generate_arguments(struct child_ctx *ctx)
 
 int test_syscall(struct child_ctx *ctx)
 {
-	
+
 	return 0;
 }

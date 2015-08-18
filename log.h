@@ -21,6 +21,8 @@
 #include "private.h"
 #include "child.h"
 
+private extern int create_out_directory(char *path);
+
 private extern int log_arguments(struct child_ctx *ctx);
 
 private extern int log_results(struct child_ctx *ctx);

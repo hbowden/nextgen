@@ -24,6 +24,7 @@
 #include "crypto.h"
 #include "disas.h"
 #include "probe.h"
+#include "log.h"
 #include "reaper.h"
 #include "nextgen.h"
 
@@ -240,6 +241,13 @@ static int setup_syscall_mode_runtime(void)
     }
 
     /* Below is init work common to both smart and dumb mode. */
+
+    rtrn = create_out_directory(map->path_to_out_dir);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't create output directory: %s\n", map->path_to_out_dir);
+        return -1;
+    }
 
     /* Start socket server. We use this to connect to, to create loopback sockets. */
     rtrn = start_socket_server();

@@ -24,17 +24,22 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/param.h>
+#include <sys/mount.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
 
-int generate_fd(unsigned long **fd)
+int generate_fd(unsigned long **fd, unsigned int arg_num)
 {
-	int rtrn, file_desc;
+    int rtrn, file_desc;
     char *name auto_clean_buf = NULL;
     char *file_path auto_clean_buf = NULL;
     char *junk auto_clean_buf = NULL;
+
+    /* Set argnum to zero to silence unused arguments warning. */
+    arg_num = 0;
 
     rtrn = generate_name(&name, (char *)".txt", FILE_NAME);
     if(rtrn < 0)
@@ -78,14 +83,25 @@ int generate_fd(unsigned long **fd)
         return -1;
     }
 
+    *fd = malloc(sizeof(unsigned long));
+    if(fd == NULL)
+    {
+        output(ERROR, "Can't alloc fd: %s\n", strerror(errno));
+        return -1;
+    }
+
     **fd = (unsigned long)file_desc;
 
 	return 0;
 }
 
-int generate_socket(unsigned long **sock)
+int generate_socket(unsigned long **sock, unsigned int arg_num)
 {
-    int rtrn, number, socket_fd;
+    int rtrn, socket_fd;
+    unsigned int number;
+
+    /* Set argnum to zero to silence unused arguments warning. */
+    arg_num = 0;
     
     rtrn = rand_range(3, &number);
     if(rtrn < 0)
@@ -134,8 +150,11 @@ int generate_socket(unsigned long **sock)
     return 0;
 }
 
-int generate_buf(unsigned long **buf)
+int generate_buf(unsigned long **buf, unsigned int arg_num)
 {
+    /* Set argnum to zero to silence unused arguments warning. */
+    arg_num = 0;
+
 	*buf = malloc(64);
 	if(*buf == NULL)
 	{
@@ -146,15 +165,31 @@ int generate_buf(unsigned long **buf)
 	return 0;
 }
 
-int generate_length(unsigned long **length)
+int generate_length(unsigned long **length, unsigned int arg_num)
 {
-    printf("Not Allocated\n");
+	int rtrn;
+	unsigned int size;
+
+    rtrn = rand_range(1000, &size);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't generate length\n");
+        return -1;
+    }
+
+	*length = malloc(sizeof(unsigned long));
+	if(*length == NULL)
+    {
+        output(ERROR, "Can't alloc length: %s\n", strerror(errno));
+        return -1;
+    }
+    
 	return 0;
 }
 
-int generate_path(unsigned long **path)
+int generate_path(unsigned long **path, unsigned int arg_num)
 {
-    int rtrn, fd;
+    int rtrn;
 
     /* Temp variables that we define with auto_clean_buf so that we 
     don't have to worry about calling free. */
@@ -162,6 +197,9 @@ int generate_path(unsigned long **path)
     char *file_name auto_clean_buf = NULL;
     char *junk auto_clean_buf = NULL;
     char *file_path = NULL;
+
+    /* Set argnum to zero to silence unused arguments warning. */
+    arg_num = 0;
 
     /* Use generate_name to create a random file name with the text extension.  */
     rtrn = generate_name((char **)&file_name, ".txt", FILE_NAME);
@@ -220,26 +258,176 @@ int generate_path(unsigned long **path)
 	return 0;
 }
 
-int generate_open_flag(unsigned long **flag)
+int generate_open_flag(unsigned long **flag, unsigned int arg_num)
 {
-    printf("Not Allocated\n");
+    /* Set argnum to zero to silence unused arguments warning. */
+    arg_num = 0;
+
+    int rtrn;
+    unsigned int number;
+    
+    rtrn = rand_range(7, &number);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't generate random number\n");
+        return -1;
+    }
+
+    *flag = malloc(12);
+    if(*flag == NULL)
+    {
+    	output(ERROR, "Can't alloc flag: %s\n", strerror(errno));
+        return -1;
+    }
+    
+    switch(number)
+    {
+        case 0: **flag |= (unsigned long) O_RDONLY; break;
+            
+        case 1: **flag |= (unsigned long) O_WRONLY; break;
+      
+        case 2: **flag |= (unsigned long) O_RDWR; break;
+
+        case 3: **flag |= (unsigned long) O_NONBLOCK; break;
+            
+        case 4: **flag |= (unsigned long) O_APPEND; break;
+            
+        case 5: **flag |= (unsigned long) O_CREAT; break;
+            
+        case 6: **flag |= (unsigned long) O_TRUNC; break;
+
+        case 7: **flag |= (unsigned long) O_EXCL; break;
+
+        default:
+            output(ERROR, "Should not get here\n");
+            return -1;
+    }
+    
+    return 0;
+}
+
+int generate_mode(unsigned long **mode, unsigned int arg_num)
+{
+    int rtrn;
+    unsigned int number;
+
+    /* Set argnum to zero to silence unused arguments warning. */
+    arg_num = 0;
+    
+    rtrn = rand_range(20, &number);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't generate random number\n");
+        return -1;
+    }
+
+    *mode = malloc(12);
+    if(*mode == NULL)
+    {
+    	output(ERROR, "Can't alloc mode: %s\n", strerror(errno));
+        return -1;
+    }
+    
+    switch(number)
+    {
+        case 0: **mode = 001; break;
+            
+        case 1: **mode = 002; break;
+            
+        case 2: **mode = 003; break;
+            
+        case 3: **mode = 004; break;
+            
+        case 4: **mode = 005; break;
+            
+        case 5: **mode = 006; break;
+            
+        case 6: **mode = 007; break;
+            
+        case 7: **mode = 010; break;
+            
+        case 8: **mode = 020; break;
+            
+        case 9: **mode = 030; break;
+            
+        case 10: **mode = 040; break;
+            
+        case 11: **mode = 050; break;
+            
+        case 12: **mode = 060; break;
+            
+        case 13: **mode = 070; break;
+            
+        case 14: **mode = 100; break;
+            
+        case 15: **mode = 200; break;
+            
+        case 16: **mode = 300; break;
+            
+        case 17: **mode = 400; break;
+            
+        case 18: **mode = 500; break;
+            
+        case 19: **mode = 600; break;
+            
+        case 20: **mode = 700; break;
+            
+        default:
+            output(ERROR, "Can't get mode\n");
+            return -1;
+    }
 	return 0;
 }
 
-int generate_mode(unsigned long **mode)
+int generate_fs_stat(unsigned long **stat, unsigned int arg_num)
 {
-    printf("Not Allocated\n");
+    /* Set argnum to zero to silence unused arguments warning. */
+    arg_num = 0;
+
+	struct statfs *stat_buf = malloc(sizeof(struct statfs));
+    if(stat_buf == NULL)
+    {
+    	output(ERROR, "Can't create stat struct: %s\n", strerror(errno));
+    	return -1;
+    }
+
+    *stat = (unsigned long *)stat_buf;
+
 	return 0;
 }
 
-int generate_fs_stat(unsigned long **stat)
+int generate_fs_stat_flag(unsigned long **flag, unsigned int arg_num)
 {
-	printf("Not Allocated\n");
-	return 0;
-}
+    int rtrn;
+    unsigned int number;
 
-int generate_fs_stat_flag(unsigned long **flag)
-{
-    printf("Not Allocated\n");
+    /* Set argnum to zero to silence unused arguments warning. */
+    arg_num = 0;
+
+    *flag = malloc(12);
+    if(*flag == NULL)
+    {
+    	output(ERROR, "Can't alloc flag: %s\n", strerror(errno));
+        return -1;
+    }
+    
+    rtrn = rand_range(1, &number);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't generate random number\n");
+        return -1;
+    }
+    
+    switch(number)
+    {
+        case 0: **flag = MNT_NOWAIT; break;
+
+        case 1: **flag = MNT_WAIT; break;
+
+        default:
+            output(ERROR, "Can't pick stat flag\n");
+            return -1;
+    }
+
 	return 0;
 }

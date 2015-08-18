@@ -18,6 +18,8 @@
 #include "child.h"
 #include "utils.h"
 #include "crypto.h"
+#include "mutate.h"
+#include "log.h"
 #include "syscall.h"
 #include "signal.h"
 #include "nextgen.h"
@@ -225,7 +227,7 @@ void create_syscall_children(void)
             }
             else if(child_pid > 0)
             {
-                char *msg_buf;
+                char *msg_buf = NULL;
 
                 /* Wait for the child to be done setting up. */
                 size_t ret = read(map->children[i]->msg_port[0], msg_buf, 1);
