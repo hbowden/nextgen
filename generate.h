@@ -20,22 +20,30 @@
 
 #include "private.h"
 
-private extern int generate_fd(unsigned long **fd, unsigned int arg_num);
+private extern int generate_fd(unsigned long **fd);
 
-private extern int generate_socket(unsigned long **sock, unsigned int arg_num);
+private extern int generate_socket(unsigned long **sock);
 
-private extern int generate_buf(unsigned long **buf, unsigned int arg_num);
+private extern int generate_buf(unsigned long **buf);
 
-private extern int generate_length(unsigned long **length, unsigned int arg_num);
+private extern int generate_length(unsigned long **length);
 
-private extern int generate_path(unsigned long **path, unsigned int arg_num);
+private extern int generate_path(unsigned long **path);
 
-private extern int generate_mode(unsigned long **mode, unsigned int arg_num);
+private extern int generate_mode(unsigned long **mode);
 
-private extern int generate_open_flag(unsigned long **flag, unsigned int arg_num);
+private extern int generate_open_flag(unsigned long **flag);
 
-private extern int generate_fs_stat(unsigned long **stat, unsigned int arg_num);
+private extern int generate_fs_stat(unsigned long **stat);
 
-private extern int generate_fs_stat_flag(unsigned long **flag, unsigned int arg_num);
+private extern int generate_fs_stat_flag(unsigned long **flag);
+
+private extern int generate_pid(unsigned long **pid);
+
+private extern int generate_int(unsigned long **integer);
+
+private extern int generate_rusage(unsigned long **usage);
+
+private extern int generate_wait_option(unsigned long **option);
 
 #endif

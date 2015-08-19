@@ -114,7 +114,7 @@ static void start_syscall_child(void)
     int rtrn;
     int child_number;
 
-    /* grab the child_ctx struct for this child process. */
+    /* Grab the child_ctx struct for this child process. */
     child_number = get_child_index_number();
     if(child_number < 0)
     {
@@ -122,6 +122,7 @@ static void start_syscall_child(void)
         exit_child();
     }
 
+    /*  */
     struct child_ctx *ctx = map->children[child_number];
 
     /* Set the return jump so that we can try fuzzing again on a signal. */
@@ -177,6 +178,7 @@ static void start_syscall_child(void)
             exit_child();
         }
 
+        /* Log return values. */
         rtrn = log_results(ctx);
         if(rtrn < 0)
         {

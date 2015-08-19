@@ -43,7 +43,7 @@ struct syscall_entry_shadow
     const unsigned int entry_number;
 
     int arg_type_index[7];
-    int (*get_arg_index[7])(unsigned long **, unsigned int);
+    int (*get_arg_index[7])(unsigned long **);
 
     atomic_uint_least64_t return_value;
 };
@@ -61,7 +61,7 @@ struct syscall_entry
     const unsigned int entry_number;
 
     int arg_type_index[7];
-    int (*get_arg_index[7])(unsigned long **, unsigned int);
+    int (*get_arg_index[7])(unsigned long **);
 };
 
 #endif

@@ -123,38 +123,41 @@ int log_arguments(struct child_ctx *ctx)
     unsigned int number_of_args = map->sys_table->sys_entry[ctx->syscall_number].number_of_args;
     const char *name_of_syscall = map->sys_table->sys_entry[ctx->syscall_number].name_of_syscall;
 
-    char *out_buf auto_clean_buf = malloc(4096);
-    if(out_buf == NULL)
+    char *arg_value auto_clean_buf = malloc(1024);
+    if(arg_value == NULL)
     {
-       output(ERROR, "Can't create out buffer: %s\n", strerror(errno));
+       output(ERROR, "Can't create arg_value buffer: %s\n", strerror(errno));
        return -1;
     }
 
+    char *syscall_log_buf auto_clean_buf = malloc(4096);
+     if(syscall_log_buf == NULL)
+    {
+       output(ERROR, "Can't create syscall_log_buf buffer: %s\n", strerror(errno));
+       return -1;
+    }
+
+    sprintf(syscall_log_buf, "%s: ", name_of_syscall);
+
     for(i = 0; i < number_of_args; i++)
     {
-    	char *arg_value;
+    	switch((int)map->sys_table->sys_entry[ctx->syscall_number].arg_type_index[i])
+    	{
+    		case VOID_BUFF:
+    		case FILE_PATH:
+    		case STAT_FS:
+    		    sprintf(arg_value, "%s=%p", decode_arg_type(map->sys_table->sys_entry[ctx->syscall_number].arg_type_index[i]), (void *)ctx->arg_value_index[i]);
+    		    break;
 
-        strlcat(out_buf, decode_arg_type(map->sys_table->sys_entry[ctx->syscall_number].arg_type_index[i]), 4095);
+    		default:
+    		    sprintf(arg_value, "%s=%lu", decode_arg_type(map->sys_table->sys_entry[ctx->syscall_number].arg_type_index[i]), *(ctx->arg_value_index[i]));
+    		    break;
+    	}
 
-    	asprintf(&arg_value, "%lu ", ctx->arg_value_index[i]);
-
-    	strlcat(out_buf, arg_value, 4095);
-
-    	free(arg_value);
+    	strncat(syscall_log_buf, arg_value, strlen(arg_value));
     }
 
-    out_buf[4095] = '\0';
-
-    char *syscall_log_buf auto_clean_buf = NULL;
-    
-    rtrn = asprintf(&syscall_log_buf, "%s: %s", name_of_syscall, out_buf);
-    if(syscall_log_buf == NULL)
-    {
-    	output(ERROR, "Can't create syscall log buffer: %s\n", strerror(errno));
-    	return -1;
-    }
-
-    output(STD, "%s", syscall_log_buf);
+    output(STD, "%s\n", syscall_log_buf);
 
 	return 0;
 }

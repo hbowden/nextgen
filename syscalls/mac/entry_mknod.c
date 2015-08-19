@@ -23,6 +23,8 @@ struct syscall_entry entry_mknod = {
     .number_of_args = 3,
     .status = OFF,
     .requires_root = NO,
-    .need_alarm = NO
+    .need_alarm = NO,
+
+    
 
 };

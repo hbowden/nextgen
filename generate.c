@@ -25,21 +25,20 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/param.h>
+#include <sys/wait.h>
+#include <sys/resource.h>
 #include <sys/mount.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
 
-int generate_fd(unsigned long **fd, unsigned int arg_num)
+int generate_fd(unsigned long **fd)
 {
     int rtrn, file_desc;
     char *name auto_clean_buf = NULL;
     char *file_path auto_clean_buf = NULL;
     char *junk auto_clean_buf = NULL;
-
-    /* Set argnum to zero to silence unused arguments warning. */
-    arg_num = 0;
 
     rtrn = generate_name(&name, (char *)".txt", FILE_NAME);
     if(rtrn < 0)
@@ -95,13 +94,10 @@ int generate_fd(unsigned long **fd, unsigned int arg_num)
 	return 0;
 }
 
-int generate_socket(unsigned long **sock, unsigned int arg_num)
+int generate_socket(unsigned long **sock)
 {
     int rtrn, socket_fd;
     unsigned int number;
-
-    /* Set argnum to zero to silence unused arguments warning. */
-    arg_num = 0;
     
     rtrn = rand_range(3, &number);
     if(rtrn < 0)
@@ -150,11 +146,8 @@ int generate_socket(unsigned long **sock, unsigned int arg_num)
     return 0;
 }
 
-int generate_buf(unsigned long **buf, unsigned int arg_num)
+int generate_buf(unsigned long **buf)
 {
-    /* Set argnum to zero to silence unused arguments warning. */
-    arg_num = 0;
-
 	*buf = malloc(64);
 	if(*buf == NULL)
 	{
@@ -165,7 +158,7 @@ int generate_buf(unsigned long **buf, unsigned int arg_num)
 	return 0;
 }
 
-int generate_length(unsigned long **length, unsigned int arg_num)
+int generate_length(unsigned long **length)
 {
 	int rtrn;
 	unsigned int size;
@@ -187,7 +180,7 @@ int generate_length(unsigned long **length, unsigned int arg_num)
 	return 0;
 }
 
-int generate_path(unsigned long **path, unsigned int arg_num)
+int generate_path(unsigned long **path)
 {
     int rtrn;
 
@@ -197,9 +190,6 @@ int generate_path(unsigned long **path, unsigned int arg_num)
     char *file_name auto_clean_buf = NULL;
     char *junk auto_clean_buf = NULL;
     char *file_path = NULL;
-
-    /* Set argnum to zero to silence unused arguments warning. */
-    arg_num = 0;
 
     /* Use generate_name to create a random file name with the text extension.  */
     rtrn = generate_name((char **)&file_name, ".txt", FILE_NAME);
@@ -258,11 +248,8 @@ int generate_path(unsigned long **path, unsigned int arg_num)
 	return 0;
 }
 
-int generate_open_flag(unsigned long **flag, unsigned int arg_num)
+int generate_open_flag(unsigned long **flag)
 {
-    /* Set argnum to zero to silence unused arguments warning. */
-    arg_num = 0;
-
     int rtrn;
     unsigned int number;
     
@@ -306,14 +293,11 @@ int generate_open_flag(unsigned long **flag, unsigned int arg_num)
     return 0;
 }
 
-int generate_mode(unsigned long **mode, unsigned int arg_num)
+int generate_mode(unsigned long **mode)
 {
     int rtrn;
     unsigned int number;
 
-    /* Set argnum to zero to silence unused arguments warning. */
-    arg_num = 0;
-    
     rtrn = rand_range(20, &number);
     if(rtrn < 0)
     {
@@ -379,11 +363,8 @@ int generate_mode(unsigned long **mode, unsigned int arg_num)
 	return 0;
 }
 
-int generate_fs_stat(unsigned long **stat, unsigned int arg_num)
+int generate_fs_stat(unsigned long **stat)
 {
-    /* Set argnum to zero to silence unused arguments warning. */
-    arg_num = 0;
-
 	struct statfs *stat_buf = malloc(sizeof(struct statfs));
     if(stat_buf == NULL)
     {
@@ -396,13 +377,10 @@ int generate_fs_stat(unsigned long **stat, unsigned int arg_num)
 	return 0;
 }
 
-int generate_fs_stat_flag(unsigned long **flag, unsigned int arg_num)
+int generate_fs_stat_flag(unsigned long **flag)
 {
     int rtrn;
     unsigned int number;
-
-    /* Set argnum to zero to silence unused arguments warning. */
-    arg_num = 0;
 
     *flag = malloc(12);
     if(*flag == NULL)
@@ -430,4 +408,108 @@ int generate_fs_stat_flag(unsigned long **flag, unsigned int arg_num)
     }
 
 	return 0;
+}
+
+int generate_pid(unsigned long **pid)
+{
+	pid_t local_pid;
+
+	*pid = malloc(sizeof(unsigned long));
+	if(*pid == NULL)
+	{
+		output(STD, "pid_t: %s\n", strerror(errno));
+		return -1;
+	}
+
+    local_pid = fork();
+    if(local_pid == 0)
+    {
+        while(1)
+        {
+        	sleep(30);
+        }
+    }
+    else if(local_pid > 0)
+    {
+      
+    }
+    else
+    {
+        output(ERROR, "Can't create pid: %s\n", strerror(errno));
+        return -1;
+    }
+
+    **pid = (unsigned long)local_pid;
+    
+	return 0;
+}
+
+int generate_int(unsigned long **integer)
+{
+	int number = 0;
+
+	*integer = malloc(sizeof(unsigned long));
+	if(*integer == NULL)
+	{
+		output(ERROR, "malloc: %s\n", strerror(errno));
+        return -1;
+	}
+
+	**integer = (unsigned long)number;
+
+	return 0;
+}
+
+int generate_rusage(unsigned long **usage)
+{
+    struct rusage *buf;
+
+    buf = malloc(sizeof(struct rusage));
+    if(buf == NULL)
+    {
+    	output(ERROR, "malloc: %s\n", strerror(errno));
+    	return -1;
+    }
+
+    *usage = (unsigned long *)buf;
+
+	return 0;
+}
+
+int generate_wait_option(unsigned long **option)
+{
+	int rtrn, number;
+
+    *option = malloc(sizeof(unsigned long));
+    if(*option == NULL)
+    {
+    	output(ERROR, "malloc: %s\n", strerror(errno));
+        return -1;
+    }
+    
+    rtrn = rand_range(1, &number);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't generate random number\n");
+        return -1;
+    }
+    
+    switch(number)
+    {
+        case 0:
+            **option = WUNTRACED;
+            break;
+            
+        case 1:
+            **option = WNOHANG;
+            break;
+            
+        default:
+            output(ERROR, "Should not get here\n");
+            return -1;
+    }
+
+	return 0;
+
+
 }

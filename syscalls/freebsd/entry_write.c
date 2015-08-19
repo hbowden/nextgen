@@ -21,8 +21,16 @@ struct syscall_entry entry_write = {
 
     .name_of_syscall = "write",
     .number_of_args = 3,
-    .status = OFF,
+    .status = ON,
     .requires_root = NO,
-    .need_alarm = NO
+    .need_alarm = NO,
 
+    .arg_type_index[FIRST_ARG] = FILE_DESC,
+    .get_arg_index[FIRST_ARG] = &generate_fd,
+
+    .arg_type_index[SECOND_ARG] = VOID_BUFF,
+    .get_arg_index[SECOND_ARG] = &generate_buf,
+
+    .arg_type_index[THIRD_ARG] = SIZE_T,
+    .get_arg_index[THIRD_ARG] = &generate_length    
 };
