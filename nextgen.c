@@ -214,9 +214,9 @@ static int parse_cmd_line(int argc, char *argv[])
     if(sFlag == TRUE)
     {
         /* Make sure the user set an output path. */
-        if(oFlag == FALSE)
+        if(oFlag != TRUE)
         {
-            output(STD, "Pass --in and --out for syscall mode\n");
+            output(STD, "Pass --out for syscall mode\n");
             return -1;
         }
     }
