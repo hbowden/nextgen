@@ -13,8 +13,8 @@ int get_syscall_table(void)
 {
     output(STD, "Building system call table\n");
 
-	/* Grab a copy of the syscall table in on disk format. */ 
-	struct syscall_table *sys_table = get_table();
+    /* Grab a copy of the syscall table in on disk format. */ 
+    struct syscall_table *sys_table = get_table();
     if(sys_table == NULL)
     {
         output(STD, "Can't grab syscall table\n");
@@ -81,13 +81,13 @@ int get_syscall_table(void)
 
     map->sys_table = shadow_table;
 
-	return 0;
+    return 0;
 }
 
 /* This function is used to randomly pick the syscall to test. */
 int pick_syscall(struct child_ctx *ctx)
 {
-	/* Our variables we will be using. */
+    /* Our variables we will be using. */
     int rtrn;
 
     /* Use rand_range to pick a number between 0 and the number_of_syscalls.  */
@@ -113,7 +113,7 @@ int generate_arguments(struct child_ctx *ctx)
         rtrn = map->sys_table->sys_entry[ctx->syscall_number].get_arg_index[i](&ctx->arg_value_index[i]);
         if(rtrn < 0)
         {
-        	output(ERROR, "Can't generate arguments for: %s\n", map->sys_table->sys_entry[ctx->syscall_number].name_of_syscall);
+            output(ERROR, "Can't generate arguments for: %s\n", map->sys_table->sys_entry[ctx->syscall_number].name_of_syscall);
             return -1;
         }
     }
