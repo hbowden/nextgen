@@ -98,10 +98,6 @@ int pick_syscall(struct child_ctx *ctx)
         return -1;
     }
 
-    output(STD, "syscall_number: %ld\n", ctx->syscall_number);
-
-    output(STD, "name_of_syscall: %s\n", map->sys_table->sys_entry[ctx->syscall_number].name_of_syscall);
-
     return 0;
 }
 
