@@ -174,20 +174,24 @@ int log_arguments(struct child_ctx *ctx)
        return -1;
     }
 
-    sprintf(syscall_log_buf, "%s: ", name_of_syscall);
+    sprintf(syscall_log_buf, "%s:", name_of_syscall);
 
     for(i = 0; i < number_of_args; i++)
     {
     	switch((int)map->sys_table->sys_entry[ctx->syscall_number].arg_type_index[i])
     	{
-    		case VOID_BUFF:
     		case FILE_PATH:
+    		    sprintf(arg_value, " %s=%s", decode_arg_type(map->sys_table->sys_entry[ctx->syscall_number].arg_type_index[i]), (char *)ctx->arg_value_index[i]);
+    		    break;
+
+    		case RUSAGE:
+    		case VOID_BUFF:
     		case STAT_FS:
-    		    sprintf(arg_value, "%s=%p", decode_arg_type(map->sys_table->sys_entry[ctx->syscall_number].arg_type_index[i]), (void *)ctx->arg_value_index[i]);
+    		    sprintf(arg_value, " %s=%p", decode_arg_type(map->sys_table->sys_entry[ctx->syscall_number].arg_type_index[i]), (void *)ctx->arg_value_index[i]);
     		    break;
 
     		default:
-    		    sprintf(arg_value, "%s=%lu", decode_arg_type(map->sys_table->sys_entry[ctx->syscall_number].arg_type_index[i]), *(ctx->arg_value_index[i]));
+    		    sprintf(arg_value, " %s=%lu", decode_arg_type(map->sys_table->sys_entry[ctx->syscall_number].arg_type_index[i]), *(ctx->arg_value_index[i]));
     		    break;
     	}
 
