@@ -78,7 +78,7 @@ int get_child_index_number(void)
 
 static void start_file_child(void)
 {
-	return;
+    return;
 }
 
 static void exit_child(void)
@@ -199,9 +199,9 @@ void create_syscall_children(void)
 {
     int rtrn;
 
-	/* Walk the child structure and find the first empty child slot. */
-	unsigned int i;
-	unsigned int number_of_children = map->number_of_children;
+    /* Walk the child structure and find the first empty child slot. */
+    unsigned int i;
+    unsigned int number_of_children = map->number_of_children;
 
     for(i = 0; i < number_of_children; i++)
     {
@@ -246,25 +246,25 @@ void create_syscall_children(void)
             }
         }
     }
-	return;
+    return;
 }
 
 void manage_syscall_children(void)
 {
-	return;
+    return;
 }
 
 void create_file_children(void)
 {
-	/* Walk the child structure and find the first empty child slot. */
-	unsigned int i;
-	unsigned int number_of_children = map->number_of_children;
+    /* Walk the child structure and find the first empty child slot. */
+    unsigned int i;
+    unsigned int number_of_children = map->number_of_children;
 
-	for(i = 0; i < number_of_children; i++)
+    for(i = 0; i < number_of_children; i++)
+    {
+	/* If the child has a pid of EMPTY let's create a new one. */
+	if(atomic_load(&map->children[i]->pid) == EMPTY)
 	{
-		/* If the child has a pid of EMPTY let's create a new one. */
-		if(atomic_load(&map->children[i]->pid) == EMPTY)
-		{
             pid_t child_pid;
 
             child_pid = fork();
@@ -286,12 +286,12 @@ void create_file_children(void)
                 output(ERROR, "Can't create child process: %s\n", strerror(errno));
                 return;
             }
-		}
 	}
-	return;
+    }
+    return;
 }
 
 void manage_file_children(void)
 {
-	return;
+    return;
 }
