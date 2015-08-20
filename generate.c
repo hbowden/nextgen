@@ -186,7 +186,6 @@ int generate_path(unsigned long **path)
 
     /* Temp variables that we define with auto_clean_buf so that we 
     don't have to worry about calling free. */
-    char *home auto_clean_buf = NULL;
     char *file_name auto_clean_buf = NULL;
     char *junk auto_clean_buf = NULL;
     char *file_path = NULL;
@@ -199,16 +198,8 @@ int generate_path(unsigned long **path)
     	return -1;
     }
 
-    /* Grab the user's home directory path. */
-    rtrn = get_home(&home);
-    if(rtrn < 0)
-    {
-    	output(ERROR, "Can't get your home directory path\n");
-    	return -1;
-    }
-
     /* Join the file name with the home path. */
-    rtrn = asprintf(&file_path, "%s%s", home, file_name);
+    rtrn = asprintf(&file_path, "/tmp/%s", file_name);
     if(rtrn < 0)
     {
     	output(ERROR, "Can't join paths: %s\n", strerror(errno));

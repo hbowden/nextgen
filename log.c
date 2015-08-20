@@ -180,16 +180,20 @@ int log_arguments(struct child_ctx *ctx)
     {
     	switch((int)map->sys_table->sys_entry[ctx->syscall_number].arg_type_index[i])
     	{
+
+    		/* File and directory paths. */
     		case FILE_PATH:
     		    sprintf(arg_value, " %s=%s", decode_arg_type(map->sys_table->sys_entry[ctx->syscall_number].arg_type_index[i]), (char *)ctx->arg_value_index[i]);
     		    break;
 
+            /* Pointers. */
     		case RUSAGE:
     		case VOID_BUFF:
     		case STAT_FS:
     		    sprintf(arg_value, " %s=%p", decode_arg_type(map->sys_table->sys_entry[ctx->syscall_number].arg_type_index[i]), (void *)ctx->arg_value_index[i]);
     		    break;
 
+            /* Non pointer values. */
     		default:
     		    sprintf(arg_value, " %s=%lu", decode_arg_type(map->sys_table->sys_entry[ctx->syscall_number].arg_type_index[i]), *(ctx->arg_value_index[i]));
     		    break;
