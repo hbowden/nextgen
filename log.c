@@ -102,6 +102,43 @@ static char *decode_arg_type(enum arg_types arg)
     	    }
     	    break;
 
+    	case INT:
+    	    rtrn = asprintf(&arg_string, "%s", "INT");
+    	    if(rtrn < 0)
+    	    {
+    	    	output(ERROR, "Can't create arg string: %s\n", strerror(errno));
+    	    	return NULL;
+    	    }
+    	    break;
+
+    	case RUSAGE:
+    	    rtrn = asprintf(&arg_string, "%s", "RUSAGE");
+    	    if(rtrn < 0)
+    	    {
+    	    	output(ERROR, "Can't create arg string: %s\n", strerror(errno));
+    	    	return NULL;
+    	    }
+    	    break;
+
+        case PID:
+            rtrn = asprintf(&arg_string, "%s", "PID");
+    	    if(rtrn < 0)
+    	    {
+    	    	output(ERROR, "Can't create arg string: %s\n", strerror(errno));
+    	    	return NULL;
+    	    }
+    	    break;
+
+        case WAIT_OPTION:
+            rtrn = asprintf(&arg_string, "%s", "WAIT_OPTION");
+    	    if(rtrn < 0)
+    	    {
+    	    	output(ERROR, "Can't create arg string: %s\n", strerror(errno));
+    	    	return NULL;
+    	    }
+    	    break;
+
+
     	default:
     	    output(ERROR, "Unknown arg type.\n");
     	    return NULL;
