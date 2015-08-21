@@ -37,7 +37,7 @@
 
 struct syscall_table *get_table(void)
 {
-	return freebsd_syscall_table;
+    return freebsd_syscall_table;
 }
 
 int _inject_fork_server(void)
@@ -156,7 +156,7 @@ int _inject_fork_server(void)
 
 int _get_load_address(void)
 {
-	GElf_Ehdr ehdr;
+    GElf_Ehdr ehdr;
     Elf *elf = NULL;
     int fd, rtrn;
 
@@ -235,7 +235,6 @@ int _inject_fork_server(void)
 
 int _get_load_address(void)
 {
-   
     return 0;
 }
 
