@@ -16,7 +16,7 @@
  **/
 
 #include "runtime.h"
-#include "signal.h"
+#include "signals.h"
 #include "network.h"
 #include "syscall.h"
 #include "child.h"

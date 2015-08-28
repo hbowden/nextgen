@@ -18,7 +18,7 @@
 #include "child.h"
 #include "nextgen.h"
 #include "runtime.h"
-#include "signal.h"
+#include "signals.h"
 
 #include <signal.h>
 

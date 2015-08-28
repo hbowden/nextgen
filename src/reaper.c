@@ -15,8 +15,8 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#include "nextgen.h"
 #include "reaper.h"
+#include "nextgen.h"
 #include "utils.h"
 
 #include <signal.h>
@@ -51,7 +51,7 @@ int add_args_to_cleanup_list(struct child_ctx *ctx)
             return -1;
         }
 
-        data->arg_value = malloc(ctx->arg_size_index[i] + 1);
+        data->arg_value = malloc(*(ctx->arg_size_index[i]) + 1);
         if(data->arg_value == NULL)
         {
             output(ERROR, "Can't malloc arg value: %s\n", strerror(errno));
@@ -62,7 +62,7 @@ int add_args_to_cleanup_list(struct child_ctx *ctx)
 
         data->arg_type = ctx->arg_type_index[i];
 
-        memcpy(data->arg_value, ctx->arg_value_index[i], ctx->arg_size_index[i]);
+        memcpy(data->arg_value, ctx->arg_value_index[i], *ctx->arg_size_index[i]);
     }
     
     return 0;
@@ -70,7 +70,7 @@ int add_args_to_cleanup_list(struct child_ctx *ctx)
 
 static int clean_list(struct child_ctx *ctx)
 {
-    
+
     return 0;
 }
 

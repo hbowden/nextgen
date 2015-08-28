@@ -21,7 +21,7 @@
 #include "reaper.h"
 #include "log.h"
 #include "syscall.h"
-#include "signal.h"
+#include "signals.h"
 #include "nextgen.h"
 
 #include <string.h>
@@ -91,7 +91,7 @@ static void exit_child(void)
 static void free_old_arguments(struct child_ctx *ctx)
 {
     unsigned int i;
-    unsigned int number_of_args = map->sys_table->sys_entry[ctx->syscall_number].number_of_args;
+    unsigned int number_of_args = ctx->number_of_args;
 
     for(i = 0; i < number_of_args; i++)
     {
@@ -169,14 +169,6 @@ static void start_syscall_child(void)
             exit_child();
         }
 
-        /* Add arguments that need to be cleaned to linked list so the reaper can do it later.  */
-        rtrn = add_args_to_cleanup_list(ctx);
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't add args to cleanup list\n");
-            exit_child();
-        }
-
         /* Run the syscall we selected with the arguments we generated and mutated. This call usually
         crashes and causes us to jumb back to the setjmp call above.*/
         rtrn = test_syscall(ctx);
@@ -199,7 +191,7 @@ static void start_syscall_child(void)
         free_old_arguments(ctx);
     }
 
-    /* We should not get here, but if we do exit so we can be restarted. */
+    /* We should not get here, but if we do, exit so we can be restarted. */
     exit_child();
 }
 

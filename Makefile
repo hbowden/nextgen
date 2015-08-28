@@ -1,5 +1,9 @@
 
-SOURCES = src/nextgen.c src/disas.c src/probe.c src/utils.c src/crypto.c src/runtime.c src/reaper.c src/child.c src/network.c src/syscall.c src/shim.c src/signal.c src/generate.c src/mutate.c src/log.c
+SOURCES = src/nextgen.c src/disas.c src/probe.c src/utils.c src/crypto.c src/runtime.c src/child.c src/network.c src/syscall.c src/shim.c src/generate.c src/mutate.c src/log.c src/signals.c src/reaper.c
+
+TEST_FLAGS =
+
+TEST_SOURCES = tests/tests.c tests/test_map.c
 
 CURRENT_DIR = $(shell pwd)
 
@@ -9,7 +13,7 @@ ifeq ($(OPERATING_SYSTEM), FreeBSD)
 
 CC = clang
 
-INCLUDES = -I/usr/src/cddl/compat/opensolaris/include -I/usr/local/include/ -I/usr/src/cddl/contrib/opensolaris/lib/libdtrace/common/ -I/usr/src/sys/cddl/compat/opensolaris -I/usr/src/sys/cddl/contrib/opensolaris/uts/common/ -Isrc/syscalls/freebsd/ -Ideps/capstone-3.0.4/ -Ideps/ck-0.4.5/include
+INCLUDES = -I/usr/src/cddl/compat/opensolaris/include -I/usr/local/include/ -I/usr/src/cddl/contrib/opensolaris/lib/libdtrace/common/ -I/usr/src/sys/cddl/compat/opensolaris -I/usr/src/sys/cddl/contrib/opensolaris/uts/common/ -Isrc/syscalls/freebsd/ -I$(CURRENT_DIR)/deps/capstone-3.0.4/ -I$(CURRENT_DIR)/deps/capstone-3.0.4/include -I$(CURRENT_DIR)/deps/ck-0.4.5/include -I$(CURRENT_DIR)/src
 
 LIBS = -lpthread -ldtrace -lproc -lctf -lelf -lz -lrtld_db -lpthread -lutil -lcrypto deps/capstone-3.0.4/libcapstone.a deps/ck-0.4.5/src/libck.a
 
@@ -76,8 +80,10 @@ install:
 .PHONY: test
 test:
 
+	$(CC) $(TEST_FLAGS) $(TEST_SOURCES) $(INCLUDES) -o test_suite
 	cd $(CURRENT_DIR)/deps/ck-0.4.5 && gmake check;
 	cd $(CURRENT_DIR)/deps/capstone-3.0.4 && gmake check;
+	./test_suite;
 
 .PHONY: clean
 clean:

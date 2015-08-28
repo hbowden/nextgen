@@ -285,7 +285,6 @@ static int intit_shared_mapping(struct shared_map **mapping)
     
     /* Set the number of child processes to the number of cores detected. */
     (*mapping)->number_of_children = core_count;
-    //(*mapping)->number_of_children = 1; // Use one until bug with ctrl-c is fixed.
 
     /* Set running children to zero. */
     atomic_init(&(*mapping)->running_children, 0);
@@ -298,12 +297,15 @@ static int intit_shared_mapping(struct shared_map **mapping)
     atomic_init(&(*mapping)->runloop_pid, 0);
     atomic_init(&(*mapping)->socket_server_pid, 0);
 
-    /* Allocate the executable context object. */
-    rtrn = create_shared((void **)&map->exec_ctx, sizeof(struct executable_context));
-    if(rtrn < 0)
+    if(map->mode == MODE_FILE)
     {
-        output(ERROR, "Can't create shared object\n");
-        return -1;
+        /* Allocate the executable context object. */
+        rtrn = create_shared((void **)&map->exec_ctx, sizeof(struct executable_context));
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't create shared object\n");
+            return -1;
+        }
     }
 
     /* Create the child process structures. */
@@ -343,8 +345,6 @@ static int intit_shared_mapping(struct shared_map **mapping)
             output(ERROR, "err_value: %s\n", strerror(errno));
             return -1;
         }
-
-        //child->list = CK_LIST_HEAD_INITIALIZER(child ->list);
 
         /* Init cleanup list. */
         CK_LIST_INIT(&child->list);
