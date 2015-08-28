@@ -1,5 +1,5 @@
 
-SOURCES = nextgen.c disas.c probe.c utils.c crypto.c runtime.c reaper.c child.c network.c syscall.c shim.c signal.c generate.c mutate.c log.c
+SOURCES = src/nextgen.c src/disas.c src/probe.c src/utils.c src/crypto.c src/runtime.c src/reaper.c src/child.c src/network.c src/syscall.c src/shim.c src/signal.c src/generate.c src/mutate.c src/log.c
 
 CURRENT_DIR = $(shell pwd)
 
@@ -9,13 +9,13 @@ ifeq ($(OPERATING_SYSTEM), FreeBSD)
 
 CC = clang
 
-INCLUDES = -I/usr/src/cddl/compat/opensolaris/include -I/usr/local/include/ -I/usr/src/cddl/contrib/opensolaris/lib/libdtrace/common/ -I/usr/src/sys/cddl/compat/opensolaris -I/usr/src/sys/cddl/contrib/opensolaris/uts/common/ -Isyscalls/freebsd/
+INCLUDES = -I/usr/src/cddl/compat/opensolaris/include -I/usr/local/include/ -I/usr/src/cddl/contrib/opensolaris/lib/libdtrace/common/ -I/usr/src/sys/cddl/compat/opensolaris -I/usr/src/sys/cddl/contrib/opensolaris/uts/common/ -Isrc/syscalls/freebsd/ -Ideps/capstone-3.0.4/ -Ideps/ck-0.4.5/include
 
-LIBS = -lpthread -ldtrace -lproc -lctf -lelf -lz -lrtld_db -lpthread -lutil -lcrypto -lcapstone
+LIBS = -lpthread -ldtrace -lproc -lctf -lelf -lz -lrtld_db -lpthread -lutil -lcrypto deps/capstone-3.0.4/libcapstone.a deps/ck-0.4.5/src/libck.a
 
-CFLAGS = -DFREEBSD -O3 -std=c11 -fsanitize=address -Wall -Weverything -g -fstack-protector-all -Wno-missing-noreturn -Wno-unreachable-code-return -Wno-reserved-id-macro -Wno-documentation -Wno-disabled-macro-expansion -Wno-switch-enum -Wno-deprecated-declarations -Wno-newline-eof -Wno-padded -Wno-pedantic -Wno-sign-conversion -Wno-unknown-pragmas -Wno-format-nonliteral
+CFLAGS = -DFREEBSD -O3 -std=c11 -Wall -Weverything -g -fstack-protector-all -Wno-cast-qual -Wno-missing-noreturn -Wno-unreachable-code-return -Wno-reserved-id-macro -Wno-documentation -Wno-disabled-macro-expansion -Wno-switch-enum -Wno-deprecated-declarations -Wno-newline-eof -Wno-padded -Wno-pedantic -Wno-sign-conversion -Wno-unknown-pragmas -Wno-format-nonliteral
 
-ENTRY_SOURCES = syscalls/freebsd/entry_read.c syscalls/freebsd/entry_write.c syscalls/freebsd/entry_open.c syscalls/freebsd/entry_close.c syscalls/freebsd/entry_wait4.c syscalls/freebsd/entry_creat.c syscalls/freebsd/entry_link.c syscalls/freebsd/entry_unlink.c syscalls/freebsd/entry_chdir.c syscalls/freebsd/entry_fchdir.c syscalls/freebsd/entry_mknod.c syscalls/freebsd/entry_chmod.c syscalls/freebsd/entry_getfsstat.c
+ENTRY_SOURCES = src/syscalls/freebsd/entry_read.c src/syscalls/freebsd/entry_write.c src/syscalls/freebsd/entry_open.c src/syscalls/freebsd/entry_close.c src/syscalls/freebsd/entry_wait4.c src/syscalls/freebsd/entry_creat.c src/syscalls/freebsd/entry_link.c src/syscalls/freebsd/entry_unlink.c src/syscalls/freebsd/entry_chdir.c src/syscalls/freebsd/entry_fchdir.c src/syscalls/freebsd/entry_mknod.c src/syscalls/freebsd/entry_chmod.c src/syscalls/freebsd/entry_getfsstat.c
 
 endif
 
@@ -63,6 +63,9 @@ endif
 
 all:
 
+	cd $(CURRENT_DIR)/deps/ck-0.4.5 && ./configure && gmake;
+	cd $(CURRENT_DIR)/deps/capstone-3.0.4 && gmake;
+
 	$(CC) $(CFLAGS) $(INCLUDES) -o nextgen $(SOURCES) $(ENTRY_SOURCES) $(LIBS)
 
 .PHONY: install
@@ -70,8 +73,16 @@ install:
 
 	mv nextgen /usr/local/bin/
 
+.PHONY: test
+test:
+
+	cd $(CURRENT_DIR)/deps/ck-0.4.5 && gmake check;
+	cd $(CURRENT_DIR)/deps/capstone-3.0.4 && gmake check;
+
 .PHONY: clean
 clean:
 
+	cd $(CURRENT_DIR)/deps/capstone-3.0.4 && gmake clean
+	cd deps/ck-0.4.5 && gmake clean
 	rm nextgen
 	rm /usr/local/bin/nextgen
