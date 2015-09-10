@@ -18,6 +18,7 @@
 #include "generate.h"
 #include "network.h"
 #include "crypto.h"
+#include "reaper.h"
 #include "utils.h"
 
 #include <stdio.h>
@@ -40,6 +41,7 @@ int generate_fd(unsigned long **fd, struct child_ctx *ctx)
     char *file_path auto_clean = NULL;
     char *junk auto_clean = NULL;
 
+    /* Create a random file name. */
     rtrn = generate_name(&name, (char *)".txt", FILE_NAME);
     if(rtrn < 0)
     {
@@ -47,6 +49,7 @@ int generate_fd(unsigned long **fd, struct child_ctx *ctx)
         return -1;
     }
     
+    /* Join the file name with /tmp/ to create file_path. */
     rtrn = asprintf(&file_path, "/tmp/%s", name);
     if(rtrn < 0)
     {
@@ -54,6 +57,7 @@ int generate_fd(unsigned long **fd, struct child_ctx *ctx)
         return -1;
     }
 
+    /* Alocate a buffer for reading in junk. */
     junk = malloc(4096);
     if(junk < 0)
     {
@@ -61,6 +65,7 @@ int generate_fd(unsigned long **fd, struct child_ctx *ctx)
         return -1;
     }
 
+    /* Read in random byes. */
     rtrn = rand_bytes(&junk, 4095);
     if(rtrn < 0)
     {
@@ -68,6 +73,7 @@ int generate_fd(unsigned long **fd, struct child_ctx *ctx)
         return -1;
     }
 
+    /* Create the file at the file_path we created. */
     rtrn = map_file_out(file_path, junk, 4095);
     if(rtrn < 0)
     {
@@ -75,13 +81,15 @@ int generate_fd(unsigned long **fd, struct child_ctx *ctx)
     	return -1;
     }
 
-    file_desc = open(file_path, O_RDONLY, 777);
+    /* Open the file we just created. */
+    file_desc = open(file_path, O_RDONLY);
     if(file_desc < 0)
     {
         output(ERROR, "open: %s\n", strerror(errno));
         return -1;
     }
 
+    /* Allocate the fd so we can pass it back. */
     *fd = malloc(sizeof(unsigned long));
     if(fd == NULL)
     {
@@ -89,8 +97,18 @@ int generate_fd(unsigned long **fd, struct child_ctx *ctx)
         return -1;
     }
 
-    ctx->arg_size_index = sizeof(unsigned long);
+    /* Set the argument size. */
+    ctx->arg_size_index[ctx->current_arg] = sizeof(unsigned long);
 
+    /* Let the reaper know to clean this fd later. */
+    rtrn = add_path_to_list(file_path, ctx);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't add path to reaper list.\n");
+        return -1;
+    }
+
+    /* Set the argument passed in to the file descriptor we just created. */
     **fd = (unsigned long)file_desc;
 
 	return 0;
@@ -98,7 +116,8 @@ int generate_fd(unsigned long **fd, struct child_ctx *ctx)
 
 int generate_socket(unsigned long **sock, struct child_ctx *ctx)
 {
-    int rtrn, socket_fd;
+    int rtrn;
+    int socket_fd = 0;
     unsigned int number;
     
     rtrn = rand_range(3, &number);
@@ -144,6 +163,11 @@ int generate_socket(unsigned long **sock, struct child_ctx *ctx)
 
             break;
     }
+
+    /* Set socket size. */
+
+    /* Add socket to cleanup list. */
+    add_socket_to_list(socket_fd, ctx);
     
     return 0;
 }
@@ -234,6 +258,16 @@ int generate_path(unsigned long **path, struct child_ctx *ctx)
     	free(file_path);
     	return -1;
     }
+
+     /* Let the reaper know to clean this fd later. */
+    rtrn = add_path_to_list(file_path, ctx);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't add path to reaper list.\n");
+        return -1;
+    }
+
+    ctx->arg_size_index[ctx->current_arg] = sizeof(unsigned long);
 
     /* If all went well let's set path to the file_path we just created. */
     *path = (unsigned long *)file_path;
@@ -431,6 +465,8 @@ int generate_pid(unsigned long **pid, struct child_ctx *ctx)
         output(ERROR, "Can't create pid: %s\n", strerror(errno));
         return -1;
     }
+
+    add_pid_to_list(pid, ctx);
 
     **pid = (unsigned long)local_pid;
     

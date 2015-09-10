@@ -15,14 +15,13 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#ifndef MUTATE_H
-#define MUTATE_H
+#ifndef FILE_H
+#define FILE_H
 
 #include "private.h"
-#include "child.h"
 
-private extern int mutate_arguments(struct child_ctx *ctx);
+private extern int create_file_index(void);
 
-private extern int mutate_file(char *file, off_t *file_size);
+private extern int get_file(int *file, char **extension);
 
 #endif

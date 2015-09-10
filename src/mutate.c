@@ -21,6 +21,12 @@
 #include "crypto.h"
 #include "arg_types.h"
 
+int mutate_file(char *file, off_t *file_size)
+{
+
+    return 0;
+}
+
 static int mutate_int(unsigned long *integer)
 {
 
@@ -56,7 +62,7 @@ int mutate_arguments(struct child_ctx *ctx)
 	/* Our variables. */
 	int rtrn;
 	unsigned int i;
-	unsigned int number_of_args = map->sys_table->sys_entry[ctx->syscall_number].number_of_args;
+	unsigned int number_of_args = ctx->number_of_args;
     unsigned int number_of_args_to_mutate;
     unsigned int args_mutated = 0;
     unsigned int chance;
@@ -75,11 +81,11 @@ int mutate_arguments(struct child_ctx *ctx)
     	for(i = 0; i < number_of_args; i++)
     	{
             /* Check argument type. */
-            switch((int)map->sys_table->sys_entry[ctx->syscall_number].arg_type_index[i])
+            switch((int)ctx->arg_type_index[i])
             {
             	case FILE_DESC:
 
-            	    /* We only mutate file descriptors 30% of time, so pick a number*/
+            	    /* We only mutate file descriptors 30% of time, so pick a number. */
             	    rtrn = rand_range(9, &chance);
             	    if(rtrn < 0)
             	    {

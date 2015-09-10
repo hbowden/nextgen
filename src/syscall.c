@@ -68,7 +68,11 @@ int get_syscall_table(void)
     	}
 
         /* Create and intialize the const value for a shadow struct. */
-        struct syscall_entry_shadow entry = {  .number_of_args = sys_table[i + offset].sys_entry->number_of_args, .name_of_syscall = sys_table[i + offset].sys_entry->name_of_syscall };
+        struct syscall_entry_shadow entry = {  
+
+            .number_of_args = sys_table[i + offset].sys_entry->number_of_args, 
+            .name_of_syscall = sys_table[i + offset].sys_entry->name_of_syscall 
+        };
 
         /* Loop for each arg and set the arg index's. */
         for(ii = 0; ii < entry.number_of_args; ii++)
@@ -108,12 +112,15 @@ int pick_syscall(struct child_ctx *ctx)
 
     unsigned int i;
 
+    /* Set values in ctx so we can get info from ctx instead using all these pointers. */ 
+    ctx->need_alarm = map->sys_table->sys_entry[ctx->syscall_number].need_alarm;
+
+    ctx->syscall_symbol = map->sys_table->sys_entry[ctx->syscall_number].syscall_symbol;
+
     for(i = 0; i < ctx->number_of_args; i++)
     {
         ctx->arg_type_index[i] = map->sys_table->sys_entry[ctx->syscall_number].arg_type_index[i];
     }
-
-    ctx->syscall_symbol = map->sys_table->sys_entry[ctx->syscall_number].syscall_symbol;
 
     return 0;
 }
@@ -147,6 +154,7 @@ static int check_for_failure(int ret_value)
 
 int test_syscall(struct child_ctx *ctx)
 {
+    /* Grab argument values. */
     unsigned long *arg1 = ctx->arg_value_index[0];
     unsigned long *arg2 = ctx->arg_value_index[1];
     unsigned long *arg3 = ctx->arg_value_index[2];
@@ -154,16 +162,30 @@ int test_syscall(struct child_ctx *ctx)
     unsigned long *arg5 = ctx->arg_value_index[4];
     unsigned long *arg6 = ctx->arg_value_index[5];
 
-    if(map->sys_table->sys_entry[ctx->syscall_number].need_alarm == YES)
+    /* Check if we need to set the alarm for blocking syscalls.  */
+    if(ctx->need_alarm == YES)
     {
-        alarm(2);
+        /* Wait a bit to see if something happens. */
+        alarm(3);
     }
 
+    /* Set the time of the syscall test. */
+    (void)gettimeofday(&ctx->time_of_syscall, NULL);
+
+#ifndef ASAN || VALGRIND
+
+    /* Call the syscall with the args generated. */
     ctx->ret_value = syscall(ctx->syscall_symbol, *arg1, *arg2, *arg3, *arg4, *arg5, *arg6);
     if(check_for_failure(ctx->ret_value) < 0)
     {
+        /* If we got here, we had an error, so grab the error string. */
         ctx->err_value = strerror(errno);
+
+        /* Set the error flag so the logging system knows we  had an error. */
+        ctx->had_error = YES;
     }
+    
+#endif
 
 	return 0;
 }

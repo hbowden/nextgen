@@ -20,6 +20,7 @@
 
 #include "private.h"
 #include "child.h"
+#include "utils.h"
 
 #include <setjmp.h>
 #include <sys/time.h>
@@ -29,10 +30,27 @@
 
 #include "stdatomic.h"
 
+struct node_memory_pool
+{
+    atomic_bool slot1_full;
+    atomic_bool slot2_full;
+    atomic_bool slot3_full;
+    atomic_bool slot4_full;
+    atomic_bool slot5_full;
+    atomic_bool slot6_full;
+    atomic_bool slot7_full;
+    atomic_bool slot8_full;
+
+    struct list_node **node;
+};
+
 struct child_ctx
 {
 	/* The child's process PID. */
     atomic_int_fast32_t pid;
+
+    /* List node memory pool. */
+    struct node_memory_pool *pool;
 
     /* A varible to store the address of where to jump back to in the child
     process on signals. */
@@ -41,6 +59,7 @@ struct child_ctx
     /* This is the number used to identify and choose the syscall that's going to be tested. */
     unsigned int syscall_number;
 
+    /* Symbolized syscall number. */
     int syscall_symbol;
 
     unsigned int current_arg;
@@ -49,7 +68,7 @@ struct child_ctx
     unsigned long **arg_value_index;
 
     /* This index tracks the size of the arguments.*/
-    unsigned long **arg_size_index;
+    unsigned long *arg_size_index;
 
     /* The child's resource cleanup list. */
     CK_LIST_HEAD(list, list_node) list;
@@ -60,11 +79,16 @@ struct child_ctx
     /* The number of args for the syscall were testing. */
     unsigned int number_of_args;
 
+    bool need_alarm;
+
     /* Time that we made the syscall fuzz test. */
     struct timeval time_of_syscall;
 
     /* The return value of the last syscall called. */
     int ret_value;
+
+    /* If this is set we know the syscall failed. */
+    int had_error;
 
     /* The string value of errno if the syscall test failed. */
     char *err_value;
@@ -78,6 +102,6 @@ private extern int get_child_index_number(void);
 
 private extern void create_syscall_children(void);
 
-private extern void create_file_children(void);
+private extern int test_exec_with_file_in_child(char *file_path);
 
 #endif

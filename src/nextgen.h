@@ -19,7 +19,6 @@
 #define NEXTGEN_H
 
 #include "child.h"
-#include "utils.h"
 #include "syscall_table.h"
 
 #include <unistd.h>
@@ -36,7 +35,9 @@ enum fuzz_mode { MODE_FILE, MODE_SYSCALL, MODE_NETWORK };
 
 struct executable_context
 {
-    pid_t pid;
+    atomic_int_fast32_t pid;
+
+    char *path_to_exec;
 
     /* The virtual memory address found in the execuatble header. */
     unsigned long main_start_address;
@@ -52,14 +53,16 @@ struct executable_context
     char *args[];
 };
 
+/* This struct is mapped as shared anonymous memory and is used to communicate between
+the various process and threads created by nextgen. */
 struct shared_map
 {
     /* This tells us what fuzzing mode to execute. */
     enum fuzz_mode mode;
 
+    /* The in and out directory paths. */
     char *path_to_in_dir;
     char *path_to_out_dir;
-    char *path_to_exec;
 
     /* Here is where we keep data about the executable we are fuzzing. */
     struct executable_context *exec_ctx;
@@ -76,16 +79,23 @@ struct shared_map
     /* An atomic value used to tell the processes whether to run or not. */
     atomic_bool stop;
 
-    /* If this mode is TRUE then we don't use the binary feedback and genetic algorithm. */
-    bool dumb_mode;
+    /* If this mode is FALSE then we don't use the binary feedback and genetic algorithm. */
+    bool smart_mode;
 
+    /* The syscall table. */
     struct syscall_table_shadow *sys_table;
 
+    /* The port that the ipv4 socket server is on. The ipv6 port is ipv4 + 1. */
     int socket_server_port;
 
+    /* The number of children processes currently running. */
     atomic_uint_fast64_t running_children;
+
+    /* The max number of children to create. */
     unsigned int number_of_children;
     
+    /* An Index of child context structures. These structures track variables
+    local to the child process. */
     struct child_ctx **children;
 };
 

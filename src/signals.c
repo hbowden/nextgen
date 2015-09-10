@@ -40,6 +40,14 @@ void setup_signal_handler(void)
     return;
 }
 
+static void reaper_signal_handler(int sig)
+{
+    /* Reaper died so let's kill everything else. */
+    output(ERROR, "Reaper died, so were shutting down!\n");
+    shutdown();
+    _exit(-1);
+}
+
 static void syscall_child_signal_handler(int sig)
 {
 	int child_number;
@@ -72,6 +80,32 @@ static void syscall_child_signal_handler(int sig)
     }
 
 	return;
+}
+
+void setup_reaper_signal_handler(void)
+{
+    struct sigaction sa;
+    sigset_t ss;
+    unsigned int i;
+    
+    for (i = 1; i < 512; i++)
+    {
+        (void) sigfillset(&ss);
+        sa.sa_flags = SA_RESTART;
+        sa.sa_handler = reaper_signal_handler;
+        sa.sa_mask = ss;
+        (void) sigaction(i, &sa, NULL);
+    }
+    /* we want default behaviour for child process signals */
+    (void) signal(SIGCHLD, SIG_DFL);
+    
+    /* ignore signals we don't care about */
+    (void) signal(SIGFPE, SIG_IGN);
+    (void) signal(SIGXCPU, SIG_IGN);
+    (void) signal(SIGTSTP, SIG_IGN);
+    (void) signal(SIGWINCH, SIG_IGN);
+    (void) signal(SIGIO, SIG_IGN);
+    (void) signal(SIGPIPE, SIG_IGN);
 }
 
 void setup_syscall_child_signal_handler(void)

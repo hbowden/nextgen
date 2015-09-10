@@ -53,7 +53,7 @@ int _inject_fork_server(void)
         ptrace(PT_TRACE_ME, 0, NULL, 0);
 
         /* Now we execute the target binary. */
-        int rtrn = execv(map->path_to_exec, map->exec_ctx->args);
+        int rtrn = execv(map->exec_ctx->path_to_exec, map->exec_ctx->args);
         if(rtrn < 0)
         {
             output(ERROR, "execv: %s\n", errno);
@@ -161,7 +161,7 @@ int _get_load_address(void)
     int fd, rtrn;
 
     /* Open the file. */
-    fd = open(map->path_to_exec, O_RDONLY);
+    fd = open(map->exec_ctx->path_to_exec, O_RDONLY);
     if(fd < 0)
     {
         output(ERROR, "open: %s\n", strerror(errno));

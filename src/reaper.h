@@ -22,14 +22,14 @@
 #include "arg_types.h"
 #include "child.h"
 
-struct list_data
-{
-    enum arg_types arg_type;
-    unsigned long *arg_value;
-};
+#include <sys/time.h>
 
 private extern int setup_and_run_reaper(void);
 
-private extern int add_args_to_cleanup_list(struct child_ctx *ctx);
+private extern int add_pid_to_list(pid_t pid, struct child_ctx *ctx);
+
+private extern int add_path_to_list(char *path, struct child_ctx *ctx);
+
+private extern int add_socket_to_list(int socket_fd, struct child_ctx *ctx);
 
 #endif

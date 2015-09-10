@@ -25,7 +25,9 @@
 #include "disas.h"
 #include "probe.h"
 #include "reaper.h"
+#include "mutate.h"
 #include "nextgen.h"
+#include "file.h"
 #include "log.h"
 
 #include <stdint.h>
@@ -66,12 +68,74 @@ static void start_main_file_loop(void)
     /* Check if we should stop or continue running. */
     while(atomic_load(&map->stop) == FALSE)
     {
-        /* Check if we have the right number of children processes running, if not create a new ones until we do. */
-        if(atomic_load(&map->running_children) < map->number_of_children)
+        /* Our variables. */
+        int rtrn, file;
+        char *file_buffer, *file_name, *file_path, *file_extension;
+        off_t file_size;
+
+        /* Open file from in directory. */
+        rtrn = get_file(&file, &file_extension);
+        if(rtrn < 0)
         {
-            /* Create children process. */
-            create_file_children();
+            output(ERROR, "Can't get file\n");
+            return;
         }
+
+        /* Read file into memory. */
+        rtrn = map_file_in(file, &file_buffer, &file_size);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't read file to memory\n");
+            return;
+        }
+
+        /* Mutate the file. */
+        rtrn = mutate_file(file_buffer, &file_size);
+        if(rtrn < 0)
+        {
+           output(ERROR, "Can't mutate file\n");
+           return;
+        }
+
+        /* Generate random file name. */
+        rtrn = generate_name(&file_name, file_extension, FILE_NAME);
+        if(rtrn < 0)
+        {
+           output(ERROR, "Can't generate random file name\n");
+           return;
+        }
+
+        /* Create out path. */
+        rtrn = asprintf(&file_path, "/tmp/%s", file_name);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't create out path\n");
+            return;
+        }
+
+        /* Write the mutated file to disk. */
+        rtrn = map_file_out(file_path, file_buffer, file_size);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't write file to disk\n");
+            return;
+        }
+
+        /* Create children process and exec the target executable and run it with
+        the generated file. */
+        rtrn = test_exec_with_file_in_child(file_path);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't test exec with file\n");
+            return;
+        }
+
+        /* Clean up our mess. */
+        free(file_path);
+        free(file_buffer);
+        free(file_name);
+        free(file_extension);
+        close(file);
     }
 
     output(STD, "Exiting main loop\n");
@@ -135,8 +199,6 @@ static int start_file_mode_runtime(void)
 
         wait_on(&map->runloop_pid, &status);
 
-        wait_on(&map->reaper_pid, &status);
-
         output(STD, "Exiting\n");
 
         return 0;
@@ -154,8 +216,22 @@ static int setup_file_mode_runtime(void)
 {
     int rtrn;
 
+    rtrn = create_out_directory(map->path_to_out_dir);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't create output directory: %s\n", map->path_to_out_dir);
+        return -1;
+    }
+
+    rtrn = create_file_index();
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't create file index\n");
+        return -1;
+    }
+
     /* Check if the user want's dumb or smart mode. */
-    if(map->dumb_mode != TRUE)
+    if(map->smart_mode == TRUE)
     {
         output(STD, "Starting file fuzzer in smart mode\n");
 
@@ -214,7 +290,7 @@ static int setup_syscall_mode_runtime(void)
     int rtrn;
 
     /* Check if the user want's dumb or smart mode. */
-    if(map->dumb_mode != TRUE)
+    if(map->smart_mode == TRUE)
     {
         /* Do init work specific to smart mode. */
         output(STD, "Starting syscall fuzzer in smart mode\n");

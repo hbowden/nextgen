@@ -210,7 +210,29 @@ int log_arguments(struct child_ctx *ctx)
 
 int log_results(struct child_ctx *ctx)
 {
+    int rtrn;
+    char *out_buf auto_clean = NULL;
 
+    if(ctx->had_error == YES)
+    {
+        rtrn = asprintf(&out_buf, "%s= %d (%s) %s\n", BOLD_RED, ctx->ret_value, ctx->err_value, RESET);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't create out message\n");
+            return -1;
+        }
+    }
+    else
+    {
+        rtrn = asprintf(&out_buf, "%s= %d %s\n", BOLD_GREEN, ctx->ret_value, RESET);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't create out message\n");
+            return -1;
+        }
+    }
+
+    output(STD, "%s", out_buf);
 
 	return 0;
 }

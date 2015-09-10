@@ -22,6 +22,8 @@
 
 private extern void setup_signal_handler(void);
 
+private extern void setup_reaper_signal_handler(void);
+
 private extern void setup_syscall_child_signal_handler(void);
 
 #endif

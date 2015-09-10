@@ -25,6 +25,8 @@
 #include "nextgen.h"
 
 #include <string.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <errno.h>
 
 static int init_syscall_child(unsigned int i)
@@ -74,11 +76,6 @@ int get_child_index_number(void)
     }
     /* Should not get here. */
     return -1;
-}
-
-static void start_file_child(void)
-{
-    return;
 }
 
 static void exit_child(void)
@@ -229,7 +226,14 @@ void create_syscall_children(void)
             }
             else if(child_pid > 0)
             {
-                char *msg_buf = NULL;
+                char *msg_buf auto_clean = NULL;
+
+                msg_buf = malloc(2);
+                if(msg_buf == NULL)
+                {
+                    output(ERROR, "Can't create message buf: %s\n", strerror(errno));
+                    return;
+                }
 
                 /* Wait for the child to be done setting up. */
                 size_t ret = read(map->children[i]->msg_port[0], msg_buf, 1);
@@ -249,39 +253,29 @@ void create_syscall_children(void)
     return;
 }
 
-void create_file_children(void)
+int test_exec_with_file_in_child(char *file_path)
 {
-    /* Walk the child structure and find the first empty child slot. */
-    unsigned int i;
-    unsigned int number_of_children = map->number_of_children;
+    pid_t child_pid;
 
-    for(i = 0; i < number_of_children; i++)
+    child_pid = fork();
+    if(child_pid == 0)
     {
-	    /* If the child has a pid of EMPTY let's create a new one. */
-	    if(atomic_load(&map->children[i]->pid) == EMPTY)
-	    {
-            pid_t child_pid;
+        /* Execute the target executable with the file we generated. */
+        execv(map->exec_ctx->path_to_exec, &file_path);
 
-            child_pid = fork();
-            if(child_pid == 0)
-            {
-                compare_and_swap_int32(&map->children[i]->pid, child_pid);
-
-            	/* Start the child main loop. */
-                start_file_child();
-            }
-            else if(child_pid > 0)
-            {
-               /* This is the parent process, so let's keep looping. */
-                continue;
-            
-            }
-            else
-            {
-                output(ERROR, "Can't create child process: %s\n", strerror(errno));
-                return;
-            }
-	    }
     }
-    return;
+    else if(child_pid > 0)
+    {
+        int status;
+
+        waitpid(child_pid, &status, 0);
+            
+    }
+    else
+    {
+        output(ERROR, "Can't create child process: %s\n", strerror(errno));
+        return -1;
+    }
+
+    return 0;
 }

@@ -119,6 +119,18 @@ int compare_and_swap_int64(atomic_int_fast64_t *target, long value)
     return 0;
 }
 
+int create_shared(void **pointer, int size)
+{
+    *pointer = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_ANON | MAP_SHARED, -1, 0);
+    if(*pointer == MAP_FAILED)
+    {
+        output(ERROR, "mmap: %s\n", strerror(errno));
+        return -1;
+    }
+
+    return 0;
+}
+
 int get_file_size(int fd, off_t *size)
 {
     struct stat stbuf;

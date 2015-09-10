@@ -22,54 +22,233 @@
 #include <signal.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <ck_queue.h>
 
-int add_args_to_cleanup_list(struct child_ctx *ctx)
+int add_pid_to_list(pid_t pid, struct child_ctx *ctx)
 {
+    /* Our variables. */
     int rtrn;
-    unsigned int i;
-    unsigned int number_of_args = ctx->number_of_args;
+    struct list_node *node;
 
-    for(i = 0; i < number_of_args; i++)
+    /* Set pointer to free space in list_node memory pool. 
+    rtrn = create_list_node(&node, ctx);
+    if(rtrn < 0)
     {
-        struct list_node *node;
-        struct list_data *data;
+        output(ERROR, "Can't create list node\n");
+        return -1;
+    } */
 
-        node = malloc(sizeof(struct list_node));
-        if(node == NULL)
-        {
-            output(ERROR, "Can't malloc new list_node: %s\n", strerror(errno));
-            return -1;
-        }
+    /* Set argument type. */
+    node->data->arg_type = PID;
 
-        data = malloc(sizeof(struct list_data));
-        if(data == NULL)
-        {
-            output(ERROR, "Can't malloc list data: %s\n", strerror(errno));
-            free(node);
-            return -1;
-        }
+    /* Copy arg value to the list node. */
+    node->data->pid = pid;
 
-        data->arg_value = malloc(*(ctx->arg_size_index[i]) + 1);
-        if(data->arg_value == NULL)
-        {
-            output(ERROR, "Can't malloc arg value: %s\n", strerror(errno));
-            free(node);
-            free(data);
-            return -1;
-        }
+    /* Set the time we created this node. */
+    gettimeofday(&node->data->create_time, NULL);
 
-        data->arg_type = ctx->arg_type_index[i];
+    /* Insert the node in the list. */
+    CK_LIST_INSERT_HEAD(&ctx->list, node, list_entry);
 
-        memcpy(data->arg_value, ctx->arg_value_index[i], *ctx->arg_size_index[i]);
+    return 0;
+}
+
+int add_socket_to_list(int socket_fd, struct child_ctx *ctx)
+{
+    /* Our variables. */
+    int rtrn;
+    struct list_node *node;
+
+    /* Set pointer to free space in list_node memory pool. 
+    rtrn = create_list_node(&node, ctx);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't create list node\n");
+        return -1;
+    } */
+
+    /* Set argument type. */
+    node->data->arg_type = SOCKET;
+
+    /* Copy arg value to the list node. */
+    node->data->socket_or_fd = socket_fd;
+
+    /* Set the time we created this node. */
+    gettimeofday(&node->data->create_time, NULL);
+
+    /* Insert the node in the list. */
+    CK_LIST_INSERT_HEAD(&ctx->list, node, list_entry);
+
+    return 0;
+}
+
+int add_path_to_list(char *path, struct child_ctx *ctx)
+{
+    /* Our variables. */
+    int rtrn;
+    struct list_node *node;
+
+    printf("node: %p\n", node);
+
+    /* Set pointer to free space in list_node memory pool. 
+    rtrn = create_list_node(&node, ctx);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't create list node\n");
+        return -1;
+    } */
+
+    /* Set argument type. */
+    node->data->arg_type = FILE_PATH;
+
+    node->data->node_number = rtrn;
+
+    /* Copy arg value to the list node. */
+    rtrn = asprintf(&node->data->path, "%s", path);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't copy path: %s\n", path);
+        return -1;
     }
-    
+
+    /* Set the time we created this node. */
+    gettimeofday(&node->data->create_time, NULL);
+
+    /* Insert the node in the list. */
+    CK_LIST_INSERT_HEAD(&ctx->list, node, list_entry);
+
     return 0;
 }
 
 static int clean_list(struct child_ctx *ctx)
 {
+    int rtrn;
+    unsigned int limit = 8;
+    unsigned int nodes_cleaned = 0;
+    struct list_node *node;
+
+    /* Check if the arg cleanup list is empty, if it is empty return early. */
+    if(CK_LIST_EMPTY(&ctx->list) == TRUE)
+    {
+        return 0;
+    }
+   
+    /* Loop for each node in the list. */
+    CK_LIST_FOREACH(node, &ctx->list, list_entry)
+    {
+        struct timeval tv;
+        time_t dif, time_now;
+
+        /* Grab current time.*/
+        gettimeofday(&tv, NULL);
+        time_now = tv.tv_sec;
+    
+        if(node->data->create_time.tv_sec > time_now)
+        {
+            dif = node->data->create_time.tv_sec - time_now;
+        }
+        else
+        {
+            dif = time_now - node->data->create_time.tv_sec;
+        }
+    
+        if(dif < 5)
+        {
+            continue;
+        }
+
+        switch(node->data->arg_type)
+        {
+            case FILE_PATH:
+                rtrn = remove(node->data->path);
+                if(rtrn < 0)
+                {
+                    output(ERROR, "Can't remove file\n");
+                    return -1;
+                }
+                output(STD, "Removed path\n");
+                break;
+
+            case SOCKET:
+                rtrn = close(node->data->socket_or_fd);
+                if(rtrn < 0)
+                {
+                    output(ERROR, "Can't close socket\n");
+                    return -1;
+                }
+                output(STD, "Closed socket\n");
+                break;
+
+
+            case PID:
+                rtrn = kill(node->data->pid, 0);
+                if(rtrn < 0)
+                {
+                    output(ERROR, "Can't kill temp child\n");
+                    return -1;
+                }
+                output(STD, "killed child proc\n");
+                break;
+
+            default:
+                output(ERROR, "Unknown list arg type: %d\n", node->data->arg_type);
+                return -1;
+        }
+
+
+        CK_LIST_REMOVE(node, list_entry);
+
+        switch(node->data->node_number)
+        {
+            case 0:
+                compare_and_swap_bool(&ctx->pool->slot1_full, FALSE);
+                break;
+
+            case 1:
+                compare_and_swap_bool(&ctx->pool->slot2_full, FALSE);
+                break;
+
+            case 2:
+                compare_and_swap_bool(&ctx->pool->slot3_full, FALSE);
+                break;
+
+            case 3:
+                compare_and_swap_bool(&ctx->pool->slot4_full, FALSE);
+                break;
+
+            case 4:
+                compare_and_swap_bool(&ctx->pool->slot5_full, FALSE);
+                break;
+
+            case 5:
+                compare_and_swap_bool(&ctx->pool->slot6_full, FALSE);
+                break;
+
+            case 6:
+                compare_and_swap_bool(&ctx->pool->slot7_full, FALSE);
+                break;
+
+            case 7:
+                compare_and_swap_bool(&ctx->pool->slot8_full, FALSE);
+                break;
+
+            default:
+                output(ERROR, "Unknown slot number: %d\n", node->data->node_number);
+                return -1;
+        }
+
+        nodes_cleaned++;
+
+        if(nodes_cleaned <= limit)
+        {
+            break;
+        }
+
+        output(STD, "Cleaning\n");
+    }
 
     return 0;
 }
@@ -187,6 +366,8 @@ static void kill_all_children(void)
 
 static void reaper(void)
 {
+    setup_reaper_signal_handler();
+
     while(atomic_load(&map->stop) != TRUE)
     {
     	unsigned int i;
@@ -195,11 +376,11 @@ static void reaper(void)
         /* Loop for each child processe. */
     	for(i = 0; i < number_of_children; i++)
     	{
-            /* Make sure the child is not hung up, if it is kill it. */
-    		check_progess(map->children[i]);
+          /* Make sure the child is not hung up, if it is kill it. */
+    		  check_progess(map->children[i]);
 
-            /* Clean up the child's resource list. */
-            clean_list(map->children[i]);
+          /* Clean up the child's resource list. */
+          clean_list(map->children[i]);
     	}
     }
 
@@ -220,7 +401,7 @@ int setup_and_run_reaper(void)
     {
         compare_and_swap_int32(&map->reaper_pid, reaper_pid);
 
-    	reaper();
+    	  reaper();
     }
     else if(reaper_pid > 0)
     {

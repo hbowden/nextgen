@@ -42,7 +42,7 @@ int disas_executable_and_examine(void)
     char *file_buffer;
     off_t size;
 
-    fd = open(map->path_to_exec, O_RDONLY);
+    fd = open(map->exec_ctx->path_to_exec, O_RDONLY);
     if(fd < 0)
     {
     	output(ERROR, "open: %s\n", strerror(errno));
