@@ -23,6 +23,31 @@
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
+#include <sys/stat.h>
+
+int log_file(char *file_path, char *file_extension)
+{
+    int rtrn;
+    char *out_path auto_clean = NULL;
+
+    /* Create out file path. */
+    rtrn = asprintf(&out_path, "%s/last_file_run.%s", map->path_to_out_dir, file_extension);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't create out path: %s\n", strerror(errno));
+        return -1;
+    }
+
+    /* Copy file to the out directory. */
+    rtrn = copy_file_to(file_path, out_path);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't copy file to the out directory\n");
+        return -1;
+    }
+    
+    return 0;
+}
 
 static char *decode_arg_type(enum arg_types arg)
 {
@@ -150,6 +175,37 @@ static char *decode_arg_type(enum arg_types arg)
 
 int create_out_directory(char *path)
 {
+    int rtrn;
+    char *crash_dir auto_clean = NULL;
+
+    rtrn = mkdir(path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't create out directory\n");
+
+        /* Check if the directory exist. */
+        if(errno == EEXIST)
+        {
+            output(STD, "Out directory already exist\n");
+            return -1;
+        }
+
+        return -1;
+    }
+
+    rtrn = asprintf(&crash_dir, "%s/crash_dir", path);
+    if(rtrn < 0)
+    {
+        output(STD, "Out directory already exist\n");
+        return -1;
+    }
+
+    rtrn = mkdir(crash_dir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't create crash directory\n");
+        return -1;
+    }
 
 	return 0;
 }

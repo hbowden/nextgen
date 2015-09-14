@@ -22,6 +22,8 @@
 
 private extern int create_file_index(void);
 
-private extern int get_file(int *file, char **extension);
+private extern int get_file(int *file);
+
+private extern int count_files_directory(unsigned int *count);
 
 #endif

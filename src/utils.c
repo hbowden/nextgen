@@ -207,6 +207,46 @@ int map_file_out(char *path, char *buf, off_t size)
 	return 0;
 }
 
+int copy_file_to(char *copy_path, char *out_path)
+{
+    int rtrn;
+    int file auto_close = 0;
+    off_t file_size;
+    char *file_buffer;
+
+    file = open(copy_path, O_RDONLY);
+    if(file < 0)
+    {
+        output(ERROR, "Can't open file: %s\n", strerror(errno));
+        return -1;
+    }
+
+    rtrn = map_file_in(file, &file_buffer, &file_size);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't read file to memory\n");
+        return -1;
+    }
+
+    rtrn = map_file_out(out_path, file_buffer, file_size);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't write file to disk\n");
+        return -1;
+    }
+
+    rtrn = fsync(file);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't sync file on disk\n");
+        return -1;
+    }
+
+    munmap(file_buffer, file_size);
+
+    return 0;
+}
+
 void output(enum out_type type, const char *format, ...)
 {
 	va_list args;

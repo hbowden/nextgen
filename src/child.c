@@ -16,15 +16,17 @@
  **/
 
 #include "utils.h"
+#include "log.h"
 #include "crypto.h"
 #include "mutate.h"
 #include "reaper.h"
-#include "log.h"
 #include "syscall.h"
 #include "signals.h"
 #include "nextgen.h"
 
 #include <string.h>
+#include <threads.h>
+#include <signal.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <errno.h>
@@ -59,7 +61,6 @@ static int init_syscall_child(unsigned int i)
     return 0;
 }
 
-/* This function returns a pointer to the childs context object. */
 int get_child_index_number(void)
 {
     unsigned int i;
@@ -253,22 +254,116 @@ void create_syscall_children(void)
     return;
 }
 
-int test_exec_with_file_in_child(char *file_path)
+static int kill_test_proc(void *pid)
 {
+    sleep(1);
+
+    pid_t *proc_pid = (pid_t *)pid;
+
+    int rtrn = kill(*proc_pid, SIGKILL);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't kill child process: %s\n", strerror(errno));
+        return -1;
+    }
+
+    return 0;
+}
+
+int test_exec_with_file_in_child(char *file_path, char *file_extension)
+{
+    int rtrn;
     pid_t child_pid;
+    char *out_path auto_clean = NULL;
+    char *file_name auto_clean = NULL;
 
     child_pid = fork();
     if(child_pid == 0)
     {
-        /* Execute the target executable with the file we generated. */
-        execv(map->exec_ctx->path_to_exec, &file_path);
+        if(atomic_load(&map->stop) == TRUE)
+        {
+             _exit(0);
+        }
 
+        char * const argv[] = {file_path, NULL};
+
+        /* Execute the target executable with the file we generated. */
+        rtrn = execv(map->exec_ctx->path_to_exec, argv);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't execute target program: %s\n", strerror(errno));
+            return -1;
+        }
+
+        _exit(-1);
     }
     else if(child_pid > 0)
     {
         int status;
+        thrd_t kill_thread;
+        
+        /* Create a thread to kill the other process if it does not crash. */
+        rtrn = thrd_create(&kill_thread, kill_test_proc, &child_pid);
+        if(rtrn != thrd_success)
+        {
+            output(ERROR, "Can't create kill thread\n");
+            return -1;
+        }
 
+        /* Wait for test program to crash or be killed by the kill thread. */
         waitpid(child_pid, &status, 0);
+
+        /* Check if the target program recieved a signal. */
+        if(WIFSIGNALED(status) == TRUE)
+        {
+            /* Check the signal the target program recieved. */
+            switch(WTERMSIG(status))
+            {
+                /* We caused the signal so ignore it. */
+                case SIGKILL:
+                    break;
+
+                /* The program we are testing crashed let's save the file
+                that caused the crash.  */
+                case SIGSEGV:
+                case SIGBUS:
+
+                    /* Create a random file name. */
+                    rtrn = generate_name(&file_name, file_extension, FILE_NAME);
+                    if(rtrn < 0)
+                    {
+                        output(ERROR, "Can't create out path: %s\n", strerror(errno));
+                        return -1;
+                    }
+
+                    /* Create a file path.  */
+                    rtrn = asprintf(&out_path, "%s/crash_dir/%s", file_path, file_name);
+                    if(rtrn < 0)
+                    {
+                        output(ERROR, "Can't create out path: %s\n", strerror(errno));
+                        return -1;
+                    }
+
+                    /* Copy file out of temp into the out directory. */
+                    rtrn = copy_file_to(file_path, out_path);
+                    if(rtrn < 0)
+                    {
+                        output(ERROR, "Can't copy file to crash directory\n");
+                        return -1;
+                    }
+
+                    break;
+                
+                /* We recieved a less interesting signal let's save
+                 that in a different directory. */
+                default:
+                   break;
+
+            }
+        }
+        int response;
+
+        thrd_join(kill_thread, &response);
             
     }
     else

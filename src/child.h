@@ -102,6 +102,6 @@ private extern int get_child_index_number(void);
 
 private extern void create_syscall_children(void);
 
-private extern int test_exec_with_file_in_child(char *file_path);
+private extern int test_exec_with_file_in_child(char *file_path, char *file_extension);
 
 #endif

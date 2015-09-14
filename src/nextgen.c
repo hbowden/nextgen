@@ -18,6 +18,7 @@
 #include "nextgen.h"
 #include "crypto.h"
 #include "utils.h"
+#include "file.h"
 #include "runtime.h"
 
 #include <stdio.h>
@@ -36,6 +37,7 @@ struct parser_ctx
     char *path_to_in_dir;
     char *path_to_out_dir;
     char *crypto_method;
+    char *args;
     int crypto_flag;
     int smart_mode;
 };
@@ -51,6 +53,7 @@ static struct option longopts[] = {
     { "port", required_argument, NULL, 'p'},
     { "address", required_argument, NULL, 'a'},
     { "protocol", required_argument, NULL, 'c'},
+    { "args", required_argument, NULL, 'x'},
     { "file", 0, NULL, 'f'},
     { "network", 0, NULL, 'n'},
     { "syscall", 0, NULL, 's'},
@@ -157,6 +160,7 @@ static struct parser_ctx *parse_cmd_line(int argc, char *argv[])
 
             case 'f':
                 fFlag = TRUE;
+                ctx->mode = MODE_FILE;
                 break;
 
             case 'n':
@@ -187,6 +191,15 @@ static struct parser_ctx *parse_cmd_line(int argc, char *argv[])
 
                 ctx->smart_mode = FALSE;
 
+                break;
+
+            case 'x':
+                rtrn = asprintf(&ctx->args, "%s", optarg);
+                if(rtrn < 0)
+                {
+                    output(ERROR, "asprintf: %s\n", strerror(errno));
+                    return NULL;
+                }
                 break;
 
             default:
@@ -255,6 +268,8 @@ static int init_shared_mapping(struct shared_map **mapping, struct parser_ctx *c
     /* Do work that is common to the different fuzz modes. Then
     start doing work specific to the different fuzz mode. */
     int rtrn;
+    unsigned int i;
+    unsigned int ii;
 
     /* Set the mode selected by the user. */
     (*mapping)->mode = ctx->mode;
@@ -270,6 +285,9 @@ static int init_shared_mapping(struct shared_map **mapping, struct parser_ctx *c
         dumb mode by passing --dumb on the command line. */
         (*mapping)->smart_mode = TRUE;
     }
+
+    (*mapping)->path_to_out_dir = ctx->path_to_out_dir;
+    (*mapping)->path_to_in_dir = ctx->path_to_in_dir;
 
     /* Set running children to zero. */
     atomic_init(&(*mapping)->running_children, 0);
@@ -312,12 +330,45 @@ static int init_shared_mapping(struct shared_map **mapping, struct parser_ctx *c
     /* Check if the user selected file mode. */
     if((*mapping)->mode == MODE_FILE)
     {
+        unsigned int count = 0;
+
         /* Allocate the executable context object. */
         rtrn = create_shared((void **)&(*mapping)->exec_ctx, sizeof(struct executable_context));
         if(rtrn < 0)
         {
             output(ERROR, "Can't create shared object\n");
             return -1;
+        }
+
+        (*mapping)->exec_ctx->path_to_exec = ctx->path_to_exec;
+
+        /* Count how many files are in the in directory. */
+        rtrn = count_files_directory(&count);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't count files in the in directory.\n");
+            return -1;
+        }
+
+        /* Set file count in map so we know this value later. */
+        (*mapping)->file_count = count;
+
+        /* Create file index. */
+        (*mapping)->file_index = malloc((count + 1) * sizeof(char *));
+        if((*mapping)->file_index == NULL)
+        {
+            output(ERROR, "Can't create file index: %s\n", strerror(errno));
+            return -1;
+        }
+
+        for(i = 0; i < count; i++)
+        {
+            rtrn = create_shared((void **)&(*mapping)->file_index[i], 1025);
+            if(rtrn < 0)
+            {
+                output(ERROR, "Can't create shared object\n");
+                return -1;
+            }
         }
     }
 
@@ -328,10 +379,6 @@ static int init_shared_mapping(struct shared_map **mapping, struct parser_ctx *c
         output(ERROR, "Can't create children object.\n");
         return -1;
     }
-
-    unsigned int i;
-    unsigned int ii;
-    unsigned int iii;
 
     /* Loop for each child and allocate the child context object as shared anonymous memory. */
     for(i = 0; i < (*mapping)->number_of_children; i++)
@@ -411,16 +458,16 @@ static int init_shared_mapping(struct shared_map **mapping, struct parser_ctx *c
         }
 
         /* Create memory pool for list_nodes. */
-        for(iii = 0; iii < 8; iii++)
+        for(i = 0; i < 8; i++)
         {
-            rtrn = create_shared((void **)&child->pool->node[iii], sizeof(struct list_node));
+            rtrn = create_shared((void **)&child->pool->node[i], sizeof(struct list_node));
             if(rtrn < 0)
             {
                 output(ERROR, "Can't create shared object\n");
                 return -1;
             }
 
-            rtrn = create_shared((void **)&child->pool->node[iii]->data, sizeof(struct list_data));
+            rtrn = create_shared((void **)&child->pool->node[i]->data, sizeof(struct list_data));
             if(rtrn < 0)
             {
                 output(ERROR, "Can't create shared object\n");
@@ -485,7 +532,7 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    /* Setup the program running enviroment. */
+    /* Setup the fuzzer running enviroment. */
     rtrn = setup_runtime();
     if(rtrn < 0)
     {

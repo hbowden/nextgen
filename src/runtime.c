@@ -34,6 +34,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
+#include <sys/mman.h>
 
 static void start_main_syscall_loop(void)
 {
@@ -89,7 +90,8 @@ static void start_main_file_loop(void)
             return;
         }
 
-        /* Mutate the file. */
+        /* Mutate the file, sometimes the file buffer grows in length
+         and file_size will be updated to the new length. */
         rtrn = mutate_file(file_buffer, &file_size);
         if(rtrn < 0)
         {
@@ -121,9 +123,18 @@ static void start_main_file_loop(void)
             return;
         }
 
+        /* Log file before we run, so if there is a kernel panic we have the
+        file that caused the panic. */
+        rtrn = log_file(file_path, file_extension);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't log file generated\n");
+            return;
+        }
+
         /* Create children process and exec the target executable and run it with
         the generated file. */
-        rtrn = test_exec_with_file_in_child(file_path);
+        rtrn = test_exec_with_file_in_child(file_path, file_extension);
         if(rtrn < 0)
         {
             output(ERROR, "Can't test exec with file\n");
@@ -132,9 +143,9 @@ static void start_main_file_loop(void)
 
         /* Clean up our mess. */
         free(file_path);
-        free(file_buffer);
         free(file_name);
         free(file_extension);
+        munmap(file_buffer, file_size);
         close(file);
     }
 
@@ -311,6 +322,14 @@ static int setup_syscall_mode_runtime(void)
 
     /* Below is init work common to both smart and dumb mode. */
 
+    /* Now let's start the reaper process, so it can clean up misbehaving processes. */
+    rtrn = setup_and_run_reaper();
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't set up the reaper\n");
+        return -1;
+    }
+
     rtrn = create_out_directory(map->path_to_out_dir);
     if(rtrn < 0)
     {
@@ -348,14 +367,6 @@ int setup_runtime(void)
     if(rtrn < 0)
     {
         output(ERROR, "Can't set up crypto\n");
-        return -1;
-    }
-
-    /* Now let's start the reaper process, so it can clean up misbehaving processes. */
-    rtrn = setup_and_run_reaper();
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't set up the reaper\n");
         return -1;
     }
 

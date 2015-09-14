@@ -27,4 +27,6 @@ private extern int log_arguments(struct child_ctx *ctx);
 
 private extern int log_results(struct child_ctx *ctx);
 
+private extern int log_file(char *file_path, char *file_extension);
+
 #endif

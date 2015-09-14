@@ -104,6 +104,8 @@ private extern int map_file_in(int fd, char **buf, off_t *size);
 /* This function maps a buffer of size to a file path.  */
 private extern int map_file_out(char *path, char *buf, off_t size);
 
+private extern int copy_file_to(char *copy_path, char *out_path);
+
 /* This function replaces printf and perror in the code so we can aggregate output to one point. */
 private extern void output(enum out_type type, const char *format, ...);
 

@@ -67,6 +67,12 @@ struct shared_map
     /* Here is where we keep data about the executable we are fuzzing. */
     struct executable_context *exec_ctx;
 
+    /* Index of file paths read from the in directory. */
+    char **file_index;
+
+    /* Number of files in index. */
+    unsigned int file_count;
+
     /* The pids of our helper processes. */
     atomic_int_fast32_t reaper_pid;
     atomic_int_fast32_t runloop_pid;
