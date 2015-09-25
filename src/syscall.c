@@ -1,9 +1,25 @@
 
 
+/**
+ * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
+ * 
+ * Permission to use, copy, modify, and/or distribute this software for any purpose
+ * with or without fee is hereby granted, provided that the above copyright notice 
+ * and this permission notice appear in all copies.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH 
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY 
+ * AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, 
+ * WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
+ * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ **/
+
 #include "syscall.h"
 #include "entry.h"
 #include "syscall_table.h"
 #include "crypto.h"
+#include "io.h"
 #include "utils.h"
 #include "nextgen.h"
 #include "shim.h"
@@ -14,6 +30,72 @@
 int cleanup_syscall_table(void)
 {
     
+    return 0;
+}
+
+int create_input_file_index(void)
+{
+    unsigned int i;
+
+    for(i = 0; i < 1024; i++)
+    {
+        int rtrn, file_desc;
+        char *name auto_clean = NULL;
+        char *file_path auto_clean = NULL;
+        char *junk auto_clean = NULL;
+
+        /* Create a random file name. */
+        rtrn = generate_name(&name, (char *)".txt", FILE_NAME);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't generate name\n");
+            return -1;
+        }
+    
+        /* Join the file name with /tmp/ to create file_path. */
+        rtrn = asprintf(&file_path, "/tmp/%s", name);
+        if(rtrn < 0)
+        {
+            output(ERROR, "asprintf: %s\n", strerror(errno));
+            return -1;
+        }
+
+        /* Alocate a buffer for reading in junk. */
+        junk = malloc(4096);
+        if(junk < 0)
+        {
+            output(ERROR, "malloc: %s\n", strerror(errno));
+            return -1;
+        }
+
+        /* Read in random byes. */
+        rtrn = rand_bytes(&junk, 4095);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't create junk\n");
+            return -1;
+        }
+
+        /* Create the file at the file_path we created. */
+        rtrn = map_file_out(file_path, junk, 4095);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't write junk to disk\n");
+            return -1;
+        }
+
+        /* Open the file we just created. */
+        file_desc = open(file_path, O_RDONLY);
+        if(file_desc < 0)
+        {
+            output(ERROR, "open: %s\n", strerror(errno));
+            return -1;
+        }
+
+        map->fd_index[i] = file_desc;
+
+    }
+
     return 0;
 }
 
@@ -172,7 +254,7 @@ int test_syscall(struct child_ctx *ctx)
     /* Set the time of the syscall test. */
     (void)gettimeofday(&ctx->time_of_syscall, NULL);
 
-#ifndef ASAN || VALGRIND
+#ifndef defined(ASAN) || defined(VALGRIND)
 
     /* Call the syscall with the args generated. */
     ctx->ret_value = syscall(ctx->syscall_symbol, *arg1, *arg2, *arg3, *arg4, *arg5, *arg6);

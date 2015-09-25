@@ -38,14 +38,12 @@
 static void *
 hs_malloc(size_t r)
 {
-
 	return malloc(r);
 }
 
 static void
 hs_free(void *p, size_t b, bool r)
 {
-
 	(void)b;
 	(void)r;
 	free(p);

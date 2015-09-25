@@ -17,7 +17,8 @@
 
 #include "network.h"
 #include "nextgen.h"
-#include "utils.h"
+#include "concurrent.h"
+#include "io.h"
 #include "crypto.h"
 
 #include <pthread.h>
@@ -303,7 +304,7 @@ int start_socket_server(void)
     if(socket_server_pid == 0)
     {
         /* Set the PID of the socket server. */
-        compare_and_swap_int32(&map->socket_server_pid, socket_server_pid);
+        cas_loop_int32(&map->socket_server_pid, socket_server_pid);
 
         // Socket server process
         rtrn = setup_socket_server(&sockFd4, &sockFd6);

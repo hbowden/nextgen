@@ -16,7 +16,8 @@
  **/
 
 #include "crypto.h"
-#include "utils.h"
+#include "io.h"
+#include "memory.h"
 #include "nextgen.h"
 
 #include <errno.h>

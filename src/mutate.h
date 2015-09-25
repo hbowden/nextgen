@@ -21,8 +21,10 @@
 #include "private.h"
 #include "child.h"
 
+/* The mutator for syscall argumenst. */
 private extern int mutate_arguments(struct child_ctx *ctx);
 
-private extern int mutate_file(char *file, off_t *file_size);
+/* File mutator function. */
+private extern int mutate_file(char **file, const char *file_extension, off_t *file_size);
 
 #endif

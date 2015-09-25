@@ -16,7 +16,7 @@
  **/
 
 #include "shim.h"
-#include "utils.h"
+#include "io.h"
 #include "probe.h"
 #include "nextgen.h"
 
@@ -46,110 +46,51 @@ int _inject_fork_server(void)
 
     struct reg regs;
 
-    map->exec_ctx->pid = fork();
-    if(map->exec_ctx->pid == 0)
-    {
-        /* Let's announce we want to be traced so that we don't execute any instructions on execv. */
-        ptrace(PT_TRACE_ME, 0, NULL, 0);
-
-        /* Now we execute the target binary. */
-        int rtrn = execv(map->exec_ctx->path_to_exec, map->exec_ctx->args);
-        if(rtrn < 0)
-        {
-            output(ERROR, "execv: %s\n", errno);
-            return -1;
-        }
-    }
-    else if(map->exec_ctx->pid > 0)
-    {
-        int status;
-
-        /* Let's wait until the target binary has stopped. */
-        wait4(map->exec_ctx->pid, &status, 0, NULL);
-
-        /* Lets check the reason why were not waiting anymore. Hopefully it's
-         because the target executable is stopped. */
-
-        if(WIFCONTINUED(status) != 0)
-        {
-            output(ERROR, "The process we are testing is continuing?\n");
-            return -1;
-        }
-
-        /* Check if the process exited. */
-        if(WIFEXITED(status) != 0)
-        {
-            output(ERROR, "The process we are testing has exited prematurely\n");
-            return -1;
-        }
-
-        /* Check if the process was terminated due to a signal. */
-        if(WIFSIGNALED(status) != 0)
-        {
-            output(ERROR, "The process we are testing has exited due to a signal\n");
-            return -1;
-        }
-
-        /* Check if the process exited stopped due to ptrace. This is the Macro that we hope
-        evaluates to true. */
-        if(WIFSTOPPED(status) != 0)
-        {
-            
-        }
+    int status;
         
-        /* Lets save the code at main in the target process. */
-        int orig = ptrace(PT_READ_I, map->exec_ctx->pid, (caddr_t)&map->exec_ctx->main_start_address, 0);
+    /* Lets save the code at main in the target process. */
+    int orig = ptrace(PT_READ_I, map->exec_ctx->pid, (caddr_t)&map->exec_ctx->main_start_address, 0);
 
-        /* Let's set a breakpoint on main. */
-        ptrace(PT_WRITE_I, map->exec_ctx->pid, (caddr_t)&map->exec_ctx->main_start_address, (orig & TRAP_MASK) | TRAP_INST);
+    /* Let's set a breakpoint on main. */
+    ptrace(PT_WRITE_I, map->exec_ctx->pid, (caddr_t)&map->exec_ctx->main_start_address, (orig & TRAP_MASK) | TRAP_INST);
 
-        /* Now we continue until the breakpoint. */
-        ptrace(PT_CONTINUE, map->exec_ctx->pid, (caddr_t)1, 0);
+    /* Now we continue until the breakpoint. */
+    ptrace(PT_CONTINUE, map->exec_ctx->pid, (caddr_t)1, 0);
 
-        /* Wait until the breakpoint is hit. */
-        wait4(map->exec_ctx->pid, &status, 0, NULL);
+    /* Wait until the breakpoint is hit. */
+    wait4(map->exec_ctx->pid, &status, 0, NULL);
 
-        if(WIFCONTINUED(status) != 0)
-        {
-            output(ERROR, "The process we are testing is continuing?\n");
-            return -1;
-        }
-
-        /* Check if the process exited. */
-        if(WIFEXITED(status) != 0)
-        {
-            output(ERROR, "The process we are testing has exited prematurely\n");
-            return -1;
-        }
-
-        /* Check if the process was terminated due to a signal. */
-        if(WIFSIGNALED(status) != 0)
-        {
-            output(ERROR, "The process we are testing has exited due to a signal\n");
-            return -1;
-        }
-
-        /* Check if the process exited stopped due to ptrace. This is the Macro that we hope
-        evaluates to true. */
-        if(WIFSTOPPED(status) != 0)
-        {
-            
-        }
-
-        /* Lets grab the registers at main/breakpoint .*/
-        ptrace(PT_GETREGS, map->exec_ctx->pid, (caddr_t)&regs, 0);
-
-        printf("rax: Ox%lx\n", regs.r_rax);
-
-        /* Now we have to */
-
-        return 0;
-    }
-    else
+    if(WIFCONTINUED(status) != 0)
     {
-        output(ERROR, "fork-server failed: %s\n", strerror(errno));
+        output(ERROR, "The process we are testing is continuing?\n");
         return -1;
     }
+
+    /* Check if the process exited. */
+    if(WIFEXITED(status) != 0)
+    {
+        output(ERROR, "The process we are testing has exited prematurely\n");
+        return -1;
+    }
+
+    /* Check if the process was terminated due to a signal. */
+    if(WIFSIGNALED(status) != 0)
+    {
+        output(ERROR, "The process we are testing has exited due to a signal\n");
+        return -1;
+    }
+
+     /* Check if the process exited stopped due to ptrace. This is the Macro that we hope
+    evaluates to true. */
+    if(WIFSTOPPED(status) != 0)
+    {
+        
+    }
+
+    /* Lets grab the registers at main/breakpoint .*/
+    ptrace(PT_GETREGS, map->exec_ctx->pid, (caddr_t)&regs, 0);
+
+    printf("rax: Ox%lx\n", regs.r_rax);
 
     return 0;
 }

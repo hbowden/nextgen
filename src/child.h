@@ -21,6 +21,7 @@
 #include "private.h"
 #include "child.h"
 #include "utils.h"
+#include "memory.h"
 
 #include <setjmp.h>
 #include <sys/time.h>
@@ -30,27 +31,10 @@
 
 #include "stdatomic.h"
 
-struct node_memory_pool
-{
-    atomic_bool slot1_full;
-    atomic_bool slot2_full;
-    atomic_bool slot3_full;
-    atomic_bool slot4_full;
-    atomic_bool slot5_full;
-    atomic_bool slot6_full;
-    atomic_bool slot7_full;
-    atomic_bool slot8_full;
-
-    struct list_node **node;
-};
-
 struct child_ctx
 {
 	/* The child's process PID. */
     atomic_int_fast32_t pid;
-
-    /* List node memory pool. */
-    struct node_memory_pool *pool;
 
     /* A varible to store the address of where to jump back to in the child
     process on signals. */
@@ -69,6 +53,8 @@ struct child_ctx
 
     /* This index tracks the size of the arguments.*/
     unsigned long *arg_size_index;
+
+    struct mem_pool_shared *pool;
 
     /* The child's resource cleanup list. */
     CK_LIST_HEAD(list, list_node) list;

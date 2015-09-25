@@ -16,10 +16,13 @@
  **/
 
 #include "generate.h"
+#include "nextgen.h"
 #include "network.h"
+#include "memory.h"
 #include "crypto.h"
 #include "reaper.h"
 #include "utils.h"
+#include "io.h"
 
 #include <stdio.h>
 #include <fcntl.h>
@@ -36,80 +39,18 @@
 
 int generate_fd(unsigned long **fd, struct child_ctx *ctx)
 {
-    int rtrn, file_desc;
-    char *name auto_clean = NULL;
-    char *file_path auto_clean = NULL;
-    char *junk auto_clean = NULL;
+    int rtrn;
+    unsigned int number;
 
-    /* Create a random file name. */
-    rtrn = generate_name(&name, (char *)".txt", FILE_NAME);
+    rtrn = rand_range(1024, &number);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't generate name\n");
-        return -1;
-    }
-    
-    /* Join the file name with /tmp/ to create file_path. */
-    rtrn = asprintf(&file_path, "/tmp/%s", name);
-    if(rtrn < 0)
-    {
-        output(ERROR, "asprintf: %s\n", strerror(errno));
-        return -1;
-    }
-
-    /* Alocate a buffer for reading in junk. */
-    junk = malloc(4096);
-    if(junk < 0)
-    {
-    	output(ERROR, "malloc: %s\n", strerror(errno));
-        return -1;
-    }
-
-    /* Read in random byes. */
-    rtrn = rand_bytes(&junk, 4095);
-    if(rtrn < 0)
-    {
-    	output(ERROR, "Can't create junk\n");
-        return -1;
-    }
-
-    /* Create the file at the file_path we created. */
-    rtrn = map_file_out(file_path, junk, 4095);
-    if(rtrn < 0)
-    {
-    	output(ERROR, "Can't write junk to disk\n");
-    	return -1;
-    }
-
-    /* Open the file we just created. */
-    file_desc = open(file_path, O_RDONLY);
-    if(file_desc < 0)
-    {
-        output(ERROR, "open: %s\n", strerror(errno));
-        return -1;
-    }
-
-    /* Allocate the fd so we can pass it back. */
-    *fd = malloc(sizeof(unsigned long));
-    if(fd == NULL)
-    {
-        output(ERROR, "Can't alloc fd: %s\n", strerror(errno));
-        return -1;
-    }
-
-    /* Set the argument size. */
-    ctx->arg_size_index[ctx->current_arg] = sizeof(unsigned long);
-
-    /* Let the reaper know to clean this fd later. */
-    rtrn = add_path_to_list(file_path, ctx);
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't add path to reaper list.\n");
+        output(ERROR, "Can't get random number\n");
         return -1;
     }
 
     /* Set the argument passed in to the file descriptor we just created. */
-    **fd = (unsigned long)file_desc;
+    **fd = (unsigned long)map->fd_index[number];
 
 	return 0;
 }
@@ -451,10 +392,13 @@ int generate_pid(unsigned long **pid, struct child_ctx *ctx)
     local_pid = fork();
     if(local_pid == 0)
     {
+        /* Loop sleep until we our killed after we are used for a syscall argument. */
         while(1)
         {
         	sleep(30);
         }
+
+        _exit(0);
     }
     else if(local_pid > 0)
     {
@@ -466,7 +410,7 @@ int generate_pid(unsigned long **pid, struct child_ctx *ctx)
         return -1;
     }
 
-    add_pid_to_list(pid, ctx);
+    add_pid_to_list(local_pid, ctx);
 
     **pid = (unsigned long)local_pid;
     

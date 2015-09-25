@@ -15,8 +15,9 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#include "utils.h"
 #include "log.h"
+#include "io.h"
+#include "concurrent.h"
 #include "crypto.h"
 #include "mutate.h"
 #include "reaper.h"
@@ -39,7 +40,7 @@ static int init_syscall_child(unsigned int i)
     pid_t child_pid = getpid();
 
     /* Set the child pid. */
-    compare_and_swap_int32(&map->children[i]->pid, child_pid);
+    cas_loop_int32(&map->children[i]->pid, child_pid);
 
     /* Set up the child signal handler. */
     setup_syscall_child_signal_handler();

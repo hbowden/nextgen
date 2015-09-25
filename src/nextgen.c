@@ -17,8 +17,11 @@
 
 #include "nextgen.h"
 #include "crypto.h"
-#include "utils.h"
+#include "io.h"
+#include "memory.h"
 #include "file.h"
+#include "reaper.h"
+#include "plugin.h"
 #include "runtime.h"
 
 #include <stdio.h>
@@ -76,21 +79,6 @@ static void display_help_banner(void)
     return;
 }
 
-static int check_root(void)
-{
-    output(STD, "Making sure the fuzzer has root privileges\n");
-
-    uid_t check;
-
-    check = getuid();
-    if(check == 0)
-    {
-        return 0;
-    }
-
-    return -1;
-}
-
 static struct parser_ctx *parse_cmd_line(int argc, char *argv[])
 {
     int ch, rtrn;
@@ -103,6 +91,9 @@ static struct parser_ctx *parse_cmd_line(int argc, char *argv[])
         output(ERROR, "malloc: %s\n", strerror(errno));
         return NULL;
     }
+
+    /* Default to smart_mode. */
+    ctx->smart_mode = TRUE;
 
     while((ch = getopt_long(argc, argv, optstring, longopts, NULL)) != -1)
     {
@@ -215,18 +206,6 @@ static struct parser_ctx *parse_cmd_line(int argc, char *argv[])
         return NULL;
     }
 
-    /* Check if we have root, if we don't have root make sure the user passed
-    --dumb or -d to specify they want dumb mode. */
-    rtrn = check_root();
-    if(rtrn != 0)
-    {
-        if(map->smart_mode != FALSE)
-        {
-            output(STD, "Either run as root to use smart mode or pass --dumb so that you do not have run as root\n");
-            return NULL;
-        }
-    }
-
     /* If file mode was selected lets make sure all the right args were passed.*/
     if(fFlag == TRUE)
     {
@@ -260,123 +239,150 @@ static struct parser_ctx *parse_cmd_line(int argc, char *argv[])
     return ctx;
 }
 
-/**
- * We use this function to initialize all the shared maps member values.
- **/
-static int init_shared_mapping(struct shared_map **mapping, struct parser_ctx *ctx)
+static int init_file_mapping(struct shared_map **mapping, struct parser_ctx *ctx)
 {
-    /* Do work that is common to the different fuzz modes. Then
-    start doing work specific to the different fuzz mode. */
     int rtrn;
     unsigned int i;
-    unsigned int ii;
 
-    /* Set the mode selected by the user. */
-    (*mapping)->mode = ctx->mode;
-
-    /* Check if the user selected dumb mode. */
-    if(ctx->smart_mode != TRUE)
-    {
-        (*mapping)->smart_mode = FALSE;
-    }
-    else
-    {
-        /* We default to smart_mode being on, however the user can switch to
-        dumb mode by passing --dumb on the command line. */
-        (*mapping)->smart_mode = TRUE;
-    }
-
+    /* Set the input and output directories. */
     (*mapping)->path_to_out_dir = ctx->path_to_out_dir;
     (*mapping)->path_to_in_dir = ctx->path_to_in_dir;
+
+    unsigned int count = 0;
+
+    /* Allocate the executable context object. */
+    (*mapping)->exec_ctx = mem_alloc_shared(sizeof(struct executable_context));
+    if((*mapping)->exec_ctx == NULL)
+    {
+        output(ERROR, "Can't create shared object\n");
+        return -1;
+    }
+
+    /* Set exec path. */
+    (*mapping)->exec_ctx->path_to_exec = ctx->path_to_exec;
+
+    /* Count how many files are in the input directory. */
+    rtrn = count_files_directory(&count);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't count files in the in directory.\n");
+        return -1;
+    }
+
+    /* Set file_count in map so we know this value later. */
+    (*mapping)->file_count = count;
+
+    /* Create file index. */
+    (*mapping)->file_index = mem_alloc((count + 1) * sizeof(char *));
+    if((*mapping)->file_index == NULL)
+    {
+        output(ERROR, "Can't create file index: %s\n", strerror(errno));
+        return -1;
+    }
+
+    for(i = 0; i < count; i++)
+    {
+        (*mapping)->file_index[i] = mem_alloc_shared(1025);
+        if((*mapping)->file_index[i] == NULL)
+        {
+            output(ERROR, "Can't create shared object\n");
+            return -1;
+        }
+    }
+
+    /* Count plugins in the plugin directory. */
+    rtrn = count_plugins(&(*mapping)->plugin_count);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't create shared object\n");
+        return -1;
+    }
+
+    /* Create plugin context structure index. */
+    (*mapping)->plugins = mem_alloc(((*mapping)->plugin_count + 1) * sizeof(struct plugin_ctx *));
+    if((*mapping)->plugins == NULL)
+    {
+        output(ERROR, "Can't create plugin index: %s\n", strerror(errno));
+        return -1;
+    }
+
+    /* Loop and create each plugin context struct. */
+    for(i = 0; i < (*mapping)->plugin_count; i++)
+    {
+        struct plugin_ctx *p_ctx = NULL;
+
+        /* Map the plugin ctx struct as shared memory.*/
+        p_ctx = mem_alloc_shared(sizeof(struct plugin_ctx));
+        if(p_ctx == NULL)
+        {
+            output(ERROR, "Can't create shared plugin context\n");
+            return -1;
+        }
+
+        (*mapping)->plugins[i] = p_ctx;
+    }
+
+    return 0;
+}
+
+static int init_network_mapping(struct shared_map **mapping, struct parser_ctx *ctx)
+{
+    int rtrn;
+    unsigned int i;
+
+    return 0;
+}
+
+static int init_syscall_mapping(struct shared_map **mapping, struct parser_ctx *ctx)
+{
+    int rtrn;
+    unsigned int i, ii;
+
+    (*mapping)->path_to_out_dir = ctx->path_to_out_dir;
 
     /* Set running children to zero. */
     atomic_init(&(*mapping)->running_children, 0);
 
-    /* Set the stop flag to FALSE, when set to TRUE all processes start their exit routines and eventually exit. */
-    atomic_init(&(*mapping)->stop, FALSE);
-
-    /* We use atomic values for the pids, so let's init them. */
+    /* We use atomic values for the pids, so let's init the reaper pid. */
     atomic_init(&(*mapping)->reaper_pid, 0);
-    atomic_init(&(*mapping)->runloop_pid, 0);
 
-    /* Check if the user selected syscall mode. */
-    if((*mapping)->mode == MODE_SYSCALL)
+    /* Allocate the system call table as shared memory. */
+    (*mapping)->sys_table = mem_alloc_shared(sizeof(struct syscall_table));
+    if((*mapping)->sys_table == NULL)
     {
-        /* Allocate the system call table as shared memory. */
-        rtrn = create_shared((void **)&(*mapping)->sys_table, sizeof(struct syscall_table));
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't create shared object\n");
-            return -1;
-        }
+        output(ERROR, "Can't create shared object\n");
+        return -1;
+    }
 
-        /* Intialize socket server values.*/
-        (*mapping)->socket_server_port = 0;
-        atomic_init(&(*mapping)->socket_server_pid, 0);
+    /* Intialize socket server values.*/
+    (*mapping)->socket_server_port = 0;
+    atomic_init(&(*mapping)->socket_server_pid, 0);
 
-        /* Grab the core count of the machine we are on. */
-        unsigned int core_count;
-        rtrn = get_core_count(&core_count);
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't get core count\n");
-            return -1;
-        }
+    /* Grab the core count of the machine we are on. */
+    unsigned int core_count;
+    rtrn = get_core_count(&core_count);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't get core count\n");
+        return -1;
+    }
     
-        /* Set the number of child processes to the number of cores detected. */
-        (*mapping)->number_of_children = core_count;
-    }
-
-    /* Check if the user selected file mode. */
-    if((*mapping)->mode == MODE_FILE)
-    {
-        unsigned int count = 0;
-
-        /* Allocate the executable context object. */
-        rtrn = create_shared((void **)&(*mapping)->exec_ctx, sizeof(struct executable_context));
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't create shared object\n");
-            return -1;
-        }
-
-        (*mapping)->exec_ctx->path_to_exec = ctx->path_to_exec;
-
-        /* Count how many files are in the in directory. */
-        rtrn = count_files_directory(&count);
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't count files in the in directory.\n");
-            return -1;
-        }
-
-        /* Set file count in map so we know this value later. */
-        (*mapping)->file_count = count;
-
-        /* Create file index. */
-        (*mapping)->file_index = malloc((count + 1) * sizeof(char *));
-        if((*mapping)->file_index == NULL)
-        {
-            output(ERROR, "Can't create file index: %s\n", strerror(errno));
-            return -1;
-        }
-
-        for(i = 0; i < count; i++)
-        {
-            rtrn = create_shared((void **)&(*mapping)->file_index[i], 1025);
-            if(rtrn < 0)
-            {
-                output(ERROR, "Can't create shared object\n");
-                return -1;
-            }
-        }
-    }
+    /* Set the number of child processes to the number of cores detected. */
+    (*mapping)->number_of_children = core_count;
 
     /* Create the child process structures. */
-    (*mapping)->children = malloc((*mapping)->number_of_children * sizeof(struct child_ctx *));
+    (*mapping)->children = mem_alloc((*mapping)->number_of_children * sizeof(struct child_ctx *));
     if((*mapping)->children == NULL)
     {
         output(ERROR, "Can't create children object.\n");
+        return -1;
+    }
+
+     /* Create file index. */
+    (*mapping)->fd_index = mem_alloc(sizeof(int) * 1025);
+    if((*mapping)->fd_index == NULL)
+    {
+        output(ERROR, "Can't create file index: %s\n", strerror(errno));
         return -1;
     }
 
@@ -384,110 +390,123 @@ static int init_shared_mapping(struct shared_map **mapping, struct parser_ctx *c
     for(i = 0; i < (*mapping)->number_of_children; i++)
     {
         /* Init a new child context struct. */
-        struct child_ctx child_struct = { .list = CK_LIST_HEAD_INITIALIZER(child ->list) };
+        struct child_ctx child_struct = { .list = CK_LIST_HEAD_INITIALIZER(child->list) };
         struct child_ctx *child = &child_struct;
 
         /* Map the child context as shared memory. */
-        rtrn = create_shared((void **)&child, sizeof(struct child_ctx));
-        if(rtrn < 0)
+        child = mem_alloc_shared(sizeof(struct child_ctx));
+        if(child == NULL)
         {
-            output(ERROR, "Can't create shared object\n");
+            output(ERROR, "Can't create child context\n");
             return -1;
         }
 
-        rtrn = create_shared((void **)&child->pool, sizeof(struct node_memory_pool));
-        if(rtrn < 0)
+        /* Create a shared memory pool for the child. */
+        child->pool = mem_create_shared_pool();
+        if(child->pool == NULL)
         {
-            output(ERROR, "Can't create memory pool\n");
+            output(ERROR, "Can't create child's memory pool\n");
             return -1;
         }
-       
-        /* If syscall mode is on then do some more child setup work. */
-        if((*mapping)->mode == MODE_SYSCALL)
+     
+        /* Create the index where we store the syscall arguments. */
+        child->arg_value_index = mem_alloc(7 * sizeof(unsigned long *));
+        if(child->arg_value_index == NULL)
         {
-            /* Create the index where we store the syscall arguments. */
-            child->arg_value_index = malloc(7 * sizeof(unsigned long *));
-            if(child->arg_value_index == NULL)
-            {
-                output(ERROR, "Can't create arg value index: %s\n", strerror(errno));
-                return -1;
-            }
+            output(ERROR, "Can't create arg value index: %s\n", strerror(errno));
+            return -1;
+        }
 
-            /* This index tracks the size of of the argument generated.  */
-            child->arg_size_index = malloc(7 * sizeof(unsigned long));
-            if(child->arg_size_index == NULL)
-            {
-                output(ERROR, "Can't create arg size index: %s\n", strerror(errno));
-                return -1;
-            }
+        /* This index tracks the size of of the argument generated.  */
+        child->arg_size_index = mem_alloc(7 * sizeof(unsigned long));
+        if(child->arg_size_index == NULL)
+        {
+            output(ERROR, "Can't create arg size index: %s\n", strerror(errno));
+            return -1;
+        }
 
-            /* This is where we store the error string on each syscall test. */
-            child->err_value = malloc(1024);
-            if(child->err_value == NULL)
-            {
-                output(ERROR, "err_value: %s\n", strerror(errno));
-                return -1;
-            }
+        /* This is where we store the error string on each syscall test. */
+        child->err_value = mem_alloc(1024);
+        if(child->err_value == NULL)
+        {
+            output(ERROR, "err_value: %s\n", strerror(errno));
+            return -1;
         }
 
         /* Init cleanup list. */
         CK_LIST_INIT(&child->list);
 
+        /* Loop and create the various indecies in the child struct. */
         for(ii = 0; ii < 6; ii++)
         {
-            rtrn = create_shared((void **)&child->arg_value_index[ii], sizeof(unsigned long));
-            if(rtrn < 0)
+            child->arg_value_index[ii] = mem_alloc_shared(sizeof(unsigned long));
+            if(child->arg_value_index[ii] == NULL)
             {
                 output(ERROR, "Can't create arg value\n");
                 return -1;
             }
-
-            rtrn = create_shared((void **)&child->arg_size_index[ii], sizeof(unsigned long));
-            if(rtrn < 0)
-            {
-                output(ERROR, "Can't create arg size\n");
-                return -1;
-            }
         }
-
-        child->pool->node = malloc(9 * sizeof(struct list_node *));
-        if(child->pool->node == NULL)
-        {
-            output(ERROR, "Can't create memory pool\n");
-            return -1;
-        }
-
-        /* Create memory pool for list_nodes. */
-        for(i = 0; i < 8; i++)
-        {
-            rtrn = create_shared((void **)&child->pool->node[i], sizeof(struct list_node));
-            if(rtrn < 0)
-            {
-                output(ERROR, "Can't create shared object\n");
-                return -1;
-            }
-
-            rtrn = create_shared((void **)&child->pool->node[i]->data, sizeof(struct list_data));
-            if(rtrn < 0)
-            {
-                output(ERROR, "Can't create shared object\n");
-                return -1;
-            }
-        }
-
-        /* Init the slot values. */
-        atomic_init(&child->pool->slot1_full, FALSE);
-        atomic_init(&child->pool->slot2_full, FALSE);
-        atomic_init(&child->pool->slot3_full, FALSE);
-        atomic_init(&child->pool->slot4_full, FALSE);
-        atomic_init(&child->pool->slot5_full, FALSE);
-        atomic_init(&child->pool->slot6_full, FALSE);
-        atomic_init(&child->pool->slot7_full, FALSE);
-        atomic_init(&child->pool->slot8_full, FALSE);
 
         atomic_init(&child->pid, EMPTY);
 
         (*mapping)->children[i] = child;
+    }
+
+    return 0;
+}
+
+/**
+ * We use this function to initialize all the shared maps member values.
+ **/
+static int init_shared_mapping(struct shared_map **mapping, struct parser_ctx *ctx)
+{
+    int rtrn;
+
+    /* Set the fuzzing mode selected by the user. */
+    (*mapping)->mode = ctx->mode;
+
+    /* Set inteligence mode. */
+    (*mapping)->smart_mode = ctx->smart_mode;
+
+    /* Set the stop flag to FALSE, when set to TRUE all processes start their exit routines and eventually exit. */
+    atomic_init(&(*mapping)->stop, FALSE);
+
+    /* Init the runloop pid. */
+    atomic_init(&(*mapping)->runloop_pid, 0);
+
+    /* Do mode specific shared mapping setup. */
+    switch((int)ctx->mode)
+    {
+        case MODE_SYSCALL:
+            rtrn = init_syscall_mapping(mapping, ctx);
+            if(rtrn < 0)
+            {
+                output(ERROR, "Can't init syscall mapping\n");
+                return -1;
+            }
+            break;
+
+        case MODE_FILE:
+            rtrn = init_file_mapping(mapping, ctx);
+            if(rtrn < 0)
+            {
+                output(ERROR, "Can't init file mapping\n");
+                return -1;
+            }
+            break;
+
+        case MODE_NETWORK:
+            rtrn = init_network_mapping(mapping, ctx);
+            if(rtrn < 0)
+            {
+                output(ERROR, "Can't init network mapping\n");
+                return -1;
+            }
+            break;
+
+        default:
+            output(ERROR, "Unknown fuzzing mode\n");
+            return -1;
     }
     
     return 0;
@@ -508,8 +527,8 @@ int main(int argc, char *argv[])
     struct parser_ctx *ctx = NULL;
 
     /* Create a shared memory map so that we can share state with other threads and procceses. */
-    rtrn = create_shared((void **)&map, sizeof(struct shared_map));
-    if(rtrn < 0)
+    map = mem_alloc_shared(sizeof(struct shared_map));
+    if(map == NULL)
     {
         output(ERROR, "Can't create shared object.\n");
         return -1;

@@ -17,7 +17,10 @@
 
 #include "reaper.h"
 #include "nextgen.h"
-#include "utils.h"
+#include "signals.h"
+#include "memory.h"
+#include "concurrent.h"
+#include "io.h"
 
 #include <signal.h>
 #include <sys/time.h>
@@ -31,56 +34,34 @@ int add_pid_to_list(pid_t pid, struct child_ctx *ctx)
 {
     /* Our variables. */
     int rtrn;
-    struct list_node *node;
+    struct memory_block *block = NULL;
 
-    /* Set pointer to free space in list_node memory pool. 
-    rtrn = create_list_node(&node, ctx);
-    if(rtrn < 0)
+    block = mem_get_shared_block(ctx->pool);
+    if(block == NULL)
     {
-        output(ERROR, "Can't create list node\n");
+        output(ERROR, "Can't get free memory block\n");
         return -1;
-    } */
+    }
+
+    block->ptr->block = block;
 
     /* Set argument type. */
-    node->data->arg_type = PID;
+    block->ptr->data->arg_type = PID;
 
     /* Copy arg value to the list node. */
-    node->data->pid = pid;
+    block->ptr->data->pid = pid;
 
     /* Set the time we created this node. */
-    gettimeofday(&node->data->create_time, NULL);
+    gettimeofday(&block->ptr->data->create_time, NULL);
 
     /* Insert the node in the list. */
-    CK_LIST_INSERT_HEAD(&ctx->list, node, list_entry);
+    CK_LIST_INSERT_HEAD(&ctx->list, block->ptr, list_entry);
 
     return 0;
 }
 
 int add_socket_to_list(int socket_fd, struct child_ctx *ctx)
 {
-    /* Our variables. */
-    int rtrn;
-    struct list_node *node;
-
-    /* Set pointer to free space in list_node memory pool. 
-    rtrn = create_list_node(&node, ctx);
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't create list node\n");
-        return -1;
-    } */
-
-    /* Set argument type. */
-    node->data->arg_type = SOCKET;
-
-    /* Copy arg value to the list node. */
-    node->data->socket_or_fd = socket_fd;
-
-    /* Set the time we created this node. */
-    gettimeofday(&node->data->create_time, NULL);
-
-    /* Insert the node in the list. */
-    CK_LIST_INSERT_HEAD(&ctx->list, node, list_entry);
 
     return 0;
 }
@@ -89,36 +70,28 @@ int add_path_to_list(char *path, struct child_ctx *ctx)
 {
     /* Our variables. */
     int rtrn;
-    struct list_node *node;
+    struct memory_block *block = NULL;
 
-    printf("node: %p\n", node);
-
-    /* Set pointer to free space in list_node memory pool. 
-    rtrn = create_list_node(&node, ctx);
-    if(rtrn < 0)
+    block = mem_get_shared_block(ctx->pool);
+    if(block == NULL)
     {
-        output(ERROR, "Can't create list node\n");
-        return -1;
-    } */
-
-    /* Set argument type. */
-    node->data->arg_type = FILE_PATH;
-
-    node->data->node_number = rtrn;
-
-    /* Copy arg value to the list node. */
-    rtrn = asprintf(&node->data->path, "%s", path);
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't copy path: %s\n", path);
+        output(ERROR, "Can't get free memory block\n");
         return -1;
     }
 
+    block->ptr->block = block;
+
+    /* Set argument type. */
+    block->ptr->data->arg_type = FILE_PATH;
+
+    /* Copy arg value to the list node. */
+    block->ptr->data->path = path;
+
     /* Set the time we created this node. */
-    gettimeofday(&node->data->create_time, NULL);
+    gettimeofday(&block->ptr->data->create_time, NULL);
 
     /* Insert the node in the list. */
-    CK_LIST_INSERT_HEAD(&ctx->list, node, list_entry);
+    CK_LIST_INSERT_HEAD(&ctx->list, block->ptr, list_entry);
 
     return 0;
 }
@@ -126,15 +99,13 @@ int add_path_to_list(char *path, struct child_ctx *ctx)
 static int clean_list(struct child_ctx *ctx)
 {
     int rtrn;
-    unsigned int limit = 8;
+    unsigned int limit = 100;
     unsigned int nodes_cleaned = 0;
     struct list_node *node;
 
     /* Check if the arg cleanup list is empty, if it is empty return early. */
     if(CK_LIST_EMPTY(&ctx->list) == TRUE)
-    {
         return 0;
-    }
    
     /* Loop for each node in the list. */
     CK_LIST_FOREACH(node, &ctx->list, list_entry)
@@ -155,7 +126,7 @@ static int clean_list(struct child_ctx *ctx)
             dif = time_now - node->data->create_time.tv_sec;
         }
     
-        if(dif < 5)
+        if(dif < 2)
         {
             continue;
         }
@@ -163,34 +134,23 @@ static int clean_list(struct child_ctx *ctx)
         switch(node->data->arg_type)
         {
             case FILE_PATH:
-                rtrn = remove(node->data->path);
+                /*trn = unlink(node->data->path);
                 if(rtrn < 0)
                 {
-                    output(ERROR, "Can't remove file\n");
+                    output(ERROR, "Can't remove file: %s\n", strerror(errno));
                     return -1;
                 }
-                output(STD, "Removed path\n");
-                break;
 
-            case SOCKET:
-                rtrn = close(node->data->socket_or_fd);
-                if(rtrn < 0)
-                {
-                    output(ERROR, "Can't close socket\n");
-                    return -1;
-                }
-                output(STD, "Closed socket\n");
+                output(STD, "Removed path\n");*/
                 break;
-
 
             case PID:
-                rtrn = kill(node->data->pid, 0);
+                rtrn = kill(node->data->pid, SIGKILL);
                 if(rtrn < 0)
                 {
                     output(ERROR, "Can't kill temp child\n");
                     return -1;
                 }
-                output(STD, "killed child proc\n");
                 break;
 
             default:
@@ -198,56 +158,11 @@ static int clean_list(struct child_ctx *ctx)
                 return -1;
         }
 
-
         CK_LIST_REMOVE(node, list_entry);
 
-        switch(node->data->node_number)
-        {
-            case 0:
-                compare_and_swap_bool(&ctx->pool->slot1_full, FALSE);
-                break;
+        mem_free_shared_block(node->block, ctx->pool);
 
-            case 1:
-                compare_and_swap_bool(&ctx->pool->slot2_full, FALSE);
-                break;
-
-            case 2:
-                compare_and_swap_bool(&ctx->pool->slot3_full, FALSE);
-                break;
-
-            case 3:
-                compare_and_swap_bool(&ctx->pool->slot4_full, FALSE);
-                break;
-
-            case 4:
-                compare_and_swap_bool(&ctx->pool->slot5_full, FALSE);
-                break;
-
-            case 5:
-                compare_and_swap_bool(&ctx->pool->slot6_full, FALSE);
-                break;
-
-            case 6:
-                compare_and_swap_bool(&ctx->pool->slot7_full, FALSE);
-                break;
-
-            case 7:
-                compare_and_swap_bool(&ctx->pool->slot8_full, FALSE);
-                break;
-
-            default:
-                output(ERROR, "Unknown slot number: %d\n", node->data->node_number);
-                return -1;
-        }
-
-        nodes_cleaned++;
-
-        if(nodes_cleaned <= limit)
-        {
-            break;
-        }
-
-        output(STD, "Cleaning\n");
+        node->block = NULL;
     }
 
     return 0;
@@ -307,7 +222,7 @@ static void check_progess(struct child_ctx *child)
 
 static void reap_child(struct child_ctx *child)
 {
-    compare_and_swap_int32(&child->pid, EMPTY);
+    cas_loop_int32(&child->pid, EMPTY);
 
     child->time_of_syscall.tv_sec = 0;
 
@@ -343,7 +258,7 @@ static void reap_dead_children(void)
             return;
         }
 
-        compare_and_swap_int32(&map->children[i]->pid, EMPTY);
+        cas_loop_int32(&map->children[i]->pid, EMPTY);
     }
 }
 
@@ -399,9 +314,9 @@ int setup_and_run_reaper(void)
     reaper_pid = fork();
     if(reaper_pid == 0)
     {
-        compare_and_swap_int32(&map->reaper_pid, reaper_pid);
+        cas_loop_int32(&map->reaper_pid, reaper_pid);
 
-    	  reaper();
+    	reaper();
     }
     else if(reaper_pid > 0)
     {

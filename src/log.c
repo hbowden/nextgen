@@ -16,6 +16,8 @@
  **/
 
 #include "log.h"
+#include "io.h"
+#include "memory.h"
 #include "nextgen.h"
 #include "arg_types.h"
 #include "utils.h"

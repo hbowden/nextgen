@@ -1,5 +1,5 @@
 
-SOURCES = src/nextgen.c src/disas.c src/probe.c src/utils.c src/crypto.c src/runtime.c src/child.c src/network.c src/syscall.c src/shim.c src/generate.c src/mutate.c src/log.c src/signals.c src/reaper.c src/file.c
+SOURCES = src/nextgen.c src/disas.c src/probe.c src/utils.c src/crypto.c src/runtime.c src/child.c src/network.c src/syscall.c src/shim.c src/generate.c src/mutate.c src/log.c src/signals.c src/reaper.c src/file.c src/plugin.c src/genetic.c src/memory.c src/concurrent.c src/io.c
 
 ASAN_FLAGS = -fsanitize=address -DASAN
 
@@ -23,7 +23,7 @@ INCLUDES = -I/usr/src/cddl/compat/opensolaris/include -I/usr/local/include/ -I/u
 
 LIBS = -lpthread -lstdthreads -ldtrace -lproc -lctf -lelf -lz -lrtld_db -lutil -lcrypto deps/capstone-3.0.4/libcapstone.a deps/ck-0.4.5/src/libck.a
 
-CFLAGS = -DFREEBSD -std=c11 -Wall -Weverything -g -fstack-protector-all -Wno-cast-qual -Wno-missing-noreturn -Wno-unused-parameter -Wno-unused-variable -Wno-used-but-marked-unused -Wno-unreachable-code-return -Wno-reserved-id-macro -Wno-documentation -Wno-disabled-macro-expansion -Wno-switch-enum -Wno-deprecated-declarations -Wno-newline-eof -Wno-padded -Wno-pedantic -Wno-sign-conversion -Wno-unknown-pragmas -Wno-format-nonliteral
+CFLAGS = -DFREEBSD -std=c11 -Wall -Weverything -g -fstack-protector-all -Wno-cast-qual -Wno-missing-noreturn -Wno-incompatible-pointer-types-discards-qualifiers -Wno-unused-parameter -Wno-unused-variable -Wno-used-but-marked-unused -Wno-unreachable-code-return -Wno-reserved-id-macro -Wno-documentation -Wno-disabled-macro-expansion -Wno-switch-enum -Wno-deprecated-declarations -Wno-newline-eof -Wno-padded -Wno-pedantic -Wno-sign-conversion -Wno-unknown-pragmas -Wno-format-nonliteral
 
 ENTRY_SOURCES = src/syscalls/freebsd/entry_read.c src/syscalls/freebsd/entry_write.c src/syscalls/freebsd/entry_open.c src/syscalls/freebsd/entry_close.c src/syscalls/freebsd/entry_wait4.c src/syscalls/freebsd/entry_creat.c src/syscalls/freebsd/entry_link.c src/syscalls/freebsd/entry_unlink.c src/syscalls/freebsd/entry_chdir.c src/syscalls/freebsd/entry_fchdir.c src/syscalls/freebsd/entry_mknod.c src/syscalls/freebsd/entry_chmod.c src/syscalls/freebsd/entry_getfsstat.c
 

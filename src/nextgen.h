@@ -19,11 +19,13 @@
 #define NEXTGEN_H
 
 #include "child.h"
+#include "plugin.h"
 #include "syscall_table.h"
 
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <dtrace.h>
 
 #include "stdatomic.h"
 
@@ -38,6 +40,8 @@ struct executable_context
     atomic_int_fast32_t pid;
 
     char *path_to_exec;
+
+    char **address_index;
 
     /* The virtual memory address found in the execuatble header. */
     unsigned long main_start_address;
@@ -60,7 +64,7 @@ struct shared_map
     /* This tells us what fuzzing mode to execute. */
     enum fuzz_mode mode;
 
-    /* The in and out directory paths. */
+    /* The input and output directory paths. */
     char *path_to_in_dir;
     char *path_to_out_dir;
 
@@ -73,6 +77,17 @@ struct shared_map
     /* Number of files in index. */
     unsigned int file_count;
 
+    /* Plugin context index. */
+    struct plugin_ctx **plugins;
+
+    int *fd_index;
+
+    /* Number of plugins in plugin index. */
+    unsigned int plugin_count;
+
+    /* As the name applies this is a handle used for dtrace. */
+    dtrace_hdl_t *dtrace_handle;
+
     /* The pids of our helper processes. */
     atomic_int_fast32_t reaper_pid;
     atomic_int_fast32_t runloop_pid;
@@ -82,8 +97,8 @@ struct shared_map
     char *crypto_method;
     bool crypto_flag;
 
-    /* An atomic value used to tell the processes whether to run or not. */
-    atomic_bool stop;
+    /* An atomic value used to tell the various processes whether to run or not. */
+    atomic_int_fast32_t stop;
 
     /* If this mode is FALSE then we don't use the binary feedback and genetic algorithm. */
     bool smart_mode;

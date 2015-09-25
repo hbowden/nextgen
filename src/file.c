@@ -18,6 +18,7 @@
 #include "file.h"
 #include "crypto.h"
 #include "nextgen.h"
+#include "io.h"
 
 #include <stdio.h>
 #include <fcntl.h>
@@ -25,22 +26,32 @@
 #include <string.h>
 #include <dirent.h>
 
-int get_file(int *file)
+int get_file(int *file, char **extension)
 {
 	int rtrn;
-	unsigned int index_number;
+	unsigned int index_offset;
 
-	rtrn = rand_range(map->file_count, &index_number);
+    /* Pick a file index offset at random. */
+	rtrn = rand_range(map->file_count, &index_offset);
 	if(rtrn < 0)
 	{
 		output(ERROR, "Can't pick random number\n");
 		return -1;
 	}
 
-	*file = open(map->file_index[index_number], O_RDONLY);
+    /* Open the file at the random offset. */
+	*file = open(map->file_index[index_offset], O_RDONLY);
 	if(*file < 0)
 	{
 		output(ERROR, "Can't open file: %s\n", strerror(errno));
+		return -1;
+	}
+
+    /* Get the file extension for the file we just opened. */
+	rtrn = get_extension(map->file_index[index_offset], extension);
+	if(rtrn < 0)
+	{
+		output(ERROR, "Can't get extension\n");
 		return -1;
 	}
 	
@@ -121,6 +132,19 @@ int count_files_directory(unsigned int *count)
     
     /* Close the directory. */
     closedir(directory);
+
+	return 0;
+}
+
+int initial_fuzz_run(void)
+{
+	unsigned int file_count = map->file_count;
+    unsigned int i;
+
+    for(i = 0; i < file_count; i++)
+    {
+        
+    }
 
 	return 0;
 }

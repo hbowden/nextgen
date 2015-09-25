@@ -24,6 +24,13 @@
 
 #include <sys/time.h>
 
+struct memory_node
+{
+	struct list_node *node;;
+
+	CK_SLIST_ENTRY(memory_node) list_entry;
+};
+
 private extern int setup_and_run_reaper(void);
 
 private extern int add_pid_to_list(pid_t pid, struct child_ctx *ctx);

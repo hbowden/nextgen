@@ -21,6 +21,8 @@
 #include "private.h"
 #include "child.h"
 
+private extern int create_input_file_index(void);
+
 private extern int get_syscall_table(void);
 
 private extern int cleanup_syscall_table(void);
