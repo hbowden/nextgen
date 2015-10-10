@@ -46,7 +46,7 @@ private extern int load_all_plugins(void);
 
 private extern int count_plugins(unsigned int *count);
 
-private extern int suppoted_file(char *file_extension, unsigned int *plugin_offset);
+private extern int supported_file(const char *file_extension, unsigned int *plugin_offset);
 
 private extern int features_supported(unsigned int offset, unsigned int *number_of_features);
 

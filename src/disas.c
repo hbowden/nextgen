@@ -20,8 +20,7 @@
 #include "io.h"
 #include "shim.h"
 #include "nextgen.h"
-
-#include <capstone/capstone.h>
+#include "capstone.h"
 
 #include <stdio.h>
 #include <fcntl.h>
@@ -45,7 +44,7 @@ int disas_executable_and_examine(void)
     off_t file_size;
     unsigned int count = 0;
     int file auto_close = 0;
-    char *file_buffer;
+    char *file_buffer auto_clean = NULL;
 
     /* Open the target binary. */
     file = open(map->exec_ctx->path_to_exec, O_RDONLY);
@@ -62,6 +61,10 @@ int disas_executable_and_examine(void)
     	output(ERROR, "Can't memory map file\n");
     	return -1;
     }
+
+    /* Create a const pointer to the file buffer so we can avoid
+    a warning when using cs_disasm_iter(). */
+    const uint8_t *file_buffer_copy = (uint8_t *)file_buffer;
     
     /* Create capstone handle.*/
     csh handle;
@@ -73,7 +76,7 @@ int disas_executable_and_examine(void)
     uint64_t address = 0;
 
     /* Disassemble one instruction at a time & store the result into the insn variable above */
-    while(cs_disasm_iter(handle, (const uint8_t **)&file_buffer, (unsigned long *)&file_size, &address, insn))
+    while(cs_disasm_iter(handle, (const uint8_t **)&file_buffer_copy, (unsigned long *)&file_size, &address, insn))
     {
         /* Check for branchs in the disasembly. */
         if(strncmp(insn->mnemonic, "jne", 3) == 0)
@@ -236,7 +239,7 @@ int disas_executable_and_examine(void)
 
     // release the cache memory when done
     cs_free(insn, 1);
-    munmap(file_buffer, file_size);
+    munmap(file_buffer, (size_t)file_size);
 
     return 0;
 }

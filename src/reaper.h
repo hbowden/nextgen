@@ -26,7 +26,7 @@
 
 struct memory_node
 {
-	struct list_node *node;;
+	struct list_node *node;
 
 	CK_SLIST_ENTRY(memory_node) list_entry;
 };

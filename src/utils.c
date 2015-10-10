@@ -129,7 +129,7 @@ int generate_name(char **name, char *extension, enum name_type type)
     random_data[1023] = '\0';
     
     /* SHA 512 hash the random output string. */
-    rtrn = sha512(random_data, &tmp_buf);
+    rtrn = sha256(random_data, &tmp_buf);
     if(rtrn < 0)
     {
         output(STD, "Can't Hash Random Data\n");

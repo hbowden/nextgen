@@ -29,9 +29,9 @@ struct syscall_entry entry_write = {
     .arg_type_index[FIRST_ARG] = FILE_DESC,
     .get_arg_index[FIRST_ARG] = &generate_fd,
 
-    .arg_type_index[SECOND_ARG] = VOID_BUFF,
+    .arg_type_index[SECOND_ARG] = VOID_BUF,
     .get_arg_index[SECOND_ARG] = &generate_buf,
 
-    .arg_type_index[THIRD_ARG] = SIZE_T,
+    .arg_type_index[THIRD_ARG] = SIZE,
     .get_arg_index[THIRD_ARG] = &generate_length    
 };

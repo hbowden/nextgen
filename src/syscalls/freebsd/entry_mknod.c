@@ -29,10 +29,10 @@ struct syscall_entry entry_mknod = {
     .arg_type_index[FIRST_ARG] = FILE_PATH,
     .get_arg_index[FIRST_ARG] = &generate_path,
 
-    .arg_type_index[SECOND_ARG] = MODE_T,
+    .arg_type_index[SECOND_ARG] = MODE,
     .get_arg_index[SECOND_ARG] = &generate_mode,
 
-    .arg_type_index[THIRD_ARG] = MODE_T,
-    .get_arg_index[THIRD_ARG] = &generate_mode    
+    .arg_type_index[THIRD_ARG] = DEV,
+    .get_arg_index[THIRD_ARG] = &generate_dev    
 
 };

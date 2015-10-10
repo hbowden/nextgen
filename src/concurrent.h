@@ -19,11 +19,15 @@
 #define CONCURRENT_H
 
 #include "private.h"
-
-#include <sys/time.h>
-#include <ck_queue.h>
-
+#include "ck_queue.h"
+#include "ck_spinlock.h"
 #include "stdatomic.h"
+
+#include <unistd.h>
+#include <sys/time.h>
+
+#define LIST(x) CK_LIST_ENTRY(x) list_entry
+#define SLIST(x) CK_SLIST_ENTRY(x) list_entry
 
 struct list_data
 {
@@ -45,6 +49,18 @@ struct list_node
 
 };
 
+struct queue_block
+{
+    void *job;
+};
+
+struct work_queue
+{
+    ck_spinlock_t lock;
+
+    CK_SLIST_HEAD(queue, queue_block) queue;
+};
+
 /* CAS loop for swapping atomic int32 values. */ 
 private extern int cas_loop_int32(atomic_int_fast32_t *target, int value);
 
@@ -53,5 +69,7 @@ private extern int cas_loop_uint32(atomic_uint_fast32_t *target, unsigned int va
 
 /* Simple wrapper function so we can wait on atomic pid values.  */
 private extern int wait_on(atomic_int_fast32_t *pid, int *status);
+
+private extern int create_work_queue(struct work_queue *queue);
 
 #endif

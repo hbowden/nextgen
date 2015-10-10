@@ -1,6 +1,8 @@
 #ifndef CAPSTONE_X86_H
 #define CAPSTONE_X86_H
 
+#pragma clang system_header
+
 /* Capstone Disassembly Engine */
 /* By Nguyen Anh Quynh <aquynh@gmail.com>, 2013-2014 */
 

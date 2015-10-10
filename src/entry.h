@@ -21,6 +21,7 @@
 #include "nextgen.h"
 #include "child.h"
 #include "utils.h"
+#include "arg_types.h"
 
 #include <stdbool.h>
 
@@ -43,7 +44,7 @@ struct syscall_entry_shadow
     const unsigned int number_of_args;
     const unsigned int entry_number;
 
-    int arg_type_index[7];
+    struct arg_context *arg_context_index[6];
 
     int (*get_arg_index[7])(unsigned long **, struct child_ctx *);
 

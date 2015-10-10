@@ -29,7 +29,7 @@ struct syscall_entry entry_getfsstat = {
     .arg_type_index[FIRST_ARG] = STAT_FS,
     .get_arg_index[FIRST_ARG] = &generate_fs_stat,
 
-    .arg_type_index[SECOND_ARG] = SIZE_T,
+    .arg_type_index[SECOND_ARG] = SIZE,
     .get_arg_index[SECOND_ARG] = &generate_length,
 
     .arg_type_index[THIRD_ARG] = STAT_FLAG,

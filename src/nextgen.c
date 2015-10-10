@@ -22,8 +22,12 @@
 #include "file.h"
 #include "reaper.h"
 #include "plugin.h"
+#include "resource.h"
 #include "runtime.h"
 
+#include <sys/param.h>
+#include <sys/mount.h>
+#include <ck_queue.h>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
@@ -85,10 +89,10 @@ static struct parser_ctx *parse_cmd_line(int argc, char *argv[])
     int iFlag = FALSE, oFlag = FALSE, fFlag = FALSE, nFlag = FALSE, 
     sFlag = FALSE, eFlag = FALSE, pFlag = FALSE, aFlag = FALSE, tFlag = FALSE;
 
-    struct parser_ctx *ctx = malloc(sizeof(struct parser_ctx));
+    struct parser_ctx *ctx = mem_alloc(sizeof(struct parser_ctx));
     if(ctx == NULL)
     {
-        output(ERROR, "malloc: %s\n", strerror(errno));
+        output(ERROR, "Can't allocate parser context\n");
         return NULL;
     }
 
@@ -228,6 +232,13 @@ static struct parser_ctx *parse_cmd_line(int argc, char *argv[])
     /* Check to see if syscall mode was selected. */
     if(sFlag == TRUE)
     {
+        rtrn = check_root();
+        if(rtrn != 0)
+        {
+            output(STD, "Run nextgen as root\n");
+            return NULL;
+        }
+
         /* Make sure the user set an output path. */
         if(oFlag != TRUE)
         {
@@ -237,6 +248,61 @@ static struct parser_ctx *parse_cmd_line(int argc, char *argv[])
     }
 
     return ctx;
+}
+
+static void clean_syscall_mapping(void)
+{
+    unsigned int i, ii;
+
+    mem_free_shared(map->sys_table, sizeof(struct syscall_table));
+
+    clean_resource_pools();
+
+    for(i = 0; i < map->number_of_children; i++)
+    {
+        struct child_ctx *child = map->children[i];
+
+        clean_shared_pool(child->pool);
+
+        for(ii = 0; ii < 6; ii++)
+        {
+            mem_free_shared(child->arg_value_index[ii], sizeof(unsigned long));
+        }
+
+        mem_free(child->arg_value_index);
+
+        mem_free(child->arg_size_index);
+    
+        mem_free(child->err_value);
+
+        mem_free_shared(child, sizeof(struct child_ctx));
+    }
+
+    return;
+}
+
+static void clean_shared_mapping(void)
+{
+    /* Do mode specific shared mapping cleanup. */
+    switch((int)map->mode)
+    {
+        case MODE_SYSCALL:
+            clean_syscall_mapping();
+            break;
+
+        case MODE_FILE:
+           
+            break;
+
+        case MODE_NETWORK:
+           
+            break;
+
+        default:
+            output(ERROR, "Unknown fuzzing mode\n");
+            return;
+    }
+    return;
 }
 
 static int init_file_mapping(struct shared_map **mapping, struct parser_ctx *ctx)
@@ -327,8 +393,6 @@ static int init_file_mapping(struct shared_map **mapping, struct parser_ctx *ctx
 
 static int init_network_mapping(struct shared_map **mapping, struct parser_ctx *ctx)
 {
-    int rtrn;
-    unsigned int i;
 
     return 0;
 }
@@ -345,6 +409,9 @@ static int init_syscall_mapping(struct shared_map **mapping, struct parser_ctx *
 
     /* We use atomic values for the pids, so let's init the reaper pid. */
     atomic_init(&(*mapping)->reaper_pid, 0);
+    atomic_init(&(*mapping)->god_pid, 0);
+
+    atomic_init(&(*mapping)->test_counter, 0);
 
     /* Allocate the system call table as shared memory. */
     (*mapping)->sys_table = mem_alloc_shared(sizeof(struct syscall_table));
@@ -378,14 +445,6 @@ static int init_syscall_mapping(struct shared_map **mapping, struct parser_ctx *
         return -1;
     }
 
-     /* Create file index. */
-    (*mapping)->fd_index = mem_alloc(sizeof(int) * 1025);
-    if((*mapping)->fd_index == NULL)
-    {
-        output(ERROR, "Can't create file index: %s\n", strerror(errno));
-        return -1;
-    }
-
     /* Loop for each child and allocate the child context object as shared anonymous memory. */
     for(i = 0; i < (*mapping)->number_of_children; i++)
     {
@@ -401,12 +460,41 @@ static int init_syscall_mapping(struct shared_map **mapping, struct parser_ctx *
             return -1;
         }
 
+        child->current_arg = 0;
+
         /* Create a shared memory pool for the child. */
-        child->pool = mem_create_shared_pool();
+        child->pool = mem_create_shared_pool(sizeof(struct list_node), 4096);
         if(child->pool == NULL)
         {
             output(ERROR, "Can't create child's memory pool\n");
             return -1;
+        }
+
+        struct memory_block *block = NULL;
+
+        init_shared_pool(&child->pool, block)
+        {
+            struct list_node *node = NULL;
+
+            node = mem_alloc_shared(sizeof(struct list_node));
+            if(node == NULL)
+            {
+                output(ERROR, "Can't alloc list node\n");
+                return -1;
+            }
+
+            block->ptr = node;
+
+            struct list_data *data = NULL;
+
+            data = mem_alloc_shared(sizeof(struct list_data));
+            if(data == NULL)
+            {
+                output(ERROR, "Can't alloc list data\n");
+                return -1;
+            }
+
+            ((struct list_node *)block->ptr)->data = data;
         }
      
         /* Create the index where we store the syscall arguments. */
@@ -556,6 +644,7 @@ int main(int argc, char *argv[])
     if(rtrn < 0)
     {
         output(ERROR, "Can't setup runtime enviroment.\n");
+        clean_shared_mapping();
         return -1;
     }
 
@@ -564,9 +653,11 @@ int main(int argc, char *argv[])
     if(rtrn < 0)
     {
         output(ERROR, "Can't start runtime enviroment.\n");
+        clean_shared_mapping();
         return -1;
     }
     
     /* We should only reach here on ctrl-c. */
+    clean_shared_mapping();
     return 0;
 }

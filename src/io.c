@@ -147,7 +147,7 @@ int copy_file_to(char *src, char *dst)
         return -1;
     }
 
-    munmap(file_buffer, file_size);
+    munmap(file_buffer, (size_t)file_size);
 
     return 0;
 }

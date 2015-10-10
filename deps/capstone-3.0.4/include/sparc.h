@@ -1,6 +1,8 @@
 #ifndef CAPSTONE_SPARC_H
 #define CAPSTONE_SPARC_H
 
+#pragma clang system_header
+
 /* Capstone Disassembly Engine */
 /* By Nguyen Anh Quynh <aquynh@gmail.com>, 2014 */
 

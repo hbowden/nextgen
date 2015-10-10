@@ -94,19 +94,43 @@ void *mem_calloc_shared(unsigned long count, unsigned long nbytes)
     return NULL;
 }
 
-void mem_free_shared(void *ptr)
+void mem_free_shared(void *ptr, unsigned long nbytes)
 {
+    if(ptr == NULL)
+        return;
+
+    munmap(ptr, nbytes);
+
     return;
 }
 
-struct mem_pool_shared *mem_create_shared_pool(void)
+void clean_shared_pool(struct mem_pool_shared *pool)
 {
+
+    return;
+}
+
+struct mem_pool_shared *mem_create_shared_pool(unsigned int block_size, unsigned int block_count)
+{
+    /* If the block_size is zero return NULL. */
+    if(block_size == 0)
+    {
+        output(ERROR, "block_size is zero\n");
+        return NULL;
+    }
+
+    /* Intialize the memory pool. */
 	struct mem_pool_shared s_pool = {
-        
-        .free_list = CK_SLIST_HEAD_INITIALIZER(child->pool->free_list),
-        .allocated_list = CK_SLIST_HEAD_INITIALIZER(child->pool->allocated_list)
+
+        .lock = CK_SPINLOCK_INITIALIZER,
+        .block_size = block_size,
+        .block_count = block_count,
+        .free_list = CK_SLIST_HEAD_INITIALIZER(s_pool->free_list),
+        .allocated_list = CK_SLIST_HEAD_INITIALIZER(s_pool->allocated_list)
+
     };
 
+    /* Declare a pointer to the struct. */
     struct mem_pool_shared *pool = &s_pool;
 
     /* Allocate the pool structure as shared memory. */
@@ -117,16 +141,19 @@ struct mem_pool_shared *mem_create_shared_pool(void)
 		return NULL;
 	}
 
+    /* Init the free and allocated block list. */
 	CK_SLIST_INIT(&pool->free_list);
 	CK_SLIST_INIT(&pool->allocated_list);
 
 	unsigned int i;
 
-    /* Create 256 Memory blocks. */
-	for(i = 0; i < 2048; i++)
+    /* Create blocks of the number requested by the user. */
+	for(i = 0; i < block_count; i++)
 	{
+        /* Declare memory block. */
         struct memory_block *block = NULL;
 
+        /* Allocate the memory block as shared memory. */
         block = mem_alloc_shared(sizeof(struct memory_block));
         if(block == NULL)
         {
@@ -134,38 +161,19 @@ struct mem_pool_shared *mem_create_shared_pool(void)
         	return NULL;
         }
 
-        struct list_node *node = NULL;
-
-        node = mem_alloc_shared(sizeof(struct list_node));
-        if(node == NULL)
+        /* Allocate enough space for the user to store what they want. */
+        block->ptr = mem_alloc_shared(block_size);
+        if(block->ptr == NULL)
         {
-        	output(ERROR, "Can't alloc list node\n");
+        	output(ERROR, "Can't alloc memory block pointer.\n");
         	return NULL;
-        }
-
-        struct list_data *data = NULL;
-
-        data = mem_alloc_shared(sizeof(struct list_data));
-        if(data == NULL)
-        {
-        	output(ERROR, "Can't alloc list data\n");
-        	return NULL;
-        }
-
-        block->ptr = node;
-        block->ptr->data = data;
-
-        block->ptr->data->path = mem_alloc_shared(1025);
-        if(block->ptr->data->path == NULL)
-        {
-            output(ERROR, "Can't alloc path\n");
-            return NULL;
         }
 
 		/* Insert the node in the free list. */
         CK_SLIST_INSERT_HEAD(&pool->free_list, block, list_entry);
 	}
 
+    /* Return memory pool pointer. */
 	return pool;
 }
 
@@ -175,6 +183,10 @@ struct memory_block *mem_get_shared_block(struct mem_pool_shared *pool)
     if(CK_SLIST_EMPTY(&pool->free_list) == TRUE)
         return NULL;
 
+    /* Lock the spinlock for mutual access. */
+    ck_spinlock_lock(&pool->lock);
+
+    /* Declare a memory block pointer. */
     struct memory_block *block = NULL;
    
     /* Loop for each node in the list. */
@@ -186,9 +198,15 @@ struct memory_block *mem_get_shared_block(struct mem_pool_shared *pool)
     	/* Add the block to the allocated block list. */
     	CK_SLIST_INSERT_HEAD(&pool->allocated_list, block, list_entry);
 
-    	/* Return the first empty block. */
+        /* Unlock the spinlock. */
+        ck_spinlock_unlock(&pool->lock);
+
+    	/* Return the empty block. */
         return block;
     }
+
+    /* Unlock the spinlock. */
+    ck_spinlock_unlock(&pool->lock);
 
     /* Should not get here. */
     return NULL;
@@ -197,11 +215,17 @@ struct memory_block *mem_get_shared_block(struct mem_pool_shared *pool)
 
 void mem_free_shared_block(struct memory_block *block, struct mem_pool_shared *pool)
 {
+    /* Lock the spinlock for mutual access. */
+    ck_spinlock_lock(&pool->lock);
+
 	/* Remove the block from the allocated_list. */
     CK_SLIST_REMOVE(&pool->allocated_list, block, memory_block, list_entry);
 
     /* Add the block to the free block list. */
     CK_SLIST_INSERT_HEAD(&pool->free_list, block, list_entry);
+
+    /* Unlock the spinlock. */
+    ck_spinlock_unlock(&pool->lock);
 
     return;
 }

@@ -19,7 +19,6 @@
 #define CHILD_H
 
 #include "private.h"
-#include "child.h"
 #include "utils.h"
 #include "memory.h"
 
@@ -59,9 +58,6 @@ struct child_ctx
     /* The child's resource cleanup list. */
     CK_LIST_HEAD(list, list_node) list;
 
-    /* The type of argument. */
-    int arg_type_index[7];
-
     /* The number of args for the syscall were testing. */
     unsigned int number_of_args;
 
@@ -87,6 +83,8 @@ struct child_ctx
 private extern int get_child_index_number(void);
 
 private extern void create_syscall_children(void);
+
+private extern void create_smart_syscall_children(void);
 
 private extern int test_exec_with_file_in_child(char *file_path, char *file_extension);
 

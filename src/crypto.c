@@ -19,22 +19,23 @@
 #include "io.h"
 #include "memory.h"
 #include "nextgen.h"
+#include "openssl/sha.h"
+#include "openssl/crypto.h"
+#include "openssl/rand.h"
+#include "openssl/bn.h"
+#include "openssl/evp.h"
+#include "openssl/engine.h"
 
 #include <errno.h>
 #include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <openssl/sha.h>
-#include <openssl/crypto.h>
-#include <openssl/bn.h>
-#include <openssl/evp.h>
-#include <openssl/engine.h>
 
 static int (*rand_range_pointer)(unsigned int range, unsigned int *number);
 
 static int rand_range_no_crypto(unsigned int range, unsigned int *number)
 {
-    *number = (int) rand() % range + 1;
+    *number = (unsigned int) rand() % range + 1;
     return 0;
 }
 
@@ -180,7 +181,7 @@ int sha512(char *in, char **out)
     *out = malloc((SHA512_DIGEST_LENGTH * 2) + 1);
     if(*out == NULL)
     {
-        output(ERROR, "malloc");
+        output(ERROR, "malloc: %s\n", strerror(errno));
         return -1;
     }
     
@@ -189,6 +190,49 @@ int sha512(char *in, char **out)
         sprintf(*out + (i * 2), "%02x", hash[i]);
     }
 
+    return 0;
+}
+
+int sha256(char *in, char **out)
+{
+    /* Declarations */
+    int rtrn, i;
+    unsigned char hash[SHA256_DIGEST_LENGTH];
+    SHA256_CTX sha256;
+    
+    rtrn =  SHA256_Init(&sha256);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Sha Init Error\n");
+        return -1;
+    }
+    
+    rtrn = SHA256_Update(&sha256, in, strlen(in));
+    if(rtrn < 0)
+    {
+        output(ERROR, "Sha Update Error\n");
+        return -1;
+    }
+    
+    rtrn = SHA256_Final(hash, &sha256);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Sha Final Error\n");
+        return -1;
+    }
+
+    *out = malloc((SHA256_DIGEST_LENGTH * 2) + 1);
+    if(*out == NULL)
+    {
+        output(ERROR, "malloc: %s\n", strerror(errno));
+        return -1;
+    }
+    
+    for(i = 0; i < SHA256_DIGEST_LENGTH; i++)
+    {
+        sprintf(*out + (i * 2), "%02x", hash[i]);
+    }
+    
     return 0;
 }
 

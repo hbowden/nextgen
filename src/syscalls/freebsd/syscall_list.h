@@ -30,7 +30,7 @@
 /* FreeBSD's system call list. This file declares all the syscalls entries
 on the FreeBSD platform. These syscall entries tell us how to fuzz each syscall on the system.  */
 
-/* Skip the fork syscall.  */
+/* Skip the fork syscall because it can't be called from syscall().  */
 
 private extern struct syscall_entry entry_read;
 

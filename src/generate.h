@@ -47,4 +47,24 @@ private extern int generate_rusage(unsigned long **usage, struct child_ctx *ctx)
 
 private extern int generate_wait_option(unsigned long **option, struct child_ctx *ctx);
 
+private extern int generate_whence(unsigned long **whence, struct child_ctx *ctx);
+
+private extern int generate_offset(unsigned long **offset, struct child_ctx *ctx);
+
+private extern int generate_mount_type(unsigned long **type, struct child_ctx *ctx);
+
+private extern int generate_dirpath(unsigned long **dirpath, struct child_ctx *ctx);
+
+private extern int generate_mount_flags(unsigned long **flag, struct child_ctx *ctx);
+
+private extern int generate_unmount_flags(unsigned long **flag, struct child_ctx *ctx);
+
+private extern int generate_request(unsigned long **flag, struct child_ctx *ctx);
+
+private extern int generate_recv_flags(unsigned long **flag, struct child_ctx *ctx);
+
+private extern int generate_mount_path(unsigned long **path, struct child_ctx *ctx);
+
+private extern int generate_dev(unsigned long **dev, struct child_ctx *ctx);
+
 #endif

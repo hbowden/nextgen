@@ -79,8 +79,6 @@ static void syscall_child_signal_handler(int sig)
           longjmp(child->return_jump, 1);
 
     }
-
-	return;
 }
 
 void setup_reaper_signal_handler(void)
@@ -95,7 +93,7 @@ void setup_reaper_signal_handler(void)
         sa.sa_flags = SA_RESTART;
         sa.sa_handler = reaper_signal_handler;
         sa.sa_mask = ss;
-        (void) sigaction(i, &sa, NULL);
+        (void) sigaction((int)i, &sa, NULL);
     }
     /* we want default behaviour for child process signals */
     (void) signal(SIGCHLD, SIG_DFL);
@@ -107,6 +105,8 @@ void setup_reaper_signal_handler(void)
     (void) signal(SIGWINCH, SIG_IGN);
     (void) signal(SIGIO, SIG_IGN);
     (void) signal(SIGPIPE, SIG_IGN);
+
+    return;
 }
 
 void setup_syscall_child_signal_handler(void)
@@ -121,7 +121,7 @@ void setup_syscall_child_signal_handler(void)
         sa.sa_flags = SA_RESTART;
         sa.sa_handler = syscall_child_signal_handler;
         sa.sa_mask = ss;
-        (void) sigaction(i, &sa, NULL);
+        (void) sigaction((int)i, &sa, NULL);
     }
     /* we want default behaviour for child process signals */
     (void) signal(SIGCHLD, SIG_DFL);

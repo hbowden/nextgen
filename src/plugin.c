@@ -26,7 +26,7 @@
 #include <string.h>
 #include <libgen.h>
 
-int suppoted_file(char *file_extension, unsigned int *plugin_offset)
+int supported_file(const char *file_extension, unsigned int *plugin_offset)
 {
 
 	return 0;
@@ -161,7 +161,7 @@ int load_all_plugins(void)
         	}
 
         	/* Set the plugin path in the plugin context.. */
-        	rtrn = asprintf(&map->plugins[i]->plugin_path, "%s", plugin_path);
+        	rtrn = asprintf((char **)&map->plugins[i]->plugin_path, "%s", plugin_path);
             if(rtrn < 0)
         	{
         		output(ERROR, "Can't set plugin path string: %s\n", strerror(errno));
@@ -169,7 +169,7 @@ int load_all_plugins(void)
         	}
 
         	/* Set the plugin name in the plugin context.. */
-        	rtrn = asprintf(&map->plugins[i]->plugin_name, "%s", basename(plugin_path));
+        	rtrn = asprintf((char **)&map->plugins[i]->plugin_name, "%s", basename(plugin_path));
             if(rtrn < 0)
         	{
         		output(ERROR, "Can't set plugin name string: %s\n", strerror(errno));

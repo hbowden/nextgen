@@ -20,9 +20,9 @@
 #include "io.h"
 #include "shim.h"
 #include "nextgen.h"
+#include "capstone.h"
 
 #include <inttypes.h>
-#include <capstone/capstone.h>
 #include <dtrace.h>
 #include <errno.h>
 #include <string.h>
@@ -44,10 +44,11 @@ int inject_fork_server(void)
 int start_and_pause_target(void)
 {
     int rtrn;
+    pid_t target_pid;
 
     /* Create child process. */
-    map->exec_ctx->pid = fork();
-    if(map->exec_ctx->pid == 0)
+    target_pid = fork();
+    if(target_pid == 0)
     {
         /* Drop root privileges some programs don't like being run as root. */
         rtrn = setgid(10);
@@ -65,7 +66,7 @@ int start_and_pause_target(void)
         }
 
         /* Set the pid. */
-        map->exec_ctx->pid = getpid();
+        cas_loop_int32(&map->exec_ctx->pid, getpid());
 
         /* Let's announce we want to be traced so that we don't execute any instructions on execv. */
         ptrace(PT_TRACE_ME, 0, NULL, 0);
@@ -80,12 +81,12 @@ int start_and_pause_target(void)
 
         _exit(0);
     }
-    else if(map->exec_ctx->pid > 0)
+    else if(target_pid > 0)
     {
         int status;
 
         /* Wait until the target binary has stopped. */
-        wait4(map->exec_ctx->pid, &status, 0, NULL);
+        wait_on(&map->exec_ctx->pid, &status);
 
         /* Lets check the reason why were not waiting anymore. Hopefully it's
          because the target executable is stopped. */
@@ -133,7 +134,7 @@ int inject_probes(void)
     dtrace_prog_t* prog;
 
     /* Create dtrace script that injects all probes into a target process. */
-    rtrn = asprintf(&dtrace_prog, "pid%d:::", map->exec_ctx->pid);
+    rtrn = asprintf(&dtrace_prog, "pid%d:::", atomic_load(&map->exec_ctx->pid));
     if(rtrn < 0)
     {
        output(ERROR, "Can't create probe program string\n");

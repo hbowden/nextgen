@@ -19,14 +19,12 @@
 #define UTILS_H
 
 #include "private.h"
-#include "arg_types.h"
 
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <dirent.h>
-#include <unistd.h>
 
 #include "stdatomic.h"
 

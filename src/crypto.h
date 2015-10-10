@@ -30,4 +30,6 @@ private extern int rand_bytes(char **buf, unsigned int length);
 
 private extern int sha512(char *in, char **out);
 
+private extern int sha256(char *in, char **out);
+
 #endif

@@ -17,8 +17,11 @@
 
 #include "concurrent.h"
 #include "nextgen.h"
+#include "memory.h"
+#include "io.h"
 
-#include <ck_hs.h>
+#include <stdio.h>
+#include <errno.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 
@@ -69,5 +72,29 @@ int wait_on(atomic_int_fast32_t *pid, int *status)
     waitpid(atomic_load(pid), status, 0);
 
     return 0;
+}
+
+int create_work_queue(struct work_queue *queue)
+{
+    struct work_queue w_queue = {
+
+        .lock = CK_SPINLOCK_INITIALIZER,
+        .queue = CK_SLIST_HEAD_INITIALIZER(w_queue.organism_list)
+
+    };
+
+    queue = mem_alloc_shared(sizeof(struct work_queue));
+    if(queue == NULL)
+    {
+        output(ERROR, "Can't alloc work queue\n");
+        return -1;
+    }
+
+
+
+    queue = &w_queue;
+
+    return 0;
+
 }
 

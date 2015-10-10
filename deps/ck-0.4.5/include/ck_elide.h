@@ -24,6 +24,8 @@
  * SUCH DAMAGE.
  */
 
+#pragma clang system_header
+
 #ifndef _CK_ELIDE_H
 #define _CK_ELIDE_H
 

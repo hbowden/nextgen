@@ -18,6 +18,7 @@
 #include "generate.h"
 #include "nextgen.h"
 #include "network.h"
+#include "resource.h"
 #include "memory.h"
 #include "crypto.h"
 #include "reaper.h"
@@ -32,6 +33,7 @@
 #include <sys/wait.h>
 #include <sys/resource.h>
 #include <sys/mount.h>
+#include <sys/mman.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -40,17 +42,13 @@
 int generate_fd(unsigned long **fd, struct child_ctx *ctx)
 {
     int rtrn;
-    unsigned int number;
 
-    rtrn = rand_range(1024, &number);
+    rtrn = get_desc((int *)*fd);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't get random number\n");
+        output(ERROR, "Can't get file descriptor\n");
         return -1;
     }
-
-    /* Set the argument passed in to the file descriptor we just created. */
-    **fd = (unsigned long)map->fd_index[number];
 
 	return 0;
 }
@@ -64,7 +62,14 @@ int generate_socket(unsigned long **sock, struct child_ctx *ctx)
     rtrn = rand_range(3, &number);
     if(rtrn < 0)
     {
-        output(STD, "Can't generate random number\n");
+        output(ERROR, "Can't generate random number\n");
+        return -1;
+    }
+
+    *sock = mem_alloc(sizeof(unsigned long));
+    if(*sock == NULL)
+    {
+        output(ERROR, "Can't allocate socket\n");
         return -1;
     }
     
@@ -103,9 +108,14 @@ int generate_socket(unsigned long **sock, struct child_ctx *ctx)
             **sock = (unsigned long) socket_fd;
 
             break;
+
+        default:
+            output(ERROR, "Should not get here\n");
+            return -1;
     }
 
     /* Set socket size. */
+    ctx->arg_size_index[ctx->current_arg] = sizeof(unsigned long);
 
     /* Add socket to cleanup list. */
     add_socket_to_list(socket_fd, ctx);
@@ -115,34 +125,68 @@ int generate_socket(unsigned long **sock, struct child_ctx *ctx)
 
 int generate_buf(unsigned long **buf, struct child_ctx *ctx)
 {
-	*buf = malloc(64);
-	if(*buf == NULL)
-	{
-		output(ERROR, "Can't generate buf: %s\n", strerror(errno));
-		return -1;
-	}
+    int rtrn;
+    unsigned int number;
+    unsigned int nbytes = 1024;
+
+    rtrn = rand_range(2, &number);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't pick random number\n");
+        return -1;
+    }
+
+    switch(number)
+    {
+        case 0:
+            *buf = mmap(NULL, nbytes, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
+            if(*buf == MAP_FAILED)
+            {
+                output(ERROR, "mmap: %s\n", strerror(errno));
+                return -1;
+            }
+            break;
+
+        case 1:
+            *buf = mmap(NULL, nbytes, PROT_READ, MAP_ANON | MAP_PRIVATE, -1, 0);
+            if(*buf == MAP_FAILED)
+            {
+                output(ERROR, "mmap: %s\n", strerror(errno));
+                return -1;
+            }
+            break;
+
+        case 2:
+            *buf = mmap(NULL, nbytes, PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
+            if(*buf == MAP_FAILED)
+            {
+                output(ERROR, "mmap: %s\n", strerror(errno));
+                return -1;
+            }
+            break;
+
+        default:
+            output(ERROR, "Should not get here\n");
+            return -1;
+    }
+
+    ctx->arg_size_index[ctx->current_arg] = 1024;
 
 	return 0;
 }
 
 int generate_length(unsigned long **length, struct child_ctx *ctx)
 {
-	int rtrn;
-	unsigned int size;
-
-    rtrn = rand_range(1000, &size);
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't generate length\n");
-        return -1;
-    }
-
-	*length = malloc(sizeof(unsigned long));
+	*length = mem_alloc(sizeof(unsigned long));
 	if(*length == NULL)
     {
-        output(ERROR, "Can't alloc length: %s\n", strerror(errno));
+        output(ERROR, "Can't alloc length\n");
         return -1;
     }
+
+    unsigned int last_arg = ctx->current_arg - 1;
+
+    *length = (unsigned long *)ctx->arg_size_index[last_arg];
     
 	return 0;
 }
@@ -151,67 +195,14 @@ int generate_path(unsigned long **path, struct child_ctx *ctx)
 {
     int rtrn;
 
-    /* Temp variables that we define with auto_clean_buf so that we 
-    don't have to worry about calling free. */
-    char *file_name auto_clean = NULL;
-    char *junk auto_clean = NULL;
-    char *file_path = NULL;
-
-    /* Use generate_name to create a random file name with the text extension.  */
-    rtrn = generate_name((char **)&file_name, ".txt", FILE_NAME);
+    rtrn = get_filepath((char **)path);
     if(rtrn < 0)
     {
-    	output(ERROR, "Can't generate file path\n");
-    	return -1;
-    }
-
-    /* Join the file name with the home path. */
-    rtrn = asprintf(&file_path, "/tmp/%s", file_name);
-    if(rtrn < 0)
-    {
-    	output(ERROR, "Can't join paths: %s\n", strerror(errno));
-    	return -1;
-    }
-
-    /* Allocate a buffer to put junk in. */
-    junk = malloc(4096);
-    if(junk == NULL)
-    {
-        output(ERROR, "Can't alloc junk buf: %s\n", strerror(errno));
-        free(file_path);
-    	return -1;
-    }
-
-    /* Put some junk in a buffer. */
-    rtrn = rand_bytes(&junk, 4095);
-    if(rtrn < 0)
-    {
-    	output(ERROR, "Can't alloc junk buf: %s\n", strerror(errno));
-    	free(file_path);
-    	return -1;
-    }
-
-    /* Write that junk to the file so that the file is not just blank. */
-    rtrn = map_file_out(file_path, junk, 4095);
-    if(rtrn < 0)
-    {
-    	output(ERROR, "Can't write junk to disk\n");
-    	free(file_path);
-    	return -1;
-    }
-
-     /* Let the reaper know to clean this fd later. */
-    rtrn = add_path_to_list(file_path, ctx);
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't add path to reaper list.\n");
+        output(ERROR, "Can't get file path\n");
         return -1;
     }
-
-    ctx->arg_size_index[ctx->current_arg] = sizeof(unsigned long);
-
-    /* If all went well let's set path to the file_path we just created. */
-    *path = (unsigned long *)file_path;
+    
+    ctx->arg_size_index[ctx->current_arg] = strlen((char *)*path);
 
 	return 0;
 }
@@ -228,10 +219,10 @@ int generate_open_flag(unsigned long **flag, struct child_ctx *ctx)
         return -1;
     }
 
-    *flag = malloc(12);
+    *flag = mem_alloc(12);
     if(*flag == NULL)
     {
-    	output(ERROR, "Can't alloc flag: %s\n", strerror(errno));
+    	output(ERROR, "Can't alloc flag\n");
         return -1;
     }
     
@@ -273,10 +264,10 @@ int generate_mode(unsigned long **mode, struct child_ctx *ctx)
         return -1;
     }
 
-    *mode = malloc(12);
+    *mode = mem_alloc(12);
     if(*mode == NULL)
     {
-    	output(ERROR, "Can't alloc mode: %s\n", strerror(errno));
+    	output(ERROR, "Can't alloc mode\n");
         return -1;
     }
     
@@ -333,10 +324,10 @@ int generate_mode(unsigned long **mode, struct child_ctx *ctx)
 
 int generate_fs_stat(unsigned long **stat, struct child_ctx *ctx)
 {
-	struct statfs *stat_buf = malloc(sizeof(struct statfs));
+	struct statfs *stat_buf = mem_alloc(sizeof(struct statfs));
     if(stat_buf == NULL)
     {
-    	output(ERROR, "Can't create stat struct: %s\n", strerror(errno));
+    	output(ERROR, "Can't alloc stat\n");
     	return -1;
     }
 
@@ -350,10 +341,10 @@ int generate_fs_stat_flag(unsigned long **flag, struct child_ctx *ctx)
     int rtrn;
     unsigned int number;
 
-    *flag = malloc(12);
+    *flag = mem_alloc(12);
     if(*flag == NULL)
     {
-    	output(ERROR, "Can't alloc flag: %s\n", strerror(errno));
+    	output(ERROR, "Can't alloc flag\n");
         return -1;
     }
     
@@ -382,10 +373,10 @@ int generate_pid(unsigned long **pid, struct child_ctx *ctx)
 {
 	pid_t local_pid;
 
-	*pid = malloc(sizeof(unsigned long));
+	*pid = mem_alloc(sizeof(unsigned long));
 	if(*pid == NULL)
 	{
-		output(STD, "pid_t: %s\n", strerror(errno));
+		output(STD, "Can't alloc pid\n");
 		return -1;
 	}
 
@@ -397,8 +388,6 @@ int generate_pid(unsigned long **pid, struct child_ctx *ctx)
         {
         	sleep(30);
         }
-
-        _exit(0);
     }
     else if(local_pid > 0)
     {
@@ -419,14 +408,22 @@ int generate_pid(unsigned long **pid, struct child_ctx *ctx)
 
 int generate_int(unsigned long **integer, struct child_ctx *ctx)
 {
-	int number = 0;
+	unsigned int number; 
+    int rtrn;
 
-	*integer = malloc(sizeof(unsigned long));
+	*integer = mem_alloc(sizeof(unsigned long));
 	if(*integer == NULL)
 	{
-		output(ERROR, "malloc: %s\n", strerror(errno));
+		output(ERROR, "Can't alloc int\n");
         return -1;
 	}
+
+    rtrn = rand_range(INT_MAX, &number);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't pick random int\n");
+        return -1;
+    }
 
 	**integer = (unsigned long)number;
 
@@ -437,10 +434,10 @@ int generate_rusage(unsigned long **usage, struct child_ctx *ctx)
 {
     struct rusage *buf;
 
-    buf = malloc(sizeof(struct rusage));
+    buf = mem_alloc(sizeof(struct rusage));
     if(buf == NULL)
     {
-    	output(ERROR, "malloc: %s\n", strerror(errno));
+    	output(ERROR, "Can't alloc rusage\n");
     	return -1;
     }
 
@@ -454,10 +451,10 @@ int generate_wait_option(unsigned long **option, struct child_ctx *ctx)
 	int rtrn;
     unsigned int number;
 
-    *option = malloc(sizeof(unsigned long));
+    *option = mem_alloc(sizeof(unsigned long));
     if(*option == NULL)
     {
-    	output(ERROR, "malloc: %s\n", strerror(errno));
+    	output(ERROR, "Can't alloc option\n");
         return -1;
     }
     
@@ -484,4 +481,136 @@ int generate_wait_option(unsigned long **option, struct child_ctx *ctx)
     }
 
 	return 0;
+}
+
+int generate_whence(unsigned long **whence, struct child_ctx *ctx)
+{
+    int rtrn;
+    unsigned int number;
+
+    *whence = mem_alloc(sizeof(unsigned long));
+    if(*whence == NULL)
+    {
+        output(ERROR, "mem_alloc\n");
+        return -1;
+    }
+
+#ifdef FREEBSD
+
+    rtrn = rand_range(4, &number);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't generate random number\n");
+        return -1;
+    }
+
+#else
+
+    rtrn = rand_range(2, &number);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't generate random number\n");
+        return -1;
+    }
+
+#endif
+    
+    switch(number)
+    {
+        case 0:
+            **whence = SEEK_SET;
+            break;
+            
+        case 1:
+            **whence = SEEK_CUR;
+            break;
+
+        case 2:
+            **whence = SEEK_END;
+            break;
+
+    #ifdef FREEBSD
+
+        case 3:
+            **whence = SEEK_HOLE;
+            break;
+
+        case 4:
+            **whence = SEEK_DATA;
+            break;
+
+    #else
+         // Nothing
+    #endif 
+            
+        default:
+            output(ERROR, "Should not get here\n");
+            return -1;
+    }
+
+    return 0;
+}
+
+int generate_offset(unsigned long **offset, struct child_ctx *ctx)
+{
+    int rtrn;
+
+    *offset = mem_alloc(sizeof(unsigned long));
+    if(*offset == NULL)
+    {
+        output(ERROR, "mem_alloc\n");
+        return -1;
+    }
+    
+    rtrn = rand_range(INT_MAX, (unsigned int *)*offset);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't generate random number\n");
+        return -1;
+    }
+
+    return 0;
+}
+
+int generate_mount_path(unsigned long **path, struct child_ctx *ctx)
+{
+    return 0;
+}
+
+int generate_mount_type(unsigned long **type, struct child_ctx *ctx)
+{
+
+    return 0;
+}
+
+int generate_dirpath(unsigned long **dirpath, struct child_ctx *ctx)
+{
+
+    return 0;
+}
+
+int generate_mount_flags(unsigned long **flag, struct child_ctx *ctx)
+{
+
+    return 0;
+}
+
+int generate_unmount_flags(unsigned long **flag, struct child_ctx *ctx)
+{
+    return 0;
+}
+
+int generate_request(unsigned long **flag, struct child_ctx *ctx)
+{
+    return 0;
+}
+
+int generate_recv_flags(unsigned long **flag, struct child_ctx *ctx)
+{
+    return 0;
+}
+
+int generate_dev(unsigned long **dev, struct child_ctx *ctx)
+{
+    return 0;
 }

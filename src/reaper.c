@@ -33,9 +33,9 @@
 int add_pid_to_list(pid_t pid, struct child_ctx *ctx)
 {
     /* Our variables. */
-    int rtrn;
     struct memory_block *block = NULL;
 
+    /* Get a free shared memory block. */
     block = mem_get_shared_block(ctx->pool);
     if(block == NULL)
     {
@@ -43,19 +43,20 @@ int add_pid_to_list(pid_t pid, struct child_ctx *ctx)
         return -1;
     }
 
-    block->ptr->block = block;
+    /* Set the block pointer, so we can free the memory block later. */
+    ((struct list_node *)block->ptr)->block = block;
 
     /* Set argument type. */
-    block->ptr->data->arg_type = PID;
+    ((struct list_node *)block->ptr)->data->arg_type = PID;
 
     /* Copy arg value to the list node. */
-    block->ptr->data->pid = pid;
+    ((struct list_node *)block->ptr)->data->pid = pid;
 
     /* Set the time we created this node. */
-    gettimeofday(&block->ptr->data->create_time, NULL);
+    gettimeofday(&((struct list_node *)block->ptr)->data->create_time, NULL);
 
     /* Insert the node in the list. */
-    CK_LIST_INSERT_HEAD(&ctx->list, block->ptr, list_entry);
+    CK_LIST_INSERT_HEAD(&ctx->list, (struct list_node *)block->ptr, list_entry);
 
     return 0;
 }
@@ -69,7 +70,6 @@ int add_socket_to_list(int socket_fd, struct child_ctx *ctx)
 int add_path_to_list(char *path, struct child_ctx *ctx)
 {
     /* Our variables. */
-    int rtrn;
     struct memory_block *block = NULL;
 
     block = mem_get_shared_block(ctx->pool);
@@ -79,19 +79,20 @@ int add_path_to_list(char *path, struct child_ctx *ctx)
         return -1;
     }
 
-    block->ptr->block = block;
+    /* Set block pointer. */
+    ((struct list_node *)block->ptr)->block = block;
 
     /* Set argument type. */
-    block->ptr->data->arg_type = FILE_PATH;
+    ((struct list_node *)block->ptr)->data->arg_type = FILE_PATH;
 
     /* Copy arg value to the list node. */
-    block->ptr->data->path = path;
+    ((struct list_node *)block->ptr)->data->path = path;
 
     /* Set the time we created this node. */
-    gettimeofday(&block->ptr->data->create_time, NULL);
+    gettimeofday(&((struct list_node *)block->ptr)->data->create_time, NULL);
 
     /* Insert the node in the list. */
-    CK_LIST_INSERT_HEAD(&ctx->list, block->ptr, list_entry);
+    CK_LIST_INSERT_HEAD(&ctx->list, (struct list_node *)block->ptr, list_entry);
 
     return 0;
 }
@@ -99,7 +100,7 @@ int add_path_to_list(char *path, struct child_ctx *ctx)
 static int clean_list(struct child_ctx *ctx)
 {
     int rtrn;
-    unsigned int limit = 100;
+    unsigned int limit = 1000;
     unsigned int nodes_cleaned = 0;
     struct list_node *node;
 
@@ -220,48 +221,6 @@ static void check_progess(struct child_ctx *child)
 	return;
 }
 
-static void reap_child(struct child_ctx *child)
-{
-    cas_loop_int32(&child->pid, EMPTY);
-
-    child->time_of_syscall.tv_sec = 0;
-
-    return;
-}
-
-static void reap_dead_children(void)
-{
-    int rtrn;
-    unsigned int i;
-    unsigned int number_of_children = map->number_of_children;
-
-    for(i = 0; i < number_of_children; i++)
-    {
-        if(atomic_load(&map->children[i]->pid) == EMPTY)
-        {
-            continue;
-        }
-
-        output(STD, "Killing\n");
-
-        rtrn = kill(atomic_load(&map->children[i]->pid), 0);
-        if(rtrn < 0)
-        {
-            if(errno == ESRCH)
-            {
-                reap_child(map->children[i]);
-            }
-        }
-
-        if(atomic_load(&map->running_children) == 0)
-        {
-            return;
-        }
-
-        cas_loop_int32(&map->children[i]->pid, EMPTY);
-    }
-}
-
 static void kill_all_children(void)
 {
     int rtrn;
@@ -291,11 +250,11 @@ static void reaper(void)
         /* Loop for each child processe. */
     	for(i = 0; i < number_of_children; i++)
     	{
-          /* Make sure the child is not hung up, if it is kill it. */
-    		  check_progess(map->children[i]);
+            /* Make sure the child is not hung up, if it is kill it. */
+    		check_progess(map->children[i]);
 
-          /* Clean up the child's resource list. */
-          clean_list(map->children[i]);
+            /* Clean up the child's resource list. */
+            clean_list(map->children[i]);
     	}
     }
 

@@ -20,6 +20,7 @@
 
 #include "child.h"
 #include "plugin.h"
+#include "concurrent.h"
 #include "syscall_table.h"
 
 #include <unistd.h>
@@ -31,7 +32,11 @@
 
 enum child_state {EMPTY};
 
+#ifdef FREEBSD
+
 enum local_bool { FALSE, TRUE };
+
+#endif
 
 enum fuzz_mode { MODE_FILE, MODE_SYSCALL, MODE_NETWORK };
 
@@ -80,18 +85,29 @@ struct shared_map
     /* Plugin context index. */
     struct plugin_ctx **plugins;
 
-    int *fd_index;
+    struct mem_pool_shared *desc_pool;
+
+    struct mem_pool_shared *mount_pool;
+
+    struct mem_pool_shared *dirpath_pool;
+
+    struct mem_pool_shared *file_pool;
+
+    struct work_queue *queue;
 
     /* Number of plugins in plugin index. */
     unsigned int plugin_count;
 
-    /* As the name applies this is a handle used for dtrace. */
+    /* As the name implies this is a handle used for dtrace. */
     dtrace_hdl_t *dtrace_handle;
 
     /* The pids of our helper processes. */
     atomic_int_fast32_t reaper_pid;
     atomic_int_fast32_t runloop_pid;
     atomic_int_fast32_t socket_server_pid;
+    atomic_int_fast32_t god_pid;
+
+    atomic_int_fast64_t test_counter;
 
     /* These variables let us know how to derive our random numbers. */
     char *crypto_method;
@@ -107,7 +123,7 @@ struct shared_map
     struct syscall_table_shadow *sys_table;
 
     /* The port that the ipv4 socket server is on. The ipv6 port is ipv4 + 1. */
-    int socket_server_port;
+    unsigned int socket_server_port;
 
     /* The number of children processes currently running. */
     atomic_uint_fast64_t running_children;
@@ -115,7 +131,7 @@ struct shared_map
     /* The max number of children to create. */
     unsigned int number_of_children;
     
-    /* An Index of child context structures. These structures track variables
+    /* An index of child context structures. These structures track variables
     local to the child process. */
     struct child_ctx **children;
 };

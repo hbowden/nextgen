@@ -23,7 +23,7 @@
 
 struct syscall_table freebsd_syscall_table[] = {
     
-    { .number_of_syscalls = 11 },
+    { .number_of_syscalls = 13 },
     { .sys_entry = &entry_read },
     { .sys_entry = &entry_write },
     { .sys_entry = &entry_open },
@@ -35,6 +35,10 @@ struct syscall_table freebsd_syscall_table[] = {
     { .sys_entry = &entry_fchdir },
     { .sys_entry = &entry_mknod },
     { .sys_entry = &entry_getfsstat },
+    { .sys_entry = &entry_lseek },
+    { .sys_entry = &entry_setuid },
+    { .sys_entry = &entry_ptrace },
+    { .sys_entry = &entry_recvmsg }
     
 };
 

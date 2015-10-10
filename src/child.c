@@ -15,6 +15,7 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
+#include "child.h"
 #include "log.h"
 #include "io.h"
 #include "concurrent.h"
@@ -26,7 +27,7 @@
 #include "nextgen.h"
 
 #include <string.h>
-#include <threads.h>
+#include <pthread.h>
 #include <signal.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -73,7 +74,7 @@ int get_child_index_number(void)
     {
         if(atomic_load(&map->children[i]->pid) == pid)
         {
-            return i;
+            return (int)i;
         }
     }
     /* Should not get here. */
@@ -101,6 +102,13 @@ static void free_old_arguments(struct child_ctx *ctx)
 
         free(ctx->arg_value_index[i]);
     }
+
+    return;
+}
+
+static void start_smart_syscall_child(void)
+{
+    
 
     return;
 }
@@ -223,14 +231,22 @@ void create_syscall_children(void)
                 /* Initialize the new syscall child. */
                 init_syscall_child(i);
 
-                /* Start the child main loop. */
-                start_syscall_child();
+                /* Create children process. */
+                if(map->smart_mode == TRUE)
+                {
+                    start_smart_syscall_child();
+                }
+                else
+                {
+                    /* Start the child main loop. */
+                    start_syscall_child();
+                }
             }
             else if(child_pid > 0)
             {
                 char *msg_buf auto_clean = NULL;
 
-                msg_buf = malloc(2);
+                msg_buf = mem_alloc(2);
                 if(msg_buf == NULL)
                 {
                     output(ERROR, "Can't create message buf: %s\n", strerror(errno));
@@ -238,7 +254,7 @@ void create_syscall_children(void)
                 }
 
                 /* Wait for the child to be done setting up. */
-                size_t ret = read(map->children[i]->msg_port[0], msg_buf, 1);
+                ssize_t ret = read(map->children[i]->msg_port[0], msg_buf, 1);
                 if(ret < 1)
                 {
                     output(ERROR, "Problem waiting for child setup: %s\n", strerror(errno));
@@ -255,7 +271,7 @@ void create_syscall_children(void)
     return;
 }
 
-static int kill_test_proc(void *pid)
+static void *kill_test_proc(void *pid)
 {
     sleep(1);
 
@@ -265,10 +281,10 @@ static int kill_test_proc(void *pid)
     if(rtrn < 0)
     {
         output(ERROR, "Can't kill child process: %s\n", strerror(errno));
-        return -1;
+        return NULL;
     }
 
-    return 0;
+    return NULL;
 }
 
 int test_exec_with_file_in_child(char *file_path, char *file_extension)
@@ -301,11 +317,11 @@ int test_exec_with_file_in_child(char *file_path, char *file_extension)
     else if(child_pid > 0)
     {
         int status;
-        thrd_t kill_thread;
+        pthread_t kill_thread;
         
         /* Create a thread to kill the other process if it does not crash. */
-        rtrn = thrd_create(&kill_thread, kill_test_proc, &child_pid);
-        if(rtrn != thrd_success)
+        rtrn = pthread_create(&kill_thread, NULL, kill_test_proc, &child_pid);
+        if(rtrn < 0)
         {
             output(ERROR, "Can't create kill thread\n");
             return -1;
@@ -362,9 +378,9 @@ int test_exec_with_file_in_child(char *file_path, char *file_extension)
 
             }
         }
-        int response;
+        int *response;
 
-        thrd_join(kill_thread, &response);
+        pthread_join(kill_thread, (void **)&response);
             
     }
     else

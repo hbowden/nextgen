@@ -20,6 +20,7 @@
 #include "syscall_table.h"
 #include "crypto.h"
 #include "io.h"
+#include "arg_types.h"
 #include "utils.h"
 #include "nextgen.h"
 #include "shim.h"
@@ -27,76 +28,68 @@
 #include <errno.h>
 #include <string.h>
 
+#include "stdatomic.h"
+
 int cleanup_syscall_table(void)
 {
     
     return 0;
 }
 
-int create_input_file_index(void)
+static struct arg_context *get_arg_context(enum arg_type type)
 {
-    unsigned int i;
-
-    for(i = 0; i < 1024; i++)
+    switch((int)type)
     {
-        int rtrn, file_desc;
-        char *name auto_clean = NULL;
-        char *file_path auto_clean = NULL;
-        char *junk auto_clean = NULL;
+        case FILE_DESC: return &file_desc_ctx;
 
-        /* Create a random file name. */
-        rtrn = generate_name(&name, (char *)".txt", FILE_NAME);
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't generate name\n");
-            return -1;
-        }
-    
-        /* Join the file name with /tmp/ to create file_path. */
-        rtrn = asprintf(&file_path, "/tmp/%s", name);
-        if(rtrn < 0)
-        {
-            output(ERROR, "asprintf: %s\n", strerror(errno));
-            return -1;
-        }
+        case VOID_BUF: return &void_buf_ctx;
+            
+        case SIZE: return &size_ctx;
 
-        /* Alocate a buffer for reading in junk. */
-        junk = malloc(4096);
-        if(junk < 0)
-        {
-            output(ERROR, "malloc: %s\n", strerror(errno));
-            return -1;
-        }
+        case FILE_PATH: return &file_path_ctx;
 
-        /* Read in random byes. */
-        rtrn = rand_bytes(&junk, 4095);
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't create junk\n");
-            return -1;
-        }
+        case OPEN_FLAG: return &open_flag_ctx;
+           
+        case MODE: return &mode_ctx;
 
-        /* Create the file at the file_path we created. */
-        rtrn = map_file_out(file_path, junk, 4095);
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't write junk to disk\n");
-            return -1;
-        }
+        case STAT_FS: return &stat_fs_ctx;
 
-        /* Open the file we just created. */
-        file_desc = open(file_path, O_RDONLY);
-        if(file_desc < 0)
-        {
-            output(ERROR, "open: %s\n", strerror(errno));
-            return -1;
-        }
+        case STAT_FLAG: return &stat_flag_ctx;
 
-        map->fd_index[i] = file_desc;
+        case INT: return &int_ctx;
+       
+        case RUSAGE: return &rusage_ctx;
+         
+        case PID: return &pid_ctx;
+          
+        case WAIT_OPTION: return &wait_option_ctx;
+         
+        case SOCKET: return &socket_ctx;
+           
+        case WHENCE: return &whence_ctx;
+           
+        case OFFSET: return &offset_ctx;
+        
+        case MOUNT_TYPE: return &mount_type_ctx;
+         
+        case DIR_PATH: return &dir_path_ctx;
+          
+        case MOUNT_FLAG: return &mount_flag_ctx;
 
+        case UNMOUNT_FLAG: return &unmount_flag_ctx;
+
+        case RECV_FLAG: return &recv_flag_ctx;
+         
+        case REQUEST: return &request_ctx;
+
+        case MOUNT_PATH: return &mount_path_ctx;
+
+        case DEV: return &dev_ctx;
+
+        default:
+            output(ERROR, "Unlisted arg type\n");
+            return NULL;
     }
-
-    return 0;
 }
 
 int get_syscall_table(void)
@@ -112,7 +105,7 @@ int get_syscall_table(void)
     }
 
     /* Create a shadow syscall table.*/
-    struct syscall_table_shadow *shadow_table = malloc(sizeof(struct syscall_table_shadow));
+    struct syscall_table_shadow *shadow_table = mem_alloc(sizeof(struct syscall_table_shadow));
     if(shadow_table == NULL)
     {
         output(ERROR, "Can't create shadow table\n");
@@ -126,7 +119,7 @@ int get_syscall_table(void)
     unsigned int i, ii;
 
     /* Allocate heap memory for the list of syscalls. */
-    shadow_table->sys_entry = malloc(shadow_table->number_of_syscalls * sizeof(struct syscall_entry_shadow));
+    shadow_table->sys_entry = mem_alloc(shadow_table->number_of_syscalls * sizeof(struct syscall_entry_shadow));
     if(shadow_table->sys_entry == NULL)
     {
         output(ERROR, "Can't create new entry\n");
@@ -160,7 +153,13 @@ int get_syscall_table(void)
         for(ii = 0; ii < entry.number_of_args; ii++)
         {
             entry.get_arg_index[ii] = sys_table[i + offset].sys_entry->get_arg_index[ii];
-            entry.arg_type_index[ii] = sys_table[i + offset].sys_entry->arg_type_index[ii];
+
+            entry.arg_context_index[ii] = get_arg_context((enum arg_type)sys_table[i + offset].sys_entry->arg_type_index[ii]);
+            if(entry.arg_context_index[ii] == NULL)
+            {
+                output(ERROR, "Can't gwt arg context\n");
+                return -1;
+            }
         }
      
         /* Init the automic value. */
@@ -192,17 +191,12 @@ int pick_syscall(struct child_ctx *ctx)
     /* Copy entry values into the child context. */
     ctx->number_of_args = map->sys_table->sys_entry[ctx->syscall_number].number_of_args;
 
-    unsigned int i;
-
     /* Set values in ctx so we can get info from ctx instead using all these pointers. */ 
     ctx->need_alarm = map->sys_table->sys_entry[ctx->syscall_number].need_alarm;
 
     ctx->syscall_symbol = map->sys_table->sys_entry[ctx->syscall_number].syscall_symbol;
 
-    for(i = 0; i < ctx->number_of_args; i++)
-    {
-        ctx->arg_type_index[i] = map->sys_table->sys_entry[ctx->syscall_number].arg_type_index[i];
-    }
+    ctx->had_error = NO;
 
     return 0;
 }
@@ -230,6 +224,8 @@ int generate_arguments(struct child_ctx *ctx)
 
 static int check_for_failure(int ret_value)
 {
+    if(ret_value < 0)
+        return -1;
 
     return 0;
 }
@@ -246,15 +242,16 @@ int test_syscall(struct child_ctx *ctx)
 
     /* Check if we need to set the alarm for blocking syscalls.  */
     if(ctx->need_alarm == YES)
-    {
-        /* Wait a bit to see if something happens. */
-        alarm(3);
-    }
+        alarm(1);
 
     /* Set the time of the syscall test. */
     (void)gettimeofday(&ctx->time_of_syscall, NULL);
 
-#ifndef defined(ASAN) || defined(VALGRIND)
+#ifndef ASAN
+
+    /* Do the add before the syscall test because we usually crash on the syscall test
+    and we don't wan't to do this in a signal handler. */
+    atomic_fetch_add(&map->test_counter, 1);
 
     /* Call the syscall with the args generated. */
     ctx->ret_value = syscall(ctx->syscall_symbol, *arg1, *arg2, *arg3, *arg4, *arg5, *arg6);
@@ -263,7 +260,7 @@ int test_syscall(struct child_ctx *ctx)
         /* If we got here, we had an error, so grab the error string. */
         ctx->err_value = strerror(errno);
 
-        /* Set the error flag so the logging system knows we  had an error. */
+        /* Set the error flag so the logging system knows we had an error. */
         ctx->had_error = YES;
     }
     

@@ -19,6 +19,7 @@
 #include "signals.h"
 #include "network.h"
 #include "genetic.h"
+#include "resource.h"
 #include "concurrent.h"
 #include "syscall.h"
 #include "child.h"
@@ -160,7 +161,7 @@ static void start_main_file_loop(void)
         free(file_path);
         free(file_name);
         free(file_extension);
-        munmap(file_buffer, file_size);
+        munmap(file_buffer, (size_t)file_size);
         close(file);
     }
 
@@ -197,7 +198,7 @@ static int start_syscall_mode_runtime(void)
 
         wait_on(&map->socket_server_pid, &status);
 
-        output(STD, "Exiting\n");
+        output(STD, "Sycall test completed: %ld\n", atomic_load(&map->test_counter));
 
         return 0;
     }
@@ -341,13 +342,8 @@ static int setup_syscall_mode_runtime(void)
         /* Do init work specific to smart mode. */
         output(STD, "Starting syscall fuzzer in smart mode\n");
 
-        /* Inject probes into the kernel so we can track the code coverage of our fuzz tests. */
-        rtrn = inject_kernel_probes();
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't inject kernel probes\n");
-            return -1;
-        }
+        /* Start the genetic algorithm. */
+        start_god();
     }
     else
     {
@@ -365,10 +361,10 @@ static int setup_syscall_mode_runtime(void)
         return -1;
     }
 
-    rtrn = create_input_file_index();
+    rtrn = create_resource_pools();
     if(rtrn < 0)
     {
-        output(ERROR, "Can't create file index\n");
+        output(ERROR, "Can't create resource pools\n");
         return -1;
     }
 

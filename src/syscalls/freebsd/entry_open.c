@@ -32,7 +32,7 @@ struct syscall_entry entry_open = {
     .arg_type_index[SECOND_ARG] = OPEN_FLAG,
     .get_arg_index[SECOND_ARG] = &generate_open_flag,
 
-    .arg_type_index[THIRD_ARG] = MODE_T,
+    .arg_type_index[THIRD_ARG] = MODE,
     .get_arg_index[THIRD_ARG] = &generate_mode    
 
 };

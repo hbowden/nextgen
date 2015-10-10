@@ -1,0 +1,15 @@
+poly1305/libcrypto_la-poly1305.lo: poly1305/poly1305.c \
+  ../include/openssl/poly1305.h ../include/openssl/opensslconf.h \
+  ../include/openssl/opensslfeatures.h \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../lib/clang/7.0.0/include/stddef.h \
+  poly1305/poly1305-donna.c
+
+../include/openssl/poly1305.h:
+
+../include/openssl/opensslconf.h:
+
+../include/openssl/opensslfeatures.h:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../lib/clang/7.0.0/include/stddef.h:
+
+poly1305/poly1305-donna.c:

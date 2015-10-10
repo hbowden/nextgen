@@ -6,6 +6,10 @@
 *.exe
 *.o
 *.so
+*.lo
+*.a
+*.dylib
+
 
 # Packages #
 ############

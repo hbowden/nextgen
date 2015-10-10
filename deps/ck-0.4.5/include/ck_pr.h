@@ -25,6 +25,8 @@
  * SUCH DAMAGE.
  */
 
+#pragma clang system_header
+
 #ifndef _CK_PR_H
 #define _CK_PR_H
 

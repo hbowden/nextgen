@@ -20,6 +20,9 @@
 #include "../../arg_types.h"
 #include "../../entry.h"
 
+#include <sys/syscall.h>
+#include <unistd.h>
+
 /* Mac OSX's system call list. This file declares all the syscalls entries
 on the Mac OSX platform. These syscall entries tell us how to fuzz each syscall on the system.  */
 
