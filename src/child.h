@@ -21,14 +21,11 @@
 #include "private.h"
 #include "utils.h"
 #include "memory.h"
+#include "ck_queue.h"
+#include "stdatomic.h"
 
 #include <setjmp.h>
 #include <sys/time.h>
-#include <unistd.h>
-
-#include <ck_queue.h>
-
-#include "stdatomic.h"
 
 struct child_ctx
 {

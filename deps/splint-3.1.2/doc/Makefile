@@ -38,10 +38,10 @@ pkglibdir = $(libdir)/splint
 pkgincludedir = $(includedir)/splint
 top_builddir = ..
 
-ACLOCAL = ${SHELL} /Users/NahNig/desktop/nextgen/deps/splint-3.1.2/config/missing --run aclocal-1.6
-AUTOCONF = ${SHELL} /Users/NahNig/desktop/nextgen/deps/splint-3.1.2/config/missing --run autoconf
-AUTOMAKE = ${SHELL} /Users/NahNig/desktop/nextgen/deps/splint-3.1.2/config/missing --run automake-1.6
-AUTOHEADER = ${SHELL} /Users/NahNig/desktop/nextgen/deps/splint-3.1.2/config/missing --run autoheader
+ACLOCAL = ${SHELL} /Users/NahNig/Desktop/nextgen/deps/splint-3.1.2/config/missing --run aclocal-1.6
+AUTOCONF = ${SHELL} /Users/NahNig/Desktop/nextgen/deps/splint-3.1.2/config/missing --run autoconf
+AUTOMAKE = ${SHELL} /Users/NahNig/Desktop/nextgen/deps/splint-3.1.2/config/missing --run automake-1.6
+AUTOHEADER = ${SHELL} /Users/NahNig/Desktop/nextgen/deps/splint-3.1.2/config/missing --run autoheader
 
 am__cd = CDPATH="$${ZSH_VERSION+.}$(PATH_SEPARATOR)" && cd
 INSTALL = /usr/bin/install -c
@@ -69,7 +69,7 @@ target_triplet = i386-apple-darwin15.0.0
 EXEEXT = 
 OBJEXT = o
 PATH_SEPARATOR = :
-AMTAR = ${SHELL} /Users/NahNig/desktop/nextgen/deps/splint-3.1.2/config/missing --run tar
+AMTAR = ${SHELL} /Users/NahNig/Desktop/nextgen/deps/splint-3.1.2/config/missing --run tar
 AWK = awk
 BISON = bison
 CAT = cat
@@ -93,7 +93,7 @@ STRIP =
 VERSION = 3.1.2
 am__include = include
 am__quote = 
-install_sh = /Users/NahNig/desktop/nextgen/deps/splint-3.1.2/config/install-sh
+install_sh = /Users/NahNig/Desktop/nextgen/deps/splint-3.1.2/config/install-sh
 
 AUTOMAKE_OPTIONS = 1.5 foreign
 

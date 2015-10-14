@@ -88,7 +88,7 @@ static int init_world(void)
     world->current_generation = 0;
 
     /* Allocate index of species context pointers. */
-    world->species = mem_alloc((sizeof(struct species_ctx *)) * world->number_of_species);
+    world->species = mem_alloc((world->number_of_species) * sizeof(struct species_ctx *));
     if(world->species == NULL)
     {
         output(ERROR, "Can't create species index\n");

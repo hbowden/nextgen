@@ -19,10 +19,10 @@
 #define BUILD_VENDOR "apple"
 
 /* The directory where Splint's library files live */
-#define DEFAULT_LARCHPATH ".:/usr/local/share/splint/lib:/Users/NahNig/desktop/nextgen/deps/splint-3.1.2/lib:"
+#define DEFAULT_LARCHPATH ".:/usr/local/share/splint/lib:/Users/NahNig/Desktop/nextgen/deps/splint-3.1.2/lib:"
 
 /* Splint's imports directory */
-#define DEFAULT_LCLIMPORTDIR ".:/usr/local/share/splint/imports:/Users/NahNig/desktop/nextgen/deps/splint-3.1.2/imports"
+#define DEFAULT_LCLIMPORTDIR ".:/usr/local/share/splint/imports:/Users/NahNig/Desktop/nextgen/deps/splint-3.1.2/imports"
 
 /* system include directory */
 #define GCC_INCLUDE_DIR "/usr/include"
@@ -46,7 +46,7 @@
 #define HOST_VENDOR "apple"
 
 /* String describing who compiled this binary and how */
-#define LCL_COMPILE "Compiled using gcc -g -O2 on Darwin Nah-Niggass-MacBook-Pro-2.local 15.0.0 Darwin Kernel Version 15.0.0: Wed Aug 26 16:57:32 PDT 2015; root:xnu-3247.1.106~1/RELEASE_X86_64 x86_64 by NahNig"
+#define LCL_COMPILE "Compiled using gcc -g -O2 on Darwin NahNiggassMBP2 15.0.0 Darwin Kernel Version 15.0.0: Wed Aug 26 16:57:32 PDT 2015; root:xnu-3247.1.106~1/RELEASE_X86_64 x86_64 by NahNig"
 
 /* Splint's version number */
 #define LCL_PARSE_VERSION "Splint 3.1.2"
@@ -70,7 +70,7 @@
 #define PACKAGE_VERSION "3.1.2"
 
 /* Splint's version number and configure/build date */
-#define SPLINT_VERSION "Splint 3.1.2 --- 09 Oct 2015"
+#define SPLINT_VERSION "Splint 3.1.2 --- 14 Oct 2015"
 
 /* The system's main include directory */
 #define SYSTEM_LIBDIR "/usr/local/include"

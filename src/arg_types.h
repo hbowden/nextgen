@@ -24,11 +24,29 @@
 
 enum arg_type {
 
-    FILE_DESC, VOID_BUF, SIZE, FILE_PATH, OPEN_FLAG, 
-    MODE, STAT_FS, STAT_FLAG, INT, RUSAGE, PID, 
-    WAIT_OPTION, SOCKET, WHENCE, OFFSET, MOUNT_TYPE,
-    DIR_PATH, MOUNT_FLAG, UNMOUNT_FLAG, RECV_FLAG,
-    REQUEST, MOUNT_PATH, DEV
+    FILE_DESC, 
+    VOID_BUF, 
+    SIZE, 
+    FILE_PATH, 
+    OPEN_FLAG, 
+    MODE, 
+    STAT_FS, 
+    STAT_FLAG, 
+    INT, 
+    RUSAGE, 
+    PID, 
+    WAIT_OPTION, 
+    SOCKET, 
+    WHENCE, 
+    OFFSET, 
+    MOUNT_TYPE,
+    DIR_PATH, 
+    MOUNT_FLAG, 
+    UNMOUNT_FLAG, 
+    RECV_FLAG,
+    REQUEST, 
+    MOUNT_PATH, 
+    DEV
 };
 
 struct arg_context

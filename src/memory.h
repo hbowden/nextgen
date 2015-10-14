@@ -21,8 +21,8 @@
 #include "private.h"
 #include "concurrent.h"
 
-#include <ck_queue.h>
-#include <ck_spinlock.h>
+#include "ck_queue.h"
+#include "ck_spinlock.h"
 #include <stdlib.h>
 
 struct memory_block

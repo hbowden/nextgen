@@ -336,23 +336,6 @@ static int setup_syscall_mode_runtime(void)
 {
     int rtrn;
 
-    /* Check if the user want's dumb or smart mode. */
-    if(map->smart_mode == TRUE)
-    {
-        /* Do init work specific to smart mode. */
-        output(STD, "Starting syscall fuzzer in smart mode\n");
-
-        /* Start the genetic algorithm. */
-        start_god();
-    }
-    else
-    {
-        /* Do init work specific to dumb mode. */
-        output(STD, "Starting syscall fuzzer in dumb mode\n");
-    }
-
-    /* Below is init work common to both smart and dumb mode. */
-
     /* Now let's start the reaper process, so it can clean up misbehaving processes. */
     rtrn = setup_and_run_reaper();
     if(rtrn < 0)
@@ -385,6 +368,21 @@ static int setup_syscall_mode_runtime(void)
 
     /* Grab the system call table for the operating system we are running on. */
     get_syscall_table();
+
+    /* Check if the user want's dumb or smart mode. */
+    if(map->smart_mode == TRUE)
+    {
+        /* Do init work specific to smart mode. */
+        output(STD, "Starting syscall fuzzer in smart mode\n");
+
+        /* Start the genetic algorithm. */
+        start_god();
+    }
+    else
+    {
+        /* Do init work specific to dumb mode. */
+        output(STD, "Starting syscall fuzzer in dumb mode\n");
+    }
 
     /* Set up the signal handler for the main process. */
     setup_signal_handler();

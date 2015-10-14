@@ -505,13 +505,13 @@ s,@INSTALL_SCRIPT@,${INSTALL},;t t
 s,@INSTALL_DATA@,${INSTALL} -m 644,;t t
 s,@PACKAGE@,splint,;t t
 s,@VERSION@,3.1.2,;t t
-s,@ACLOCAL@,${SHELL} /Users/NahNig/desktop/nextgen/deps/splint-3.1.2/config/missing --run aclocal-1.6,;t t
-s,@AUTOCONF@,${SHELL} /Users/NahNig/desktop/nextgen/deps/splint-3.1.2/config/missing --run autoconf,;t t
-s,@AUTOMAKE@,${SHELL} /Users/NahNig/desktop/nextgen/deps/splint-3.1.2/config/missing --run automake-1.6,;t t
-s,@AUTOHEADER@,${SHELL} /Users/NahNig/desktop/nextgen/deps/splint-3.1.2/config/missing --run autoheader,;t t
-s,@MAKEINFO@,${SHELL} /Users/NahNig/desktop/nextgen/deps/splint-3.1.2/config/missing --run makeinfo,;t t
-s,@AMTAR@,${SHELL} /Users/NahNig/desktop/nextgen/deps/splint-3.1.2/config/missing --run tar,;t t
-s,@install_sh@,/Users/NahNig/desktop/nextgen/deps/splint-3.1.2/config/install-sh,;t t
+s,@ACLOCAL@,${SHELL} /Users/NahNig/Desktop/nextgen/deps/splint-3.1.2/config/missing --run aclocal-1.6,;t t
+s,@AUTOCONF@,${SHELL} /Users/NahNig/Desktop/nextgen/deps/splint-3.1.2/config/missing --run autoconf,;t t
+s,@AUTOMAKE@,${SHELL} /Users/NahNig/Desktop/nextgen/deps/splint-3.1.2/config/missing --run automake-1.6,;t t
+s,@AUTOHEADER@,${SHELL} /Users/NahNig/Desktop/nextgen/deps/splint-3.1.2/config/missing --run autoheader,;t t
+s,@MAKEINFO@,${SHELL} /Users/NahNig/Desktop/nextgen/deps/splint-3.1.2/config/missing --run makeinfo,;t t
+s,@AMTAR@,${SHELL} /Users/NahNig/Desktop/nextgen/deps/splint-3.1.2/config/missing --run tar,;t t
+s,@install_sh@,/Users/NahNig/Desktop/nextgen/deps/splint-3.1.2/config/install-sh,;t t
 s,@STRIP@,,;t t
 s,@ac_ct_STRIP@,,;t t
 s,@INSTALL_STRIP_PROGRAM@,${SHELL} $(install_sh) -c -s,;t t
@@ -864,11 +864,11 @@ ${ac_dA}YYTEXT_POINTER${ac_dB}YYTEXT_POINTER${ac_dC}1${ac_dD}
 ${ac_dA}GCC_INCLUDE_DIR${ac_dB}GCC_INCLUDE_DIR${ac_dC}"/usr/include"${ac_dD}
 ${ac_dA}GCC_INCLUDE_DIR2${ac_dB}GCC_INCLUDE_DIR2${ac_dC}"/usr/local/include"${ac_dD}
 ${ac_dA}SYSTEM_LIBDIR${ac_dB}SYSTEM_LIBDIR${ac_dC}"/usr/local/include"${ac_dD}
-${ac_dA}DEFAULT_LARCHPATH${ac_dB}DEFAULT_LARCHPATH${ac_dC}".:/usr/local/share/splint/lib:/Users/NahNig/desktop/nextgen/deps/splint-3.1.2/lib:"${ac_dD}
-${ac_dA}DEFAULT_LCLIMPORTDIR${ac_dB}DEFAULT_LCLIMPORTDIR${ac_dC}".:/usr/local/share/splint/imports:/Users/NahNig/desktop/nextgen/deps/splint-3.1.2/imports"${ac_dD}
-${ac_dA}SPLINT_VERSION${ac_dB}SPLINT_VERSION${ac_dC}"Splint 3.1.2 --- 09 Oct 2015"${ac_dD}
+${ac_dA}DEFAULT_LARCHPATH${ac_dB}DEFAULT_LARCHPATH${ac_dC}".:/usr/local/share/splint/lib:/Users/NahNig/Desktop/nextgen/deps/splint-3.1.2/lib:"${ac_dD}
+${ac_dA}DEFAULT_LCLIMPORTDIR${ac_dB}DEFAULT_LCLIMPORTDIR${ac_dC}".:/usr/local/share/splint/imports:/Users/NahNig/Desktop/nextgen/deps/splint-3.1.2/imports"${ac_dD}
+${ac_dA}SPLINT_VERSION${ac_dB}SPLINT_VERSION${ac_dC}"Splint 3.1.2 --- 14 Oct 2015"${ac_dD}
 ${ac_dA}LCL_PARSE_VERSION${ac_dB}LCL_PARSE_VERSION${ac_dC}"Splint 3.1.2"${ac_dD}
-${ac_dA}LCL_COMPILE${ac_dB}LCL_COMPILE${ac_dC}"Compiled using gcc -g -O2 on Darwin Nah-Niggass-MacBook-Pro-2.local 15.0.0 Darwin Kernel Version 15.0.0: Wed Aug 26 16:57:32 PDT 2015; root:xnu-3247.1.106~1/RELEASE_X86_64 x86_64 by NahNig"${ac_dD}
+${ac_dA}LCL_COMPILE${ac_dB}LCL_COMPILE${ac_dC}"Compiled using gcc -g -O2 on Darwin NahNiggassMBP2 15.0.0 Darwin Kernel Version 15.0.0: Wed Aug 26 16:57:32 PDT 2015; root:xnu-3247.1.106~1/RELEASE_X86_64 x86_64 by NahNig"${ac_dD}
 ${ac_dA}UNIX${ac_dB}UNIX${ac_dC}1${ac_dD}
 ${ac_dA}UNAME${ac_dB}UNAME${ac_dC}"Darwin"${ac_dD}
 ${ac_dA}BUILD${ac_dB}BUILD${ac_dC}"i386-apple-darwin15.0.0"${ac_dD}
@@ -907,11 +907,11 @@ ${ac_uA}YYTEXT_POINTER${ac_uB}YYTEXT_POINTER${ac_uC}1${ac_uD}
 ${ac_uA}GCC_INCLUDE_DIR${ac_uB}GCC_INCLUDE_DIR${ac_uC}"/usr/include"${ac_uD}
 ${ac_uA}GCC_INCLUDE_DIR2${ac_uB}GCC_INCLUDE_DIR2${ac_uC}"/usr/local/include"${ac_uD}
 ${ac_uA}SYSTEM_LIBDIR${ac_uB}SYSTEM_LIBDIR${ac_uC}"/usr/local/include"${ac_uD}
-${ac_uA}DEFAULT_LARCHPATH${ac_uB}DEFAULT_LARCHPATH${ac_uC}".:/usr/local/share/splint/lib:/Users/NahNig/desktop/nextgen/deps/splint-3.1.2/lib:"${ac_uD}
-${ac_uA}DEFAULT_LCLIMPORTDIR${ac_uB}DEFAULT_LCLIMPORTDIR${ac_uC}".:/usr/local/share/splint/imports:/Users/NahNig/desktop/nextgen/deps/splint-3.1.2/imports"${ac_uD}
-${ac_uA}SPLINT_VERSION${ac_uB}SPLINT_VERSION${ac_uC}"Splint 3.1.2 --- 09 Oct 2015"${ac_uD}
+${ac_uA}DEFAULT_LARCHPATH${ac_uB}DEFAULT_LARCHPATH${ac_uC}".:/usr/local/share/splint/lib:/Users/NahNig/Desktop/nextgen/deps/splint-3.1.2/lib:"${ac_uD}
+${ac_uA}DEFAULT_LCLIMPORTDIR${ac_uB}DEFAULT_LCLIMPORTDIR${ac_uC}".:/usr/local/share/splint/imports:/Users/NahNig/Desktop/nextgen/deps/splint-3.1.2/imports"${ac_uD}
+${ac_uA}SPLINT_VERSION${ac_uB}SPLINT_VERSION${ac_uC}"Splint 3.1.2 --- 14 Oct 2015"${ac_uD}
 ${ac_uA}LCL_PARSE_VERSION${ac_uB}LCL_PARSE_VERSION${ac_uC}"Splint 3.1.2"${ac_uD}
-${ac_uA}LCL_COMPILE${ac_uB}LCL_COMPILE${ac_uC}"Compiled using gcc -g -O2 on Darwin Nah-Niggass-MacBook-Pro-2.local 15.0.0 Darwin Kernel Version 15.0.0: Wed Aug 26 16:57:32 PDT 2015; root:xnu-3247.1.106~1/RELEASE_X86_64 x86_64 by NahNig"${ac_uD}
+${ac_uA}LCL_COMPILE${ac_uB}LCL_COMPILE${ac_uC}"Compiled using gcc -g -O2 on Darwin NahNiggassMBP2 15.0.0 Darwin Kernel Version 15.0.0: Wed Aug 26 16:57:32 PDT 2015; root:xnu-3247.1.106~1/RELEASE_X86_64 x86_64 by NahNig"${ac_uD}
 ${ac_uA}UNIX${ac_uB}UNIX${ac_uC}1${ac_uD}
 ${ac_uA}UNAME${ac_uB}UNAME${ac_uC}"Darwin"${ac_uD}
 ${ac_uA}BUILD${ac_uB}BUILD${ac_uC}"i386-apple-darwin15.0.0"${ac_uD}

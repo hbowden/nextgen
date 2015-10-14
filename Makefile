@@ -37,7 +37,7 @@ CC = clang
 
 MAKE = make
 
-INCLUDES = -i$(CURRENT_DIR)/stdatomic.h -Isrc/syscalls/mac/ -I$(CURRENT_DIR)/deps/capstone-3.0.4/ \
+INCLUDES = -i$(CURRENT_DIR)/stdatomic.h -I/usr/include -Isrc/syscalls/mac/ -I$(CURRENT_DIR)/deps/capstone-3.0.4/ \
            -I$(CURRENT_DIR)/deps/capstone-3.0.4/include -I$(CURRENT_DIR)/deps/ck-0.4.5/include -I$(CURRENT_DIR)/src \
            -I$(CURRENT_DIR)/deps/libressl-2.3.0/include
 
@@ -136,4 +136,3 @@ clean:
 	cd $(CURRENT_DIR)/deps/splint-3.1.2 && $(MAKE) clean
 	cd $(CURRENT_DIR)/deps/libressl-2.3.0 && $(MAKE) clean
 	rm nextgen
-	rm /usr/local/bin/nextgen

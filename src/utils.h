@@ -24,7 +24,6 @@
 #include <string.h>
 #include <stdarg.h>
 #include <stdlib.h>
-#include <dirent.h>
 
 #include "stdatomic.h"
 
