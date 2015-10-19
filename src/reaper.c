@@ -28,146 +28,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-#include <ck_queue.h>
-
-int add_pid_to_list(pid_t pid, struct child_ctx *ctx)
-{
-    /* Our variables. */
-    struct memory_block *block = NULL;
-
-    /* Get a free shared memory block. */
-    block = mem_get_shared_block(ctx->pool);
-    if(block == NULL)
-    {
-        output(ERROR, "Can't get free memory block\n");
-        return -1;
-    }
-
-    /* Set the block pointer, so we can free the memory block later. */
-    ((struct list_node *)block->ptr)->block = block;
-
-    /* Set argument type. */
-    ((struct list_node *)block->ptr)->data->arg_type = PID;
-
-    /* Copy arg value to the list node. */
-    ((struct list_node *)block->ptr)->data->pid = pid;
-
-    /* Set the time we created this node. */
-    gettimeofday(&((struct list_node *)block->ptr)->data->create_time, NULL);
-
-    /* Insert the node in the list. */
-    CK_LIST_INSERT_HEAD(&ctx->list, (struct list_node *)block->ptr, list_entry);
-
-    return 0;
-}
-
-int add_socket_to_list(int socket_fd, struct child_ctx *ctx)
-{
-
-    return 0;
-}
-
-int add_path_to_list(char *path, struct child_ctx *ctx)
-{
-    /* Our variables. */
-    struct memory_block *block = NULL;
-
-    block = mem_get_shared_block(ctx->pool);
-    if(block == NULL)
-    {
-        output(ERROR, "Can't get free memory block\n");
-        return -1;
-    }
-
-    /* Set block pointer. */
-    ((struct list_node *)block->ptr)->block = block;
-
-    /* Set argument type. */
-    ((struct list_node *)block->ptr)->data->arg_type = FILE_PATH;
-
-    /* Copy arg value to the list node. */
-    ((struct list_node *)block->ptr)->data->path = path;
-
-    /* Set the time we created this node. */
-    gettimeofday(&((struct list_node *)block->ptr)->data->create_time, NULL);
-
-    /* Insert the node in the list. */
-    CK_LIST_INSERT_HEAD(&ctx->list, (struct list_node *)block->ptr, list_entry);
-
-    return 0;
-}
-
-static int clean_list(struct child_ctx *ctx)
-{
-    int rtrn;
-    unsigned int limit = 1000;
-    unsigned int nodes_cleaned = 0;
-    struct list_node *node;
-
-    /* Check if the arg cleanup list is empty, if it is empty return early. */
-    if(CK_LIST_EMPTY(&ctx->list) == TRUE)
-        return 0;
-   
-    /* Loop for each node in the list. */
-    CK_LIST_FOREACH(node, &ctx->list, list_entry)
-    {
-        struct timeval tv;
-        time_t dif, time_now;
-
-        /* Grab current time.*/
-        gettimeofday(&tv, NULL);
-        time_now = tv.tv_sec;
-    
-        if(node->data->create_time.tv_sec > time_now)
-        {
-            dif = node->data->create_time.tv_sec - time_now;
-        }
-        else
-        {
-            dif = time_now - node->data->create_time.tv_sec;
-        }
-    
-        if(dif < 2)
-        {
-            continue;
-        }
-
-        switch(node->data->arg_type)
-        {
-            case FILE_PATH:
-                /*trn = unlink(node->data->path);
-                if(rtrn < 0)
-                {
-                    output(ERROR, "Can't remove file: %s\n", strerror(errno));
-                    return -1;
-                }
-
-                output(STD, "Removed path\n");*/
-                break;
-
-            case PID:
-                rtrn = kill(node->data->pid, SIGKILL);
-                if(rtrn < 0)
-                {
-                    output(ERROR, "Can't kill temp child\n");
-                    return -1;
-                }
-                break;
-
-            default:
-                output(ERROR, "Unknown list arg type: %d\n", node->data->arg_type);
-                return -1;
-        }
-
-        CK_LIST_REMOVE(node, list_entry);
-
-        mem_free_shared_block(node->block, ctx->pool);
-
-        node->block = NULL;
-    }
-
-    return 0;
-}
 
 static void check_progess(struct child_ctx *child)
 {
@@ -221,40 +81,21 @@ static void check_progess(struct child_ctx *child)
 	return;
 }
 
-static void kill_all_children(void)
-{
-    int rtrn;
-    unsigned int i;
-    unsigned int number_of_children = map->number_of_children;
-
-    for(i = 0; i < number_of_children; i++)
-    {
-        rtrn = kill(atomic_load(&map->children[i]->pid), SIGKILL);
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't kill child: %s\n", strerror(errno));
-            return;
-        }
-    }
-}
-
 static void reaper(void)
 {
     setup_reaper_signal_handler();
 
     while(atomic_load(&map->stop) != TRUE)
     {
-    	unsigned int i;
-    	unsigned int number_of_children = map->number_of_children;
+    	struct child_ctx *child = NULL;
+
+        unsigned int i = 0;
 
         /* Loop for each child processe. */
-    	for(i = 0; i < number_of_children; i++)
+    	for_each_child(child, i)
     	{
             /* Make sure the child is not hung up, if it is kill it. */
-    		check_progess(map->children[i]);
-
-            /* Clean up the child's resource list. */
-            clean_list(map->children[i]);
+    		check_progess(child);
     	}
     }
 
@@ -266,7 +107,7 @@ static void reaper(void)
 
 /* This function sets up and run's the reaper process. The reaper kills and replaces child
 processes that are not functioning properly. */
-int setup_and_run_reaper(void)
+int setup_reaper_module(void)
 {
     pid_t reaper_pid;
 

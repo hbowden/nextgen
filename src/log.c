@@ -17,6 +17,8 @@
 
 #include "log.h"
 #include "io.h"
+#include "entry.h"
+#include "syscall.h"
 #include "memory.h"
 #include "nextgen.h"
 #include "arg_types.h"
@@ -91,8 +93,9 @@ int create_out_directory(char *path)
 int log_arguments(struct child_ctx *ctx)
 {
     unsigned int i;
-    unsigned int number_of_args = map->sys_table->sys_entry[ctx->syscall_number].number_of_args;
-    const char *name_of_syscall = map->sys_table->sys_entry[ctx->syscall_number].name_of_syscall;
+    unsigned int number_of_args = ctx->number_of_args;
+    const char *name_of_syscall = ctx->name_of_syscall;
+    struct syscall_entry_shadow *entry = NULL;
 
     char *arg_value auto_clean = mem_alloc(1024);
     if(arg_value == NULL)
@@ -108,25 +111,32 @@ int log_arguments(struct child_ctx *ctx)
        return -1;
     }
 
+    entry = get_entry(ctx->syscall_number);
+    if(entry == NULL)
+    {
+        output(ERROR, "Can't get entry\n");
+        return -1;
+    }
+
     sprintf(syscall_log_buf, "%s:", name_of_syscall);
 
     for(i = 0; i < number_of_args; i++)
     {
-    	switch((int)map->sys_table->sys_entry[ctx->syscall_number].arg_context_index[i]->log_type)
+    	switch((int)entry->arg_context_index[i]->log_type)
     	{
     		/* File and directory paths. */
     		case PATH:
-    		    sprintf(arg_value, " %s=%s", map->sys_table->sys_entry[ctx->syscall_number].arg_context_index[i]->name, (char *)ctx->arg_value_index[i]);
+    		    sprintf(arg_value, " %s=%s", entry->arg_context_index[i]->name, (char *)ctx->arg_value_index[i]);
     		    break;
 
             /* Pointers. */
     		case POINTER:
-    		    sprintf(arg_value, " %s=%p", map->sys_table->sys_entry[ctx->syscall_number].arg_context_index[i]->name, (void *)ctx->arg_value_index[i]);
+    		    sprintf(arg_value, " %s=%p", entry->arg_context_index[i]->name, (void *)ctx->arg_value_index[i]);
     		    break;
 
             /* Non pointer values. */
     		case NUMBER:
-    		    sprintf(arg_value, " %s=%lu", map->sys_table->sys_entry[ctx->syscall_number].arg_context_index[i]->name, *(ctx->arg_value_index[i]));
+    		    sprintf(arg_value, " %s=%lu", entry->arg_context_index[i]->name, *(ctx->arg_value_index[i]));
     		    break;
 
             default:
@@ -137,7 +147,7 @@ int log_arguments(struct child_ctx *ctx)
     	strncat(syscall_log_buf, arg_value, strlen(arg_value));
     }
 
-    //output(STD, "%s\n", syscall_log_buf);
+    output(STD, "%s\n", syscall_log_buf);
 
 	return 0;
 }

@@ -54,7 +54,7 @@ struct arg_context
 	const char *name;
 	enum arg_type type;
 	enum yes_no should_free;
-	enum logging_type log_type;
+	int log_type;
 
 };
 

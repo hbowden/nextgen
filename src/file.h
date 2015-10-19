@@ -28,4 +28,6 @@ private extern int count_files_directory(unsigned int *count);
 
 private extern int initial_fuzz_run(void);
 
+private extern void start_main_file_loop(void);
+
 #endif

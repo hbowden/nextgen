@@ -16,6 +16,9 @@
  **/
 
 #include "file.h"
+#include "mutate.h"
+#include "signals.h"
+#include "genetic.h"
 #include "crypto.h"
 #include "nextgen.h"
 #include "io.h"
@@ -23,6 +26,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <sys/mman.h>
 #include <string.h>
 #include <dirent.h>
 
@@ -147,4 +151,111 @@ int initial_fuzz_run(void)
     }
 
 	return 0;
+}
+
+void start_main_file_loop(void)
+{
+    output(STD, "Starting fuzzer\n");
+
+    /* Set up signal handler. */
+    setup_signal_handler();
+
+    /* Check if we should stop or continue running. */
+    while(atomic_load(&map->stop) == FALSE)
+    {
+        /* Our variables. */
+        int rtrn, file;
+        char *file_buffer, *file_name, *file_path, *file_extension;
+        off_t file_size;
+
+        /* Open file from in directory. */
+        rtrn = get_file(&file, &file_extension);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't get file\n");
+            return;
+        }
+
+        /* Read file into memory. */
+        rtrn = map_file_in(file, &file_buffer, &file_size);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't read file to memory\n");
+            return;
+        }
+
+        /* Mutate the file, sometimes the file buffer grows in length
+         and file_size will be updated to the new length. */
+        rtrn = mutate_file(&file_buffer, file_extension, &file_size);
+        if(rtrn < 0)
+        {
+           output(ERROR, "Can't mutate file\n");
+           return;
+        }
+
+        /* Check if smart mode is on. */
+        if(map->smart_mode == TRUE)
+        {
+            /* Randomly join this file we mutated with a file from the old generation. */
+            rtrn = create_new_generation(&file_buffer, &file_size, file_extension);
+            if(rtrn < 0)
+            {
+                output(ERROR, "Can't create a new generation\n");
+                return;
+            }
+        }
+
+        /* Generate random file name. */
+        rtrn = generate_name(&file_name, file_extension, FILE_NAME);
+        if(rtrn < 0)
+        {
+           output(ERROR, "Can't generate random file name\n");
+           return;
+        }
+
+        /* Create out path. */
+        rtrn = asprintf(&file_path, "/tmp/%s", file_name);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't create out path\n");
+            return;
+        }
+
+        /* Write the mutated file to disk. */
+        rtrn = map_file_out(file_path, file_buffer, file_size);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't write file to disk\n");
+            return;
+        }
+
+        /* Log file before we run, so if there is a kernel panic we have the
+        file that caused the panic. */
+        rtrn = log_file(file_path, file_extension);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't log file generated\n");
+            return;
+        }
+
+        /* Create children process and exec the target executable and run it with
+        the generated file. */
+        rtrn = test_exec_with_file_in_child(file_path, file_extension);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't test exec with file\n");
+            return;
+        }
+
+        /* Clean up our mess. */
+        free(file_path);
+        free(file_name);
+        free(file_extension);
+        munmap(file_buffer, (size_t)file_size);
+        close(file);
+    }
+
+    output(STD, "Exiting main loop\n");
+
+    return;
 }

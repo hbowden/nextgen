@@ -40,136 +40,6 @@
 #include <errno.h>
 #include <sys/mman.h>
 
-static void start_main_syscall_loop(void)
-{
-    output(STD, "Starting fuzzer\n");
-
-    /* Set up signal handler. */
-    setup_signal_handler();
-
-    /* Check if we should stop or continue running. */
-    while(atomic_load(&map->stop) == FALSE)
-    {
-        /* Check if we have the right number of children processes running, if not create a new ones until we do. */
-        if(atomic_load(&map->running_children) < map->number_of_children)
-        {
-            /* Create children process. */
-            create_syscall_children();
-        }
-    }
-
-    output(STD, "Exiting main loop\n");
-
-    return;
-}
-
-static void start_main_file_loop(void)
-{
-    output(STD, "Starting fuzzer\n");
-
-    /* Set up signal handler. */
-    setup_signal_handler();
-
-    /* Check if we should stop or continue running. */
-    while(atomic_load(&map->stop) == FALSE)
-    {
-        /* Our variables. */
-        int rtrn, file;
-        char *file_buffer, *file_name, *file_path, *file_extension;
-        off_t file_size;
-
-        /* Open file from in directory. */
-        rtrn = get_file(&file, &file_extension);
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't get file\n");
-            return;
-        }
-
-        /* Read file into memory. */
-        rtrn = map_file_in(file, &file_buffer, &file_size);
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't read file to memory\n");
-            return;
-        }
-
-        /* Mutate the file, sometimes the file buffer grows in length
-         and file_size will be updated to the new length. */
-        rtrn = mutate_file(&file_buffer, file_extension, &file_size);
-        if(rtrn < 0)
-        {
-           output(ERROR, "Can't mutate file\n");
-           return;
-        }
-
-        /* Check if smart mode is on. */
-        if(map->smart_mode == TRUE)
-        {
-            /* Randomly join this file we mutated with a file from the old generation. */
-            rtrn = create_new_generation(&file_buffer, &file_size, file_extension);
-            if(rtrn < 0)
-            {
-                output(ERROR, "Can't create a new generation\n");
-                return;
-            }
-        }
-
-        /* Generate random file name. */
-        rtrn = generate_name(&file_name, file_extension, FILE_NAME);
-        if(rtrn < 0)
-        {
-           output(ERROR, "Can't generate random file name\n");
-           return;
-        }
-
-        /* Create out path. */
-        rtrn = asprintf(&file_path, "/tmp/%s", file_name);
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't create out path\n");
-            return;
-        }
-
-        /* Write the mutated file to disk. */
-        rtrn = map_file_out(file_path, file_buffer, file_size);
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't write file to disk\n");
-            return;
-        }
-
-        /* Log file before we run, so if there is a kernel panic we have the
-        file that caused the panic. */
-        rtrn = log_file(file_path, file_extension);
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't log file generated\n");
-            return;
-        }
-
-        /* Create children process and exec the target executable and run it with
-        the generated file. */
-        rtrn = test_exec_with_file_in_child(file_path, file_extension);
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't test exec with file\n");
-            return;
-        }
-
-        /* Clean up our mess. */
-        free(file_path);
-        free(file_name);
-        free(file_extension);
-        munmap(file_buffer, (size_t)file_size);
-        close(file);
-    }
-
-    output(STD, "Exiting main loop\n");
-
-    return;
-}
-
 static int start_network_mode_runtime(void)
 {
     return 0;
@@ -179,25 +49,35 @@ static int start_syscall_mode_runtime(void)
 {
     pid_t runloop_pid;
 
+    /* Create a second process. */
     runloop_pid = fork();
     if(runloop_pid == 0)
     {
-        cas_loop_int32(&map->runloop_pid, runloop_pid);
+        /* Set the pid in the global shared mapping so that other processes
+        know this process's pid, so they can wait for it or kill it. */
+        cas_loop_int32(&map->runloop_pid, getpid());
 
+        /* Start the main loop for the syscall fuzzer. This function should not 
+        return except when the user set's ctrl-c or there is an unrecoverable error. */
         start_main_syscall_loop();
 
+        /* Clean up this process and exit. */
         _exit(0);
     }
     else if(runloop_pid > 0)
     {
         int status;
 
+        /* Wait for the other process's created by nextgen. */
         wait_on(&map->runloop_pid, &status);
-
         wait_on(&map->reaper_pid, &status);
-
         wait_on(&map->socket_server_pid, &status);
 
+        /* If were running in smart mode wait for the genetic algorithm(god) to exit. */
+        if(map->smart_mode)
+            wait_on(&map->god_pid, &status);
+
+        /* Display stats for the user. */
         output(STD, "Sycall test completed: %ld\n", atomic_load(&map->test_counter));
 
         return 0;
@@ -332,22 +212,31 @@ static int setup_network_mode_runtime(void)
     return 0;
 }
 
+/* Set up the various modules we need for syscall fuzzing and then
+   create the output directory. If were running in smart mode start the
+   genetic module. */
 static int setup_syscall_mode_runtime(void)
 {
     int rtrn;
 
-    /* Now let's start the reaper process, so it can clean up misbehaving processes. */
-    rtrn = setup_and_run_reaper();
+    rtrn = setup_reaper_module();
     if(rtrn < 0)
     {
-        output(ERROR, "Can't set up the reaper\n");
+        output(ERROR, "Can't set up the reaper module\n");
         return -1;
     }
 
-    rtrn = create_resource_pools();
+    rtrn = setup_resource_module();
     if(rtrn < 0)
     {
-        output(ERROR, "Can't create resource pools\n");
+        output(ERROR, "Can't setup resource module\n");
+        return -1;
+    }
+
+    rtrn = setup_syscall_module();
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't create syscall module\n");
         return -1;
     }
 
@@ -358,17 +247,6 @@ static int setup_syscall_mode_runtime(void)
         return -1;
     }
 
-    /* Start socket server. We use this to connect to, to create loopback sockets. */
-    rtrn = start_socket_server();
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't start socket server\n");
-        return -1;
-    }
-
-    /* Grab the system call table for the operating system we are running on. */
-    get_syscall_table();
-
     /* Check if the user want's dumb or smart mode. */
     if(map->smart_mode == TRUE)
     {
@@ -376,7 +254,12 @@ static int setup_syscall_mode_runtime(void)
         output(STD, "Starting syscall fuzzer in smart mode\n");
 
         /* Start the genetic algorithm. */
-        start_god();
+        rtrn = setup_genetic_module();
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't setup the genetic module\n");
+            return -1;
+        }
     }
     else
     {
@@ -399,7 +282,7 @@ int setup_runtime(void)
     int rtrn;
 
     /* This function sets up the other crypto functions and crypto library.  */
-    rtrn = setup_crypto();
+    rtrn = setup_crypto_module();
     if(rtrn < 0)
     {
         output(ERROR, "Can't set up crypto\n");

@@ -20,7 +20,9 @@
 
 #include "private.h"
 
-private extern int setup_crypto(void);
+private extern int setup_crypto_module(void);
+
+private extern int using_hardware_prng(void);
 
 private extern int seed_prng(void);
 

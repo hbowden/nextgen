@@ -19,7 +19,9 @@
 #define MUTATE_H
 
 #include "private.h"
-#include "child.h"
+#include "syscall.h"
+
+#include <sys/types.h>
 
 /* The mutator for syscall argumenst. */
 private extern int mutate_arguments(struct child_ctx *ctx);

@@ -19,7 +19,7 @@
 #define LOG_H
 
 #include "private.h"
-#include "child.h"
+#include "syscall.h"
 
 enum logging_type { POINTER, PATH, NUMBER };
 

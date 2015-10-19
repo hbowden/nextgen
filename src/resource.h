@@ -19,13 +19,14 @@
 #define RESOURCE_H
 
 #include "private.h"
-#include "memory.h"
 
-#include <ck_queue.h>
+//enum resource_type = { desc_r, mount_r, dirpath_r, file_r, socket_r };
 
 private extern int get_desc(int *fd);
 
 private extern int return_desc(int *fd);
+
+private extern int free_desc(int *fd);
 
 private extern int get_mount(char **path);
 
@@ -39,8 +40,6 @@ private extern int get_filepath(char **path);
 
 private extern int return_filepath(char **path);
 
-private extern int create_resource_pools(void);
-
-private extern int clean_resource_pools(void);
+private extern int setup_resource_module(void);
 
 #endif

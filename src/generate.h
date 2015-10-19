@@ -19,7 +19,7 @@
 #define GENERATE_H
 
 #include "private.h"
-#include "child.h"
+#include "syscall.h"
 
 private extern int generate_fd(unsigned long **fd, struct child_ctx *ctx);
 

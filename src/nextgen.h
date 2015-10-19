@@ -53,7 +53,7 @@ struct executable_context
 
     /* The virtual memory offset of where the executable begins. */
     unsigned long start_offset;
-
+    
     unsigned long end_offset;
 
     unsigned long number_of_branchs;
@@ -85,14 +85,6 @@ struct shared_map
     /* Plugin context index. */
     struct plugin_ctx **plugins;
 
-    struct mem_pool_shared *desc_pool;
-
-    struct mem_pool_shared *mount_pool;
-
-    struct mem_pool_shared *dirpath_pool;
-
-    struct mem_pool_shared *file_pool;
-
     struct work_queue *queue;
 
     /* Number of plugins in plugin index. */
@@ -119,21 +111,11 @@ struct shared_map
     /* If this mode is FALSE then we don't use the binary feedback and genetic algorithm. */
     bool smart_mode;
 
-    /* The syscall table. */
-    struct syscall_table_shadow *sys_table;
-
     /* The port that the ipv4 socket server is on. The ipv6 port is ipv4 + 1. */
     unsigned int socket_server_port;
 
-    /* The number of children processes currently running. */
-    atomic_uint_fast64_t running_children;
-
     /* The max number of children to create. */
     unsigned int number_of_children;
-    
-    /* An index of child context structures. These structures track variables
-    local to the child process. */
-    struct child_ctx **children;
 };
 
 extern struct shared_map *map;

@@ -116,9 +116,6 @@ int generate_socket(unsigned long **sock, struct child_ctx *ctx)
 
     /* Set socket size. */
     ctx->arg_size_index[ctx->current_arg] = sizeof(unsigned long);
-
-    /* Add socket to cleanup list. */
-    add_socket_to_list(socket_fd, ctx);
     
     return 0;
 }
@@ -398,8 +395,6 @@ int generate_pid(unsigned long **pid, struct child_ctx *ctx)
         output(ERROR, "Can't create pid: %s\n", strerror(errno));
         return -1;
     }
-
-    add_pid_to_list(local_pid, ctx);
 
     **pid = (unsigned long)local_pid;
     

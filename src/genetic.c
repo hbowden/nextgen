@@ -17,6 +17,7 @@
 
 #include "genetic.h"
 #include "nextgen.h"
+#include "syscall.h"
 #include "memory.h"
 #include "concurrent.h"
 #include "io.h"
@@ -81,8 +82,15 @@ static int init_world(void)
         return -1;
     }
 
+    struct syscall_table_shadow *sys_table = get_syscall_table();
+    if(sys_table == NULL)
+    {
+        output(ERROR, "Can't get system table\n");
+        return -1;
+    }
+
     /* Set the number of species to the number of syscalls. */
-    world->number_of_species = map->sys_table->number_of_syscalls;
+    world->number_of_species = sys_table->number_of_syscalls;
 
     /* Set current generation to zero because we haven't created one yet. */
     world->current_generation = 0;
@@ -96,13 +104,13 @@ static int init_world(void)
     }
 
     unsigned int i;
-
+    
     for(i = 0; i < world->number_of_species; i++)
     {
         struct species_ctx ctx = {
 
             /* Set species name to syscall name. */
-            .species_name = map->sys_table->sys_entry[i].name_of_syscall,
+            .species_name = sys_table->sys_entry[i].name_of_syscall,
 
             /* Set population to zero. */
             .species_population = 0,
@@ -202,7 +210,7 @@ static void god_loop(void)
     return;
 }
 
-int start_god(void)
+int setup_genetic_module(void)
 {
     pid_t god_pid;
 

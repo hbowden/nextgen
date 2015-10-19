@@ -16,7 +16,7 @@
  **/
  
 #include "signals.h"
-#include "child.h"
+#include "syscall.h"
 #include "io.h"
 #include "nextgen.h"
 #include "runtime.h"
@@ -25,7 +25,6 @@
 
 static void ctrlc_handler(int sig)
 {
-
     sig = 0; // We do this to temprorarly silence a unused parameter warning.
     shutdown();
     
@@ -51,21 +50,16 @@ static void reaper_signal_handler(int sig)
 
 static void syscall_child_signal_handler(int sig)
 {
-	int child_number;
-
-	child_number = get_child_index_number();
-	if(child_number < 0)
-	{
-		_exit(0);
-	}
-
-    struct child_ctx *child  = map->children[child_number];
+    struct child_ctx *child = get_child_ctx();
+    if(child == NULL)
+    {
+        output(ERROR, "Can't get child context\n");
+        return;
+    }
 
     switch(sig)
     {
     	case SIGALRM:
-
-            alarm(1);
 
             (void) signal(sig, syscall_child_signal_handler);
 
@@ -77,7 +71,6 @@ static void syscall_child_signal_handler(int sig)
     	default:
 
           longjmp(child->return_jump, 1);
-
     }
 }
 

@@ -33,10 +33,17 @@
 
 static int (*rand_range_pointer)(unsigned int range, unsigned int *number);
 
+static int software_prng;
+
 static int rand_range_no_crypto(unsigned int range, unsigned int *number)
 {
     *number = (unsigned int) rand() % range + 1;
     return 0;
+}
+
+int using_hardware_prng(void)
+{
+    return software_prng;
 }
 
 int rand_bytes(char **buf, unsigned int length)
@@ -340,7 +347,7 @@ int seed_prng(void)
     return 0;
 }
 
-int setup_crypto(void)
+int setup_crypto_module(void)
 {
     output(STD, "Setting up crypto\n");
 
@@ -376,11 +383,20 @@ int setup_crypto(void)
         rtrn = setup_hardware_acceleration();
         switch(rtrn)
         {
-            case 0: output(STD, "Using hardware crypto accelerator\n"); break;
+            case 0:
+                output(STD, "Using hardware crypto PRNG\n");
+                software_prng = FALSE;
+                break;
 
-            case 1: output(STD, "Switching to /dev/urandom \n");  output(STD, "Seeding PRNG\n"); return seed_prng();
+            case 1: 
+                output(STD, "Switching to /dev/urandom \n");  
+                output(STD, "Seeding PRNG\n"); 
+                software_prng = TRUE; 
+                return seed_prng();
 
-            default: output(ERROR, "Error while trying to setup hardware acceleration\n"); return -1;
+            default: 
+                output(ERROR, "Error while trying to setup hardware acceleration\n"); 
+                return -1;
         }  
     }
     

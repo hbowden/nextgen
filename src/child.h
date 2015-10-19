@@ -21,15 +21,13 @@
 #include "private.h"
 #include "utils.h"
 #include "memory.h"
-#include "ck_queue.h"
 #include "stdatomic.h"
 
 #include <setjmp.h>
-#include <sys/time.h>
 
 struct child_ctx
 {
-	/* The child's process PID. */
+    /* The child's process PID. */
     atomic_int_fast32_t pid;
 
     /* A varible to store the address of where to jump back to in the child
@@ -44,6 +42,8 @@ struct child_ctx
 
     unsigned int current_arg;
 
+    const char *name_of_syscall;
+
     /* This index is where we store the arguments we generate. */
     unsigned long **arg_value_index;
 
@@ -51,9 +51,6 @@ struct child_ctx
     unsigned long *arg_size_index;
 
     struct mem_pool_shared *pool;
-
-    /* The child's resource cleanup list. */
-    CK_LIST_HEAD(list, list_node) list;
 
     /* The number of args for the syscall were testing. */
     unsigned int number_of_args;
@@ -76,10 +73,6 @@ struct child_ctx
     creating and setting up the child process. */
     int msg_port[2];
 };
-
-private extern int get_child_index_number(void);
-
-private extern void create_syscall_children(void);
 
 private extern void create_smart_syscall_children(void);
 

@@ -18,6 +18,7 @@
 #include "shim.h"
 #include "io.h"
 #include "probe.h"
+#include "concurrent.h"
 #include "nextgen.h"
 
 #include <string.h>
@@ -44,21 +45,21 @@ int _inject_fork_server(void)
 {
     output(STD, "Creating fork server\n");
 
+    /* Variables. */
+    int status, orig;
     struct reg regs;
-
-    int status;
         
     /* Lets save the code at main in the target process. */
-    int orig = ptrace(PT_READ_I, map->exec_ctx->pid, (caddr_t)&map->exec_ctx->main_start_address, 0);
+    orig = ptrace(PT_READ_I, atomic_load(&map->exec_ctx->pid), (caddr_t)&map->exec_ctx->main_start_address, 0);
 
     /* Let's set a breakpoint on main. */
-    ptrace(PT_WRITE_I, map->exec_ctx->pid, (caddr_t)&map->exec_ctx->main_start_address, (orig & TRAP_MASK) | TRAP_INST);
+    ptrace(PT_WRITE_I, atomic_load(&map->exec_ctx->pid), (caddr_t)&map->exec_ctx->main_start_address, (orig & TRAP_MASK) | TRAP_INST);
 
     /* Now we continue until the breakpoint. */
-    ptrace(PT_CONTINUE, map->exec_ctx->pid, (caddr_t)1, 0);
+    ptrace(PT_CONTINUE, atomic_load(&map->exec_ctx->pid), (caddr_t)1, 0);
 
     /* Wait until the breakpoint is hit. */
-    wait4(map->exec_ctx->pid, &status, 0, NULL);
+    wait_on(&map->exec_ctx->pid, &status);
 
     if(WIFCONTINUED(status) != 0)
     {
@@ -88,7 +89,7 @@ int _inject_fork_server(void)
     }
 
     /* Lets grab the registers at main/breakpoint .*/
-    ptrace(PT_GETREGS, map->exec_ctx->pid, (caddr_t)&regs, 0);
+    ptrace(PT_GETREGS, atomic_load(&map->exec_ctx->pid), (caddr_t)&regs, 0);
 
     printf("rax: Ox%lx\n", regs.r_rax);
 
@@ -97,9 +98,9 @@ int _inject_fork_server(void)
 
 int _get_load_address(void)
 {
+    int fd, rtrn;
     GElf_Ehdr ehdr;
     Elf *elf = NULL;
-    int fd, rtrn;
 
     /* Open the file. */
     fd = open(map->exec_ctx->path_to_exec, O_RDONLY);
@@ -146,9 +147,12 @@ int _get_load_address(void)
             output(ERROR, "This is an archive not an executable.\n");
             return -1;
 
-        default:
-            output(ERROR, "Unknown file type.\n");
+        case ELF_K_COFF:
+        case ELF_K_NUM:
+            output(ERROR, "Can't handle this file type.\n");
             return -1;
+
+        /* Don't need a default case because we handle all the possible enumerations. */
     }
     elf_end(elf);
     return 0;

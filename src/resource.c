@@ -17,8 +17,11 @@
 
 #include "resource.h"
 #include "nextgen.h"
+#include "network.h"
 #include "crypto.h"
 #include "utils.h"
+#include "memory.h"
+#include "ck_queue.h"
 #include "io.h"
 
 #include <sys/param.h>
@@ -27,28 +30,43 @@
 #include <errno.h>
 #include <fcntl.h>
 
+static struct mem_pool_shared *desc_pool;
+
+static struct mem_pool_shared *mount_pool;
+
+static struct mem_pool_shared *dirpath_pool;
+
+static struct mem_pool_shared *file_pool;
+
+static struct mem_pool_shared *socket_pool;
+
 int get_desc(int *fd)
 {
 	struct memory_block *block;
 
-	block = mem_get_shared_block(map->desc_pool);
+    /* Grab a shared memory block from the decriptor pool. */
+	block = mem_get_shared_block(desc_pool);
 	if(block == NULL)
 	{
 		output(ERROR, "Can't get shared block\n");
 		return -1;
 	}
 
+    /* Set fd to the descriptor we grabed from the pool. */
 	fd = (int *)block->ptr;
 
 	return 0;
 }
 
 int return_desc(int *fd)
-{
-	/* Make sure the fd is valid. */
-	
+{	
 
 	return 0;
+}
+
+int free_desc(int *fd)
+{
+    return 0;
 }
 
 int get_mount(char **path)
@@ -91,14 +109,14 @@ static int create_fd_pool(void)
     int rtrn;
 	struct memory_block *block = NULL;
 
-	map->desc_pool = mem_create_shared_pool(sizeof(int *), 1024);
-	if(map->desc_pool == NULL)
+	desc_pool = mem_create_shared_pool(sizeof(int *), 1024);
+	if(desc_pool == NULL)
 	{
 		output(ERROR, "Can't allocate descriptor memory pool\n");
 		return -1;
 	}
 
-    init_shared_pool(&map->desc_pool, block)
+    init_shared_pool(&desc_pool, block)
     {
     	/* Temp variables that we define with auto_clean so that we 
         don't have to worry about calling free. */
@@ -175,14 +193,14 @@ static int create_file_pool(void)
     int rtrn;
 	struct memory_block *block = NULL;
 
-	map->file_pool = mem_create_shared_pool(sizeof(char *), 1024);
-	if(map->file_pool == NULL)
+	file_pool = mem_create_shared_pool(sizeof(char *), 1024);
+	if(file_pool == NULL)
 	{
 		output(ERROR, "Can't allocate file path memory pool\n");
 		return -1;
 	}
 
-    init_shared_pool(&map->file_pool, block)
+    init_shared_pool(&file_pool, block)
     {
     	/* Temp variables that we define with auto_clean so that we 
         don't have to worry about calling free. */
@@ -292,8 +310,8 @@ static int create_file_pool(void)
 
 static int create_dirpath_pool(void)
 {
-	map->dirpath_pool = mem_create_shared_pool(sizeof(char *), 1024);
-	if(map->dirpath_pool == NULL)
+	dirpath_pool = mem_create_shared_pool(sizeof(char *), 1024);
+	if(dirpath_pool == NULL)
 	{
 		output(ERROR, "Can't allocate dir path memory pool\n");
 		return -1;
@@ -302,7 +320,7 @@ static int create_dirpath_pool(void)
     int rtrn;
 	struct memory_block *block = NULL;
 
-    CK_SLIST_FOREACH(block, &map->dirpath_pool->free_list, list_entry)
+    CK_SLIST_FOREACH(block, &dirpath_pool->free_list, list_entry)
     {
         /* Temp variable that we define with auto_clean so that we 
         don't have to worry about calling free. */
@@ -332,11 +350,19 @@ static int create_dirpath_pool(void)
 	return 0;
 }
 
-int create_resource_pools(void)
+int setup_resource_module(void)
 {
     output(STD, "Creating resource pools\n");
 
 	int rtrn;
+
+    /* Start socket server. We use this to connect to, to create loopback sockets. */
+    rtrn = start_socket_server();
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't start socket server\n");
+        return -1;
+    }
 
 /*	rtrn = create_mount_pool();
 	if(rtrn < 0)
@@ -369,8 +395,3 @@ int create_resource_pools(void)
 	return 0;
 }
 
-int clean_resource_pools(void)
-{
-
-	return 0;
-}

@@ -19,9 +19,25 @@
 #define SYSCALL_H
 
 #include "private.h"
-#include "child.h"
+#include "stdatomic.h"
+#include "entry.h"
 
-private extern int get_syscall_table(void);
+#include <signal.h>
+#include <setjmp.h>
+#include <stdbool.h>
+#include <sys/time.h>
+
+extern unsigned int number_of_children;
+
+#define for_each_child(child, i) for(i = 0; i < number_of_children; i++) { child = get_child_from_index(i); }
+
+private extern struct syscall_entry_shadow *get_entry(unsigned int syscall_number);
+
+private extern struct child_ctx *get_child_from_index(unsigned int i);
+
+private extern struct child_ctx *get_child_ctx(void);
+
+private extern struct syscall_table_shadow *get_syscall_table(void);
 
 private extern int cleanup_syscall_table(void);
 
@@ -30,5 +46,13 @@ private extern int pick_syscall(struct child_ctx *ctx);
 private extern int generate_arguments(struct child_ctx *ctx);
 
 private extern int test_syscall(struct child_ctx *ctx);
+
+private extern void create_syscall_children(void);
+
+private extern void kill_all_children(void);
+
+private extern int setup_syscall_module(void);
+
+private extern void start_main_syscall_loop(void);
 
 #endif

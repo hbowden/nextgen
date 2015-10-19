@@ -89,6 +89,7 @@ static struct parser_ctx *parse_cmd_line(int argc, char *argv[])
     int iFlag = FALSE, oFlag = FALSE, fFlag = FALSE, nFlag = FALSE, 
     sFlag = FALSE, eFlag = FALSE, pFlag = FALSE, aFlag = FALSE, tFlag = FALSE;
 
+    /* Allocate.  */
     struct parser_ctx *ctx = mem_alloc(sizeof(struct parser_ctx));
     if(ctx == NULL)
     {
@@ -252,32 +253,6 @@ static struct parser_ctx *parse_cmd_line(int argc, char *argv[])
 
 static void clean_syscall_mapping(void)
 {
-    unsigned int i, ii;
-
-    mem_free_shared(map->sys_table, sizeof(struct syscall_table));
-
-    clean_resource_pools();
-
-    for(i = 0; i < map->number_of_children; i++)
-    {
-        struct child_ctx *child = map->children[i];
-
-        clean_shared_pool(child->pool);
-
-        for(ii = 0; ii < 6; ii++)
-        {
-            mem_free_shared(child->arg_value_index[ii], sizeof(unsigned long));
-        }
-
-        mem_free(child->arg_value_index);
-
-        mem_free(child->arg_size_index);
-    
-        mem_free(child->err_value);
-
-        mem_free_shared(child, sizeof(struct child_ctx));
-    }
-
     return;
 }
 
@@ -399,146 +374,16 @@ static int init_network_mapping(struct shared_map **mapping, struct parser_ctx *
 
 static int init_syscall_mapping(struct shared_map **mapping, struct parser_ctx *ctx)
 {
-    int rtrn;
-    unsigned int i, ii;
-
+    /* Set the outpath directory. */
     (*mapping)->path_to_out_dir = ctx->path_to_out_dir;
-
-    /* Set running children to zero. */
-    atomic_init(&(*mapping)->running_children, 0);
 
     /* We use atomic values for the pids, so let's init the reaper pid. */
     atomic_init(&(*mapping)->reaper_pid, 0);
     atomic_init(&(*mapping)->god_pid, 0);
 
-    atomic_init(&(*mapping)->test_counter, 0);
-
-    /* Allocate the system call table as shared memory. */
-    (*mapping)->sys_table = mem_alloc_shared(sizeof(struct syscall_table));
-    if((*mapping)->sys_table == NULL)
-    {
-        output(ERROR, "Can't create shared object\n");
-        return -1;
-    }
-
     /* Intialize socket server values.*/
     (*mapping)->socket_server_port = 0;
     atomic_init(&(*mapping)->socket_server_pid, 0);
-
-    /* Grab the core count of the machine we are on. */
-    unsigned int core_count;
-    rtrn = get_core_count(&core_count);
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't get core count\n");
-        return -1;
-    }
-    
-    /* Set the number of child processes to the number of cores detected. */
-    (*mapping)->number_of_children = core_count;
-
-    /* Create the child process structures. */
-    (*mapping)->children = mem_alloc((*mapping)->number_of_children * sizeof(struct child_ctx *));
-    if((*mapping)->children == NULL)
-    {
-        output(ERROR, "Can't create children object.\n");
-        return -1;
-    }
-
-    /* Loop for each child and allocate the child context object as shared anonymous memory. */
-    for(i = 0; i < (*mapping)->number_of_children; i++)
-    {
-        /* Init a new child context struct. */
-        struct child_ctx child_struct = { .list = CK_LIST_HEAD_INITIALIZER(child->list) };
-        struct child_ctx *child = &child_struct;
-
-        /* Map the child context as shared memory. */
-        child = mem_alloc_shared(sizeof(struct child_ctx));
-        if(child == NULL)
-        {
-            output(ERROR, "Can't create child context\n");
-            return -1;
-        }
-
-        child->current_arg = 0;
-
-        /* Create a shared memory pool for the child. */
-        child->pool = mem_create_shared_pool(sizeof(struct list_node), 4096);
-        if(child->pool == NULL)
-        {
-            output(ERROR, "Can't create child's memory pool\n");
-            return -1;
-        }
-
-        struct memory_block *block = NULL;
-
-        init_shared_pool(&child->pool, block)
-        {
-            struct list_node *node = NULL;
-
-            node = mem_alloc_shared(sizeof(struct list_node));
-            if(node == NULL)
-            {
-                output(ERROR, "Can't alloc list node\n");
-                return -1;
-            }
-
-            block->ptr = node;
-
-            struct list_data *data = NULL;
-
-            data = mem_alloc_shared(sizeof(struct list_data));
-            if(data == NULL)
-            {
-                output(ERROR, "Can't alloc list data\n");
-                return -1;
-            }
-
-            ((struct list_node *)block->ptr)->data = data;
-        }
-     
-        /* Create the index where we store the syscall arguments. */
-        child->arg_value_index = mem_alloc(7 * sizeof(unsigned long *));
-        if(child->arg_value_index == NULL)
-        {
-            output(ERROR, "Can't create arg value index: %s\n", strerror(errno));
-            return -1;
-        }
-
-        /* This index tracks the size of of the argument generated.  */
-        child->arg_size_index = mem_alloc(7 * sizeof(unsigned long));
-        if(child->arg_size_index == NULL)
-        {
-            output(ERROR, "Can't create arg size index: %s\n", strerror(errno));
-            return -1;
-        }
-
-        /* This is where we store the error string on each syscall test. */
-        child->err_value = mem_alloc(1024);
-        if(child->err_value == NULL)
-        {
-            output(ERROR, "err_value: %s\n", strerror(errno));
-            return -1;
-        }
-
-        /* Init cleanup list. */
-        CK_LIST_INIT(&child->list);
-
-        /* Loop and create the various indecies in the child struct. */
-        for(ii = 0; ii < 6; ii++)
-        {
-            child->arg_value_index[ii] = mem_alloc_shared(sizeof(unsigned long));
-            if(child->arg_value_index[ii] == NULL)
-            {
-                output(ERROR, "Can't create arg value\n");
-                return -1;
-            }
-        }
-
-        atomic_init(&child->pid, EMPTY);
-
-        (*mapping)->children[i] = child;
-    }
 
     return 0;
 }
@@ -553,7 +398,7 @@ static int init_shared_mapping(struct shared_map **mapping, struct parser_ctx *c
     /* Set the fuzzing mode selected by the user. */
     (*mapping)->mode = ctx->mode;
 
-    /* Set inteligence mode. */
+    /* Set intelligence mode. */
     (*mapping)->smart_mode = ctx->smart_mode;
 
     /* Set the stop flag to FALSE, when set to TRUE all processes start their exit routines and eventually exit. */
@@ -623,7 +468,7 @@ int main(int argc, char *argv[])
     }
 
     /* Parse the command line for user input. parse_cmd_line() will set variables
-    in map, the shared memory object. This will tell the fuzzer how to run. */
+    in map, the shared memory mapping. This will tell the fuzzer how to run. */
     ctx = parse_cmd_line(argc, argv);
     if(ctx == NULL)
     {

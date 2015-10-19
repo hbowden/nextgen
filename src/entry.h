@@ -19,13 +19,11 @@
 #define ENTRY_H
 
 #include "nextgen.h"
-#include "child.h"
-#include "utils.h"
+#include "syscall.h"
 #include "arg_types.h"
+#include "stdatomic.h"
 
 #include <stdbool.h>
-
-#include "stdatomic.h"
 
 enum syscall_status { ON, OFF };
 

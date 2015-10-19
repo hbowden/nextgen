@@ -24,6 +24,6 @@
 
 private extern int create_new_generation(char **file, off_t *file_size, char *file_extension);
 
-private extern int start_god(void);
+private extern int setup_genetic_module(void);
 
 #endif
