@@ -16,12 +16,13 @@
  **/
 
 #include "resource.h"
+#include "concurrent.h"
 #include "nextgen.h"
+#include "platform.h"
 #include "network.h"
 #include "crypto.h"
 #include "utils.h"
 #include "memory.h"
-#include "ck_queue.h"
 #include "io.h"
 
 #include <sys/param.h>
@@ -109,7 +110,7 @@ static int create_fd_pool(void)
     int rtrn;
 	struct memory_block *block = NULL;
 
-	desc_pool = mem_create_shared_pool(sizeof(int *), 1024);
+	desc_pool = mem_create_shared_pool(sizeof(int *), POOL_SIZE);
 	if(desc_pool == NULL)
 	{
 		output(ERROR, "Can't allocate descriptor memory pool\n");
@@ -193,7 +194,7 @@ static int create_file_pool(void)
     int rtrn;
 	struct memory_block *block = NULL;
 
-	file_pool = mem_create_shared_pool(sizeof(char *), 1024);
+	file_pool = mem_create_shared_pool(sizeof(char *), POOL_SIZE);
 	if(file_pool == NULL)
 	{
 		output(ERROR, "Can't allocate file path memory pool\n");
@@ -310,7 +311,7 @@ static int create_file_pool(void)
 
 static int create_dirpath_pool(void)
 {
-	dirpath_pool = mem_create_shared_pool(sizeof(char *), 1024);
+	dirpath_pool = mem_create_shared_pool(sizeof(char *), POOL_SIZE);
 	if(dirpath_pool == NULL)
 	{
 		output(ERROR, "Can't allocate dir path memory pool\n");

@@ -33,18 +33,18 @@ enum argnums { FIRST_ARG, SECOND_ARG, THIRD_ARG, FOURTH_ARG, FIFTH_ARG, SIXTH_AR
 struct syscall_entry_shadow
 {
     const char *name_of_syscall;
-    const int syscall_symbol;
+    const uint32_t syscall_symbol;
 
     atomic_bool status;
     const bool need_alarm;
     const bool requires_root;
 
-    const unsigned int number_of_args;
-    const unsigned int entry_number;
+    const uint32_t number_of_args;
+    const uint32_t entry_number;
 
-    struct arg_context *arg_context_index[6];
+    struct arg_context *arg_context_index[7];
 
-    int (*get_arg_index[7])(unsigned long **, struct child_ctx *);
+    int32_t (*get_arg_index[7])(uint64_t **);
 
     atomic_uint_least64_t return_value;
 };
@@ -53,18 +53,18 @@ struct syscall_entry_shadow
 struct syscall_entry
 {
     const char *name_of_syscall;
-    const int syscall_symbol;
+    const uint32_t syscall_symbol;
 
     bool status;
     const bool need_alarm;
     const bool requires_root;
 
-    const unsigned int number_of_args;
-    const unsigned int entry_number;
+    const uint32_t number_of_args;
+    const uint32_t entry_number;
 
-    int arg_type_index[7];
+    int32_t arg_type_index[7];
 
-    int (*get_arg_index[7])(unsigned long **, struct child_ctx *);
+    int32_t (*get_arg_index[7])(uint64_t **);
 };
 
 #endif

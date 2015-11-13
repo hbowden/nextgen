@@ -18,16 +18,16 @@
 #ifndef FILE_H
 #define FILE_H
 
-#include "private.h"
+#include <stdint.h>
 
-private extern int create_file_index(void);
+extern int32_t setup_file_module(char *exec_path);
 
-private extern int get_file(int *file, char **extension);
+extern void start_main_file_loop(void);
 
-private extern int count_files_directory(unsigned int *count);
+extern int32_t get_exec_path(char **exec_path);
 
-private extern int initial_fuzz_run(void);
+extern int32_t set_end_offset(uint64_t offset);
 
-private extern void start_main_file_loop(void);
+extern int32_t initial_fuzz_run(void);
 
 #endif

@@ -17,6 +17,7 @@
 
 #include "log.h"
 #include "io.h"
+#include "types.h"
 #include "entry.h"
 #include "syscall.h"
 #include "memory.h"
@@ -29,13 +30,15 @@
 #include <string.h>
 #include <sys/stat.h>
 
+static char *out_dir_path;
+
 int log_file(char *file_path, char *file_extension)
 {
     int rtrn;
     char *out_path auto_clean = NULL;
 
     /* Create out file path. */
-    rtrn = asprintf(&out_path, "%s/last_file_run.%s", map->path_to_out_dir, file_extension);
+    rtrn = asprintf(&out_path, "%s/last_file_run.%s", out_dir_path, file_extension);
     if(rtrn < 0)
     {
         output(ERROR, "Can't create out path: %s\n", strerror(errno));
@@ -87,14 +90,16 @@ int create_out_directory(char *path)
         return -1;
     }
 
+    out_dir_path = crash_dir;
+
 	return 0;
 }
 
-int log_arguments(struct child_ctx *ctx)
+int log_arguments(struct log_obj *obj)
 {
-    unsigned int i;
-    unsigned int number_of_args = ctx->number_of_args;
-    const char *name_of_syscall = ctx->name_of_syscall;
+    uint32_t i;
+    uint32_t number_of_args = obj->number_of_args;
+    const char *name_of_syscall = obj->name_of_syscall;
     struct syscall_entry_shadow *entry = NULL;
 
     char *arg_value auto_clean = mem_alloc(1024);
@@ -111,7 +116,7 @@ int log_arguments(struct child_ctx *ctx)
        return -1;
     }
 
-    entry = get_entry(ctx->syscall_number);
+    entry = get_entry(obj->syscall_number);
     if(entry == NULL)
     {
         output(ERROR, "Can't get entry\n");
@@ -126,17 +131,17 @@ int log_arguments(struct child_ctx *ctx)
     	{
     		/* File and directory paths. */
     		case PATH:
-    		    sprintf(arg_value, " %s=%s", entry->arg_context_index[i]->name, (char *)ctx->arg_value_index[i]);
+    		    sprintf(arg_value, " %s=%s", entry->arg_context_index[i]->name, (char *)obj->arg_value_index[i]);
     		    break;
 
             /* Pointers. */
     		case POINTER:
-    		    sprintf(arg_value, " %s=%p", entry->arg_context_index[i]->name, (void *)ctx->arg_value_index[i]);
+    		    sprintf(arg_value, " %s=%p", entry->arg_context_index[i]->name, (void *)obj->arg_value_index[i]);
     		    break;
 
             /* Non pointer values. */
     		case NUMBER:
-    		    sprintf(arg_value, " %s=%lu", entry->arg_context_index[i]->name, *(ctx->arg_value_index[i]));
+    		    sprintf(arg_value, " %s=%llu", entry->arg_context_index[i]->name, *(obj->arg_value_index[i]));
     		    break;
 
             default:
@@ -152,14 +157,14 @@ int log_arguments(struct child_ctx *ctx)
 	return 0;
 }
 
-int log_results(struct child_ctx *ctx)
+int log_results(struct log_obj *obj)
 {
-    int rtrn;
+    int32_t rtrn = 0;
     char *out_buf auto_clean = NULL;
 
-    if(ctx->had_error == YES)
+    if(obj->had_error == YES)
     {
-        rtrn = asprintf(&out_buf, "%s= %d (%s) %s\n", BOLD_RED, ctx->ret_value, ctx->err_value, RESET);
+        rtrn = asprintf(&out_buf, "%s= %d (%s) %s\n", BOLD_RED, obj->ret_value, obj->err_value, RESET);
         if(rtrn < 0)
         {
             output(ERROR, "Can't create out message\n");
@@ -168,7 +173,7 @@ int log_results(struct child_ctx *ctx)
     }
     else
     {
-        rtrn = asprintf(&out_buf, "%s= %d %s\n", BOLD_GREEN, ctx->ret_value, RESET);
+        rtrn = asprintf(&out_buf, "%s= %d %s\n", BOLD_GREEN, obj->ret_value, RESET);
         if(rtrn < 0)
         {
             output(ERROR, "Can't create out message\n");

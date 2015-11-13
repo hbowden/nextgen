@@ -18,6 +18,7 @@
 #include "mutate.h"
 #include "nextgen.h"
 #include "io.h"
+#include "types.h"
 #include "crypto.h"
 #include "arg_types.h"
 #include "plugin.h"

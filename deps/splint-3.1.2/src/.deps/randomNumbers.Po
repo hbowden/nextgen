@@ -1,6 +1,0 @@
-randomNumbers.o: randomNumbers.c Headers/randomNumbers.h \
-  Headers/256_random_numbers.nf
-
-Headers/randomNumbers.h:
-
-Headers/256_random_numbers.nf:

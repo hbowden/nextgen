@@ -55,7 +55,6 @@ struct arg_context
 	enum arg_type type;
 	enum yes_no should_free;
 	int log_type;
-
 };
 
 private extern struct arg_context file_desc_ctx;

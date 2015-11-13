@@ -18,12 +18,28 @@
 #ifndef GENETIC_H
 #define GENETIC_H
 
-#include "private.h"
+#include "concurrent.h"
 
 #include <sys/types.h>
+#include <stdint.h>
 
-private extern int create_new_generation(char **file, off_t *file_size, char *file_extension);
+enum job_type { GENESIS };
 
-private extern int setup_genetic_module(void);
+struct job_ctx
+{
+	enum job_type type;
+
+    uint64_t **args;
+
+    uint32_t number_of_args;
+
+    uint32_t syscall_symbol;
+};
+
+extern int32_t setup_genetic_module(void);
+
+extern struct job_ctx *get_job(struct work_queue *queue);
+
+extern int32_t create_new_generation(char **file, off_t *file_size, char *file_extension);
 
 #endif

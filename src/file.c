@@ -18,25 +18,59 @@
 #include "file.h"
 #include "mutate.h"
 #include "signals.h"
+#include "memory.h"
 #include "genetic.h"
 #include "crypto.h"
 #include "nextgen.h"
+#include "types.h"
 #include "io.h"
 
 #include <stdio.h>
+#include <stdint.h>
+#include <pthread.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <sys/mman.h>
 #include <string.h>
 #include <dirent.h>
 
-int get_file(int *file, char **extension)
+static atomic_int_fast32_t pid;
+
+static char *path_to_exec;
+
+static char **address_index;
+
+/* The virtual memory address found in the executable header. */
+static uint64_t main_start_address;
+
+/* The virtual memory offset of where the executable begins. */
+static uint64_t start_offset;
+    
+static uint64_t end_offset;
+
+static uint64_t number_of_branchs;
+
+/* The arguments to pass to the target executable. */
+static char **args;
+
+/* Index of file paths read from the in directory. */
+static char **file_index;
+
+/* Number of files in index. */
+static uint32_t file_count;
+
+static char *input_dir;
+
+/* Here is where we keep data about the executable we are fuzzing. */
+static struct executable_context *exec_ctx;
+
+static int get_file(int *file, char **extension)
 {
-	int rtrn;
-	unsigned int index_offset;
+	int32_t rtrn;
+	uint32_t index_offset;
 
     /* Pick a file index offset at random. */
-	rtrn = rand_range(map->file_count, &index_offset);
+	rtrn = rand_range(file_count, &index_offset);
 	if(rtrn < 0)
 	{
 		output(ERROR, "Can't pick random number\n");
@@ -44,7 +78,7 @@ int get_file(int *file, char **extension)
 	}
 
     /* Open the file at the random offset. */
-	*file = open(map->file_index[index_offset], O_RDONLY);
+	*file = open(file_index[index_offset], O_RDONLY);
 	if(*file < 0)
 	{
 		output(ERROR, "Can't open file: %s\n", strerror(errno));
@@ -52,7 +86,7 @@ int get_file(int *file, char **extension)
 	}
 
     /* Get the file extension for the file we just opened. */
-	rtrn = get_extension(map->file_index[index_offset], extension);
+	rtrn = get_extension(file_index[index_offset], extension);
 	if(rtrn < 0)
 	{
 		output(ERROR, "Can't get extension\n");
@@ -62,16 +96,21 @@ int get_file(int *file, char **extension)
     return 0;
 }
 
-int create_file_index(void)
+int get_exec_path(char **exec_path)
 {
-	struct dirent *entry;
-	unsigned int index_counter = 0;
-	char *file_path;
-    DIR *directory;
-    int rtrn;
+    return 0;
+}
+
+static int32_t create_file_index(void)
+{
+    int32_t rtrn = 0;
+    DIR *directory = NULL;
+    char *file_path = NULL;
+    uint32_t index_counter = 0;
+	struct dirent *entry = NULL;
 
     /* Open the directory. */
-    directory = opendir(map->path_to_in_dir);
+    directory = opendir(input_dir);
     if(directory == NULL)
     {
         output(ERROR, "Can't open dir: %s\n", strerror(errno));
@@ -83,38 +122,43 @@ int create_file_index(void)
     {
     	/* Skip hidden files. */
         if(entry->d_name[0] == '.')
-        {
             continue;
-        }
         
         /* Copy file path. */
-        rtrn = asprintf(&file_path, "%s/%s", map->path_to_in_dir, entry->d_name);
+        rtrn = asprintf(&file_path, "%s/%s", input_dir, entry->d_name);
         if(rtrn < 0)
         {
+            /* Ignore error for closedir() because we are going to quit anyway. */
             closedir(directory);
             return -1;
         }
 
-        /* Set slot in index to the file path we just copied. */
-        map->file_index[index_counter] = file_path;
+        /* Set index element to the file path we just copied. */
+        file_index[index_counter] = file_path;
 
         /* Increment the index counter. */
         index_counter++;
     }
     
     /* Close the directory. */
-    closedir(directory);
+    rtrn = closedir(directory);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't close directory\n");
+        return -1;
+    }
 
 	return 0;
 }
 
-int count_files_directory(unsigned int *count)
+static int32_t count_files_directory(uint32_t *count)
 {
-	struct dirent *entry;
-    DIR *directory;
+    int32_t rtrn = 0;
+    DIR *directory = NULL;
+	struct dirent *entry = NULL;
 
     /* Open the directory. */
-    directory = opendir(map->path_to_in_dir);
+    directory = opendir(input_dir);
     if(directory == NULL)
     {
         output(ERROR, "Can't open dir: %s\n", strerror(errno));
@@ -126,24 +170,26 @@ int count_files_directory(unsigned int *count)
     {
     	/* Skip hidden files. */
         if(entry->d_name[0] == '.')
-        {
             continue;
-        }
 
         /* Increment the file count. */
-        *count = *count + 1;
+        (*count)++;
     }
     
     /* Close the directory. */
-    closedir(directory);
+    rtrn = closedir(directory);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't close directory\n");
+        return -1;
+    }
 
 	return 0;
 }
 
 int initial_fuzz_run(void)
 {
-	unsigned int file_count = map->file_count;
-    unsigned int i;
+    uint32_t i;
 
     for(i = 0; i < file_count; i++)
     {
@@ -151,6 +197,132 @@ int initial_fuzz_run(void)
     }
 
 	return 0;
+}
+
+static void *kill_test_proc(void *kill_pid)
+{
+    sleep(1);
+
+    pid_t *proc_pid = (pid_t *)kill_pid;
+
+    int32_t rtrn = kill(*proc_pid, SIGKILL);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't kill child process: %s\n", strerror(errno));
+        return NULL;
+    }
+
+    return NULL;
+}
+
+int32_t set_end_offset(uint64_t offset)
+{
+    return 0;
+}
+
+static int32_t test_exec_with_file_in_child(char *file_path, char *file_extension)
+{
+    int rtrn;
+    pid_t child_pid;
+    char *out_path auto_clean = NULL;
+    char *file_name auto_clean = NULL;
+
+    child_pid = fork();
+    if(child_pid == 0)
+    {
+        if(atomic_load(&map->stop) == TRUE)
+        {
+             _exit(0);
+        }
+
+        char * const argv[] = {file_path, NULL};
+
+        /* Execute the target executable with the file we generated. */
+        rtrn = execv(path_to_exec, argv);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't execute target program: %s\n", strerror(errno));
+            return -1;
+        }
+
+        _exit(-1);
+    }
+    else if(child_pid > 0)
+    {
+        int status;
+        pthread_t kill_thread;
+        
+        /* Create a thread to kill the other process if it does not crash. */
+        rtrn = pthread_create(&kill_thread, NULL, kill_test_proc, &child_pid);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't create kill thread\n");
+            return -1;
+        }
+
+        /* Wait for test program to crash or be killed by the kill thread. */
+        waitpid(child_pid, &status, 0);
+
+        /* Check if the target program recieved a signal. */
+        if(WIFSIGNALED(status) == TRUE)
+        {
+            /* Check the signal the target program recieved. */
+            switch(WTERMSIG(status))
+            {
+                /* We caused the signal so ignore it. */
+                case SIGKILL:
+                    break;
+
+                /* The program we are testing crashed let's save the file
+                that caused the crash.  */
+                case SIGSEGV:
+                case SIGBUS:
+
+                    /* Create a random file name. */
+                    rtrn = generate_name(&file_name, file_extension, FILE_NAME);
+                    if(rtrn < 0)
+                    {
+                        output(ERROR, "Can't create out path: %s\n", strerror(errno));
+                        return -1;
+                    }
+
+                    /* Create a file path.  */
+                    rtrn = asprintf(&out_path, "%s/crash_dir/%s", file_path, file_name);
+                    if(rtrn < 0)
+                    {
+                        output(ERROR, "Can't create out path: %s\n", strerror(errno));
+                        return -1;
+                    }
+
+                    /* Copy file out of temp into the out directory. */
+                    rtrn = copy_file_to(file_path, out_path);
+                    if(rtrn < 0)
+                    {
+                        output(ERROR, "Can't copy file to crash directory\n");
+                        return -1;
+                    }
+
+                    break;
+                
+                /* We recieved a less interesting signal let's save
+                 that in a different directory. */
+                default:
+                   break;
+
+            }
+        }
+        int *response;
+
+        pthread_join(kill_thread, (void **)&response);
+            
+    }
+    else
+    {
+        output(ERROR, "Can't create child process: %s\n", strerror(errno));
+        return -1;
+    }
+
+    return 0;
 }
 
 void start_main_file_loop(void)
@@ -259,3 +431,50 @@ void start_main_file_loop(void)
 
     return;
 }
+
+int setup_file_module(char *exec_path)
+{
+    int32_t rtrn = 0;
+    uint32_t i = 0;
+
+    /* Set exec path. */
+    path_to_exec = exec_path;
+
+    /* Count how many files are in the input directory. */
+    rtrn = count_files_directory(&file_count);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't count files in the in directory.\n");
+        return -1;
+    }
+
+    /* Create file index. */
+    file_index = mem_alloc((file_count + 1) * sizeof(char *));
+    if(file_index == NULL)
+    {
+        output(ERROR, "Can't create file index: %s\n", strerror(errno));
+        return -1;
+    }
+
+    for(i = 0; i < file_count; i++)
+    {
+        file_index[i] = mem_alloc(1025);
+        if(file_index[i] == NULL)
+        {
+            output(ERROR, "Can't create shared object\n");
+            return -1;
+        }
+    }
+
+    /* Create a index with all the file paths in the input directory. */
+    rtrn = create_file_index();
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't create file index\n");
+        return -1;
+    }
+
+
+    return 0;
+}
+

@@ -1,6 +1,6 @@
 aes/libcrypto_la-aes_cfb.lo: aes/aes_cfb.c ../include/openssl/aes.h \
   ../include/openssl/opensslconf.h ../include/openssl/opensslfeatures.h \
-  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../lib/clang/7.0.0/include/stddef.h \
+  /Library/Developer/CommandLineTools/usr/bin/../lib/clang/7.0.0/include/stddef.h \
   ../include/openssl/modes.h
 
 ../include/openssl/aes.h:
@@ -9,6 +9,6 @@ aes/libcrypto_la-aes_cfb.lo: aes/aes_cfb.c ../include/openssl/aes.h \
 
 ../include/openssl/opensslfeatures.h:
 
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../lib/clang/7.0.0/include/stddef.h:
+/Library/Developer/CommandLineTools/usr/bin/../lib/clang/7.0.0/include/stddef.h:
 
 ../include/openssl/modes.h:

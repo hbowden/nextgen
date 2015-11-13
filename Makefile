@@ -1,15 +1,15 @@
 
-SOURCES = src/nextgen.c src/disas.c src/probe.c src/utils.c src/crypto.c src/runtime.c src/child.c src/network.c src/syscall.c \
+SOURCES = src/nextgen.c src/disas.c src/probe.c src/utils.c src/crypto.c src/runtime.c src/network.c src/syscall.c \
           src/shim.c src/generate.c src/mutate.c src/log.c src/signals.c src/reaper.c src/file.c src/plugin.c src/genetic.c \
           src/memory.c src/concurrent.c src/io.c src/resource.c src/arg_types.c
 
-ASAN_FLAGS = -fsanitize=address -DASAN
+ASAN_FLAGS = -fsanitize=address -Wno-unused-function -DASAN
 
 VALGRIND_FLAGS = -DVALGRIND
 
 TEST_FLAGS =
 
-TEST_SOURCES = tests/tests.c tests/test_map.c
+TEST_SOURCES = tests/tests.c test/test_utils.c
 
 CURRENT_DIR = $(shell pwd)
 
@@ -100,41 +100,44 @@ all:
 	cd $(CURRENT_DIR)/deps/capstone-3.0.4 && $(MAKE);
 	cd $(CURRENT_DIR)/deps/libressl-2.3.0 && ./configure && $(MAKE)
 
-	$(CC) $(CFLAGS) $(INCLUDES) -o nextgen $(SOURCES) $(ENTRY_SOURCES) $(LIBS) $(SILENCED_WARNINGS)
+	$(CC) $(CFLAGS) $(INCLUDES) -o nextgen src/main.c $(SOURCES) $(ENTRY_SOURCES) $(LIBS) $(SILENCED_WARNINGS)
 
-	$(CC) $(TEST_FLAGS) $(TEST_SOURCES) $(INCLUDES) -o test_suite
+	cd $(CURRENT_DIR)/tests/crypto && $(MAKE);
+	cd $(CURRENT_DIR)/tests/memory && $(MAKE);
+	cd $(CURRENT_DIR)/tests/parser && $(MAKE);
+	cd $(CURRENT_DIR)/tests/reaper && $(MAKE);
+	cd $(CURRENT_DIR)/tests/resource && $(MAKE);
+	cd $(CURRENT_DIR)/tests/syscall && $(MAKE);
+
+	$(CC) $(CFLAGS) $(INCLUDES) -o test_suite tests/tests.c tests/test_utils.c -Itests $(SOURCES) $(ENTRY_SOURCES) $(LIBS) $(SILENCED_WARNINGS)
 
 .PHONY: install
 install:
 
 	mv nextgen /usr/local/bin/
 
+.PHONY: quick
+quick:
+
+	$(CC) $(CFLAGS) $(INCLUDES) -o nextgen src/main.c $(SOURCES) $(ENTRY_SOURCES) $(LIBS) $(SILENCED_WARNINGS)
+
 .PHONY: asan
 asan:
 
 	cd $(CURRENT_DIR)/deps/ck-0.4.5 && ./configure && $(MAKE);
 	cd $(CURRENT_DIR)/deps/capstone-3.0.4 && $(MAKE);
+	cd $(CURRENT_DIR)/deps/libressl-2.3.0 && ./configure && $(MAKE)
 
-	$(CC) $(CFLAGS) $(ASAN_FLAGS) $(INCLUDES) -o nextgen $(SOURCES) $(ENTRY_SOURCES) $(LIBS)
+	$(CC) $(CFLAGS) $(ASAN_FLAGS) $(INCLUDES) -o nextgen src/main.c $(SOURCES) $(ENTRY_SOURCES) $(LIBS) $(SILENCED_WARNINGS)
 
 .PHONY: valgrind
 valgrind:
 
 	cd $(CURRENT_DIR)/deps/ck-0.4.5 && ./configure && $(MAKE);
 	cd $(CURRENT_DIR)/deps/capstone-3.0.4 && $(MAKE);
+	cd $(CURRENT_DIR)/deps/libressl-2.3.0 && ./configure && $(MAKE)
 
-	$(CC) $(CFLAGS) $(VALGRIND_FLAGS) $(INCLUDES) -o nextgen $(SOURCES) $(ENTRY_SOURCES) $(LIBS)
-
-.PHONY: splint
-splint:
-
-	cd $(CURRENT_DIR)/deps/splint-3.1.2 && ./configure && $(MAKE);
-
-.PHONY: splint-run
-splint-run:
-
-	$(CURRENT_DIR)/deps/splint-3.1.2/bin/splint src/*.h
-	$(CURRENT_DIR)/deps/splint-3.1.2/bin/splint src/*.c
+	$(CC) $(CFLAGS) $(VALGRIND_FLAGS) $(INCLUDES) -o nextgen src/main.c  $(SOURCES) $(ENTRY_SOURCES) $(LIBS) $(SILENCED_WARNINGS)
 
 .PHONY: test
 test:
@@ -154,6 +157,6 @@ clean:
 	cd $(CURRENT_DIR)/deps/capstone-3.0.4 && $(MAKE) clean
 	cd deps/ck-0.4.5 && $(MAKE) clean
 	cd $(CURRENT_DIR)/deps/libressl-2.3.0 && $(MAKE) clean
-	cd $(CURRENT_DIR)/deps/splint-3.1.2 && $(MAKE) clean
 	rm -rf nextgen
 	rm -rf test_suite
+	rm -rf *.dSYM

@@ -18,13 +18,13 @@
 #ifndef RUNTIME_H
 #define RUNTIME_H
 
-#include "private.h"
+#include <stdint.h>
 
 /* Calling this function will cause all nextgen processes to start exiting. */
-private extern int shutdown(void);
+extern int32_t shutdown(void);
 
-private extern int setup_runtime(void);
+extern int32_t setup_runtime(void);
 
-private extern int start_runtime(void);
+extern int32_t start_runtime(void);
 
 #endif

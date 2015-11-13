@@ -18,19 +18,20 @@
 #ifndef PROBE_H
 #define PROBE_H
 
-#include "private.h"
-
+/* These macros are used by shim.c */
 #define REGISTER_IP RIP
 #define TRAP_LEN    1
 #define TRAP_INST   0xCC
 #define TRAP_MASK   0xFFFFFFFFFFFFFF00
 
-private extern int inject_probes(void);
+extern int inject_probes(void);
 
-private extern int inject_kernel_probes(void);
+extern int inject_kernel_probes(void);
 
-private extern int start_and_pause_target(void);
+extern int start_and_pause_target(void);
 
-private extern int inject_fork_server(void);
+extern int inject_fork_server(void);
+
+extern int setup_probe_module(char *exec_path);
 
 #endif

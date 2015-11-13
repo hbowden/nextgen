@@ -18,17 +18,28 @@
 #ifndef LOG_H
 #define LOG_H
 
-#include "private.h"
 #include "syscall.h"
+
+struct log_obj
+{
+	int32_t ret_value;
+	int32_t had_error;
+	uint32_t number_of_args;
+	uint32_t syscall_number;
+	const char *err_value;
+	const char *name_of_syscall;
+	uint64_t **arg_value_index;
+
+};
 
 enum logging_type { POINTER, PATH, NUMBER };
 
-private extern int create_out_directory(char *path);
+extern int create_out_directory(char *path);
 
-private extern int log_arguments(struct child_ctx *ctx);
+extern int log_arguments(struct log_obj *obj);
 
-private extern int log_results(struct child_ctx *ctx);
+extern int log_results(struct log_obj *obj);
 
-private extern int log_file(char *file_path, char *file_extension);
+extern int log_file(char *file_path, char *file_extension);
 
 #endif

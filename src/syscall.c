@@ -20,15 +20,19 @@
 #include "syscall_table.h"
 #include "crypto.h"
 #include "signals.h"
-#include "io.h"
+#include "memory.h"
+#include "types.h"
 #include "mutate.h"
+#include "genetic.h"
 #include "arg_types.h"
 #include "utils.h"
 #include "nextgen.h"
 #include "shim.h"
+#include "io.h"
 
 #include <errno.h>
 #include <string.h>
+#include <assert.h>
 
 #include "stdatomic.h"
 
@@ -36,28 +40,30 @@
    local to the child process. */
 static struct child_ctx **children;
 
-unsigned int number_of_children;
+/* The total number of children process to run. */
+uint32_t number_of_children;
 
 /* The number of children processes currently running. */
 static atomic_uint_fast64_t running_children;
 
+/* Counter for number of syscall test that have been completed. */
 static atomic_uint_fast64_t test_counter;
 
 /* The syscall table. */
 static struct syscall_table_shadow *sys_table;
 
-int cleanup_syscall_table(void)
+int32_t cleanup_syscall_table(void)
 {
     
     return 0;
 }
 
-struct syscall_entry_shadow *get_entry(unsigned int syscall_number)
+struct syscall_entry_shadow *get_entry(uint32_t syscall_number)
 {
-    struct syscall_entry_shadow *entry = NULL;
-
     if(syscall_number > sys_table->number_of_syscalls)
         return NULL;
+
+    struct syscall_entry_shadow *entry = NULL;
 
     entry = mem_alloc(sizeof(struct syscall_entry_shadow));
     if(entry == NULL)
@@ -71,7 +77,7 @@ struct syscall_entry_shadow *get_entry(unsigned int syscall_number)
     return entry;
 }
 
-struct child_ctx *get_child_from_index(unsigned int i)
+struct child_ctx *get_child_from_index(uint32_t i)
 {
     if(i > number_of_children)
         return NULL;
@@ -87,29 +93,27 @@ struct child_ctx *get_child_from_index(unsigned int i)
 
     child = children[i];
 
-    return child;
+    return (child);
 }
 
-static int get_child_index_number(void)
+static int32_t get_child_index_number(void)
 {
-    unsigned int i;
-
-    int pid = getpid();
+    uint32_t i = 0;
+    pid_t pid = getpid();
 
     for(i = 0; i < number_of_children; i++)
     {
         if(atomic_load(&children[i]->pid) == pid)
-        {
-            return (int)i;
-        }
+            return (int32_t)i;
     }
-    /* Should not get here. */
+
+    /* Should not get here, but if we do return an error. */
     return -1;
 }
 
 static void exit_child(void)
 {
-    int child_number;
+    int32_t child_number = 0;
 
     /* Grab the child_ctx index number for this child process. */
     child_number = get_child_index_number();
@@ -125,34 +129,37 @@ static void exit_child(void)
     /* Set the PID as empty. */
     cas_loop_int32(&children[child_number]->pid, EMPTY); 
 
-    /* Decrement the running child counter and exit. */
+    /* Decrement the running child counter. */
     atomic_fetch_sub(&running_children, 1);
 
+    /* Exit and cleanup child. */
     _exit(0);
 }
 
 static void free_old_arguments(struct child_ctx *ctx)
 {
-    unsigned int i;
-    unsigned int number_of_args = ctx->number_of_args;
+    uint32_t i;
+    uint32_t number_of_args = ctx->number_of_args;
 
     for(i = 0; i < number_of_args; i++)
     {
-        if(ctx->arg_value_index[i] == NULL)
-        {
-            continue;
-        }
-
-        free(ctx->arg_value_index[i]);
+        mem_free(ctx->arg_value_index[i]);
     }
 
     return;
 }
 
+static int32_t do_job(struct job_ctx *job)
+{
+    printf("Loop\n");
+    
+    return (0);
+}
+
 static void start_smart_syscall_child(void)
 {
-    int rtrn;
-    int child_number;
+    int32_t rtrn = 0;
+    int32_t child_number = 0;
 
     /* Grab the child_ctx index number for this child process. */
     child_number = get_child_index_number();
@@ -165,7 +172,9 @@ static void start_smart_syscall_child(void)
     /* Grab child context. */
     struct child_ctx *ctx = children[child_number];
 
-    /* Set the return jump so that we can try fuzzing again on a signal. */
+    /* Set the return jump so that we can try fuzzing again on a signal. This 
+    is required on some operating systems because they can't clean up old 
+    processes fast enough for us. */
     rtrn = setjmp(ctx->return_jump);
     if(rtrn < 0)
     {
@@ -176,10 +185,45 @@ static void start_smart_syscall_child(void)
     /* Loop until ctrl-c is pressed by the user. */
     while(atomic_load(&map->stop) != TRUE)
     {
-        
+        struct job_ctx *job = NULL;
+
+        /* Grab a job from the work queue. */
+        job = get_job(map->queue);
+        if(job == NULL)
+        {
+            output(ERROR, "Can't get job\n");
+            exit_child();
+        }
+
+        /* Proccess the orders from the genetic algorithm. */
+        rtrn = do_job(job);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't do job\n");
+            exit_child();
+        }
     }
 
     exit_child();
+}
+
+static struct log_obj *create_log_object(struct child_ctx *ctx)
+{
+    struct log_obj *obj = NULL;
+
+    obj = mem_alloc(sizeof(struct log_obj));
+    if(obj == NULL)
+    {
+        output(ERROR, "Can't allocate a log object\n");
+        return NULL;
+    }
+
+    obj->name_of_syscall = ctx->name_of_syscall;
+    obj->number_of_args = ctx->number_of_args;
+    obj->arg_value_index = ctx->arg_value_index;
+    obj->syscall_number = ctx->syscall_number;
+
+    return (obj);
 }
 
 /**
@@ -187,8 +231,9 @@ static void start_smart_syscall_child(void)
  */
 static void start_syscall_child(void)
 {
-    int rtrn;
-    int child_number;
+    int32_t rtrn = 0;
+    int32_t child_number = 0;
+    struct log_obj *obj = NULL;
 
     /* Grab the child_ctx index number for this child process. */
     child_number = get_child_index_number();
@@ -236,9 +281,16 @@ static void start_syscall_child(void)
             exit_child();
         }
 
+        obj = create_log_object(ctx);
+        if(obj == NULL)
+        {
+            output(ERROR, "Can't create log object\n");
+            exit_child();
+        }
+
         /* Log the arguments before we use them, in case we cause a
         kernel panic, so we know what caused the panic. */
-        rtrn = log_arguments(ctx);
+        rtrn = log_arguments(obj);
         if(rtrn < 0)
         {
             output(ERROR, "Can't log arguments\n");
@@ -254,8 +306,12 @@ static void start_syscall_child(void)
             exit_child();
         }
 
+        obj->err_value = ctx->err_value;
+        obj->had_error = ctx->had_error;
+        obj->ret_value = ctx->ret_value;
+
         /* Log return values. */
-        rtrn = log_results(ctx);
+        rtrn = log_results(obj);
         if(rtrn < 0)
         {
             output(ERROR, "Can't log results\n");
@@ -351,7 +407,7 @@ static struct arg_context *get_arg_context(enum arg_type type)
 
 static int init_syscall_child(unsigned int i)
 {
-    int rtrn;
+    int32_t rtrn = 0;
 
     /* Set the child pid. */
     cas_loop_int32(&children[i]->pid, getpid());
@@ -382,8 +438,8 @@ static int init_syscall_child(unsigned int i)
 
 void create_syscall_children(void)
 {
-    int rtrn;
-    unsigned int i;
+    uint32_t i = 0;
+    int32_t rtrn = 0;
 
     /* Walk the child structure index and find the first empty child slot. */
     for(i = 0; i < number_of_children; i++)
@@ -452,8 +508,6 @@ void create_syscall_children(void)
 
 struct syscall_table_shadow *get_syscall_table(void)
 {
-    output(STD, "Building system call table\n");
-
     /* Grab a copy of the syscall table in on disk format. */ 
     struct syscall_table *syscall_table = get_table();
     if(sys_table == NULL)
@@ -474,7 +528,7 @@ struct syscall_table_shadow *get_syscall_table(void)
     shadow_table->number_of_syscalls = syscall_table->number_of_syscalls;
 
     /* Our loop incrementers. */
-    unsigned int i, ii;
+    uint32_t i, ii;
 
     /* Allocate heap memory for the list of syscalls. */
     shadow_table->sys_entry = mem_alloc(shadow_table->number_of_syscalls * sizeof(struct syscall_entry_shadow));
@@ -485,10 +539,10 @@ struct syscall_table_shadow *get_syscall_table(void)
     }
 
     /* This is the entry offset, it one because the entries start at [1] instead of [0]; */
-    unsigned int offset = 1;
+    uint32_t offset = 1;
 
     /* We use this to track where to put the new entry in the entry index. */
-    unsigned int shadow_entry_offset = 0;
+    uint32_t shadow_entry_offset = 0;
 
     /* Loop for each entry syscall and build a table from the on disk format. */
     for(i = 0; i < shadow_table->number_of_syscalls; i++)
@@ -519,7 +573,7 @@ struct syscall_table_shadow *get_syscall_table(void)
                 return NULL;
             }
         }
-     
+   
         /* Init the automic value. */
         atomic_init(&entry.status, ON);
 
@@ -537,11 +591,11 @@ struct syscall_table_shadow *get_syscall_table(void)
 int pick_syscall(struct child_ctx *ctx)
 {
     /* Use rand_range to pick a number between 0 and the number_of_syscalls.  */
-    int rtrn = rand_range(sys_table->number_of_syscalls, &ctx->syscall_number);
+    int32_t rtrn = rand_range(sys_table->number_of_syscalls, &ctx->syscall_number);
     if(rtrn < 0)
     {
         output(ERROR, "Can't generate random number\n");
-        return -1;
+        return (-1);
     }
 
     /* Copy entry values into the child context. */
@@ -550,24 +604,26 @@ int pick_syscall(struct child_ctx *ctx)
     /* Set values in ctx so we can get info from ctx instead using all these pointers. */ 
     ctx->need_alarm = sys_table->sys_entry[ctx->syscall_number].need_alarm;
 
+    /* Set the syscall symbol. */
     ctx->syscall_symbol = sys_table->sys_entry[ctx->syscall_number].syscall_symbol;
 
+    /* Set had error to NO.  */
     ctx->had_error = NO;
 
-    return 0;
+    return (0);
 }
 
-int generate_arguments(struct child_ctx *ctx)
+int32_t generate_arguments(struct child_ctx *ctx)
 {
-    int rtrn;
-    unsigned int i;
-    unsigned int number_of_args = ctx->number_of_args;
+    uint32_t i = 0;
+    int32_t rtrn = 0;
+    uint32_t number_of_args = ctx->number_of_args;
 
     for(i = 0; i < number_of_args; i++)
     {
         ctx->current_arg = i;
 
-        rtrn = sys_table->sys_entry[ctx->syscall_number].get_arg_index[i](&ctx->arg_value_index[i], ctx);
+        rtrn = sys_table->sys_entry[ctx->syscall_number].get_arg_index[i](&ctx->arg_value_index[i]);
         if(rtrn < 0)
         {
             output(ERROR, "Can't generate arguments for: %s\n", sys_table->sys_entry[ctx->syscall_number].name_of_syscall);
@@ -589,12 +645,12 @@ static int check_for_failure(int ret_value)
 int test_syscall(struct child_ctx *ctx)
 {
     /* Grab argument values. */
-    unsigned long *arg1 = ctx->arg_value_index[0];
-    unsigned long *arg2 = ctx->arg_value_index[1];
-    unsigned long *arg3 = ctx->arg_value_index[2];
-    unsigned long *arg4 = ctx->arg_value_index[3];
-    unsigned long *arg5 = ctx->arg_value_index[4];
-    unsigned long *arg6 = ctx->arg_value_index[5];
+    uint64_t *arg1 = ctx->arg_value_index[0];
+    uint64_t *arg2 = ctx->arg_value_index[1];
+    uint64_t *arg3 = ctx->arg_value_index[2];
+    uint64_t *arg4 = ctx->arg_value_index[3];
+    uint64_t *arg5 = ctx->arg_value_index[4]; 
+    uint64_t *arg6 = ctx->arg_value_index[5];
 
     /* Check if we need to set the alarm for blocking syscalls.  */
     if(ctx->need_alarm == YES)
@@ -610,7 +666,7 @@ int test_syscall(struct child_ctx *ctx)
     atomic_fetch_add(&map->test_counter, 1);
 
     /* Call the syscall with the args generated. */
-    ctx->ret_value = syscall(ctx->syscall_symbol, *arg1, *arg2, *arg3, *arg4, *arg5, *arg6);
+    ctx->ret_value = syscall((int32_t)ctx->syscall_symbol, *arg1, *arg2, *arg3, *arg4, *arg5, *arg6);
     if(check_for_failure(ctx->ret_value) < 0)
     {
         /* If we got here, we had an error, so grab the error string. */
@@ -627,8 +683,8 @@ int test_syscall(struct child_ctx *ctx)
 
 void kill_all_children(void)
 {
-    int rtrn;
-    unsigned int i;
+    uint32_t i = 0;
+    int32_t rtrn = 0;
 
     for(i = 0; i < number_of_children; i++)
     {
@@ -666,14 +722,16 @@ void start_main_syscall_loop(void)
     return;
 }
 
-static int init_child_context(struct child_ctx *child)
-{   
+static struct child_ctx *init_child_context(void)
+{
+    struct child_ctx *child = NULL;
+
     /* Allocate the child context object. */
     child = mem_alloc(sizeof(struct child_ctx));
     if(child == NULL)
     {
         output(ERROR, "Can't create child context\n");
-        return -1;
+        return NULL;
     }
 
     /* Set current arg to zero. */
@@ -681,19 +739,19 @@ static int init_child_context(struct child_ctx *child)
     atomic_init(&child->pid, EMPTY);
      
     /* Create the index where we store the syscall arguments. */
-    child->arg_value_index = mem_alloc(7 * sizeof(unsigned long *));
+    child->arg_value_index = mem_alloc(7 * sizeof(uint64_t *));
     if(child->arg_value_index == NULL)
     {
         output(ERROR, "Can't create arg value index: %s\n", strerror(errno));
-        return -1;
+        return NULL;
     }
 
     /* This index tracks the size of of the argument generated.  */
-    child->arg_size_index = mem_alloc(7 * sizeof(unsigned long));
+    child->arg_size_index = mem_alloc(7 * sizeof(uint64_t));
     if(child->arg_size_index == NULL)
     {
         output(ERROR, "Can't create arg size index: %s\n", strerror(errno));
-        return -1;
+        return NULL;
     }
 
     /* This is where we store the error string on each syscall test. */
@@ -701,42 +759,35 @@ static int init_child_context(struct child_ctx *child)
     if(child->err_value == NULL)
     {
         output(ERROR, "err_value: %s\n", strerror(errno));
-        return -1;
+        return NULL;
     }
 
-    unsigned int ii;
+    uint32_t i = 0;
 
     /* Loop and create the various indecies in the child struct. */
-    for(ii = 0; ii < 6; ii++)
+    for(i = 0; i < 7; i++)
     {
-        child->arg_value_index[ii] = mem_alloc(sizeof(unsigned long));
-        if(child->arg_value_index[ii] == NULL)
+        child->arg_value_index[i] = mem_alloc(sizeof(uint64_t));
+        if(child->arg_value_index[i] == NULL)
         {
             output(ERROR, "Can't create arg value\n");
-            return -1;
+            return NULL;
         }
     }
 
-    return 0;
+    return (child);
 }
 
-int setup_syscall_module(void)
+int32_t setup_syscall_module(void)
 {
-    int rtrn;
+    uint32_t i = 0;
+    int32_t rtrn = 0;
 
     /* Set running children to zero. */
     atomic_init(&running_children, 0);
 
-    /* This counter counts how many syscall test we have done. */
+    /* Set this counter to zero. */
     atomic_init(&test_counter, 0);
-
-    /* Allocate the system call table as shared memory. */
-    sys_table = mem_alloc(sizeof(struct syscall_table));
-    if(sys_table == NULL)
-    {
-        output(ERROR, "Can't allocate syscall table\n");
-        return -1;
-    }
 
     /* Grab the core count of the machine we are on and set the number
     of syscall children to the core count. */
@@ -744,7 +795,23 @@ int setup_syscall_module(void)
     if(rtrn < 0)
     {
         output(ERROR, "Can't get core count\n");
-        return -1;
+        return (-1);
+    }
+
+    /* Allocate the system call table as shared memory. */
+    sys_table = mem_alloc(sizeof(struct syscall_table));
+    if(sys_table == NULL)
+    {
+        output(ERROR, "Can't allocate syscall table\n");
+        return (-1);
+    }
+
+    /* Build and set the syscall table for the system we are on. */
+    sys_table = get_syscall_table();
+    if(sys_table == NULL)
+    {
+        output(ERROR, "Can't get syscall table\n");
+        return (-1);
     }
 
     /* Create the child process structures. */
@@ -752,23 +819,25 @@ int setup_syscall_module(void)
     if(children == NULL)
     {
         output(ERROR, "Can't create children index.\n");
-        return -1;
+        return (-1);
     }
-
-    unsigned int i;
 
     /* Loop for each child and allocate the child context object. */
     for(i = 0; i < number_of_children; i++)
     {
         struct child_ctx *child = NULL;
 
-        rtrn = init_child_context(child);
-        if(rtrn < 0)
+        /* Create and initialize the child context struct. */
+        child = init_child_context();
+        if(child == NULL)
         {
             output(ERROR, "Can't init child context\n");
-            return -1;
+            return (-1);
         }
+
+        /* Set the newly created child context to the children index. */
+        children[i] = child;
     }
 
-    return 0;
+    return (0);
 }

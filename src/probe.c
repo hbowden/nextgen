@@ -17,10 +17,10 @@
 
 #include "probe.h"
 #include "disas.h"
+#include "concurrent.h"
+#include "capstone.h"
 #include "io.h"
 #include "shim.h"
-#include "nextgen.h"
-#include "capstone.h"
 
 #include <inttypes.h>
 #include <dtrace.h>
@@ -29,6 +29,19 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <sys/ptrace.h>
+
+/* As the name implies this is a handle used for dtrace. */
+static dtrace_hdl_t *dtrace_handle;
+
+static dtrace_proginfo_t info;
+
+static dtrace_prog_t* prog;
+
+static const char *target_path;
+
+static char *const args[] = { NULL, NULL };
+
+static pid_t target_pid;
 
 int inject_kernel_probes(void)
 {
@@ -43,13 +56,14 @@ int inject_fork_server(void)
 
 int start_and_pause_target(void)
 {
-    int rtrn;
-    pid_t target_pid;
+    int32_t rtrn;
 
     /* Create child process. */
     target_pid = fork();
     if(target_pid == 0)
     {
+        target_pid = getpid();
+
         /* Drop root privileges some programs don't like being run as root. */
         rtrn = setgid(10);
         if(rtrn < 0)
@@ -65,14 +79,11 @@ int start_and_pause_target(void)
             return -1;
         }
 
-        /* Set the pid. */
-        cas_loop_int32(&map->exec_ctx->pid, getpid());
-
         /* Let's announce we want to be traced so that we don't execute any instructions on execv. */
         ptrace(PT_TRACE_ME, 0, NULL, 0);
 
         /* Now we execute the target binary. */
-        rtrn = execv(map->exec_ctx->path_to_exec, map->exec_ctx->args);
+        rtrn = execv(target_path, args);
         if(rtrn < 0)
         {
             output(ERROR, "execv: %s\n", errno);
@@ -86,7 +97,7 @@ int start_and_pause_target(void)
         int status;
 
         /* Wait until the target binary has stopped. */
-        wait_on(&map->exec_ctx->pid, &status);
+        wait4(target_pid, &status, 0, NULL);
 
         /* Lets check the reason why were not waiting anymore. Hopefully it's
          because the target executable is stopped. */
@@ -114,9 +125,7 @@ int start_and_pause_target(void)
         /* Check if the process exited stopped due to ptrace. This is the Macro that we hope
         evaluates to true. */
         if(WIFSTOPPED(status) != 0)
-        {
             goto EXIT;
-        }
 
         /* We should not get here. */
         return -1;
@@ -128,35 +137,31 @@ EXIT:
 
 int inject_probes(void)
 {
-    int rtrn;
+    int rtrn = 0;
     char *dtrace_prog = NULL;
-    dtrace_proginfo_t info;
-    dtrace_prog_t* prog;
 
     /* Create dtrace script that injects all probes into a target process. */
-    rtrn = asprintf(&dtrace_prog, "pid%d:::", atomic_load(&map->exec_ctx->pid));
+    rtrn = asprintf(&dtrace_prog, "pid%d:::", target_pid);
     if(rtrn < 0)
     {
        output(ERROR, "Can't create probe program string\n");
        return -1;
     }
 
-    output(STD, "pid: %s\n", dtrace_prog);
-
     /* Create a dtrace handle. */
-    map->dtrace_handle = dtrace_open(DTRACE_VERSION, 0, &rtrn);
-    if(map->dtrace_handle == NULL)
+    dtrace_handle = dtrace_open(DTRACE_VERSION, 0, &rtrn);
+    if(dtrace_handle == NULL)
     {
        fprintf(stderr, "failed to initialize dtrace: %s\n", dtrace_errmsg(NULL, rtrn));
        return -1;
     }
 
     /* Set dtrace options. */
-    (void) dtrace_setopt(map->dtrace_handle, "bufsize", "4m");
-    (void) dtrace_setopt(map->dtrace_handle, "aggsize", "4m");
+    (void) dtrace_setopt(dtrace_handle, "bufsize", "4m");
+    (void) dtrace_setopt(dtrace_handle, "aggsize", "4m");
 
     /* Compile the dtrace program. */
-    prog = dtrace_program_strcompile(map->dtrace_handle, dtrace_prog, DTRACE_PROBESPEC_NAME, 0, 0, NULL);
+    prog = dtrace_program_strcompile(dtrace_handle, dtrace_prog, DTRACE_PROBESPEC_NAME, 0, 0, NULL);
     if(prog == NULL)
     {
        output(ERROR, "failed to compile dtrace program\n");
@@ -164,7 +169,7 @@ int inject_probes(void)
     }
 
     /* Send the dtrace program to the kernel and execute it. */
-    rtrn = dtrace_program_exec(map->dtrace_handle, prog, &info);
+    rtrn = dtrace_program_exec(dtrace_handle, prog, &info);
     if(rtrn < 0)
     {
        output(ERROR, "failed to enable dtrace probes\n");
@@ -172,7 +177,7 @@ int inject_probes(void)
     }
 
     /* Inject and start the probes. */
-    rtrn = dtrace_go(map->dtrace_handle);
+    rtrn = dtrace_go(dtrace_handle);
     if(rtrn < 0)
     {
         output(ERROR, "Can't start probes\n");
@@ -180,7 +185,15 @@ int inject_probes(void)
     }
 
     /* Sleep so we don't record any information. */
-    dtrace_sleep(map->dtrace_handle);
+    dtrace_sleep(dtrace_handle);
+
+    return 0;
+}
+
+int setup_probe_module(char *exec_path)
+{
+    /* Set the path to the target executable. */
+    target_path = exec_path;
 
     return 0;
 }

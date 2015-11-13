@@ -26,16 +26,22 @@
 #include <string.h>
 #include <libgen.h>
 
-int supported_file(const char *file_extension, unsigned int *plugin_offset)
+/* Number of plugins in plugin index. */
+uint32_t plugin_count;
+
+/* Plugin context index. */
+static struct plugin_ctx **plugins;
+
+int32_t supported_file(const char *file_extension, unsigned int *plugin_offset)
 {
 
 	return 0;
 }
 
-int count_plugins(unsigned int *count)
+static int32_t count_plugins(uint32_t *count)
 {
-	int rtrn;
-	struct dirent *entry;
+	int32_t rtrn = 0;
+	struct dirent *entry = NULL;
 	DIR *dir auto_close_dir = NULL;
 	char *file_extension auto_clean = NULL;
     const char *dir_path = "src/plugins";
@@ -53,9 +59,7 @@ int count_plugins(unsigned int *count)
     {
     	/* Skip hidden files. */
         if(entry->d_name[0] == '.')
-        {
             continue;
-        }
 
         /* Get file extension. */
         rtrn = get_extension(entry->d_name, &file_extension);
@@ -67,41 +71,37 @@ int count_plugins(unsigned int *count)
 
         /* Increment the plugin count if the file is a shared object. */
         if(strncmp(file_extension, ".so", 3) == 0)
-        {
         	(*count)++;
-        }
     }
 
     return 0;
 }
 
- int features_supported(unsigned int offset, unsigned int *number_of_features)
+ int32_t features_supported(unsigned int offset, unsigned int *number_of_features)
  {
  	return 0;
  }
 
- int feature_constraints(unsigned int offset, struct feature_constraints *constraints)
+ int32_t feature_constraints(unsigned int offset, struct feature_constraints *constraints)
  {
 
  	return 0;
  }
 
-int load_all_plugins(void)
+static int32_t load_all_plugins(void)
 {
     /* Tell user our course of action. */
-    if(map->plugin_count == 0)
+    if(plugin_count == 0)
     {
     	output(STD, "No plugins to load\n");
     	return 0;
     }
-    else
-    {
-        output(STD, "Loading all plugins\n");
-    }
+    
+    output(STD, "Loading all plugins\n");
 
-	int rtrn;
-	struct dirent *entry;
-	unsigned int i = 0;
+    uint32_t i = 0;
+    int32_t rtrn = 0;
+	struct dirent *entry = NULL;
 	DIR *dir auto_close_dir = NULL;
 	char *file_extension auto_clean = NULL;
     const char *dir_path = "src/plugins";
@@ -119,9 +119,7 @@ int load_all_plugins(void)
     {
     	/* Skip hidden files. */
         if(entry->d_name[0] == '.')
-        {
             continue;
-        }
 
         /* Get file extension. */
         rtrn = get_extension(entry->d_name, &file_extension);
@@ -161,7 +159,7 @@ int load_all_plugins(void)
         	}
 
         	/* Set the plugin path in the plugin context.. */
-        	rtrn = asprintf((char **)&map->plugins[i]->plugin_path, "%s", plugin_path);
+        	rtrn = asprintf((char **)&plugins[i]->plugin_path, "%s", plugin_path);
             if(rtrn < 0)
         	{
         		output(ERROR, "Can't set plugin path string: %s\n", strerror(errno));
@@ -169,7 +167,7 @@ int load_all_plugins(void)
         	}
 
         	/* Set the plugin name in the plugin context.. */
-        	rtrn = asprintf((char **)&map->plugins[i]->plugin_name, "%s", basename(plugin_path));
+        	rtrn = asprintf((char **)&plugins[i]->plugin_name, "%s", basename(plugin_path));
             if(rtrn < 0)
         	{
         		output(ERROR, "Can't set plugin name string: %s\n", strerror(errno));
@@ -177,8 +175,8 @@ int load_all_plugins(void)
         	}
 
         	/* Actually load the plugin. */
-        	map->plugins[i]->plugin_handle = dlopen(plugin_path, RTLD_NOW);
-        	if(map->plugins[i]->plugin_handle == NULL)
+        	plugins[i]->plugin_handle = dlopen(plugin_path, RTLD_NOW);
+        	if(plugins[i]->plugin_handle == NULL)
         	{
         		output(ERROR, "Can't load plugin: %s beacause: %s\n", basename(plugin_path), strerror(errno));
         		return -1;
@@ -189,4 +187,26 @@ int load_all_plugins(void)
     }
 
 	return 0;
+}
+
+int32_t setup_plugin_module(void)
+{
+    int32_t rtrn = 0;
+
+    rtrn = count_plugins(&plugin_count);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't count plugins\n");
+        return -1;
+    }
+    
+    /* Load all the plugins in the nextgen/src/plugins/ directory.*/
+    rtrn = load_all_plugins();
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't load plugins\n");
+        return -1;
+    }
+
+    return (0);
 }

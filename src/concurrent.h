@@ -18,58 +18,66 @@
 #ifndef CONCURRENT_H
 #define CONCURRENT_H
 
-#include "private.h"
 #include "ck_queue.h"
 #include "ck_spinlock.h"
 #include "stdatomic.h"
 
 #include <unistd.h>
+#include <stdint.h>
 #include <sys/time.h>
 
-#define LIST(x) CK_LIST_ENTRY(x) list_entry
-#define SLIST(x) CK_SLIST_ENTRY(x) list_entry
+#define LIST_ENTRY(x) CK_LIST_ENTRY(x) list_entry
+#define SLIST_ENTRY(x) CK_SLIST_ENTRY(x) list_entry
 
-struct list_data
-{
-    struct timeval create_time;
-    int arg_type;
-    int socket_or_fd;
-    int node_number;
-    char *path;
-    pid_t pid;
-};
+#define LIST_HEAD(name,type) 
+#define SLIST_HEAD(name,type) CK_SLIST_HEAD(name, type) name
 
-struct list_node
-{
-    struct list_data *data;
+#define SPINLOCK_INITIALIZER CK_SPINLOCK_INITIALIZER
+#define SLIST_HEAD_INITIALIZER CK_SLIST_HEAD_INITIALIZER
 
-    struct memory_block *block;
-
-    CK_LIST_ENTRY(list_node) list_entry;
-
-};
+typedef ck_spinlock_t spinlock_t;
 
 struct queue_block
 {
-    void *job;
+    void *ptr;
+
+    void *m_blk;
+
+    SLIST_ENTRY(queue_block);
 };
 
 struct work_queue
 {
-    ck_spinlock_t lock;
+    spinlock_t lock;
 
-    CK_SLIST_HEAD(queue, queue_block) queue;
+    uint32_t block_size;
+
+    struct mem_pool_shared *pool;
+
+    SLIST_HEAD(list, queue_block);
 };
 
 /* CAS loop for swapping atomic int32 values. */ 
-private extern int cas_loop_int32(atomic_int_fast32_t *target, int value);
+extern int32_t cas_loop_int32(atomic_int_fast32_t *target, int32_t value);
 
 /* CAS loop for swapping atomic uint32 values. */ 
-private extern int cas_loop_uint32(atomic_uint_fast32_t *target, unsigned int value);
+extern int32_t cas_loop_uint32(atomic_uint_fast32_t *target, uint32_t value);
 
 /* Simple wrapper function so we can wait on atomic pid values.  */
-private extern int wait_on(atomic_int_fast32_t *pid, int *status);
+extern int32_t wait_on(atomic_int_fast32_t *pid, int32_t *status);
 
-private extern int create_work_queue(struct work_queue *queue);
+/* Creates a shared memory work queue. */
+extern int32_t create_work_queue(struct work_queue *queue, uint32_t size);
+
+/* Destroy/cleanup a existing work queue. */
+extern int32_t destroy_work_queue(struct work_queue *queue);
+
+extern struct queue_block *get_queue_block(struct work_queue *queue);
+
+/* Insert a pointer into the queue. */
+extern int32_t insert_into_queue(struct queue_block *q_blk, struct work_queue *queue);
+
+/* Get a pointer from the queue. */
+extern void *get_from_queue(struct work_queue *queue);
 
 #endif

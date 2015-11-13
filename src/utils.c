@@ -33,15 +33,13 @@
 
 int check_root(void)
 {
-    output(STD, "Making sure the nextgen has root privileges\n");
+    output(STD, "Making sure nextgen has root privileges\n");
 
     uid_t check;
 
     check = getuid();
     if(check == 0)
-    {
         return 0;
-    }
 
     return -1;
 }
@@ -56,7 +54,7 @@ int get_file_size(int fd, off_t *size)
         return -1;
     }
 
-    *size = stbuf.st_size;
+    (*size) = stbuf.st_size;
 
     return 0;
 }
@@ -97,9 +95,7 @@ int get_core_count(unsigned int *core_count)
     }
 
     if(*core_count < 1)
-    {
     	*core_count = (unsigned int) 1;
-    }
 
 	return 0;
 }
@@ -112,13 +108,14 @@ int generate_name(char **name, char *extension, enum name_type type)
     char *tmp_buf auto_clean = NULL;
     
     /* Create some space in memory. */
-    random_data = malloc(1024);
+    random_data = mem_alloc(1024);
     if(random_data == NULL)
     {
-        output(STD, "Can't Allocate Space: %s\n", strerror(errno));
+        output(STD, "Can't Allocate Space\n");
         return -1;
     }
     
+    /* Grab some random bytes. */
     rtrn = rand_bytes(&random_data, 1023);
     if(rtrn < 0)
     {
@@ -126,9 +123,10 @@ int generate_name(char **name, char *extension, enum name_type type)
         return -1;
     }
 
+    /* Null terminate the random byte string. */
     random_data[1023] = '\0';
     
-    /* SHA 512 hash the random output string. */
+    /* SHA 256 hash the random output string. */
     rtrn = sha256(random_data, &tmp_buf);
     if(rtrn < 0)
     {

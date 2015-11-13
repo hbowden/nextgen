@@ -17,54 +17,51 @@
 
 #include "memory.h"
 #include "nextgen.h"
+#include "types.h"
 #include "io.h"
 
 #include <string.h>
 #include <errno.h>
 #include <sys/mman.h>
 
-void *mem_alloc(unsigned long nbytes)
+void *mem_alloc(uint64_t nbytes)
 {
-	void *ptr = NULL;
+    void *ptr = NULL;
 
-	if(nbytes > 0)
+	if(nbytes == 0)
 	{
-		ptr = malloc(nbytes);
-		if(ptr == NULL)
-		{
-			output(ERROR, "Can't allocate: %lu bytes, because: %s\n", nbytes, strerror(errno));
-			return NULL;
-		}
-	}
-	else
-	{
-        output(ERROR, "Can't allocate zero bytes\n");
-	    return NULL;
+		output(ERROR, "Can't allocate zero bytes\n");
+        return NULL;
 	}
 
-	return ptr;
+    ptr = malloc(nbytes);
+    if(ptr == NULL)
+    {
+        output(ERROR, "Can't allocate: %lu bytes, because: %s\n", nbytes, strerror(errno));
+        return NULL;
+    }
+
+	return (ptr);
 }
 
-void *mem_calloc(unsigned long count, unsigned long nbytes)
+void *mem_calloc(uint64_t count, uint64_t nbytes)
 {
-    void  *ptr = NULL;
+    void *ptr = NULL;
 
-    if(count > 0 || nbytes > 0)
+    if(count == 0 || nbytes == 0)
     {
-    	ptr = calloc(count, nbytes);
-    	if(ptr == NULL)
-    	{
-            output(ERROR, "Can't allocate and initialize: %lu bytes: because: %s\n", nbytes, strerror(errno));
-            return NULL;
-    	}
-    }
-    else
-    {
-    	output(ERROR, "Count or nbytes was not greater than zero\n");
-    	return NULL;
+        output(ERROR, "Either count or nbytes is zero\n");
+        return NULL;
     }
 
-    return ptr;
+    ptr = calloc(count, nbytes);
+    if(ptr == NULL)
+    {
+        output(ERROR, "Can't allocate and initialize: %lu bytes: because: %s\n", nbytes, strerror(errno));
+        return NULL;
+    }
+        
+    return (ptr);
 }
 
 void mem_free(void *ptr)
@@ -75,7 +72,7 @@ void mem_free(void *ptr)
     free(ptr);
 }
 
-void *mem_alloc_shared(unsigned long nbytes)
+void *mem_alloc_shared(uint64_t nbytes)
 {
 	void *pointer = NULL;
 
@@ -86,15 +83,30 @@ void *mem_alloc_shared(unsigned long nbytes)
         return NULL;
     }
 
-    return pointer;
+    return (pointer);
 }
 
-void *mem_calloc_shared(unsigned long count, unsigned long nbytes)
+void *mem_calloc_shared(uint64_t nbytes)
 {
-    return NULL;
+    void *pointer = NULL;
+
+    pointer = mmap(NULL, nbytes, PROT_READ | PROT_WRITE, MAP_ANON | MAP_SHARED, -1, 0);
+    if(pointer == MAP_FAILED)
+    {
+        output(ERROR, "mmap: %s\n", strerror(errno));
+        return NULL;
+    }
+
+    if(memset(pointer, 0, nbytes) == NULL)
+    {
+        output(ERROR, "Can't initialize memory to zero: %s\n", strerror(errno));
+        return NULL;
+    }
+
+    return (pointer);
 }
 
-void mem_free_shared(void *ptr, unsigned long nbytes)
+void mem_free_shared(void *ptr, uint64_t nbytes)
 {
     if(ptr == NULL)
         return;
@@ -106,11 +118,13 @@ void mem_free_shared(void *ptr, unsigned long nbytes)
 
 void clean_shared_pool(struct mem_pool_shared *pool)
 {
+    if(pool == NULL)
+        return;
 
     return;
 }
 
-struct mem_pool_shared *mem_create_shared_pool(unsigned int block_size, unsigned int block_count)
+struct mem_pool_shared *mem_create_shared_pool(uint32_t block_size, uint32_t block_count)
 {
     /* If the block_size is zero return NULL. */
     if(block_size == 0)
@@ -119,7 +133,14 @@ struct mem_pool_shared *mem_create_shared_pool(unsigned int block_size, unsigned
         return NULL;
     }
 
-    /* Intialize the memory pool. */
+    /* If the block_count is zero return NULL. */
+    if(block_count == 0)
+    {
+        output(ERROR, "block_count is zero\n");
+        return NULL;
+    }
+
+    /* Initialize the memory pool. */
 	struct mem_pool_shared s_pool = {
 
         .lock = CK_SPINLOCK_INITIALIZER,
@@ -130,8 +151,7 @@ struct mem_pool_shared *mem_create_shared_pool(unsigned int block_size, unsigned
 
     };
 
-    /* Declare a pointer to the struct. */
-    struct mem_pool_shared *pool = &s_pool;
+    struct mem_pool_shared *pool = NULL;
 
     /* Allocate the pool structure as shared memory. */
 	pool = mem_alloc_shared(sizeof(struct mem_pool_shared));
@@ -141,13 +161,15 @@ struct mem_pool_shared *mem_create_shared_pool(unsigned int block_size, unsigned
 		return NULL;
 	}
 
+    pool = &s_pool;
+
     /* Init the free and allocated block list. */
 	CK_SLIST_INIT(&pool->free_list);
 	CK_SLIST_INIT(&pool->allocated_list);
 
-	unsigned int i;
+	uint32_t i;
 
-    /* Create blocks of the number requested by the user. */
+    /* Create blocks of the number requested by the caller of this function. */
 	for(i = 0; i < block_count; i++)
 	{
         /* Declare memory block. */
@@ -174,7 +196,7 @@ struct mem_pool_shared *mem_create_shared_pool(unsigned int block_size, unsigned
 	}
 
     /* Return memory pool pointer. */
-	return pool;
+	return (pool);
 }
 
 struct memory_block *mem_get_shared_block(struct mem_pool_shared *pool)
@@ -183,15 +205,15 @@ struct memory_block *mem_get_shared_block(struct mem_pool_shared *pool)
     if(CK_SLIST_EMPTY(&pool->free_list) == TRUE)
         return NULL;
 
-    /* Lock the spinlock for mutual access. */
-    ck_spinlock_lock(&pool->lock);
-
     /* Declare a memory block pointer. */
     struct memory_block *block = NULL;
    
     /* Loop for each node in the list. */
     CK_SLIST_FOREACH(block, &pool->free_list, list_entry)
     {
+        /* Lock the spinlock for mutual access. */
+        ck_spinlock_lock(&pool->lock);
+
     	/* Remove the block from the free_list. */
     	CK_SLIST_REMOVE(&pool->free_list, block, memory_block, list_entry);
 
@@ -202,11 +224,8 @@ struct memory_block *mem_get_shared_block(struct mem_pool_shared *pool)
         ck_spinlock_unlock(&pool->lock);
 
     	/* Return the empty block. */
-        return block;
+        return (block);
     }
-
-    /* Unlock the spinlock. */
-    ck_spinlock_unlock(&pool->lock);
 
     /* Should not get here. */
     return NULL;

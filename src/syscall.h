@@ -18,41 +18,91 @@
 #ifndef SYSCALL_H
 #define SYSCALL_H
 
-#include "private.h"
 #include "stdatomic.h"
 #include "entry.h"
 
 #include <signal.h>
 #include <setjmp.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <sys/time.h>
 
-extern unsigned int number_of_children;
+struct child_ctx
+{
+    /* The child's process PID. */
+    atomic_int_fast32_t pid;
 
-#define for_each_child(child, i) for(i = 0; i < number_of_children; i++) { child = get_child_from_index(i); }
+    /* A varible to store the address of where to jump back to in the child
+    process on signals. */
+    jmp_buf return_jump;
 
-private extern struct syscall_entry_shadow *get_entry(unsigned int syscall_number);
+    /* This is the number used to identify and choose the syscall that's going to be tested. */
+    uint32_t syscall_number;
 
-private extern struct child_ctx *get_child_from_index(unsigned int i);
+    /* Symbolized syscall number. */
+    uint32_t syscall_symbol;
 
-private extern struct child_ctx *get_child_ctx(void);
+    /* */
+    uint32_t current_arg;
 
-private extern struct syscall_table_shadow *get_syscall_table(void);
+    const char *name_of_syscall;
 
-private extern int cleanup_syscall_table(void);
+    /* This index is where we store the arguments we generate. */
+    uint64_t **arg_value_index;
 
-private extern int pick_syscall(struct child_ctx *ctx);
+    /* This index tracks the size of the arguments.*/
+    uint64_t *arg_size_index;
 
-private extern int generate_arguments(struct child_ctx *ctx);
+    struct mem_pool_shared *pool;
 
-private extern int test_syscall(struct child_ctx *ctx);
+    /* The number of args for the syscall were testing. */
+    uint32_t number_of_args;
 
-private extern void create_syscall_children(void);
+    bool need_alarm;
 
-private extern void kill_all_children(void);
+    /* Time that we made the syscall fuzz test. */
+    struct timeval time_of_syscall;
 
-private extern int setup_syscall_module(void);
+    /* The return value of the last syscall called. */
+    int32_t ret_value;
 
-private extern void start_main_syscall_loop(void);
+    /* If this is set we know the syscall failed. */
+    int32_t had_error;
+
+    /* The string value of errno if the syscall test failed. */
+    char *err_value;
+
+    /* This pipe is used to inform the main-loop process we are done
+    creating and setting up the child process. */
+    int32_t msg_port[2];
+};
+
+enum child_state {EMPTY};
+
+extern uint32_t number_of_children;
+
+extern struct syscall_entry_shadow *get_entry(unsigned int syscall_number);
+
+extern struct child_ctx *get_child_from_index(unsigned int i);
+
+extern struct child_ctx *get_child_ctx(void);
+
+extern struct syscall_table_shadow *get_syscall_table(void);
+
+extern int cleanup_syscall_table(void);
+
+extern int pick_syscall(struct child_ctx *ctx);
+
+extern int generate_arguments(struct child_ctx *ctx);
+
+extern int test_syscall(struct child_ctx *ctx);
+
+extern void create_syscall_children(void);
+
+extern void kill_all_children(void);
+
+extern int32_t setup_syscall_module(void);
+
+extern void start_main_syscall_loop(void);
 
 #endif

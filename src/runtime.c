@@ -22,19 +22,19 @@
 #include "resource.h"
 #include "concurrent.h"
 #include "syscall.h"
-#include "child.h"
 #include "utils.h"
+#include "plugin.h"
 #include "crypto.h"
 #include "disas.h"
 #include "probe.h"
 #include "reaper.h"
 #include "mutate.h"
 #include "nextgen.h"
+#include "types.h"
 #include "file.h"
 #include "io.h"
 #include "log.h"
 
-#include <stdint.h>
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
@@ -47,7 +47,7 @@ static int start_network_mode_runtime(void)
 
 static int start_syscall_mode_runtime(void)
 {
-    pid_t runloop_pid;
+    pid_t runloop_pid = 0;
 
     /* Create a second process. */
     runloop_pid = fork();
@@ -66,7 +66,7 @@ static int start_syscall_mode_runtime(void)
     }
     else if(runloop_pid > 0)
     {
-        int status;
+        int32_t status = 0;
 
         /* Wait for the other process's created by nextgen. */
         wait_on(&map->runloop_pid, &status);
@@ -109,19 +109,24 @@ static int setup_file_mode_runtime(void)
         return -1;
     }
 
-    /* Create a index with all the file paths in the input directory. */
-    rtrn = create_file_index();
+    rtrn = setup_file_module(map->exec_path);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't create file index\n");
+        output(ERROR, "Can't setup file module\n");
         return -1;
     }
 
-    /* Load all the plugins in the nextgen/src/plugins/ directory.*/
-    rtrn = load_all_plugins();
+    rtrn = setup_probe_module(map->exec_path);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't load plugins\n");
+        output(ERROR, "Can't setup probe module\n");
+        return -1;
+    }
+
+    rtrn = setup_plugin_module();
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't setup plugin module\n");
         return -1;
     }
 
@@ -130,14 +135,6 @@ static int setup_file_mode_runtime(void)
     {
         output(STD, "Starting file fuzzer in smart mode\n");
 
-        /* Make sure we were started with root privileges otherwise setup will fail. */
-        rtrn = check_root();
-        if(rtrn != 0)
-        {
-            output(ERROR, "Run nextgen as root if you wan't to use smart mode\n");
-            return -1;
-        }
-
         /* Lets parse the binary and figure out the virtual memory address it's going to be loaded at. */
         rtrn = get_load_address();
         if(rtrn < 0)
@@ -145,9 +142,6 @@ static int setup_file_mode_runtime(void)
             output(ERROR, "Can't get load address for target executable\n");
             return -1;
         }
-
-        /* Announce address we will be injecting code into. */
-        output(STD, "Target executable's start address: Ox%x\n", map->exec_ctx->main_start_address);
 
         /* Get address of each branch in binary and store it in map for later. */
         rtrn = disas_executable_and_examine();
@@ -207,7 +201,7 @@ static int setup_file_mode_runtime(void)
     return 0;
 }
 
-static int setup_network_mode_runtime(void)
+static int32_t setup_network_mode_runtime(void)
 {
     return 0;
 }
@@ -215,17 +209,23 @@ static int setup_network_mode_runtime(void)
 /* Set up the various modules we need for syscall fuzzing and then
    create the output directory. If were running in smart mode start the
    genetic module. */
-static int setup_syscall_mode_runtime(void)
+static int32_t setup_syscall_mode_runtime(void)
 {
-    int rtrn;
+    int32_t rtrn;
+    pid_t reaper_pid;
 
-    rtrn = setup_reaper_module();
+    /* Intialize the reaper module. */
+    rtrn = setup_reaper_module(&reaper_pid);
     if(rtrn < 0)
     {
         output(ERROR, "Can't set up the reaper module\n");
         return -1;
     }
 
+    /* Set the atomic pid in the global shared mapping. */
+    cas_loop_int32(&map->reaper_pid, reaper_pid);
+
+    /* Setup the resource module. */
     rtrn = setup_resource_module();
     if(rtrn < 0)
     {
@@ -233,6 +233,7 @@ static int setup_syscall_mode_runtime(void)
         return -1;
     }
 
+    /* Setup the syscall module. */
     rtrn = setup_syscall_module();
     if(rtrn < 0)
     {
@@ -240,6 +241,8 @@ static int setup_syscall_mode_runtime(void)
         return -1;
     }
 
+    /* Create the output directory. This directory is where we store
+      test cases and state so that we can resume. */
     rtrn = create_out_directory(map->path_to_out_dir);
     if(rtrn < 0)
     {
@@ -279,10 +282,10 @@ int setup_runtime(void)
 
     /* Here we do work that's common across different fuzzing modes, 
      then we call the init function for the selected fuzzing. */
-    int rtrn;
+    int32_t rtrn;
 
-    /* This function sets up the other crypto functions and crypto library.  */
-    rtrn = setup_crypto_module();
+    /* This function sets up the crypto functions and crypto library.  */
+    rtrn = setup_crypto_module(map->method);
     if(rtrn < 0)
     {
         output(ERROR, "Can't set up crypto\n");
@@ -290,7 +293,7 @@ int setup_runtime(void)
     }
 
     /* We are done doing common init work now we call the specific init routines. */ 
-    switch((int)map->mode)
+    switch((int32_t)map->mode)
     {
         case MODE_FILE:
             rtrn = setup_file_mode_runtime();
@@ -327,7 +330,7 @@ int setup_runtime(void)
     return 0;
 }
 
-int start_runtime(void)
+int32_t start_runtime(void)
 {
     /* Start the selected fuzzer runtime. */ 
     switch((int)map->mode)
@@ -352,7 +355,7 @@ int start_runtime(void)
     return 0;
 }
 
-int shutdown(void)
+int32_t shutdown(void)
 {
     /* Set the atomic flag so that other processes know to start their shutdown procedure. */
     cas_loop_int32(&map->stop, TRUE);

@@ -16,8 +16,10 @@
  **/
 
 #include "concurrent.h"
+#include "platform.h"
 #include "nextgen.h"
 #include "memory.h"
+#include "types.h"
 #include "io.h"
 
 #include <stdio.h>
@@ -25,15 +27,14 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-
 /* CAS loop for swapping atomic int32 values. */ 
-int cas_loop_int32(atomic_int_fast32_t *target, int value)
+int32_t cas_loop_int32(atomic_int_fast32_t *target, int32_t value)
 {
 	/* Loop until we can succesfully update the the value. */
     while(1)
     {
         /* Grab a snapshot of the value that need to be updated. */
-        int snapshot = atomic_load(target);
+        int32_t snapshot = atomic_load(target);
 
         /* Try swaping the variable. */
         if(atomic_compare_exchange_weak(target, &snapshot, value) == TRUE)
@@ -47,13 +48,13 @@ int cas_loop_int32(atomic_int_fast32_t *target, int value)
 }
 
 /* CAS loop for swapping atomic uint32 values. */ 
-int cas_loop_uint32(atomic_uint_fast32_t *target, unsigned int value)
+int32_t cas_loop_uint32(atomic_uint_fast32_t *target, uint32_t value)
 {
 	/* Loop until we can succesfully update the the value. */
     while(1)
     {
         /* Grab a snapshot of the value that need to be updated. */
-        unsigned int snapshot = atomic_load(target);
+        uint32_t snapshot = atomic_load(target);
 
         /* Try swaping the variable. */
         if(atomic_compare_exchange_weak(target, &snapshot, value) == TRUE)
@@ -66,23 +67,27 @@ int cas_loop_uint32(atomic_uint_fast32_t *target, unsigned int value)
 	return 0;
 }
 
-int wait_on(atomic_int_fast32_t *pid, int *status)
+int32_t wait_on(atomic_int_fast32_t *pid, int32_t *status)
 {
-
     waitpid(atomic_load(pid), status, 0);
 
     return 0;
 }
 
-int create_work_queue(struct work_queue *queue)
+int32_t create_work_queue(struct work_queue *queue, uint32_t block_size)
 {
+    /* Initialize the work queue. */
     struct work_queue w_queue = {
 
-        .lock = CK_SPINLOCK_INITIALIZER,
-        .queue = CK_SLIST_HEAD_INITIALIZER(w_queue.organism_list)
+        .lock = SPINLOCK_INITIALIZER,
+        .list = SLIST_HEAD_INITIALIZER(w_queue.list),
+        .block_size = block_size
 
     };
 
+    queue = &w_queue;
+
+    /* Allocate the queue as shared memory. */
     queue = mem_alloc_shared(sizeof(struct work_queue));
     if(queue == NULL)
     {
@@ -90,11 +95,113 @@ int create_work_queue(struct work_queue *queue)
         return -1;
     }
 
+    /* Initialize the linked list. */
+    CK_SLIST_INIT(&queue->list);
 
+    /* Create the shared memory pool that we will grab queue blocks from. */
+    queue->pool = mem_create_shared_pool(sizeof(struct queue_block), 16384);
+    if(queue->pool == NULL)
+    {
+        output(ERROR, "Can't create shared pool\n");
+        return -1;
+    }
 
-    queue = &w_queue;
+    struct memory_block *m_blk = NULL;
+
+    /* Loop for each memory block in pool. */
+    init_shared_pool(&queue->pool, m_blk)
+    {
+        struct queue_block *q_blk = NULL;
+
+        /* Allocate a queue block as shared memory. */
+        q_blk = mem_alloc_shared(sizeof(struct queue_block));
+        if(q_blk == NULL)
+        {
+            output(ERROR, "Can't allocate a queue block\n");
+            return -1;
+        }
+
+        /* Allocate the storage pointer as shared anonymous memory. */
+        q_blk->ptr = mem_alloc_shared(block_size);
+        if(q_blk->ptr == NULL)
+        {
+            output(ERROR, "Can't allocate block pointer\n");
+            return -1;
+        }
+
+        /* Insert the queue block into the shared pool. */
+        m_blk->ptr = q_blk;
+    }
 
     return 0;
 
+}
+
+int destroy_work_queue(struct work_queue *queue)
+{
+
+    return 0;
+}
+
+struct queue_block *get_queue_block(struct work_queue *queue)
+{
+    struct memory_block *m_blk = NULL;
+
+    /* Grab a memory block from the shared pool. */
+    m_blk = mem_get_shared_block(queue->pool);
+    if(m_blk == NULL)
+    {
+        output(ERROR, "Can't get memory block\n");
+        return NULL;
+    }
+
+    /* Set the queue block to the one grabbed from the pool. */
+    struct queue_block *q_blk = (struct queue_block *) m_blk->ptr;
+
+    /* Set the memory block pointer. */
+    q_blk->m_blk = m_blk;
+
+    return (q_blk);
+}
+
+int32_t insert_into_queue(struct queue_block *q_blk, struct work_queue *queue)
+{
+    /* Lock the spinlock for mutual access. */
+    ck_spinlock_lock(&queue->lock);
+
+    /* Insert the queue block into the pool. */
+    CK_SLIST_INSERT_HEAD(&queue->list, q_blk, list_entry);
+
+    /* Unlock the spinlock. */
+    ck_spinlock_unlock(&queue->lock);
+
+    return (0);
+}
+
+void *get_from_queue(struct work_queue *queue)
+{
+    struct queue_block *q_blk = NULL;
+
+    /* Loop for each node in the list. */
+    CK_SLIST_FOREACH(q_blk, &queue->list, list_entry)
+    {
+        /* Lock the spinlock for mutual access. */
+        ck_spinlock_lock(&queue->lock);
+
+        /* Remove the q_blk from the queue.  */
+        CK_SLIST_REMOVE(&queue->list, q_blk, queue_block, list_entry);
+
+        /* Unlock the spinlock. */
+        ck_spinlock_unlock(&queue->lock);
+
+        /* Free the shared memory block. */
+        mem_free_shared_block((struct memory_block *)(q_blk)->ptr, queue->pool);
+
+        /* Return the pointer that the q_blk holds. */
+        return ((q_blk)->ptr);
+    }
+
+    /* We should not get here. */
+    return NULL;
 }
 

@@ -18,53 +18,52 @@
 #ifndef GENERATE_H
 #define GENERATE_H
 
-#include "private.h"
 #include "syscall.h"
 
-private extern int generate_fd(unsigned long **fd, struct child_ctx *ctx);
+extern int32_t generate_fd(uint64_t **fd);
 
-private extern int generate_socket(unsigned long **sock, struct child_ctx *ctx);
+extern int32_t generate_socket(uint64_t **sock);
 
-private extern int generate_buf(unsigned long **buf, struct child_ctx *ctx);
+extern int32_t generate_buf(uint64_t **buf);
 
-private extern int generate_length(unsigned long **length, struct child_ctx *ctx);
+extern int32_t generate_length(uint64_t **length);
 
-private extern int generate_path(unsigned long **path, struct child_ctx *ctx);
+extern int32_t generate_path(uint64_t **path);
 
-private extern int generate_mode(unsigned long **mode, struct child_ctx *ctx);
+extern int32_t generate_mode(uint64_t **mode);
 
-private extern int generate_open_flag(unsigned long **flag, struct child_ctx *ctx);
+extern int32_t generate_open_flag(uint64_t **flag);
 
-private extern int generate_fs_stat(unsigned long **stat, struct child_ctx *ctx);
+extern int32_t generate_fs_stat(uint64_t **stat);
 
-private extern int generate_fs_stat_flag(unsigned long **flag, struct child_ctx *ctx);
+extern int32_t generate_fs_stat_flag(uint64_t **flag);
 
-private extern int generate_pid(unsigned long **pid, struct child_ctx *ctx);
+extern int32_t generate_pid(uint64_t **pid);
 
-private extern int generate_int(unsigned long **integer, struct child_ctx *ctx);
+extern int32_t generate_int(uint64_t **integer);
 
-private extern int generate_rusage(unsigned long **usage, struct child_ctx *ctx);
+extern int32_t generate_rusage(uint64_t **usage);
 
-private extern int generate_wait_option(unsigned long **option, struct child_ctx *ctx);
+extern int32_t generate_wait_option(uint64_t **option);
 
-private extern int generate_whence(unsigned long **whence, struct child_ctx *ctx);
+extern int32_t generate_whence(uint64_t **whence);
 
-private extern int generate_offset(unsigned long **offset, struct child_ctx *ctx);
+extern int32_t generate_offset(uint64_t **offset);
 
-private extern int generate_mount_type(unsigned long **type, struct child_ctx *ctx);
+extern int32_t generate_mount_type(uint64_t **type);
 
-private extern int generate_dirpath(unsigned long **dirpath, struct child_ctx *ctx);
+extern int32_t generate_dirpath(uint64_t **dirpath);
 
-private extern int generate_mount_flags(unsigned long **flag, struct child_ctx *ctx);
+extern int32_t generate_mount_flags(uint64_t **flag);
 
-private extern int generate_unmount_flags(unsigned long **flag, struct child_ctx *ctx);
+extern int32_t generate_unmount_flags(uint64_t **flag);
 
-private extern int generate_request(unsigned long **flag, struct child_ctx *ctx);
+extern int32_t generate_request(uint64_t **flag);
 
-private extern int generate_recv_flags(unsigned long **flag, struct child_ctx *ctx);
+extern int32_t generate_recv_flags(uint64_t **flag);
 
-private extern int generate_mount_path(unsigned long **path, struct child_ctx *ctx);
+extern int32_t generate_mount_path(uint64_t**path);
 
-private extern int generate_dev(unsigned long **dev, struct child_ctx *ctx);
+extern int32_t generate_dev(uint64_t **dev);
 
 #endif

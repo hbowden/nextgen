@@ -17,6 +17,8 @@
 
 #include "disas.h"
 #include "utils.h"
+#include "file.h"
+#include "memory.h"
 #include "io.h"
 #include "shim.h"
 #include "nextgen.h"
@@ -40,14 +42,22 @@ int get_load_address(void)
 
 int disas_executable_and_examine(void)
 {
-    int rtrn;
+    int32_t rtrn;
     off_t file_size;
     unsigned int count = 0;
-    int file auto_close = 0;
+    int32_t file auto_close = 0;
     char *file_buffer auto_clean = NULL;
+    char *exec_path auto_clean = NULL;
+
+    rtrn = get_exec_path(&exec_path);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't get exec path\n");
+        return -1;
+    }
 
     /* Open the target binary. */
-    file = open(map->exec_ctx->path_to_exec, O_RDONLY);
+    file = open(exec_path, O_RDONLY);
     if(file < 0)
     {
     	output(ERROR, "open: %s\n", strerror(errno));
@@ -235,10 +245,14 @@ int disas_executable_and_examine(void)
     }
 
     /* Save the offset of where the program ends. */
-    map->exec_ctx->end_offset = insn[0].address;
+    rtrn = set_end_offset(insn[0].address);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't set end offset\n");
+        return -1;
+    }
 
-    // release the cache memory when done
-    cs_free(insn, 1);
+    cs_free(insn, 1); // release the cache memory when done
     munmap(file_buffer, (size_t)file_size);
 
     return 0;

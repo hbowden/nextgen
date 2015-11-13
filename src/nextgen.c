@@ -27,7 +27,6 @@
 
 #include <sys/param.h>
 #include <sys/mount.h>
-#include <ck_queue.h>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
@@ -36,18 +35,6 @@
 #include <sys/mman.h>
 
 struct shared_map *map;
-
-struct parser_ctx
-{
-    enum fuzz_mode mode;
-    char *path_to_exec;
-    char *path_to_in_dir;
-    char *path_to_out_dir;
-    char *crypto_method;
-    char *args;
-    int crypto_flag;
-    int smart_mode;
-};
 
 static const char *optstring = "p:e:";
 
@@ -83,13 +70,13 @@ static void display_help_banner(void)
     return;
 }
 
-static struct parser_ctx *parse_cmd_line(int argc, char *argv[])
+struct parser_ctx *parse_cmd_line(int argc, char *argv[])
 {
     int ch, rtrn;
     int iFlag = FALSE, oFlag = FALSE, fFlag = FALSE, nFlag = FALSE, 
     sFlag = FALSE, eFlag = FALSE, pFlag = FALSE, aFlag = FALSE, tFlag = FALSE;
 
-    /* Allocate.  */
+    /* Allocate the parser context. */
     struct parser_ctx *ctx = mem_alloc(sizeof(struct parser_ctx));
     if(ctx == NULL)
     {
@@ -97,8 +84,9 @@ static struct parser_ctx *parse_cmd_line(int argc, char *argv[])
         return NULL;
     }
 
-    /* Default to smart_mode. */
+    /* Default to smart_mode and crypto numbers. */
     ctx->smart_mode = TRUE;
+    ctx->method = CRYPTO;
 
     while((ch = getopt_long(argc, argv, optstring, longopts, NULL)) != -1)
     {
@@ -172,14 +160,7 @@ static struct parser_ctx *parse_cmd_line(int argc, char *argv[])
             case 'c':
                 /* This option allows users to specify the method in which they want to derive
                 the random numbers that will be used in fuzzing the application. */
-                rtrn = asprintf(&ctx->crypto_method, "%s", optarg);
-                if(rtrn < 0)
-                {
-                    output(ERROR, "asprintf: %s\n", strerror(errno));
-                    return NULL;
-                }
-                
-                ctx->crypto_flag = TRUE;
+                ctx->method = NO_CRYPTO;
 
                 break;
 
@@ -233,13 +214,6 @@ static struct parser_ctx *parse_cmd_line(int argc, char *argv[])
     /* Check to see if syscall mode was selected. */
     if(sFlag == TRUE)
     {
-        rtrn = check_root();
-        if(rtrn != 0)
-        {
-            output(STD, "Run nextgen as root\n");
-            return NULL;
-        }
-
         /* Make sure the user set an output path. */
         if(oFlag != TRUE)
         {
@@ -256,7 +230,7 @@ static void clean_syscall_mapping(void)
     return;
 }
 
-static void clean_shared_mapping(void)
+void clean_shared_mapping(void)
 {
     /* Do mode specific shared mapping cleanup. */
     switch((int)map->mode)
@@ -282,86 +256,13 @@ static void clean_shared_mapping(void)
 
 static int init_file_mapping(struct shared_map **mapping, struct parser_ctx *ctx)
 {
-    int rtrn;
-    unsigned int i;
-
     /* Set the input and output directories. */
     (*mapping)->path_to_out_dir = ctx->path_to_out_dir;
     (*mapping)->path_to_in_dir = ctx->path_to_in_dir;
 
-    unsigned int count = 0;
+    (*mapping)->exec_path = ctx->path_to_exec;
 
-    /* Allocate the executable context object. */
-    (*mapping)->exec_ctx = mem_alloc_shared(sizeof(struct executable_context));
-    if((*mapping)->exec_ctx == NULL)
-    {
-        output(ERROR, "Can't create shared object\n");
-        return -1;
-    }
-
-    /* Set exec path. */
-    (*mapping)->exec_ctx->path_to_exec = ctx->path_to_exec;
-
-    /* Count how many files are in the input directory. */
-    rtrn = count_files_directory(&count);
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't count files in the in directory.\n");
-        return -1;
-    }
-
-    /* Set file_count in map so we know this value later. */
-    (*mapping)->file_count = count;
-
-    /* Create file index. */
-    (*mapping)->file_index = mem_alloc((count + 1) * sizeof(char *));
-    if((*mapping)->file_index == NULL)
-    {
-        output(ERROR, "Can't create file index: %s\n", strerror(errno));
-        return -1;
-    }
-
-    for(i = 0; i < count; i++)
-    {
-        (*mapping)->file_index[i] = mem_alloc_shared(1025);
-        if((*mapping)->file_index[i] == NULL)
-        {
-            output(ERROR, "Can't create shared object\n");
-            return -1;
-        }
-    }
-
-    /* Count plugins in the plugin directory. */
-    rtrn = count_plugins(&(*mapping)->plugin_count);
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't create shared object\n");
-        return -1;
-    }
-
-    /* Create plugin context structure index. */
-    (*mapping)->plugins = mem_alloc(((*mapping)->plugin_count + 1) * sizeof(struct plugin_ctx *));
-    if((*mapping)->plugins == NULL)
-    {
-        output(ERROR, "Can't create plugin index: %s\n", strerror(errno));
-        return -1;
-    }
-
-    /* Loop and create each plugin context struct. */
-    for(i = 0; i < (*mapping)->plugin_count; i++)
-    {
-        struct plugin_ctx *p_ctx = NULL;
-
-        /* Map the plugin ctx struct as shared memory.*/
-        p_ctx = mem_alloc_shared(sizeof(struct plugin_ctx));
-        if(p_ctx == NULL)
-        {
-            output(ERROR, "Can't create shared plugin context\n");
-            return -1;
-        }
-
-        (*mapping)->plugins[i] = p_ctx;
-    }
+    atomic_init(&(*mapping)->target_pid, 0);
 
     return 0;
 }
@@ -391,12 +292,14 @@ static int init_syscall_mapping(struct shared_map **mapping, struct parser_ctx *
 /**
  * We use this function to initialize all the shared maps member values.
  **/
-static int init_shared_mapping(struct shared_map **mapping, struct parser_ctx *ctx)
+int init_shared_mapping(struct shared_map **mapping, struct parser_ctx *ctx)
 {
     int rtrn;
 
     /* Set the fuzzing mode selected by the user. */
     (*mapping)->mode = ctx->mode;
+
+    (*mapping)->method = ctx->method;
 
     /* Set intelligence mode. */
     (*mapping)->smart_mode = ctx->smart_mode;
@@ -446,63 +349,3 @@ static int init_shared_mapping(struct shared_map **mapping, struct parser_ctx *c
 
 }
 
-/**
- * Main is the entry point to nextgen. In main we check for root, unfortunetly we need root to execute.
- * This is because we have to use dtrace, as well as bypass sandboxes, inject code into processes and 
- * other activities that require root access. We then create shared memory so we can share information
- * between processes. Next we parse the command line for user arguments and we stick the results in the
- * shared memory map. After parsing we set up the enviroment to the user's specfications and then finnaly
- * start the runtime, ie start fuzzing.
- **/
-int main(int argc, char *argv[])
-{
-    int rtrn;
-    struct parser_ctx *ctx = NULL;
-
-    /* Create a shared memory map so that we can share state with other threads and procceses. */
-    map = mem_alloc_shared(sizeof(struct shared_map));
-    if(map == NULL)
-    {
-        output(ERROR, "Can't create shared object.\n");
-        return -1;
-    }
-
-    /* Parse the command line for user input. parse_cmd_line() will set variables
-    in map, the shared memory mapping. This will tell the fuzzer how to run. */
-    ctx = parse_cmd_line(argc, argv);
-    if(ctx == NULL)
-    {
-        output(ERROR, "Can't parse command line.\n");
-        return -1;
-    }
-
-    /* Setup the shared map now that we got our options from the command line. */
-    rtrn = init_shared_mapping(&map, ctx);
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't initialize.\n");
-        return -1;
-    }
-
-    /* Setup the fuzzer running enviroment. */
-    rtrn = setup_runtime();
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't setup runtime enviroment.\n");
-        clean_shared_mapping();
-        return -1;
-    }
-
-    /* Start the main fuzzing loop. */
-    rtrn = start_runtime();
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't start runtime enviroment.\n");
-        clean_shared_mapping();
-        return -1;
-    }
-    
-    /* We should only reach here on ctrl-c. */
-    clean_shared_mapping();
-    return 0;
-}

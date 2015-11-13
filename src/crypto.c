@@ -15,16 +15,15 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#include "crypto.h"
-#include "io.h"
+#include "crypto.h" 
 #include "memory.h"
-#include "nextgen.h"
 #include "openssl/sha.h"
 #include "openssl/crypto.h"
 #include "openssl/rand.h"
 #include "openssl/bn.h"
 #include "openssl/evp.h"
 #include "openssl/engine.h"
+#include "io.h"
 
 #include <errno.h>
 #include <string.h>
@@ -35,15 +34,15 @@ static int (*rand_range_pointer)(unsigned int range, unsigned int *number);
 
 static int software_prng;
 
+int using_hardware_prng(void)
+{
+    return software_prng;
+}
+
 static int rand_range_no_crypto(unsigned int range, unsigned int *number)
 {
     *number = (unsigned int) rand() % range + 1;
     return 0;
-}
-
-int using_hardware_prng(void)
-{
-    return software_prng;
 }
 
 int rand_bytes(char **buf, unsigned int length)
@@ -55,11 +54,15 @@ int rand_bytes(char **buf, unsigned int length)
         return -1;
     }
 
+    /* null terminate the string. */
+    (*buf)[length] = '\0';
+
     return 0;
 }
 
 static int rand_range_crypto(unsigned int range, unsigned int *number)
 {
+    int rtrn;
     BIGNUM *random, *range1;
 
     random = BN_new();
@@ -76,7 +79,7 @@ static int rand_range_crypto(unsigned int range, unsigned int *number)
     	return -1;
     }
 
-    int rtrn = BN_set_word(range1, range);
+    rtrn = BN_set_word(range1, range);
     if(rtrn < 0)
     {
     	output(ERROR, "Can't set range\n");
@@ -97,18 +100,18 @@ static int rand_range_crypto(unsigned int range, unsigned int *number)
     	return -1;
     }
 
-    *number = (unsigned int)strtol(buf, NULL, 10);
+    (*number) = (unsigned int)strtol(buf, NULL, 10);
 
     return 0;
 }
 
-static int setup_rand_range(char *method)
+static int setup_rand_range(enum crypto_method method)
 {
-    if(strncmp(method, "no-crypto", 10) == 0)
+    if(method == NO_CRYPTO)
     {
         rand_range_pointer = &rand_range_no_crypto;
     }
-    else if(strncmp(method, "crypto", 6) == 0)
+    else if(method == CRYPTO)
     {
     	rand_range_pointer = &rand_range_crypto;
     }
@@ -140,7 +143,7 @@ static int setup_hardware_acceleration(void)
     	return 1;
     }
 
-    /* Note. openssl use's zero for it's exit code. */
+    /* Note. openssl use's zero for it's success exit code. */
     int rtrn = ENGINE_init(engine);
     if(rtrn == 0)
     {
@@ -160,9 +163,9 @@ static int setup_hardware_acceleration(void)
 
 int sha512(char *in, char **out)
 {
-    unsigned char hash[SHA512_DIGEST_LENGTH];
     SHA512_CTX ctx;
     int i, rtrn;
+    unsigned char hash[SHA512_DIGEST_LENGTH];
     
     rtrn = SHA512_Init(&ctx);
     if(rtrn < 0)
@@ -185,10 +188,10 @@ int sha512(char *in, char **out)
         return -1;
     }
     
-    *out = malloc((SHA512_DIGEST_LENGTH * 2) + 1);
+    *out = mem_alloc((SHA512_DIGEST_LENGTH * 2) + 1);
     if(*out == NULL)
     {
-        output(ERROR, "malloc: %s\n", strerror(errno));
+        output(ERROR, "Can't allocate output buf\n");
         return -1;
     }
     
@@ -197,6 +200,8 @@ int sha512(char *in, char **out)
         sprintf(*out + (i * 2), "%02x", hash[i]);
     }
 
+    (*out)[128] = '\0';
+
     return 0;
 }
 
@@ -204,10 +209,10 @@ int sha256(char *in, char **out)
 {
     /* Declarations */
     int rtrn, i;
-    unsigned char hash[SHA256_DIGEST_LENGTH];
     SHA256_CTX sha256;
+    unsigned char hash[SHA256_DIGEST_LENGTH];
     
-    rtrn =  SHA256_Init(&sha256);
+    rtrn = SHA256_Init(&sha256);
     if(rtrn < 0)
     {
         output(ERROR, "Sha Init Error\n");
@@ -228,17 +233,22 @@ int sha256(char *in, char **out)
         return -1;
     }
 
-    *out = malloc((SHA256_DIGEST_LENGTH * 2) + 1);
+    /* Allocate the output buffer. */
+    *out = mem_alloc((SHA256_DIGEST_LENGTH * 2) + 1);
     if(*out == NULL)
     {
-        output(ERROR, "malloc: %s\n", strerror(errno));
+        output(ERROR, "Can't allocate output buf\n");
         return -1;
     }
     
+    /* Convert hash to hex format. */
     for(i = 0; i < SHA256_DIGEST_LENGTH; i++)
     {
         sprintf(*out + (i * 2), "%02x", hash[i]);
     }
+
+    /* null terminate the hash. */
+    (*out)[64] = '\0';
     
     return 0;
 }
@@ -248,18 +258,18 @@ int seed_prng(void)
 {
     /* The variables used in seed_prng(). */
     int rtrn;
+    ssize_t ret;
+    char *hash auto_clean = NULL;
     int random_fd auto_close = 0;
     unsigned int i, loops, buf_len;
     char *random_buffer auto_clean = NULL;
-    char *hash auto_clean = NULL;
-    ssize_t ret;
     
     /* Allocate a buffer thats 6000 bytes long, this is
-     where we will put random stuff from /dev/urandom. */
-    random_buffer = malloc(6000);
+      where we will put random stuff from /dev/urandom. */
+    random_buffer = mem_alloc(6000);
     if(random_buffer == NULL)
     {
-        output(ERROR, "malloc: %s\n", strerror(errno));
+        output(ERROR, "Can't allocate random buffer\n");
         return -1;
     }
     
@@ -272,8 +282,8 @@ int seed_prng(void)
     }
     
     /* Now lets read 5998 bytes from /dev/urandom  */
-    ret = read(random_fd, random_buffer, 5998);
-    if(ret != 5998)
+    ret = read(random_fd, random_buffer, 5999);
+    if(ret != 5999)
     {
         output(ERROR, "read: %s\n", strerror(errno));
         return -1;
@@ -347,7 +357,7 @@ int seed_prng(void)
     return 0;
 }
 
-int setup_crypto_module(void)
+int setup_crypto_module(enum crypto_method method)
 {
     output(STD, "Setting up crypto\n");
 
@@ -357,47 +367,37 @@ int setup_crypto_module(void)
     OpenSSL_add_all_ciphers();
     OpenSSL_add_all_digests();
 
-    /* Check if the user want's to use a non crypto graphic random number generator. */
-    if(map->crypto_flag == TRUE)
+    /* Pass the crypto method the user want's to setup_rand_range(). */
+    rtrn = setup_rand_range(method);
+    if(rtrn < 0)
     {
-        /* Pass the crypto method the user want's to setup_rand_range(). */
-        rtrn = setup_rand_range(map->crypto_method);
-        if(rtrn < 0)
-        {
-            output(ERROR,"Can't setup random range function.\n");
-            return -1;
-        }
+        output(ERROR,"Can't setup random range function.\n");
+        return -1;
     }
-    else
+    
+    /* If the user does not wan't crypto numbers exit early. */
+    if(method == NO_CRYPTO)
+        return 0;
+
+    /* Check for hardware crypto accelators and use them if present, otherwise use
+    /dev/urandom .*/
+    rtrn = setup_hardware_acceleration();
+    switch(rtrn)
     {
-        /* We default to a crytographic random number generator. */
-        rtrn = setup_rand_range((char *)"crypto");
-        if(rtrn < 0)
-        {
-            output(ERROR,"Can't setup random range function.\n");
-            return -1;
-        }
+        case 0:
+            output(STD, "Using hardware crypto PRNG\n");
+            software_prng = 0;
+            break;
 
-        /* Check for hardware crypto accelators and use them if present, otherwise use
-        /dev/urandom .*/
-        rtrn = setup_hardware_acceleration();
-        switch(rtrn)
-        {
-            case 0:
-                output(STD, "Using hardware crypto PRNG\n");
-                software_prng = FALSE;
-                break;
+        case 1: 
+            output(STD, "Switching to /dev/urandom \n");  
+            output(STD, "Seeding PRNG\n"); 
+            software_prng = 1; 
+            return seed_prng();
 
-            case 1: 
-                output(STD, "Switching to /dev/urandom \n");  
-                output(STD, "Seeding PRNG\n"); 
-                software_prng = TRUE; 
-                return seed_prng();
-
-            default: 
-                output(ERROR, "Error while trying to setup hardware acceleration\n"); 
-                return -1;
-        }  
+        default: 
+            output(ERROR, "Error while trying to setup hardware acceleration\n"); 
+            return -1; 
     }
     
     return 0;

@@ -39,9 +39,9 @@
 #include <unistd.h>
 #include <errno.h>
 
-int generate_fd(unsigned long **fd, struct child_ctx *ctx)
+int32_t generate_fd(uint64_t **fd)
 {
-    int rtrn;
+    int32_t rtrn = 0;
 
     rtrn = get_desc((int *)*fd);
     if(rtrn < 0)
@@ -53,7 +53,7 @@ int generate_fd(unsigned long **fd, struct child_ctx *ctx)
 	return 0;
 }
 
-int generate_socket(unsigned long **sock, struct child_ctx *ctx)
+int32_t generate_socket(uint64_t **sock)
 {
     int rtrn;
     int socket_fd = 0;
@@ -113,14 +113,11 @@ int generate_socket(unsigned long **sock, struct child_ctx *ctx)
             output(ERROR, "Should not get here\n");
             return -1;
     }
-
-    /* Set socket size. */
-    ctx->arg_size_index[ctx->current_arg] = sizeof(unsigned long);
     
     return 0;
 }
 
-int generate_buf(unsigned long **buf, struct child_ctx *ctx)
+int32_t generate_buf(uint64_t **buf)
 {
     int rtrn;
     unsigned int number;
@@ -167,12 +164,10 @@ int generate_buf(unsigned long **buf, struct child_ctx *ctx)
             return -1;
     }
 
-    ctx->arg_size_index[ctx->current_arg] = 1024;
-
 	return 0;
 }
 
-int generate_length(unsigned long **length, struct child_ctx *ctx)
+int32_t generate_length(uint64_t **length)
 {
 	*length = mem_alloc(sizeof(unsigned long));
 	if(*length == NULL)
@@ -181,16 +176,16 @@ int generate_length(unsigned long **length, struct child_ctx *ctx)
         return -1;
     }
 
-    unsigned int last_arg = ctx->current_arg - 1;
 
-    *length = (unsigned long *)ctx->arg_size_index[last_arg];
+
+    
     
 	return 0;
 }
 
-int generate_path(unsigned long **path, struct child_ctx *ctx)
+int32_t generate_path(uint64_t **path)
 {
-    int rtrn;
+    int32_t rtrn;
 
     rtrn = get_filepath((char **)path);
     if(rtrn < 0)
@@ -199,15 +194,13 @@ int generate_path(unsigned long **path, struct child_ctx *ctx)
         return -1;
     }
     
-    ctx->arg_size_index[ctx->current_arg] = strlen((char *)*path);
-
 	return 0;
 }
 
-int generate_open_flag(unsigned long **flag, struct child_ctx *ctx)
+int32_t generate_open_flag(uint64_t **flag)
 {
-    int rtrn;
-    unsigned int number;
+    int32_t rtrn;
+    uint32_t number;
     
     rtrn = rand_range(7, &number);
     if(rtrn < 0)
@@ -249,7 +242,7 @@ int generate_open_flag(unsigned long **flag, struct child_ctx *ctx)
     return 0;
 }
 
-int generate_mode(unsigned long **mode, struct child_ctx *ctx)
+int32_t generate_mode(uint64_t **mode)
 {
     int rtrn;
     unsigned int number;
@@ -319,7 +312,7 @@ int generate_mode(unsigned long **mode, struct child_ctx *ctx)
 	return 0;
 }
 
-int generate_fs_stat(unsigned long **stat, struct child_ctx *ctx)
+int32_t generate_fs_stat(uint64_t **stat)
 {
 	struct statfs *stat_buf = mem_alloc(sizeof(struct statfs));
     if(stat_buf == NULL)
@@ -328,15 +321,15 @@ int generate_fs_stat(unsigned long **stat, struct child_ctx *ctx)
     	return -1;
     }
 
-    *stat = (unsigned long *)stat_buf;
+    *stat = (uint64_t *)stat_buf;
 
 	return 0;
 }
 
-int generate_fs_stat_flag(unsigned long **flag, struct child_ctx *ctx)
+int32_t generate_fs_stat_flag(uint64_t **flag)
 {
-    int rtrn;
-    unsigned int number;
+    int32_t rtrn;
+    uint32_t number;
 
     *flag = mem_alloc(12);
     if(*flag == NULL)
@@ -366,7 +359,7 @@ int generate_fs_stat_flag(unsigned long **flag, struct child_ctx *ctx)
 	return 0;
 }
 
-int generate_pid(unsigned long **pid, struct child_ctx *ctx)
+int32_t generate_pid(uint64_t **pid)
 {
 	pid_t local_pid;
 
@@ -388,7 +381,7 @@ int generate_pid(unsigned long **pid, struct child_ctx *ctx)
     }
     else if(local_pid > 0)
     {
-      
+        
     }
     else
     {
@@ -396,12 +389,12 @@ int generate_pid(unsigned long **pid, struct child_ctx *ctx)
         return -1;
     }
 
-    **pid = (unsigned long)local_pid;
+    **pid = (uint64_t)local_pid;
     
 	return 0;
 }
 
-int generate_int(unsigned long **integer, struct child_ctx *ctx)
+int32_t generate_int(uint64_t **integer)
 {
 	unsigned int number; 
     int rtrn;
@@ -425,7 +418,7 @@ int generate_int(unsigned long **integer, struct child_ctx *ctx)
 	return 0;
 }
 
-int generate_rusage(unsigned long **usage, struct child_ctx *ctx)
+int32_t generate_rusage(uint64_t **usage)
 {
     struct rusage *buf;
 
@@ -436,12 +429,12 @@ int generate_rusage(unsigned long **usage, struct child_ctx *ctx)
     	return -1;
     }
 
-    *usage = (unsigned long *)buf;
+    *usage = (uint64_t *)buf;
 
 	return 0;
 }
 
-int generate_wait_option(unsigned long **option, struct child_ctx *ctx)
+int32_t generate_wait_option(uint64_t **option)
 {
 	int rtrn;
     unsigned int number;
@@ -478,7 +471,7 @@ int generate_wait_option(unsigned long **option, struct child_ctx *ctx)
 	return 0;
 }
 
-int generate_whence(unsigned long **whence, struct child_ctx *ctx)
+int32_t generate_whence(uint64_t **whence)
 {
     int rtrn;
     unsigned int number;
@@ -535,7 +528,7 @@ int generate_whence(unsigned long **whence, struct child_ctx *ctx)
             break;
 
     #else
-         // Nothing
+         /* Nothing */
     #endif 
             
         default:
@@ -546,18 +539,18 @@ int generate_whence(unsigned long **whence, struct child_ctx *ctx)
     return 0;
 }
 
-int generate_offset(unsigned long **offset, struct child_ctx *ctx)
+int32_t generate_offset(uint64_t **offset)
 {
-    int rtrn;
+    int32_t rtrn = 0;
 
-    *offset = mem_alloc(sizeof(unsigned long));
+    *offset = mem_alloc(sizeof(uint64_t));
     if(*offset == NULL)
     {
         output(ERROR, "mem_alloc\n");
         return -1;
     }
     
-    rtrn = rand_range(INT_MAX, (unsigned int *)*offset);
+    rtrn = rand_range(INT_MAX, (uint32_t *)*offset);
     if(rtrn < 0)
     {
         output(ERROR, "Can't generate random number\n");
@@ -567,45 +560,45 @@ int generate_offset(unsigned long **offset, struct child_ctx *ctx)
     return 0;
 }
 
-int generate_mount_path(unsigned long **path, struct child_ctx *ctx)
+int32_t generate_mount_path(uint64_t **path)
 {
     return 0;
 }
 
-int generate_mount_type(unsigned long **type, struct child_ctx *ctx)
-{
-
-    return 0;
-}
-
-int generate_dirpath(unsigned long **dirpath, struct child_ctx *ctx)
+int32_t generate_mount_type(uint64_t **type)
 {
 
     return 0;
 }
 
-int generate_mount_flags(unsigned long **flag, struct child_ctx *ctx)
+int32_t generate_dirpath(uint64_t **dirpath)
 {
 
     return 0;
 }
 
-int generate_unmount_flags(unsigned long **flag, struct child_ctx *ctx)
+int32_t generate_mount_flags(uint64_t **flag)
+{
+
+    return 0;
+}
+
+int32_t generate_unmount_flags(uint64_t **flag)
 {
     return 0;
 }
 
-int generate_request(unsigned long **flag, struct child_ctx *ctx)
+int32_t generate_request(uint64_t **flag)
 {
     return 0;
 }
 
-int generate_recv_flags(unsigned long **flag, struct child_ctx *ctx)
+int32_t generate_recv_flags(uint64_t **flag)
 {
     return 0;
 }
 
-int generate_dev(unsigned long **dev, struct child_ctx *ctx)
+int32_t generate_dev(uint64_t **dev)
 {
     return 0;
 }

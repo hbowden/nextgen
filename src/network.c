@@ -18,8 +18,9 @@
 #include "network.h"
 #include "nextgen.h"
 #include "concurrent.h"
-#include "io.h"
 #include "crypto.h"
+#include "types.h"
+#include "io.h"
 
 #include <pthread.h>
 #include <stdio.h>
@@ -29,7 +30,6 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <netinet/in.h>
-#include <stdbool.h>
 #include <errno.h>
 #include <sys/socket.h>
 #include <sys/types.h>

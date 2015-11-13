@@ -18,13 +18,16 @@
 #ifndef PLUGIN_H
 #define PLUGIN_H
 
+#include <stdint.h>
+
 #ifdef CPLUS_PLUS
 
 extern "C" {
 
 #endif
 
-#include "private.h"
+/* Number of plugins in plugin index. */
+extern uint32_t plugin_count;
 
 /* This struct is used as a plugin handle. */
 struct plugin_ctx
@@ -38,19 +41,17 @@ struct plugin_ctx
 /* This struct abstracts away specific file formats features as a generic struct. */
 struct feature_constraints
 {
-    unsigned int feature_number;
+    uint32_t feature_number;
 
 };
 
-private extern int load_all_plugins(void);
+extern int32_t setup_plugin_module(void);
 
-private extern int count_plugins(unsigned int *count);
+extern int32_t supported_file(const char *file_extension, unsigned int *plugin_offset);
 
-private extern int supported_file(const char *file_extension, unsigned int *plugin_offset);
+extern int32_t features_supported(unsigned int offset, unsigned int *number_of_features);
 
-private extern int features_supported(unsigned int offset, unsigned int *number_of_features);
-
-private extern int feature_constraints(unsigned int offset, struct feature_constraints *constraints);
+extern int32_t feature_constraints(unsigned int offset, struct feature_constraints *constraints);
 
 #ifdef CPLUS_PLUS
 

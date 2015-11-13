@@ -18,10 +18,8 @@
 #ifndef REAPER_H
 #define REAPER_H
 
-#include "private.h"
-#include "arg_types.h"
-#include "syscall.h"
+#include <sys/types.h>
 
-private extern int setup_reaper_module(void);
+extern int setup_reaper_module(pid_t *reaper_pid);
 
 #endif

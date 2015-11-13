@@ -17,9 +17,11 @@
 
 #include "reaper.h"
 #include "nextgen.h"
+#include "syscall.h"
 #include "signals.h"
 #include "memory.h"
 #include "concurrent.h"
+#include "types.h"
 #include "io.h"
 
 #include <signal.h>
@@ -38,18 +40,14 @@ static void check_progess(struct child_ctx *child)
 
     /* Return early if there is no child. */
     if(atomic_load(&child->pid) == EMPTY)
-    {
         return;
-    }
 
     /* Grab the time the syscall was done. */
     time_of_syscall = child->time_of_syscall.tv_sec;
     
-    /* Return  */
+    /* Return early. */
     if(time_of_syscall == 0)
-    {
         return;
-    }
 
     gettimeofday(&tv, NULL);
 
@@ -64,18 +62,14 @@ static void check_progess(struct child_ctx *child)
         dif = time_now - time_of_syscall;
     }
     
-    if(dif < 10)
-    {
+    if(dif < 5)
         return;
-    }
-    else
+
+    rtrn = kill(atomic_load(&child->pid), SIGKILL);
+    if(rtrn < 0)
     {
-        rtrn = kill(atomic_load(&child->pid), SIGKILL);
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't kill child: %s\n", strerror(errno));
-            return;
-        }
+        output(ERROR, "Can't kill child: %s\n", strerror(errno));
+        return;
     }
 
 	return;
@@ -87,14 +81,20 @@ static void reaper(void)
 
     while(atomic_load(&map->stop) != TRUE)
     {
-    	struct child_ctx *child = NULL;
-
         unsigned int i = 0;
+        struct child_ctx *child = NULL;
 
         /* Loop for each child processe. */
-    	for_each_child(child, i)
+    	for(i = 0; i < number_of_children; i++)
     	{
-            /* Make sure the child is not hung up, if it is kill it. */
+            child = get_child_from_index(i);
+            if(child == NULL)
+            {
+                output(ERROR, "Can't get child\n");
+                return;
+            }
+
+            /* Make sure the child is not hung up, if it is check_progress() kills it. */
     		check_progess(child);
     	}
     }
@@ -107,19 +107,24 @@ static void reaper(void)
 
 /* This function sets up and run's the reaper process. The reaper kills and replaces child
 processes that are not functioning properly. */
-int setup_reaper_module(void)
+int setup_reaper_module(pid_t *reaper_pid)
 {
-    pid_t reaper_pid;
-
-    reaper_pid = fork();
-    if(reaper_pid == 0)
+    /* Fork and create a child process. */
+    *reaper_pid = fork();
+    if(*reaper_pid == 0)
     {
-        cas_loop_int32(&map->reaper_pid, reaper_pid);
+        /* Set the pid so the caller can use it. */
+        *reaper_pid = getpid();
 
+        /* Start the reaper loop. */
     	reaper();
+
+        /* Exit and clean up the child process. */
+        _exit(0);
     }
-    else if(reaper_pid > 0)
+    else if(*reaper_pid > 0)
     {
+        /* Just return right away in the parent process. */
     	return 0;
     }
     else
@@ -127,5 +132,4 @@ int setup_reaper_module(void)
     	output(ERROR, "Failed to fork reaper process: %s\n", strerror(errno));
     	return -1;
     }
-	return 0;
 }

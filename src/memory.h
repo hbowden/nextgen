@@ -18,18 +18,14 @@
 #ifndef MEMORY_H
 #define MEMORY_H
 
-#include "private.h"
 #include "concurrent.h"
-
-#include "ck_queue.h"
-#include "ck_spinlock.h"
-#include <stdlib.h>
+#include <stdint.h>
 
 struct memory_block
 {
     void *ptr;
 
-    CK_SLIST_ENTRY(memory_block) list_entry;
+    SLIST_ENTRY(memory_block);
 };
 
 struct mem_pool_shared
@@ -38,39 +34,39 @@ struct mem_pool_shared
 	ck_spinlock_t lock;
 
 	/* The size of the memory block that ptr points at. */
-	unsigned int block_size;
+	uint32_t block_size;
 
     /* The number of blocks in the memory pool. */
-	unsigned int block_count;
+	uint32_t block_count;
 
     /* Shared memory list the represents the memory pool. */
-    CK_SLIST_HEAD(free_list, memory_block) free_list;
+    SLIST_HEAD(free_list, memory_block);
 
     /* Shared memory list the represents the memory pool. */
-    CK_SLIST_HEAD(allocated_list, memory_block) allocated_list;
+    SLIST_HEAD(allocated_list, memory_block);
 };
 
 #define init_shared_pool(pool,block) CK_SLIST_FOREACH(block, pool->free_list, list_entry)
 
-private extern void *mem_alloc(unsigned long nbytes);
+extern void *mem_alloc(uint64_t nbytes);
 
-private extern void *mem_calloc(unsigned long count, unsigned long nbytes);
+extern void *mem_calloc(uint64_t count, uint64_t nbytes);
 
-private extern void mem_free(void *ptr);
+extern void mem_free(void *ptr);
 
-private extern void *mem_alloc_shared(unsigned long nbytes);
+extern void *mem_alloc_shared(uint64_t nbytes);
 
-private extern void *mem_calloc_shared(unsigned long count, unsigned long nbytes);
+extern void *mem_calloc_shared(uint64_t nbytes);
 
-private extern void mem_free_shared(void *ptr, unsigned long nbytes);
+extern void mem_free_shared(void *ptr, uint64_t nbytes);
 
-private extern struct mem_pool_shared *mem_create_shared_pool(unsigned int block_size, unsigned int block_count);
+extern struct mem_pool_shared *mem_create_shared_pool(uint32_t block_size, uint32_t block_count);
 
-private extern void clean_shared_pool(struct mem_pool_shared *pool);
+extern void clean_shared_pool(struct mem_pool_shared *pool);
 
-private extern struct memory_block *mem_get_shared_block(struct mem_pool_shared *pool);
+extern struct memory_block *mem_get_shared_block(struct mem_pool_shared *pool);
 
-private extern void mem_free_shared_block(struct memory_block *block, struct mem_pool_shared *pool);
+extern void mem_free_shared_block(struct memory_block *block, struct mem_pool_shared *pool);
 
 static inline void cleanup_buf(char **buf)
 {
