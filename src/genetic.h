@@ -20,7 +20,6 @@
 
 #include "concurrent.h"
 
-#include <sys/types.h>
 #include <stdint.h>
 
 enum job_type { GENESIS };
@@ -38,8 +37,6 @@ struct job_ctx
 
 extern int32_t setup_genetic_module(void);
 
-extern struct job_ctx *get_job(struct work_queue *queue);
-
-extern int32_t create_new_generation(char **file, off_t *file_size, char *file_extension);
+extern int32_t create_new_generation(char **file, uint64_t *file_size, char *file_extension);
 
 #endif

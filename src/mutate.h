@@ -18,15 +18,14 @@
 #ifndef MUTATE_H
 #define MUTATE_H
 
-#include "private.h"
 #include "syscall.h"
 
-#include <sys/types.h>
+#include <stdint.h>
 
 /* The mutator for syscall argumenst. */
-private extern int mutate_arguments(struct child_ctx *ctx);
+extern int32_t mutate_arguments(struct child_ctx *ctx);
 
 /* File mutator function. */
-private extern int mutate_file(char **file, const char *file_extension, off_t *file_size);
+extern int32_t mutate_file(char **file, const char *file_extension, uint64_t *file_size);
 
 #endif

@@ -16,50 +16,52 @@
  **/
 
 #include "utils.h"
-#include "io.h"
 #include "memory.h"
 #include "crypto.h"
 #include "nextgen.h"
+#include "io.h"
 
 #include <stdio.h>
+#include <stdint.h>
 #include <fcntl.h>
 #include <string.h>
 #include <sys/wait.h>
 #include <sys/sysctl.h>
 #include <sys/stat.h>
-#include <pwd.h>
 #include <sys/mman.h>
+#include <sys/syslimits.h>
 #include <errno.h>
+#include <pwd.h>
 
-int check_root(void)
+int32_t check_root(void)
 {
     output(STD, "Making sure nextgen has root privileges\n");
 
-    uid_t check;
+    uid_t check = 0;
 
     check = getuid();
     if(check == 0)
-        return 0;
+        return (0);
 
-    return -1;
+    return (-1);
 }
 
-int get_file_size(int fd, off_t *size)
+int32_t get_file_size(int32_t fd, uint64_t *size)
 {
     struct stat stbuf;
 
     if((fstat(fd, &stbuf) != 0) || (!S_ISREG(stbuf.st_mode)))
     {
         output(ERROR, "fstat: %s\n", strerror(errno));
-        return -1;
+        return (-1);
     }
 
     (*size) = stbuf.st_size;
 
-    return 0;
+    return (0);
 }
 
-int get_extension(char *path, char **extension)
+int32_t get_extension(char *path, char **extension)
 {
     char *pointer = strrchr(path, '.');
     if(pointer == NULL)
@@ -68,7 +70,7 @@ int get_extension(char *path, char **extension)
         return -1;
     }
 
-    int rtrn = asprintf(extension, "%s\n", pointer + 1);
+    int32_t rtrn = asprintf(extension, "%s\n", pointer + 1);
     if(rtrn < 0)
     {
         output(ERROR, "Can't alloc extension: %s\n", strerror(errno));
@@ -78,16 +80,16 @@ int get_extension(char *path, char **extension)
     return 0;
 }
 
-int get_core_count(unsigned int *core_count)
+int32_t get_core_count(uint32_t *core_count)
 {
-    int mib[4];
+    int32_t mib[4];
 
     mib[0] = CTL_HW;
     mib[1] = HW_NCPU;
 
-    size_t len = sizeof(unsigned int);
+    size_t len = sizeof(uint32_t);
 
-    int rtrn = sysctl(mib, 2, core_count, &len, NULL, 0);
+    int32_t rtrn = sysctl(mib, 2, core_count, &len, NULL, 0);
     if(rtrn < 0)
     {
         output(ERROR, "sysctl: %s\n", strerror(errno));
@@ -95,20 +97,20 @@ int get_core_count(unsigned int *core_count)
     }
 
     if(*core_count < 1)
-    	*core_count = (unsigned int) 1;
+    	*core_count = (uint32_t) 1;
 
 	return 0;
 }
 
-int generate_name(char **name, char *extension, enum name_type type)
+int32_t generate_name(char **name, char *extension, enum name_type type)
 {
     /* Declare some variables. */
-    int rtrn;
+    int32_t rtrn = 0;
     char *random_data auto_clean = NULL;
     char *tmp_buf auto_clean = NULL;
     
     /* Create some space in memory. */
-    random_data = mem_alloc(1024);
+    random_data = mem_alloc(PATH_MAX + 1);
     if(random_data == NULL)
     {
         output(STD, "Can't Allocate Space\n");
@@ -116,7 +118,7 @@ int generate_name(char **name, char *extension, enum name_type type)
     }
     
     /* Grab some random bytes. */
-    rtrn = rand_bytes(&random_data, 1023);
+    rtrn = rand_bytes(&random_data, (PATH_MAX));
     if(rtrn < 0)
     {
         output(STD, "Can't get random bytes\n");
@@ -124,7 +126,7 @@ int generate_name(char **name, char *extension, enum name_type type)
     }
 
     /* Null terminate the random byte string. */
-    random_data[1023] = '\0';
+    random_data[PATH_MAX] = '\0';
     
     /* SHA 256 hash the random output string. */
     rtrn = sha256(random_data, &tmp_buf);
@@ -176,7 +178,7 @@ int get_home(char **home)
     uid = getuid();
     
     /* If getuid succedes get user password struct */
-    if (!(pwd = getpwuid(uid)))
+    if(!(pwd = getpwuid(uid)))
     {
         output(ERROR, "Can't Get pwd struct: %s\n", strerror(errno));
         return -1;
@@ -187,7 +189,7 @@ int get_home(char **home)
     if(rtrn < 0)
     {
         output(ERROR, "Can't Create home string: %s\n", strerror(errno));
-        return -1;
+        return -1;  
     }
     
     /* Exit */

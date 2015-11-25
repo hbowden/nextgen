@@ -38,7 +38,8 @@
 
 struct syscall_table *get_table(void)
 {
-    return freebsd_syscall_table;
+    /* Return the FreeBSD system call table object. */
+    return (freebsd_syscall_table);
 }
 
 int _inject_fork_server(void)
@@ -46,8 +47,9 @@ int _inject_fork_server(void)
     output(STD, "Creating fork server\n");
 
     /* Variables. */
-    int status, orig;
-    struct reg regs;
+    int32_t orig = 0;
+    int32_t status = 0, 
+    struct reg regs = NULL;
         
     /* Lets save the code at main in the target process. */
     orig = ptrace(PT_READ_I, atomic_load(&map->exec_ctx->pid), (caddr_t)&map->exec_ctx->main_start_address, 0);

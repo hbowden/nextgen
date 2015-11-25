@@ -145,39 +145,56 @@ static int test_rand_bytes(void)
 
 int main(void)
 {
-    int rtrn = 0;
+    int32_t rtrn = 0;
 
-    /* Map the stats object as shared anonymous memory. */
+    rtrn = init_test_framework();
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't init test framework");
+        return (-1);
+    }
+
     stat = init_stats_obj();
     if(stat == NULL)
     {
         output(ERROR, "Can't init the stats object\n");
-        return -1;
+        return (-1);
     }
 
     rtrn = test_setup_crypto();
     if(rtrn < 0)
+    {
+        log_test(FAIL, "setup crypto test failed");
         return -1;
+    }
 
     rtrn = test_sha256();
     if(rtrn < 0)
+    {
+        log_test(FAIL, "sha256 test failed");
         return -1;
+    }
 
     rtrn = test_sha512();
     if(rtrn < 0)
+    {
+        log_test(FAIL, "sha512 test failed");
         return -1;
+    }
 
     rtrn = test_rand_range();
     if(rtrn < 0)
+    {
+        log_test(FAIL, "random range test failed");
         return -1;
+    }
 
     rtrn = test_rand_bytes();
     if(rtrn < 0)
+    {
+        log_test(FAIL, "random bytes test failed");
         return -1;
-
-    /* Output results. */
-    output(STD, "[%d] %ld assertions passed, %ld test passed, and %ld test failed.\n", \
-          (100 * stat->successes) / stat->test_ran, stat->asserts_ran, stat->successes, stat->fails);
+    }
 
     return 0;
 }

@@ -1,7 +1,7 @@
 
 
 /**
- * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
+ * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice 
@@ -26,7 +26,7 @@ static int test_syscall_setup(void)
     log_test(DECLARE, "Testing syscall module setup");
 
     /* Call the setup function. */
-    int rtrn = setup_syscall_module();
+    int32_t rtrn = setup_syscall_module();
 
     /* Make sure setup_syscall_module() returns zero. */
     assert_stat(rtrn == 0);
@@ -89,17 +89,52 @@ static int test_init_child_context(void)
 
 static int test_get_table(void)
 {
+    /* Declare a syscall table in disk format. */
     struct syscall_table *table = NULL;
 
+    /* Grab the syscall table for our operating system. */
     table = get_table();
 
+    /* Make sure the table is not NULL. */
     assert_stat(table != NULL);
 
-    uint32_t i = 0;
+    uint32_t i, ii;
 
-    for(i = 0; i < table->number_of_syscalls; i++)
+    /* Loop starting at one, there is no sys_entry at index zero, in
+    syscall table when in disk format. */
+    for(i = 1; i < table->number_of_syscalls; i++)
     {
-        assert_stat(&table->sys_entry[i] != NULL);
+        /* Make sure sys_entry is not NULL. */
+        assert_stat(table[i].sys_entry != NULL);
+
+        /* Make sure syscall name is not NULL. */
+        assert_stat(table[i].sys_entry->name_of_syscall);
+
+        /* Number of arguments should be greater than zero and less then or equal to 7. */
+        assert_stat(table[i].sys_entry->number_of_args > 0 && table[i].sys_entry->number_of_args <= 7);
+
+        /* Status has to be either ON or OFF. */
+        assert_stat(table[i].sys_entry->status == ON || table[i].sys_entry->status == OFF);
+
+        /* Requires root has to be either YES or NO. */
+        assert_stat(table[i].sys_entry->requires_root == YES || table[i].sys_entry->requires_root == NO);
+
+        /* Need alarm has to be either YES or NO. */
+        assert_stat(table[i].sys_entry->need_alarm == NO || table[i].sys_entry->need_alarm == YES);
+
+        /* Loop for each argument in the syscall entry and verify that they are correct. */
+        for(ii = 0; ii < table[i].sys_entry->number_of_args; ii++)
+        {
+            /*assert_stat(table[i].sys_entry->get_arg_index[ii] != NULL);
+
+            uint64_t *arg = NULL;
+
+            int32_t rtrn = table[i].sys_entry->get_arg_index[ii](&arg);
+
+            assert_stat(rtrn == 0);
+
+            assert_stat(arg != NULL); */
+        }
     }
 
     return (0);
@@ -109,42 +144,43 @@ static int test_get_syscall_table(void)
 {
     log_test(DECLARE, "Testing get_syscall_table");
 
+    /* Declare the memory format of the syscall table. */
     struct syscall_table_shadow *table = NULL;
 
+    /* Get a syscall table in memory format. */
     table = get_syscall_table();
 
+    /* Make sure the syscall table is not NULL. */
     assert_stat(table != NULL);
 
-    int32_t rtrn = 0;
     uint32_t i, ii;
+    int32_t rtrn = 0;
 
-    for(i = 0; i < table->number_of_syscalls; i++)
+    for(i = 1; i < table->number_of_syscalls; i++)
     {
-        assert_stat(&table->sys_entry[i] != NULL);
+        assert_stat(table->sys_entry[i] != NULL);
 
-        assert_stat(table->sys_entry[i].name_of_syscall != NULL);
+        assert_stat(table->sys_entry[i]->name_of_syscall != NULL);
 
-        assert_stat(table->sys_entry[i].syscall_symbol > 0);
+        assert_stat(table->sys_entry[i]->number_of_args > 0 && table->sys_entry[i]->number_of_args <= 7);
 
-        assert_stat(table->sys_entry[i].number_of_args > 0 && table->sys_entry[i].number_of_args <= 7);
+        assert_stat(table->sys_entry[i]->status == ON || table->sys_entry[i]->status == OFF);
 
-        assert_stat(table->sys_entry[i].status == ON || table->sys_entry[i].status == OFF);
+        assert_stat(table->sys_entry[i]->requires_root == YES || table->sys_entry[i]->requires_root == NO);
 
-        assert_stat(table->sys_entry[i].requires_root == YES || table->sys_entry[i].requires_root == NO);
+        assert_stat(table->sys_entry[i]->need_alarm == NO || table->sys_entry[i]->need_alarm == YES);
 
-        assert_stat(table->sys_entry[i].need_alarm == NO || table->sys_entry[i].need_alarm == YES);
-
-        for(ii = 0; ii < table->sys_entry[i].number_of_args; ii++)
+        for(ii = 0; ii < table->sys_entry[i]->number_of_args; ii++)
         {
-            assert_stat(table->sys_entry[i].arg_context_index[ii] != NULL);
+            assert_stat(table->sys_entry[i]->arg_context_index[ii] != NULL);
 
-            assert_stat(table->sys_entry[i].arg_context_index[ii]->name != NULL);
+            assert_stat(table->sys_entry[i]->arg_context_index[ii]->name != NULL);
 
-            assert_stat(table->sys_entry[i].get_arg_index[ii] != NULL);
+            assert_stat(table->sys_entry[i]->get_arg_index[ii] != NULL);
 
             uint64_t *arg = NULL;
 
-            rtrn = table->sys_entry[i].get_arg_index[ii](&arg);
+            rtrn = table->sys_entry[i]->get_arg_index[ii](&arg);
 
             assert_stat(rtrn == 0);
 
@@ -267,47 +303,71 @@ static int test_pick_syscall(void)
 
 int main(void)
 {
-	/* Map the stats object as shared anonymous memory. */
+	int32_t rtrn = 0;
+
+    rtrn = init_test_framework();
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't init test framework");
+        return (-1);
+    }
+
+    /* Initialize the stats object. */
     stat = init_stats_obj();
     if(stat == NULL)
     {
-    	output(ERROR, "Can't init the stats object\n");
-    	return (-1);
+        output(ERROR, "Can't init the stats object\n");
+        return (-1);
     }
-
-    int32_t rtrn = 0;
 
     rtrn = test_syscall_setup();
     if(rtrn < 0)
+    {
+        log_test(FAIL, "Syscall setup test failed");
         return (-1);
+    }
 
     rtrn = test_init_child_context();
     if(rtrn < 0)
+    {
+        log_test(FAIL, "init child context test failed");
         return (-1);
+    }
 
     rtrn = test_get_table();
     if(rtrn < 0)
+    {
+        log_test(FAIL, "get table test failed");
         return (-1);
+    }
 
     rtrn = test_get_syscall_table();
     if(rtrn < 0)
+    {
+        log_test(FAIL, "get syscall table test failed");
         return (-1);
+    }
 
     rtrn = test_get_entry();
     if(rtrn < 0)
+    {
+        log_test(FAIL, "get entry test failed");
         return (-1);
+    }
 
     rtrn = test_child_from_index();
     if(rtrn < 0)
+    {
+        log_test(FAIL, "child from index test failed");
         return (-1);
+    }
 
     rtrn = test_pick_syscall();
     if(rtrn < 0)
+    {
+        log_test(FAIL, "Pick syscall test failed");
         return (-1);
-
-    /* Output results. */
-	output(STD, "[%d] %ld assertions passed, %ld test passed, and %ld test failed.\n", \
-		  (100 * stat->successes) / stat->test_ran, stat->asserts_ran, stat->successes, stat->fails);
+    }
 
 	return (0);
 }

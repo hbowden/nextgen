@@ -1,7 +1,7 @@
 
 
 /**
- * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
+ * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice 
@@ -21,7 +21,7 @@
 #include "crypto.h"
 #include "signals.h"
 #include "memory.h"
-#include "types.h"
+#include "platform.h"
 #include "mutate.h"
 #include "genetic.h"
 #include "arg_types.h"
@@ -36,12 +36,12 @@
 
 #include "stdatomic.h"
 
+/* The total number of children process to run. */
+uint32_t number_of_children;
+
 /* An index of child context structures. These structures track variables
    local to the child process. */
 static struct child_ctx **children;
-
-/* The total number of children process to run. */
-uint32_t number_of_children;
 
 /* The number of children processes currently running. */
 static atomic_uint_fast64_t running_children;
@@ -60,11 +60,14 @@ int32_t cleanup_syscall_table(void)
 
 struct syscall_entry_shadow *get_entry(uint32_t syscall_number)
 {
+    /* If the syscall number passed is greater than the total number
+    of syscalls return NULL. */
     if(syscall_number > sys_table->number_of_syscalls)
         return NULL;
 
     struct syscall_entry_shadow *entry = NULL;
 
+    /* Allocate a syscall entry. */
     entry = mem_alloc(sizeof(struct syscall_entry_shadow));
     if(entry == NULL)
     {
@@ -72,9 +75,10 @@ struct syscall_entry_shadow *get_entry(uint32_t syscall_number)
         return NULL;
     }
 
-    entry = &sys_table->sys_entry[syscall_number];
+    /* Set the entry to the one in the syscall table. */
+    entry = sys_table->sys_entry[syscall_number];
 
-    return entry;
+    return (entry);
 }
 
 struct child_ctx *get_child_from_index(uint32_t i)
@@ -101,14 +105,15 @@ static int32_t get_child_index_number(void)
     uint32_t i = 0;
     pid_t pid = getpid();
 
+    /* Walk child array until our PID matches the one in the context struct. */
     for(i = 0; i < number_of_children; i++)
     {
         if(atomic_load(&children[i]->pid) == pid)
-            return (int32_t)i;
+            return (int32_t)(i);
     }
 
     /* Should not get here, but if we do return an error. */
-    return -1;
+    return (-1);
 }
 
 static void exit_child(void)
@@ -143,6 +148,7 @@ static void free_old_arguments(struct child_ctx *ctx)
 
     for(i = 0; i < number_of_args; i++)
     {
+        /* Free value if non NULL. */
         mem_free(ctx->arg_value_index[i]);
     }
 
@@ -187,13 +193,13 @@ static void start_smart_syscall_child(void)
     {
         struct job_ctx *job = NULL;
 
-        /* Grab a job from the work queue. */
+        /* Grab a job from the work queue.
         job = get_job(map->queue);
         if(job == NULL)
         {
             output(ERROR, "Can't get job\n");
             exit_child();
-        }
+        } */
 
         /* Proccess the orders from the genetic algorithm. */
         rtrn = do_job(job);
@@ -342,70 +348,14 @@ struct child_ctx *get_child_ctx(void)
     if(child == NULL)
     {
         output(ERROR, "Can't get child context\n");
-        mem_free(child); // Free on error so we don't leak memory.
+        mem_free(child); /* Free on error so we don't leak memory. */
         return NULL;
     }
 
-    return child;
+    return (child);
 }
 
-static struct arg_context *get_arg_context(enum arg_type type)
-{
-    switch((int)type)
-    {
-        case FILE_DESC: return &file_desc_ctx;
-
-        case VOID_BUF: return &void_buf_ctx;
-            
-        case SIZE: return &size_ctx;
-
-        case FILE_PATH: return &file_path_ctx;
-
-        case OPEN_FLAG: return &open_flag_ctx;
-           
-        case MODE: return &mode_ctx;
-
-        case STAT_FS: return &stat_fs_ctx;
-
-        case STAT_FLAG: return &stat_flag_ctx;
-
-        case INT: return &int_ctx;
-       
-        case RUSAGE: return &rusage_ctx;
-         
-        case PID: return &pid_ctx;
-          
-        case WAIT_OPTION: return &wait_option_ctx;
-         
-        case SOCKET: return &socket_ctx;
-           
-        case WHENCE: return &whence_ctx;
-           
-        case OFFSET: return &offset_ctx;
-        
-        case MOUNT_TYPE: return &mount_type_ctx;
-         
-        case DIR_PATH: return &dir_path_ctx;
-          
-        case MOUNT_FLAG: return &mount_flag_ctx;
-
-        case UNMOUNT_FLAG: return &unmount_flag_ctx;
-
-        case RECV_FLAG: return &recv_flag_ctx;
-         
-        case REQUEST: return &request_ctx;
-
-        case MOUNT_PATH: return &mount_path_ctx;
-
-        case DEV: return &dev_ctx;
-
-        default:
-            output(ERROR, "Unlisted arg type\n");
-            return NULL;
-    }
-}
-
-static int init_syscall_child(unsigned int i)
+static int init_syscall_child(uint32_t i)
 {
     int32_t rtrn = 0;
 
@@ -448,14 +398,6 @@ void create_syscall_children(void)
         if(atomic_load(&children[i]->pid) == EMPTY)
         {
             pid_t child_pid;
-
-            /* Create pipe here so we can communicate with the child and avoid a race condition. */
-            rtrn = pipe(children[i]->msg_port);
-            if(rtrn < 0)
-            {
-                output(ERROR, "Can't create msg port: %s\n", strerror(errno));
-                return;
-            }
 
             child_pid = fork();
             if(child_pid == 0)
@@ -508,8 +450,11 @@ void create_syscall_children(void)
 
 struct syscall_table_shadow *get_syscall_table(void)
 {
+    struct syscall_table *syscall_table = NULL;
+    struct syscall_table_shadow *shadow_table = NULL;
+
     /* Grab a copy of the syscall table in on disk format. */ 
-    struct syscall_table *syscall_table = get_table();
+    syscall_table = get_table();
     if(sys_table == NULL)
     {
         output(STD, "Can't grab syscall table\n");
@@ -517,7 +462,7 @@ struct syscall_table_shadow *get_syscall_table(void)
     }
 
     /* Create a shadow syscall table.*/
-    struct syscall_table_shadow *shadow_table = mem_alloc(sizeof(struct syscall_table_shadow));
+    shadow_table = mem_alloc(sizeof(struct syscall_table_shadow));
     if(shadow_table == NULL)
     {
         output(ERROR, "Can't create shadow table\n");
@@ -531,60 +476,64 @@ struct syscall_table_shadow *get_syscall_table(void)
     uint32_t i, ii;
 
     /* Allocate heap memory for the list of syscalls. */
-    shadow_table->sys_entry = mem_alloc(shadow_table->number_of_syscalls * sizeof(struct syscall_entry_shadow));
+    shadow_table->sys_entry = mem_alloc(shadow_table->number_of_syscalls * sizeof(struct syscall_entry_shadow *));
     if(shadow_table->sys_entry == NULL)
     {
-        output(ERROR, "Can't create new entry\n");
+        output(ERROR, "Can't create entry index\n");
         return NULL;
     }
-
-    /* This is the entry offset, it one because the entries start at [1] instead of [0]; */
-    uint32_t offset = 1;
-
-    /* We use this to track where to put the new entry in the entry index. */
-    uint32_t shadow_entry_offset = 0;
 
     /* Loop for each entry syscall and build a table from the on disk format. */
     for(i = 0; i < shadow_table->number_of_syscalls; i++)
     {
     	/* Check if the syscall is OFF, this is usually for syscalls in development. */
-    	if(syscall_table[i + offset].sys_entry->status == OFF)
+    	if(syscall_table[i + 1].sys_entry->status == OFF)
     	{
             shadow_table->number_of_syscalls--;
             continue;
     	}
 
-        /* Create and intialize the const value for a shadow struct. */
-        struct syscall_entry_shadow entry = {  
+        /* Create and initialize the const value for a shadow struct. */
+        struct syscall_entry_shadow entry_obj = {  
 
-            .number_of_args = syscall_table[i + offset].sys_entry->number_of_args, 
-            .name_of_syscall = syscall_table[i + offset].sys_entry->name_of_syscall 
+            .number_of_args = syscall_table[i + 1].sys_entry->number_of_args, 
+            .name_of_syscall = syscall_table[i + 1].sys_entry->name_of_syscall 
         };
 
-        /* Loop for each arg and set the arg index's. */
-        for(ii = 0; ii < entry.number_of_args; ii++)
-        {
-            entry.get_arg_index[ii] = syscall_table[i + offset].sys_entry->get_arg_index[ii];
+        struct syscall_entry_shadow *entry = NULL;
 
-            entry.arg_context_index[ii] = get_arg_context((enum arg_type)syscall_table[i + offset].sys_entry->arg_type_index[ii]);
-            if(entry.arg_context_index[ii] == NULL)
+        entry = mem_alloc(sizeof(struct syscall_entry_shadow));
+        if(entry == NULL)
+        {
+            output(ERROR, "Can't create syscall entry\n");
+            return NULL;
+        }
+
+        entry = &entry_obj;
+
+        /* Loop for each syscall arg in the entry and set the arg index's. */
+        for(ii = 0; ii < entry->number_of_args; ii++)
+        {
+            entry->get_arg_index[ii] = syscall_table[i + 1].sys_entry->get_arg_index[ii];
+
+            entry->arg_context_index[ii] = get_arg_context((enum arg_type)syscall_table[i + 1].sys_entry->arg_type_index[ii]);
+            if(entry->arg_context_index[ii] == NULL)
             {
                 output(ERROR, "Can't gwt arg context\n");
                 return NULL;
             }
         }
    
-        /* Init the automic value. */
-        atomic_init(&entry.status, ON);
+        /* Init the atomic value. */
+        atomic_init(&entry->status, ON);
 
         /* Set the newly created entry in the index. */
-        shadow_table->sys_entry[shadow_entry_offset] = entry;
+        shadow_table->sys_entry[i] = entry;
 
-        /* Increment offset. */
-        shadow_entry_offset++;
+        assert(shadow_table->sys_entry[i] != NULL);
     }
 
-    return shadow_table;
+    return (shadow_table);
 }
 
 /* This function is used to randomly pick the syscall to test. */
@@ -599,13 +548,13 @@ int pick_syscall(struct child_ctx *ctx)
     }
 
     /* Copy entry values into the child context. */
-    ctx->number_of_args = sys_table->sys_entry[ctx->syscall_number].number_of_args;
+    ctx->number_of_args = sys_table->sys_entry[ctx->syscall_number]->number_of_args;
 
     /* Set values in ctx so we can get info from ctx instead using all these pointers. */ 
-    ctx->need_alarm = sys_table->sys_entry[ctx->syscall_number].need_alarm;
+    ctx->need_alarm = sys_table->sys_entry[ctx->syscall_number]->need_alarm;
 
     /* Set the syscall symbol. */
-    ctx->syscall_symbol = sys_table->sys_entry[ctx->syscall_number].syscall_symbol;
+    ctx->syscall_symbol = sys_table->sys_entry[ctx->syscall_number]->syscall_symbol;
 
     /* Set had error to NO.  */
     ctx->had_error = NO;
@@ -623,10 +572,10 @@ int32_t generate_arguments(struct child_ctx *ctx)
     {
         ctx->current_arg = i;
 
-        rtrn = sys_table->sys_entry[ctx->syscall_number].get_arg_index[i](&ctx->arg_value_index[i]);
+        rtrn = sys_table->sys_entry[ctx->syscall_number]->get_arg_index[i](&ctx->arg_value_index[i]);
         if(rtrn < 0)
         {
-            output(ERROR, "Can't generate arguments for: %s\n", sys_table->sys_entry[ctx->syscall_number].name_of_syscall);
+            output(ERROR, "Can't generate arguments for: %s\n", sys_table->sys_entry[ctx->syscall_number]->name_of_syscall);
             return -1;
         }
     }
@@ -731,6 +680,14 @@ static struct child_ctx *init_child_context(void)
     if(child == NULL)
     {
         output(ERROR, "Can't create child context\n");
+        return NULL;
+    }
+
+    /* Create pipe here so we can communicate with the child and avoid a race condition. */
+    int32_t rtrn = pipe(child->msg_port);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't create msg port: %s\n", strerror(errno));
         return NULL;
     }
 

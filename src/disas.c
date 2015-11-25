@@ -43,7 +43,7 @@ int get_load_address(void)
 int disas_executable_and_examine(void)
 {
     int32_t rtrn;
-    off_t file_size;
+    uint64_t file_size;
     unsigned int count = 0;
     int32_t file auto_close = 0;
     char *file_buffer auto_clean = NULL;

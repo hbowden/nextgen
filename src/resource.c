@@ -1,7 +1,7 @@
 
 
 /**
- * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
+ * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice 
@@ -318,10 +318,10 @@ static int create_dirpath_pool(void)
 		return -1;
 	}
 
-    int rtrn;
-	struct memory_block *block = NULL;
+    int32_t rtrn = 0;
+	struct memory_block *mem_blk = NULL;
 
-    CK_SLIST_FOREACH(block, &dirpath_pool->free_list, list_entry)
+    CK_SLIST_FOREACH(mem_blk, &dirpath_pool->free_list, list_entry)
     {
         /* Temp variable that we define with auto_clean so that we 
         don't have to worry about calling free. */
@@ -345,7 +345,7 @@ static int create_dirpath_pool(void)
            return -1;
         }
 
-        block->ptr;
+        mem_blk->ptr;
     }
 
 	return 0;
@@ -355,7 +355,7 @@ int setup_resource_module(void)
 {
     output(STD, "Creating resource pools\n");
 
-	int rtrn;
+	int32_t rtrn;
 
     /* Start socket server. We use this to connect to, to create loopback sockets. */
     rtrn = start_socket_server();

@@ -212,39 +212,57 @@ static int test_mem_calloc_shared(void)
 
 int main(void)
 {
-    int rtrn = 0;
+    int32_t rtrn = 0;
 
-    /* Map the stats object as shared anonymous memory. */
+    rtrn = init_test_framework();
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't init test framework");
+        return (-1);
+    }
+
+    /* Initialize the stats object. */
     stat = init_stats_obj();
     if(stat == NULL)
     {
         output(ERROR, "Can't init the stats object\n");
-        return -1;
+        return (-1);
     }
 
     rtrn = test_shared_pool();
     if(rtrn < 0)
+    {
+        log_test(FAIL, "shared pool test failed");
         return -1;
+    }
 
     rtrn = test_mem_alloc();
     if(rtrn < 0)
+    {
+        log_test(FAIL, "memory allocator test failed");
         return -1;
+    }
 
     rtrn = test_mem_alloc_shared();
     if(rtrn < 0)
+    {
+        log_test(FAIL, "anonymous shared memory allocator test failed");
         return -1;
+    }
 
     rtrn = test_mem_calloc();
     if(rtrn < 0)
+    {
+        log_test(FAIL, "calloc test failed");
         return -1;
+    }
 
     rtrn = test_mem_calloc_shared();
     if(rtrn < 0)
+    {
+        log_test(FAIL, "calloc shared test failed");
         return -1;
-
-    /* Output results. */
-    output(STD, "[%d] %ld assertions passed, %ld test passed, and %ld test failed.\n", \
-          (100 * stat->successes) / stat->test_ran, stat->asserts_ran, stat->successes, stat->fails);
+    }
 
     return 0;
 }

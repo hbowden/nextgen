@@ -22,7 +22,7 @@
 #include "genetic.h"
 #include "crypto.h"
 #include "nextgen.h"
-#include "types.h"
+#include "platform.h"
 #include "io.h"
 
 #include <stdio.h>
@@ -338,7 +338,7 @@ void start_main_file_loop(void)
         /* Our variables. */
         int rtrn, file;
         char *file_buffer, *file_name, *file_path, *file_extension;
-        off_t file_size;
+        uint64_t file_size;
 
         /* Open file from in directory. */
         rtrn = get_file(&file, &file_extension);
@@ -473,8 +473,7 @@ int setup_file_module(char *exec_path)
         output(ERROR, "Can't create file index\n");
         return -1;
     }
-
-
+    
     return 0;
 }
 

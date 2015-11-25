@@ -45,4 +45,9 @@ extern void log_test(enum log_type type, const char *input);
 
 extern struct stats *init_stats_obj(void);
 
+extern struct stats *create_stats_obj(void);
+
+/* Call once at the begining to setup the framework. */
+extern int32_t init_test_framework(void);
+
 #endif

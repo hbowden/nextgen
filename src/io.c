@@ -51,9 +51,9 @@ void output(enum out_type type, const char *format, ...)
 	return;
 }
 
-int map_file_in(int fd, char **buf, off_t *size)
+int32_t map_file_in(int32_t fd, char **buf, uint64_t *size)
 {
-	int rtrn;
+	int32_t rtrn = 0;
 
     rtrn = get_file_size(fd, size);
     if(rtrn < 0)
@@ -62,7 +62,8 @@ int map_file_in(int fd, char **buf, off_t *size)
     	return -1;
     }
 
-    *buf = mmap(0, (unsigned long) *size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
+    /* Use MAP_SHARED otherwise the file won't change when we write it to disk. */
+    *buf = mmap(0, (unsigned long) *size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if(*buf == MAP_FAILED)
     {
     	output(ERROR, "mmap: %s\n", strerror(errno));
@@ -72,9 +73,9 @@ int map_file_in(int fd, char **buf, off_t *size)
 	return 0;
 }
 
-int map_file_out(char *path, char *buf, off_t size)
+int32_t map_file_out(char *path, char *buf, uint64_t size)
 {
-    int fd;
+    int32_t fd = 0;
 
     fd = open(path, O_RDWR | O_CREAT | O_TRUNC, 0777);
     if(fd < 0)
@@ -83,7 +84,7 @@ int map_file_out(char *path, char *buf, off_t size)
     	return -1;
     }
 
-    if(lseek(fd, size - 1, SEEK_SET) == -1)
+    if(lseek(fd, (int64_t)size - 1, SEEK_SET) == -1)
     {
     	output(ERROR, "lseek: %s\n", strerror(errno));
     	return -1;
@@ -96,7 +97,7 @@ int map_file_out(char *path, char *buf, off_t size)
     	return -1;
     }
 
-    char *dst = mmap(0, (unsigned long) size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
+    char *dst = mmap(0, (unsigned long) size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if(dst == MAP_FAILED)
     {
     	output(ERROR, "mmap: %s\n", strerror(errno));
@@ -116,7 +117,7 @@ int copy_file_to(char *src, char *dst)
 {
     int rtrn;
     int file auto_close = 0;
-    off_t file_size;
+    uint64_t file_size;
     char *file_buffer;
 
     file = open(src, O_RDONLY);

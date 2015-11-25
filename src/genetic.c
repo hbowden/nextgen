@@ -67,7 +67,7 @@ struct world_population
 
 static struct world_population *world;
 
-int create_new_generation(char **file, off_t *file_size, char *file_extension)
+int32_t create_new_generation(char **file, uint64_t *file_size, char *file_extension)
 {
 	
 	return 0;
@@ -114,7 +114,7 @@ static int32_t init_world(void)
         struct species_ctx ctx = {
 
             /* Set species name to syscall name. */
-            .species_name = sys_table->sys_entry[i].name_of_syscall,
+            .species_name = sys_table->sys_entry[i]->name_of_syscall,
 
             /* Set population to zero. */
             .species_population = 0,
@@ -123,11 +123,11 @@ static int32_t init_world(void)
             .average_species_fitness = 0,
 
             /* Init the organism list. */
-            .organism_list = CK_SLIST_HEAD_INITIALIZER(ctx ->organism_list)
+            .organism_list = SLIST_HEAD_INITIALIZER(ctx ->organism_list)
 
         };
 
-        struct species_ctx *specie = &ctx;
+        struct species_ctx *specie = NULL;
 
         specie = mem_alloc(sizeof(struct species_ctx));
         if(specie == NULL)
@@ -135,6 +135,8 @@ static int32_t init_world(void)
             output(ERROR, "Can't allocate species_ctx\n");
             return -1;
         }
+
+        specie = &ctx;
 
         uint32_t ii;
 
@@ -160,59 +162,11 @@ static int32_t init_world(void)
 
             CK_SLIST_INSERT_HEAD(&specie->organism_list, organism, list_entry);
         }
+
+        world->species[i] = specie;
     }
 
     return 0;
-}
-
-struct job_ctx *get_job(struct work_queue *queue)
-{
-    /* Return a job. */
-    return (struct job_ctx *)(get_from_queue(queue));
-}
-
-static int32_t submit_job(uint32_t number, struct job_ctx *job)
-{
-    uint32_t i = 0;
-    int32_t rtrn = 0;
-
-    /* Make sure zero is not passed or that job is not NULL. */
-    if(number == 0 || job == NULL)
-        return (-1);
-
-    /* Loop number times. */
-    for(i = 0; i < number; i++)
-    {
-        struct queue_block *q_blk = NULL;
-
-        q_blk = get_queue_block(map->queue);
-        if(q_blk == NULL)
-        {
-            output(ERROR, "Can't get queue block\n");
-            return (-1);
-        }
-
-        struct job_ctx *job_object = (struct job_ctx *)q_blk->ptr;
-
-        /* Set the job type to genesis. */
-        job_object->type = job->type;
-
-        /* Set the syscall to test. */
-        job_object->syscall_symbol = job->syscall_symbol;
-
-        /* Set the number of args. */
-        job_object->number_of_args = job->number_of_args;
-
-        /* Insert the job into the work queue. */
-        rtrn = insert_into_queue(q_blk, map->queue);
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't insert job into queue\n");
-            return (-1);
-        }
-    }
-
-    return (0);
 }
 
 static int create_first_generation(void)
@@ -232,31 +186,7 @@ static int create_first_generation(void)
 
     for(i = 0; i < sys_table->number_of_syscalls; i++)
     {
-        struct job_ctx *job = NULL;
-
-        job = mem_alloc_shared(sizeof(struct job_ctx));
-        if(job == NULL)
-        {
-            output(ERROR, "Can't allocate job\n");
-            return (-1);
-        }
-
-        /* Set the job type to genesis. */
-        job->type = GENESIS;
-
-        /* Set the syscall to test. */
-        job->syscall_symbol = sys_table->sys_entry[i].syscall_symbol;
-
-        /* Set the number of args. */
-        job->number_of_args = sys_table->sys_entry[i].number_of_args;
-
-        /* Submit one thousand jobs for this syscall. */
-        rtrn = submit_job(1000, job);
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't submit job\n");
-            return -1;
-        }
+       
     }
 
     return 0;
@@ -289,6 +219,14 @@ static void god_loop(void)
 {
     int32_t rtrn = 0;
 
+    /* genesis() init's all the needed data structures and creates the first population. */
+    rtrn = genesis();
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't init ga\n");
+        return;
+    }
+
     /* Start main loop for the genetic algorithm.
     Each loop creates a new generation. */
     while(atomic_load(&map->stop) != TRUE)
@@ -303,22 +241,6 @@ int32_t setup_genetic_module(void)
 {
     int32_t rtrn = 0;
     pid_t god_pid = 0;
-    
-    /* Initialize the global work queue. */
-    rtrn = create_work_queue(map->queue, sizeof(struct job_ctx));
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't create work queue\n");
-        return (-1);
-    }
-
-    /* genesis() init's all the needed data structures and creates the first population. */
-    rtrn = genesis();
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't init ga\n");
-        return (-1);
-    }
 
     /* Fork and create the genetic algo process. */
     god_pid = fork();
@@ -335,11 +257,11 @@ int32_t setup_genetic_module(void)
     }
     else if(god_pid > 0)
     {
-    	return 0;
+    	return (0);
     }
     else
     {
     	output(ERROR, "Failed to fork god process: %s\n", strerror(errno));
-    	return -1;
+    	return (-1);
     }
 }

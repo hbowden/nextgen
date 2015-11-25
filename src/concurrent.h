@@ -37,47 +37,31 @@
 
 typedef ck_spinlock_t spinlock_t;
 
-struct queue_block
-{
-    void *ptr;
+#ifdef MAC_OSX
 
-    void *m_blk;
+#include <mach/port.h>
+#include <mach/mach.h>
 
-    SLIST_ENTRY(queue_block);
-};
+/* Message ports are really mach ports on Mac OSX systems. */
+typedef mach_port_t msg_port_t;
 
-struct work_queue
-{
-    spinlock_t lock;
-
-    uint32_t block_size;
-
-    struct mem_pool_shared *pool;
-
-    SLIST_HEAD(list, queue_block);
-};
+#endif
 
 /* CAS loop for swapping atomic int32 values. */ 
-extern int32_t cas_loop_int32(atomic_int_fast32_t *target, int32_t value);
+extern void cas_loop_int32(atomic_int_fast32_t *target, int32_t value);
 
 /* CAS loop for swapping atomic uint32 values. */ 
-extern int32_t cas_loop_uint32(atomic_uint_fast32_t *target, uint32_t value);
+extern void cas_loop_uint32(atomic_uint_fast32_t *target, uint32_t value);
 
 /* Simple wrapper function so we can wait on atomic pid values.  */
 extern int32_t wait_on(atomic_int_fast32_t *pid, int32_t *status);
 
-/* Creates a shared memory work queue. */
-extern int32_t create_work_queue(struct work_queue *queue, uint32_t size);
+/* Message IPC sending function. */
+extern int32_t msg_send(msg_port_t send_port, msg_port_t remote_port, void *msg);
 
-/* Destroy/cleanup a existing work queue. */
-extern int32_t destroy_work_queue(struct work_queue *queue);
+/*  */
+extern int32_t msg_recv(msg_port_t recv_port, void *buffer);
 
-extern struct queue_block *get_queue_block(struct work_queue *queue);
-
-/* Insert a pointer into the queue. */
-extern int32_t insert_into_queue(struct queue_block *q_blk, struct work_queue *queue);
-
-/* Get a pointer from the queue. */
-extern void *get_from_queue(struct work_queue *queue);
+extern msg_port_t init_msg_port(void);
 
 #endif

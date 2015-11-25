@@ -17,7 +17,7 @@
 
 #include "memory.h"
 #include "nextgen.h"
-#include "types.h"
+#include "platform.h"
 #include "io.h"
 
 #include <string.h>
@@ -161,7 +161,7 @@ struct mem_pool_shared *mem_create_shared_pool(uint32_t block_size, uint32_t blo
 		return NULL;
 	}
 
-    pool = &s_pool;
+    memmove(pool, &s_pool, sizeof(struct mem_pool_shared));
 
     /* Init the free and allocated block list. */
 	CK_SLIST_INIT(&pool->free_list);

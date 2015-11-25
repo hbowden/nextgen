@@ -22,16 +22,20 @@
 
 enum local_bool { FALSE, TRUE };
 
-#endif
+#endif /* End of FreeBSD. */
 
 #ifdef MAC_OSX
 
+#include <mach/boolean.h>
+
+/* EL Capitan has strict limits on how many files one
+  can create, so create much less resources on mac osx. */
 #define POOL_SIZE 112
 
 #else
 
 #define POOL_SIZE 1024
 
-#endif
+#endif /* End of MAC OSX. */
 
 #endif /* End of header file. */

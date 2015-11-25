@@ -21,7 +21,7 @@
 #include "signals.h"
 #include "memory.h"
 #include "concurrent.h"
-#include "types.h"
+#include "platform.h"
 #include "io.h"
 
 #include <signal.h>

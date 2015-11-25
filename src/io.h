@@ -18,9 +18,8 @@
 #ifndef IO_H
 #define IO_H
 
-#include "private.h"
-
 #include <stdio.h>
+#include <stdint.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdarg.h>
@@ -48,9 +47,7 @@
 static inline void close_fd(int *fd)
 {
     if(*fd == 0)
-    {
         return;
-    }
 
     close(*fd);
 }
@@ -58,9 +55,7 @@ static inline void close_fd(int *fd)
 static inline void close_dir(DIR **dir)
 {
     if(*dir == NULL)
-    {
         return;
-    }
 
     closedir(*dir);
 }
@@ -73,16 +68,16 @@ static inline void close_dir(DIR **dir)
 enum out_type { ERROR, STD };
 
 /* This function replaces printf and perror in the code so we can aggregate output to one point. */
-private extern void output(enum out_type type, const char *format, ...);
+extern void output(enum out_type type, const char *format, ...);
 
 /* map_file_in() takes the file descriptor pointed to by fd and mmaps the file to buf
 and puts the files size in size.  */
-private extern int map_file_in(int fd, char **buf, off_t *size);
+extern int32_t map_file_in(int32_t fd, char **buf, uint64_t *size);
 
 /* This function maps a buffer of size to a file path.  */
-private extern int map_file_out(char *path, char *buf, off_t size);
+extern int32_t map_file_out(char *path, char *buf, uint64_t size);
 
 /* Copy a file from one file path to another. */
-private extern int copy_file_to(char *src, char *dst);
+extern int32_t copy_file_to(char *src, char *dst);
 
 #endif

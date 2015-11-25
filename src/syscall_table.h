@@ -18,18 +18,20 @@
 
 #include "entry.h"
 
+#include <stdint.h>
+
 struct syscall_table
 {
-    unsigned int number_of_syscalls;
+    uint32_t number_of_syscalls;
     struct syscall_entry *sys_entry;
     
 };
 
 struct syscall_table_shadow
 {
-	unsigned int number_of_syscalls;
+	uint32_t number_of_syscalls;
 
-    struct syscall_entry_shadow *sys_entry;
+    struct syscall_entry_shadow **sys_entry;
 
 };
 

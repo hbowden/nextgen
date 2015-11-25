@@ -1,7 +1,7 @@
 
 
 /**
- * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
+ * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice 
@@ -90,22 +90,27 @@ int main(void)
 {
 	int32_t rtrn = 0;
 
-	/* Map the stats object as shared anonymous memory. */
+    rtrn = init_test_framework();
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't init test framework");
+        return (-1);
+    }
+
+    /* Initialize the stats object. */
     stat = init_stats_obj();
     if(stat == NULL)
     {
         output(ERROR, "Can't init the stats object\n");
-        return -1;
+        return (-1);
     }
 
 	rtrn = test_cmd_parser();
 	if(rtrn < 0)
+    {
+        log_test(FAIL, "Command line parser test failed");
 	    return -1;
-
-	/* Output results. */
-    output(STD, "[%d] %ld assertions passed, %ld test passed, and %ld test failed.\n", \
-          (100 * stat->successes) / stat->test_ran, stat->asserts_ran, stat->successes, stat->fails);
-
+    }
 
 	return 0;
 }

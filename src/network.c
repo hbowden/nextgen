@@ -18,8 +18,8 @@
 #include "network.h"
 #include "nextgen.h"
 #include "concurrent.h"
+#include "platform.h"
 #include "crypto.h"
-#include "types.h"
 #include "io.h"
 
 #include <pthread.h>

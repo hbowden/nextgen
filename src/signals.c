@@ -25,9 +25,8 @@
 
 static void ctrlc_handler(int sig)
 {
-    sig = 0; // We do this to temprorarly silence a unused parameter warning.
+    (void)sig;
     shutdown();
-    
     return;
 }
 

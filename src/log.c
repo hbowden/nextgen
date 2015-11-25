@@ -17,7 +17,7 @@
 
 #include "log.h"
 #include "io.h"
-#include "types.h"
+#include "platform.h"
 #include "entry.h"
 #include "syscall.h"
 #include "memory.h"

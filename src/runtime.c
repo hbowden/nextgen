@@ -30,7 +30,7 @@
 #include "reaper.h"
 #include "mutate.h"
 #include "nextgen.h"
-#include "types.h"
+#include "platform.h"
 #include "file.h"
 #include "io.h"
 #include "log.h"
@@ -211,8 +211,8 @@ static int32_t setup_network_mode_runtime(void)
    genetic module. */
 static int32_t setup_syscall_mode_runtime(void)
 {
-    int32_t rtrn;
-    pid_t reaper_pid;
+    int32_t rtrn = 0;
+    pid_t reaper_pid = 0;
 
     /* Intialize the reaper module. */
     rtrn = setup_reaper_module(&reaper_pid);

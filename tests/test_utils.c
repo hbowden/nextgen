@@ -1,7 +1,7 @@
 
 
 /**
- * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
+ * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice 
@@ -17,28 +17,81 @@
 
 #include "test_utils.h"
 #include "../src/memory.h"
+#include "../src/utils.h"
 
-struct stats *stat;
+#include <errno.h>
+#include <sys/mman.h>
+#include <sys/wait.h>
+#include <unistd.h>
+
+struct stats *stat = NULL;
+
+static char *shared_path = NULL;
 
 struct stats *init_stats_obj(void)
 {
-	struct stats *stat_obj = NULL;
+	int32_t fd = 0;
 
-    /* Allocate stats struct as shared memory. */
-    stat_obj = mem_alloc_shared(sizeof(struct stats));
-    if(stat_obj == NULL)
+    if(shared_path == NULL)
     {
-    	output(ERROR, "Can't allocate stat struct\n");
+    	output(ERROR, "Call init_test_framework() first.\n");
     	return NULL;
     }
 
-    /* Set stats members to zero. */
-    stat_obj->fails = 0;
-    stat_obj->successes = 0;
-    stat_obj->test_ran = 0;
-    stat_obj->asserts_ran = 0;
+    /* Create named shared memory. */
+    fd = shm_open(shared_path, O_RDWR);
+    if(fd < 0)
+    {
+        output(ERROR, "Can't create named shared memory\n");
+        return NULL;
+    }
 
-	return (stat_obj);
+    /* Map named shared object. */
+    stat = mmap(NULL, sizeof(struct stats), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    if(stat == MAP_FAILED)
+    {
+        output(ERROR, "Can't mmap shared object: %s\n", strerror(errno));
+        return NULL;
+    }
+
+	return (stat);
+}
+
+struct stats *create_stats_obj(void)
+{
+	int32_t fd = 0;
+
+    if(shared_path == NULL)
+    {
+    	output(ERROR, "Call init_test_framework() first.\n");
+    	return NULL;
+    }
+
+    shm_unlink(shared_path);
+
+    /* Create named shared memory. */
+    fd = shm_open(shared_path, O_CREAT | O_RDWR, 0666);
+    if(fd < 0)
+    {
+        output(ERROR, "Can't create named shared memory: %s\n", strerror(errno));
+        return NULL;
+    }
+
+    if(ftruncate(fd, sizeof(struct stats)) == -1)
+    {
+    	output(ERROR, "Can't set size: %s\n", strerror(errno));
+    	return NULL;
+    }
+
+    /* Map named shared object. */
+    stat = mmap(NULL, sizeof(struct stats), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    if(stat == MAP_FAILED)
+    {
+        output(ERROR, "Can't mmap shared object: %s\n", strerror(errno));
+        return NULL;
+    }
+
+	return (stat);
 }
 
 /* Function for logging test results. */
@@ -63,4 +116,29 @@ void log_test(enum log_type type, const char *input)
 	}
     
 	return;
+}
+
+int32_t init_test_framework(void)
+{
+	int32_t rtrn = 0;
+    char *home = NULL;
+
+    rtrn = get_home(&home);
+    if(rtrn < 0)
+    {
+    	output(ERROR, "Can't get user's home path\n");
+    	return (-1);
+    }
+
+    rtrn = asprintf(&shared_path, "%s/shared_mapping", home);
+    if(rtrn < 0)
+    {
+    	output(ERROR, "Can't create shared map path\n");
+    	free(home);
+    	return (-1);
+    }
+
+    free(home);
+
+	return (0);
 }

@@ -1,18 +1,23 @@
 
+# The core group of source files.
 SOURCES = src/nextgen.c src/disas.c src/probe.c src/utils.c src/crypto.c src/runtime.c src/network.c src/syscall.c \
           src/shim.c src/generate.c src/mutate.c src/log.c src/signals.c src/reaper.c src/file.c src/plugin.c src/genetic.c \
           src/memory.c src/concurrent.c src/io.c src/resource.c src/arg_types.c
 
+# Compiler flags passed when make asan is called.
 ASAN_FLAGS = -fsanitize=address -Wno-unused-function -DASAN
 
+# Compiler flags passed when make valgrind is called.
 VALGRIND_FLAGS = -DVALGRIND
 
-TEST_FLAGS =
+# Dependencies paths.
+CK = ck-0.5.0
+LIBRESSL = libressl-2.3.1
 
-TEST_SOURCES = tests/tests.c test/test_utils.c
-
+# Set the root directory path, ie the path to the nextgen directory.
 CURRENT_DIR = $(shell pwd)
 
+# Set the operating system.
 OPERATING_SYSTEM = $(shell uname)
 
 ifeq ($(OPERATING_SYSTEM), FreeBSD)
@@ -23,11 +28,11 @@ MAKE = gmake
 
 INCLUDES = -I/usr/local/include/ -I/usr/src/cddl/compat/opensolaris/include -I/usr/src/cddl/contrib/opensolaris/lib/libdtrace/common/ \
            -I/usr/src/sys/cddl/compat/opensolaris -I/usr/src/sys/cddl/contrib/opensolaris/uts/common/ -Isrc/syscalls/freebsd/ \
-           -I$(CURRENT_DIR)/deps/capstone-3.0.4/ -I$(CURRENT_DIR)/deps/capstone-3.0.4/include -I$(CURRENT_DIR)/deps/ck-0.4.5/include \
+           -I$(CURRENT_DIR)/deps/capstone-3.0.4/ -I$(CURRENT_DIR)/deps/capstone-3.0.4/include -I$(CURRENT_DIR)/deps/$(CK)/include \
            -I$(CURRENT_DIR)/src
 
-LIBS = -lpthread -ldtrace -lproc -lctf -lelf -lz -lrtld_db -lutil -lcrypto deps/capstone-3.0.4/libcapstone.a deps/ck-0.4.5/src/libck.a \
-       deps/libressl-2.3.0/crypto/.libs/libcrypto.a
+LIBS = -lpthread -ldtrace -lproc -lctf -lelf -lz -lrtld_db -lutil -lcrypto deps/capstone-3.0.4/libcapstone.a deps/$(CK)/src/libck.a \
+       deps/$(LIBRESSL)/crypto/.libs/libcrypto.a
 
 SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-used-but-marked-unused -Wno-padded -Wno-unused-parameter \
                     -Wno-unused-variable -Wno-missing-noreturn -Wno-format-nonliteral -Wno-unused-value \
@@ -48,10 +53,10 @@ CC = clang
 MAKE = make
 
 INCLUDES = -i$(CURRENT_DIR)/stdatomic.h -I/usr/include -Isrc/syscalls/mac/ -I$(CURRENT_DIR)/deps/capstone-3.0.4/ \
-           -I$(CURRENT_DIR)/deps/capstone-3.0.4/include -I$(CURRENT_DIR)/deps/ck-0.4.5/include -I$(CURRENT_DIR)/src \
-           -I$(CURRENT_DIR)/deps/libressl-2.3.0/include
+           -I$(CURRENT_DIR)/deps/capstone-3.0.4/include -I$(CURRENT_DIR)/deps/$(CK)/include -I$(CURRENT_DIR)/src \
+           -I$(CURRENT_DIR)/deps/$(LIBRESSL)/include
 
-LIBS = -lpthread -ldtrace -lproc -lz -lutil deps/capstone-3.0.4/libcapstone.a deps/libressl-2.3.0/crypto/.libs/libcrypto.a
+LIBS = -lpthread -ldtrace -lproc -lz -lutil deps/capstone-3.0.4/libcapstone.a deps/$(LIBRESSL)/crypto/.libs/libcrypto.a
 
 SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-used-but-marked-unused -Wno-padded -Wno-unused-parameter \
                     -Wno-unused-variable -Wno-missing-noreturn -Wno-format-nonliteral -Wno-unused-value \
@@ -74,6 +79,8 @@ INCLUDES = -i$(CURRENT_DIR)/stdatomic.h -Isyscalls/SunOS
 
 LIBS = -lpthread -ldtrace -lproc -lz -lutil -lcrypto -lcapstone
 
+SILENCED_WARNINGS = -Wunknown-pragmas
+
 CFLAGS = -DILLUMOS -std=c11 -Wall -Weverything -g -fstack-protector-all -O3 -Wno-documentation -Wno-deprecated-declarations -Wno-newline-eof -Wno-padded -Wno-pedantic -Wno-sign-conversion -Wno-unknown-pragmas -Wno-format-nonliteral
 
 ENTRY_SOURCES =
@@ -84,11 +91,15 @@ ifeq ($(OPERATING_SYSTEM), Linux)
 
 CC = gcc
 
-INCLUDES = -i$(CURRENT_DIR)/stdatomic.h -Isyscalls/SunOS
+MAKE = make
+
+INCLUDES = -I/usr/include -Isrc/syscalls/Linux/ -I$(CURRENT_DIR)/deps/capstone-3.0.4/ \
+           -I$(CURRENT_DIR)/deps/capstone-3.0.4/include -I$(CURRENT_DIR)/deps/$(CK)/include -I$(CURRENT_DIR)/src \
+           -I$(CURRENT_DIR)/deps/$(LIBRESSL)/include
 
 LIBS = -lpthread -ldtrace -lproc -lz -lpthread -lutil -lcrypto -lcapstone
 
-CFLAGS = -DLINUX -std=c11 -Wall -Weverything -g -fstack-protector-all -O3 -Wno-documentation -Wno-deprecated-declarations -Wno-newline-eof -Wno-padded -Wno-pedantic -Wno-sign-conversion -Wno-unknown-pragmas -Wno-format-nonliteral
+CFLAGS = -DLINUX -std=c99 -Wall -Wextra -Wpedantic -g -fstack-protector-all -O3
 
 ENTRY_SOURCES =
 
@@ -96,18 +107,21 @@ endif
 
 all:
 
-	cd $(CURRENT_DIR)/deps/ck-0.4.5 && ./configure && $(MAKE);
+	cd $(CURRENT_DIR)/deps/$(CK) && ./configure && $(MAKE);
 	cd $(CURRENT_DIR)/deps/capstone-3.0.4 && $(MAKE);
-	cd $(CURRENT_DIR)/deps/libressl-2.3.0 && ./configure && $(MAKE)
+	cd $(CURRENT_DIR)/deps/$(LIBRESSL) && ./configure && $(MAKE)
 
 	$(CC) $(CFLAGS) $(INCLUDES) -o nextgen src/main.c $(SOURCES) $(ENTRY_SOURCES) $(LIBS) $(SILENCED_WARNINGS)
 
 	cd $(CURRENT_DIR)/tests/crypto && $(MAKE);
 	cd $(CURRENT_DIR)/tests/memory && $(MAKE);
 	cd $(CURRENT_DIR)/tests/parser && $(MAKE);
+	cd $(CURRENT_DIR)/tests/genetic && $(MAKE);
 	cd $(CURRENT_DIR)/tests/reaper && $(MAKE);
 	cd $(CURRENT_DIR)/tests/resource && $(MAKE);
 	cd $(CURRENT_DIR)/tests/syscall && $(MAKE);
+	cd $(CURRENT_DIR)/tests/concurrent && $(MAKE);
+	cd $(CURRENT_DIR)/tests/file && $(MAKE);
 
 	$(CC) $(CFLAGS) $(INCLUDES) -o test_suite tests/tests.c tests/test_utils.c -Itests $(SOURCES) $(ENTRY_SOURCES) $(LIBS) $(SILENCED_WARNINGS)
 
@@ -121,12 +135,22 @@ quick:
 
 	$(CC) $(CFLAGS) $(INCLUDES) -o nextgen src/main.c $(SOURCES) $(ENTRY_SOURCES) $(LIBS) $(SILENCED_WARNINGS)
 
+	cd $(CURRENT_DIR)/tests/crypto && $(MAKE);
+	cd $(CURRENT_DIR)/tests/memory && $(MAKE);
+	cd $(CURRENT_DIR)/tests/parser && $(MAKE);
+	cd $(CURRENT_DIR)/tests/genetic && $(MAKE);
+	cd $(CURRENT_DIR)/tests/reaper && $(MAKE);
+	cd $(CURRENT_DIR)/tests/resource && $(MAKE);
+	cd $(CURRENT_DIR)/tests/syscall && $(MAKE);
+	cd $(CURRENT_DIR)/tests/concurrent && $(MAKE);
+	cd $(CURRENT_DIR)/tests/file && $(MAKE);
+
 .PHONY: asan
 asan:
 
-	cd $(CURRENT_DIR)/deps/ck-0.4.5 && ./configure && $(MAKE);
+	cd $(CURRENT_DIR)/deps/$(CK) && ./configure && $(MAKE);
 	cd $(CURRENT_DIR)/deps/capstone-3.0.4 && $(MAKE);
-	cd $(CURRENT_DIR)/deps/libressl-2.3.0 && ./configure && $(MAKE)
+	cd $(CURRENT_DIR)/deps/$(LIBRESSL) && ./configure && $(MAKE)
 
 	$(CC) $(CFLAGS) $(ASAN_FLAGS) $(INCLUDES) -o nextgen src/main.c $(SOURCES) $(ENTRY_SOURCES) $(LIBS) $(SILENCED_WARNINGS)
 
@@ -155,8 +179,8 @@ test-quick:
 clean:
 
 	cd $(CURRENT_DIR)/deps/capstone-3.0.4 && $(MAKE) clean
-	cd deps/ck-0.4.5 && $(MAKE) clean
-	cd $(CURRENT_DIR)/deps/libressl-2.3.0 && $(MAKE) clean
+	cd $(CURRENT_DIR)/deps/$(LIBRESSL) && $(MAKE) clean
+	cd deps/$(CK) && $(MAKE) clean
 	rm -rf nextgen
 	rm -rf test_suite
 	rm -rf *.dSYM

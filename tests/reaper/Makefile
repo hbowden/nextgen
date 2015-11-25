@@ -1,18 +1,22 @@
 CURRENT_DIR = $(shell pwd)
 
+CK = ck-0.5.0
+
+LIBRESSL = libressl-2.3.1
+
 CFLAGS = -Werror -Weverything -Wall -O3 -g
 
 IGNORE = -Wno-reserved-id-macro -Wno-used-but-marked-unused -Wno-format-nonliteral -Wno-padded -Wno-unused-parameter \
          -Wno-missing-noreturn -Wno-unused-variable -Wno-cast-qual
 
-INCLUDES = -I../ -I../../src -I../../deps/ck-0.4.5/include -I$(CURRENT_DIR)/../../deps/libressl-2.3.0/include/
+INCLUDES = -I../ -I../../src -I../../deps/$(CK)/include -I$(CURRENT_DIR)/../../deps/$(LIBRESSL)/include/
 
 SOURCES = test_reaper.c ../test_utils.c ../../src/memory.c ../../src/io.c ../../src/reaper.c ../../src/syscall.c \
           ../../src/arg_types.c ../../src/utils.c ../../src/shim.c ../../src/nextgen.c ../../src/crypto.c \
           ../../src/signals.c ../../src/log.c ../../src/concurrent.c ../../src/mutate.c ../../src/plugin.c \
           ../../src/genetic.c
 
-LIBS = $(CURRENT_DIR)/../../deps/libressl-2.3.0/crypto/.libs/libcrypto.a
+LIBS = $(CURRENT_DIR)/../../deps/$(LIBRESSL)/crypto/.libs/libcrypto.a
 
 OPERATING_SYSTEM = $(shell uname)
 

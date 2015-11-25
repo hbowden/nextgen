@@ -56,17 +56,20 @@ struct shared_map
     char *path_to_in_dir;
     char *path_to_out_dir;
 
+    /* Shared work queue, where workers grabbed fuzz test  */
     struct work_queue *queue;
 
+    /* Path to target executable. */
     char *exec_path;
 
     /* The PID's of our helper processes. */
+    atomic_int_fast32_t god_pid;
+    atomic_int_fast32_t target_pid;
     atomic_int_fast32_t reaper_pid;
     atomic_int_fast32_t runloop_pid;
     atomic_int_fast32_t socket_server_pid;
-    atomic_int_fast32_t god_pid;
-    atomic_int_fast32_t target_pid;
 
+    /* Counter for the number of fuzz test perform. */
     atomic_int_fast64_t test_counter;
 
     /* An atomic value used to tell the various processes whether to run or not. */

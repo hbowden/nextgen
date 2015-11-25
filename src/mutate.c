@@ -17,19 +17,19 @@
 
 #include "mutate.h"
 #include "nextgen.h"
-#include "io.h"
-#include "types.h"
+#include "platform.h"
 #include "crypto.h"
 #include "arg_types.h"
 #include "plugin.h"
+#include "io.h"
 
-static int mutate_file_randomly(char **file)
+static int32_t mutate_file_randomly(char **file)
 {
 
     return 0;
 }
 
-int mutate_file(char **file, const char *file_extension,  off_t *file_size)
+int32_t mutate_file(char **file, const char *file_extension,  uint64_t *file_size)
 {
     int rtrn;
     bool understand_file_format = FALSE;
@@ -104,7 +104,7 @@ int mutate_file(char **file, const char *file_extension,  off_t *file_size)
     return 0;
 }
 
-int mutate_arguments(struct child_ctx *ctx)
+int32_t mutate_arguments(struct child_ctx *ctx)
 {
 
 	return 0;

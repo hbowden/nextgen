@@ -1,7 +1,7 @@
 
 
 /**
- * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
+ * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice 
@@ -16,6 +16,7 @@
  **/
 
 #include "arg_types.h"
+#include "io.h"
 
 struct arg_context file_desc_ctx = {
 
@@ -223,5 +224,61 @@ struct arg_context dev_ctx = {
     .log_type = NUMBER
 
 };
+
+struct arg_context *get_arg_context(enum arg_type type)
+{
+    switch((int)type)
+    {
+        case FILE_DESC: return &file_desc_ctx;
+
+        case VOID_BUF: return &void_buf_ctx;
+            
+        case SIZE: return &size_ctx;
+
+        case FILE_PATH: return &file_path_ctx;
+
+        case OPEN_FLAG: return &open_flag_ctx;
+           
+        case MODE: return &mode_ctx;
+
+        case STAT_FS: return &stat_fs_ctx;
+
+        case STAT_FLAG: return &stat_flag_ctx;
+
+        case INT: return &int_ctx;
+       
+        case RUSAGE: return &rusage_ctx;
+         
+        case PID: return &pid_ctx;
+          
+        case WAIT_OPTION: return &wait_option_ctx;
+         
+        case SOCKET: return &socket_ctx;
+           
+        case WHENCE: return &whence_ctx;
+           
+        case OFFSET: return &offset_ctx;
+        
+        case MOUNT_TYPE: return &mount_type_ctx;
+         
+        case DIR_PATH: return &dir_path_ctx;
+          
+        case MOUNT_FLAG: return &mount_flag_ctx;
+
+        case UNMOUNT_FLAG: return &unmount_flag_ctx;
+
+        case RECV_FLAG: return &recv_flag_ctx;
+         
+        case REQUEST: return &request_ctx;
+
+        case MOUNT_PATH: return &mount_path_ctx;
+
+        case DEV: return &dev_ctx;
+
+        default:
+            output(ERROR, "Unlisted arg type\n");
+            return NULL;
+    }
+}
 
 
