@@ -1,7 +1,7 @@
 
 
 /**
- * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
+ * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice 
@@ -20,9 +20,19 @@
 struct syscall_entry entry_getfsstat = {
 
     .name_of_syscall = "getfsstat",
+    .syscall_symbol = SYS_getfsstat,
     .number_of_args = 1,
-    .status = OFF,
+    .status = ON,
     .requires_root = NO,
-    .need_alarm = NO
+    .need_alarm = NO,
+
+    .arg_type_index[FIRST_ARG] = STAT_FS,
+    .get_arg_index[FIRST_ARG] = &generate_fs_stat,
+
+    .arg_type_index[SECOND_ARG] = SIZE,
+    .get_arg_index[SECOND_ARG] = &generate_length,
+
+    .arg_type_index[THIRD_ARG] = STAT_FLAG,
+    .get_arg_index[THIRD_ARG] = &generate_fs_stat_flag    
 
 };

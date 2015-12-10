@@ -1,7 +1,7 @@
 
 
 /**
- * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
+ * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice 
@@ -125,11 +125,11 @@ int setup_reaper_module(pid_t *reaper_pid)
     else if(*reaper_pid > 0)
     {
         /* Just return right away in the parent process. */
-    	return 0;
+    	return (0);
     }
     else
     {
     	output(ERROR, "Failed to fork reaper process: %s\n", strerror(errno));
-    	return -1;
+    	return (-1);
     }
 }

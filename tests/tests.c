@@ -1,7 +1,7 @@
 
 
 /**
- * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
+ * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice 
@@ -16,6 +16,7 @@
  **/
 
 #include "test_utils.h"
+#include "../../src/memory.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -25,7 +26,7 @@
 #include <sys/wait.h>
 
 /* The number of test to run, keep in sync with test_paths  */
-static uint32_t number_of_test = 9;
+static uint32_t number_of_test = 10;
 
 /* Array of unit test file paths. */
 static char *test_paths[] = {
@@ -34,10 +35,11 @@ static char *test_paths[] = {
     "tests/crypto/test_crypto", 
     "tests/parser/test_parser", 
     "tests/reaper/test_reaper",
+    "tests/network/test_network",
     "tests/resource/test_resource",
     "tests/syscall/test_syscall",
-    "tests/genetic/test_genetic",
     "tests/file/test_file",
+    "tests/genetic/test_genetic",
     NULL   
 };
 
@@ -45,6 +47,7 @@ static int exec_test(char *path)
 {
 	int32_t rtrn = 0;
 	pid_t exec_pid = 0;
+    char *buf auto_clean = NULL;
 	char *args[] = {"blah", NULL};
 
     /* Make sure path is not NULL, if it is return an error. */
@@ -59,7 +62,15 @@ static int exec_test(char *path)
         rtrn = execv(path, args);
         if(rtrn < 0)
         {
-            output(ERROR, "Can't execute test case\n");
+            rtrn = asprintf(&buf, "%s failed", path);
+            if(rtrn < 0)
+            {
+                output(ERROR, "Can't create error string\n", strerror(errno));
+                return (-1);
+            }
+
+            log_test(FAIL, buf);
+
             _exit(-1);
         }
 
@@ -81,8 +92,16 @@ static int exec_test(char *path)
     	}
     	else
     	{
-    		output(ERROR, "Test: %s didn't exit normaly\n", path);
-    		return (-1);
+    		rtrn = asprintf(&buf, "%s failed", path);
+            if(rtrn < 0)
+            {
+                output(ERROR, "Can't create error string\n", strerror(errno));
+                return (-1);
+            }
+
+            log_test(FAIL, buf);
+
+            return (-1);
     	}
     }
     else
@@ -107,7 +126,7 @@ int main(void)
         return (-1);
     }
 
-    /* Init the stats object. */
+    /* Create the stats object. */
     stat = create_stats_obj();
     if(stat == NULL)
     {
@@ -129,12 +148,14 @@ int main(void)
     	if(rtrn < 0)
         {
             output(ERROR, "Can't exec unit test\n");
+
+            /* Continue executing the test suite. */
     	    continue;
         }
     }
 
     /* Output results. */
-    output(STD, "[%d] %ld assertions passed, %ld test passed, and %ld test failed.\n", \
+    output(STD, "[%d] %ld successful assertions, %ld test passed, and %ld test failed.\n", \
           (100 * stat->successes) / stat->test_ran, stat->asserts_ran, stat->successes, stat->fails);
 
 	return (0);

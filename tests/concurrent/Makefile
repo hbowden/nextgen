@@ -7,14 +7,14 @@ LIBRESSL = libressl-2.3.1
 CFLAGS = -Werror -Weverything -Wall -O3 -g
 
 IGNORE = -Wno-reserved-id-macro -Wno-used-but-marked-unused -Wno-format-nonliteral -Wno-padded -Wno-unused-variable \
-         -Wno-unused-parameter -Wno-missing-noreturn -Wno-cast-qual
+         -Wno-unused-parameter -Wno-missing-noreturn -Wno-cast-qual -Wno-unused-value -Wno-cast-align
 
 INCLUDES = -I../ -I../../src -I../../deps/$(CK)/include -I$(ROOT_DIR)/../../deps/$(LIBRESSL)/include/
 
 SOURCES = $(UNIT_TEST).c ../test_utils.c ../../src/memory.c ../../src/io.c  \
           ../../src/arg_types.c ../../src/utils.c ../../src/shim.c ../../src/nextgen.c ../../src/crypto.c \
           ../../src/signals.c ../../src/log.c ../../src/concurrent.c ../../src/mutate.c ../../src/plugin.c \
-          ../../src/genetic.c ../../src/syscall.c
+          ../../src/genetic.c ../../src/syscall.c ../../src/generate.c ../../src/network.c ../../src/resource.c
 
 LIBS = $(ROOT_DIR)/../../deps/$(LIBRESSL)/crypto/.libs/libcrypto.a
 

@@ -1,1 +1,1 @@
-# dummy
+libcrypto_la-cpuid-elf-x86_64.lo: cpuid-elf-x86_64.S

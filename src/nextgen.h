@@ -1,7 +1,7 @@
 
 
 /**
- * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
+ * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice 
@@ -20,6 +20,7 @@
 
 #include "platform.h"
 #include "crypto.h"
+#include "concurrent.h"
 #include "syscall_table.h"
 
 #include <unistd.h>
@@ -56,11 +57,11 @@ struct shared_map
     char *path_to_in_dir;
     char *path_to_out_dir;
 
-    /* Shared work queue, where workers grabbed fuzz test  */
-    struct work_queue *queue;
-
     /* Path to target executable. */
     char *exec_path;
+
+    /* The genetic algorithm's message port. */
+    msg_port_t msg_port;
 
     /* The PID's of our helper processes. */
     atomic_int_fast32_t god_pid;

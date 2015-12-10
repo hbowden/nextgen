@@ -41,16 +41,14 @@
 
 int32_t generate_fd(uint64_t **fd)
 {
-    int32_t rtrn = 0;
-
-    rtrn = get_desc((int *)*fd);
-    if(rtrn < 0)
+    **fd = get_desc();
+    if((int32_t)(**fd) < 0)
     {
         output(ERROR, "Can't get file descriptor\n");
-        return -1;
+        return (-1);
     }
 
-	return 0;
+	return (0);
 }
 
 int32_t generate_socket(uint64_t **sock)
@@ -176,25 +174,19 @@ int32_t generate_length(uint64_t **length)
         return -1;
     }
 
-
-
-    
-    
 	return 0;
 }
 
 int32_t generate_path(uint64_t **path)
 {
-    int32_t rtrn;
-
-    rtrn = get_filepath((char **)path);
-    if(rtrn < 0)
+    *path = (uint64_t *) get_filepath();
+    if((*path) == NULL)
     {
         output(ERROR, "Can't get file path\n");
-        return -1;
+        return (-1);
     }
     
-	return 0;
+	return (0);
 }
 
 int32_t generate_open_flag(uint64_t **flag)

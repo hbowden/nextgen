@@ -28,6 +28,10 @@ extern int32_t get_exec_path(char **exec_path);
 
 extern int32_t set_end_offset(uint64_t offset);
 
+extern void set_start_addr(uint64_t addr);
+
+extern uint64_t get_start_addr(void);
+
 extern int32_t initial_fuzz_run(void);
 
 #endif

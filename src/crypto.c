@@ -1,7 +1,7 @@
 
 
 /**
- * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
+ * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice 
@@ -17,6 +17,7 @@
 
 #include "crypto.h" 
 #include "memory.h"
+#include "platform.h"
 #include "openssl/sha.h"
 #include "openssl/crypto.h"
 #include "openssl/rand.h"
@@ -30,60 +31,62 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-static int (*rand_range_pointer)(unsigned int range, unsigned int *number);
+static int32_t (*rand_range_pointer)(uint32_t range, uint32_t *number);
 
-static int software_prng;
+static int32_t software_prng;
 
-int using_hardware_prng(void)
+static int32_t crypto_setup;
+
+int32_t using_hardware_prng(void)
 {
-    return software_prng;
+    return (software_prng);
 }
 
-static int rand_range_no_crypto(unsigned int range, unsigned int *number)
+static int32_t rand_range_no_crypto(uint32_t range, uint32_t *number)
 {
-    *number = (unsigned int) rand() % range + 1;
-    return 0;
+    *number = (uint32_t) rand() % range + 1;
+    return (0);
 }
 
-int rand_bytes(char **buf, unsigned int length)
+int32_t rand_bytes(char **buf, uint32_t length)
 {
-    int rtrn = RAND_bytes((unsigned char *)*buf, (int) length);
+    int32_t rtrn = RAND_bytes((unsigned char *)*buf, (int32_t) length);
     if(rtrn != 1)
     {
         output(STD, "Can't get random bytes\n");
-        return -1;
+        return (-1);
     }
 
     /* null terminate the string. */
     (*buf)[length] = '\0';
 
-    return 0;
+    return (0);
 }
 
-static int rand_range_crypto(unsigned int range, unsigned int *number)
+static int32_t rand_range_crypto(uint32_t range, uint32_t *number)
 {
-    int rtrn;
+    int32_t rtrn = 0;
     BIGNUM *random, *range1;
 
     random = BN_new();
     if(random == NULL)
     {
     	output(ERROR, "Can't init bignum struct\n");
-    	return -1;
+    	return (-1);
     }
 
     range1 = BN_new();
     if(random == NULL)
     {
     	output(ERROR, "Can't init bignum struct\n");
-    	return -1;
+    	return (-1);
     }
 
     rtrn = BN_set_word(range1, range);
     if(rtrn < 0)
     {
     	output(ERROR, "Can't set range\n");
-    	return -1;
+    	return (-1);
     }
 
     rtrn = BN_rand_range(random, range1);
@@ -97,15 +100,15 @@ static int rand_range_crypto(unsigned int range, unsigned int *number)
     if(buf == NULL)
     {
     	output(ERROR, "Can't convert random number\n");
-    	return -1;
+    	return (-1);
     }
 
-    (*number) = (unsigned int)strtol(buf, NULL, 10);
+    (*number) = (uint32_t)strtol(buf, NULL, 10);
 
-    return 0;
+    return (0);
 }
 
-static int setup_rand_range(enum crypto_method method)
+static int32_t setup_rand_range(enum crypto_method method)
 {
     if(method == NO_CRYPTO)
     {
@@ -118,18 +121,26 @@ static int setup_rand_range(enum crypto_method method)
     else
     {
     	output(ERROR, "Bad argument to crypto option, try again\n");
-    	return -1;
+    	return (-1);
     }
     
-    return 0;
+    return (0);
 }
 
-int rand_range(unsigned int range, unsigned int *number)
+int32_t rand_range(uint32_t range, uint32_t *number)
 {
-    return rand_range_pointer(range, number);
+    /* Make sure the crypto module is set, so we don't
+    crash when we call rand_range_pointer(). */
+    if(crypto_setup != TRUE)
+    {
+        output(ERROR, "Call setup crypto first\n");
+        return (-1);
+    }
+
+    return (rand_range_pointer(range, number));
 }
 
-static int setup_hardware_acceleration(void)
+static int32_t setup_hardware_acceleration(void)
 {
 
 #ifndef MAC_OSX
@@ -144,7 +155,7 @@ static int setup_hardware_acceleration(void)
     }
 
     /* Note. openssl use's zero for it's success exit code. */
-    int rtrn = ENGINE_init(engine);
+    int32_t rtrn = ENGINE_init(engine);
     if(rtrn == 0)
     {
         output(ERROR, "Can't init crypto engine\n");
@@ -161,10 +172,11 @@ static int setup_hardware_acceleration(void)
     return 0;
 }
 
-int sha512(char *in, char **out)
+int32_t sha512(char *in, char **out)
 {
     SHA512_CTX ctx;
-    int i, rtrn;
+    uint32_t i = 0;
+    int32_t rtrn = 0;
     unsigned char hash[SHA512_DIGEST_LENGTH];
     
     rtrn = SHA512_Init(&ctx);
@@ -205,10 +217,11 @@ int sha512(char *in, char **out)
     return 0;
 }
 
-int sha256(char *in, char **out)
+int32_t sha256(char *in, char **out)
 {
     /* Declarations */
-    int rtrn, i;
+    uint32_t i = 0;
+    int32_t rtrn = 0;
     SHA256_CTX sha256;
     unsigned char hash[SHA256_DIGEST_LENGTH];
     
@@ -254,14 +267,14 @@ int sha256(char *in, char **out)
 }
 
 /*  */
-int seed_prng(void)
+int32_t seed_prng(void)
 {
     /* The variables used in seed_prng(). */
-    int rtrn;
+    int32_t rtrn = 0;
     ssize_t ret;
     char *hash auto_clean = NULL;
-    int random_fd auto_close = 0;
-    unsigned int i, loops, buf_len;
+    int32_t random_fd auto_close = 0;
+    uint32_t i, loops, buf_len;
     char *random_buffer auto_clean = NULL;
     
     /* Allocate a buffer thats 6000 bytes long, this is
@@ -357,11 +370,18 @@ int seed_prng(void)
     return 0;
 }
 
-int setup_crypto_module(enum crypto_method method)
+int32_t setup_crypto_module(enum crypto_method method)
 {
     output(STD, "Setting up crypto\n");
 
-    int rtrn;
+    /* Check if we have been setup already. */
+    if(crypto_setup == TRUE)
+    {
+        output(ERROR, "Crypto already setup\n");
+        return (-1);
+    }
+
+    int32_t rtrn = 0;
 
     /* Init openssl/libressl library. */
     OpenSSL_add_all_ciphers();
@@ -372,12 +392,16 @@ int setup_crypto_module(enum crypto_method method)
     if(rtrn < 0)
     {
         output(ERROR,"Can't setup random range function.\n");
-        return -1;
+        return (-1);
     }
     
-    /* If the user does not wan't crypto numbers exit early. */
+    /* If the user does not wan't cryptographic numbers exit early. */
     if(method == NO_CRYPTO)
-        return 0;
+    {
+        /* Set the crypto_setup flag so we know we have been setup. */
+        crypto_setup = TRUE;
+        return (0);
+    }
 
     /* Check for hardware crypto accelators and use them if present, otherwise use
     /dev/urandom .*/
@@ -392,13 +416,14 @@ int setup_crypto_module(enum crypto_method method)
         case 1: 
             output(STD, "Switching to /dev/urandom \n");  
             output(STD, "Seeding PRNG\n"); 
-            software_prng = 1; 
-            return seed_prng();
+            software_prng = 1;
+            crypto_setup = TRUE;
+            return (seed_prng());
 
         default: 
             output(ERROR, "Error while trying to setup hardware acceleration\n"); 
-            return -1; 
+            return (-1); 
     }
-    
-    return 0;
+
+    return (0);
 }

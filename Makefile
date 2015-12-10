@@ -20,26 +20,34 @@ CURRENT_DIR = $(shell pwd)
 # Set the operating system.
 OPERATING_SYSTEM = $(shell uname)
 
+# Set FreeBSD specific variables.
 ifeq ($(OPERATING_SYSTEM), FreeBSD)
 
+# Use clang by default on FreeBSD.
 CC = clang
 
+# Use gmake on FreeBSD.
 MAKE = gmake
 
+# Include directories.
 INCLUDES = -I/usr/local/include/ -I/usr/src/cddl/compat/opensolaris/include -I/usr/src/cddl/contrib/opensolaris/lib/libdtrace/common/ \
            -I/usr/src/sys/cddl/compat/opensolaris -I/usr/src/sys/cddl/contrib/opensolaris/uts/common/ -Isrc/syscalls/freebsd/ \
            -I$(CURRENT_DIR)/deps/capstone-3.0.4/ -I$(CURRENT_DIR)/deps/capstone-3.0.4/include -I$(CURRENT_DIR)/deps/$(CK)/include \
            -I$(CURRENT_DIR)/src
 
+# Libraries to link.
 LIBS = -lpthread -ldtrace -lproc -lctf -lelf -lz -lrtld_db -lutil -lcrypto deps/capstone-3.0.4/libcapstone.a deps/$(CK)/src/libck.a \
        deps/$(LIBRESSL)/crypto/.libs/libcrypto.a
 
-SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-used-but-marked-unused -Wno-padded -Wno-unused-parameter \
+# Warnings to silence.
+SILENCED_WARNINGS = -Wno-incompatible-pointer-types-discards-qualifiers -Wno-used-but-marked-unused -Wno-padded -Wno-unused-parameter \
                     -Wno-unused-variable -Wno-missing-noreturn -Wno-format-nonliteral -Wno-unused-value \
-                    -Wno-gnu-statement-expression -Wno-cast-qual -Wno-unknown-pragmas -Wno-sign-conversion
+                    -Wno-gnu-statement-expression -Wno-cast-qual -Wno-unknown-pragmas -Wno-sign-conversion -Wno-cast-align
 
+# Compiler flags.
 CFLAGS = -DFREEBSD -std=c99 -Werror -Wall -Weverything -Wno-pedantic -g -fstack-protector-all -O3
 
+# Syscall entries C files.
 ENTRY_SOURCES = src/syscalls/freebsd/entry_read.c src/syscalls/freebsd/entry_write.c src/syscalls/freebsd/entry_open.c src/syscalls/freebsd/entry_close.c src/syscalls/freebsd/entry_wait4.c \
                 src/syscalls/freebsd/entry_creat.c src/syscalls/freebsd/entry_link.c src/syscalls/freebsd/entry_unlink.c src/syscalls/freebsd/entry_chdir.c src/syscalls/freebsd/entry_fchdir.c \
                 src/syscalls/freebsd/entry_mknod.c src/syscalls/freebsd/entry_chmod.c src/syscalls/freebsd/entry_getfsstat.c src/syscalls/freebsd/entry_lseek.c src/syscalls/freebsd/entry_setuid.c src/syscalls/freebsd/entry_ptrace.c src/syscalls/freebsd/entry_recvmsg.c
@@ -60,7 +68,7 @@ LIBS = -lpthread -ldtrace -lproc -lz -lutil deps/capstone-3.0.4/libcapstone.a de
 
 SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-used-but-marked-unused -Wno-padded -Wno-unused-parameter \
                     -Wno-unused-variable -Wno-missing-noreturn -Wno-format-nonliteral -Wno-unused-value \
-                    -Wno-gnu-statement-expression -Wno-cast-qual
+                    -Wno-gnu-statement-expression -Wno-cast-qual -Wno-cast-align
 
 CFLAGS = -DMAC_OSX -std=c99 -Werror -Wall -Weverything -pedantic -g -fstack-protector-all -O3
 
@@ -122,6 +130,7 @@ all:
 	cd $(CURRENT_DIR)/tests/syscall && $(MAKE);
 	cd $(CURRENT_DIR)/tests/concurrent && $(MAKE);
 	cd $(CURRENT_DIR)/tests/file && $(MAKE);
+	cd $(CURRENT_DIR)/tests/network && $(MAKE);
 
 	$(CC) $(CFLAGS) $(INCLUDES) -o test_suite tests/tests.c tests/test_utils.c -Itests $(SOURCES) $(ENTRY_SOURCES) $(LIBS) $(SILENCED_WARNINGS)
 
@@ -144,6 +153,7 @@ quick:
 	cd $(CURRENT_DIR)/tests/syscall && $(MAKE);
 	cd $(CURRENT_DIR)/tests/concurrent && $(MAKE);
 	cd $(CURRENT_DIR)/tests/file && $(MAKE);
+	cd $(CURRENT_DIR)/tests/network && $(MAKE);
 
 .PHONY: asan
 asan:

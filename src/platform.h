@@ -1,7 +1,7 @@
 
 
 /**
- * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
+ * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice 
@@ -20,17 +20,23 @@
 
 #ifdef FREEBSD
 
+#define ARG_LIMIT 7
+
 enum local_bool { FALSE, TRUE };
 
 #endif /* End of FreeBSD. */
 
 #ifdef MAC_OSX
 
+#define ARG_LIMIT 7
+
 #include <mach/boolean.h>
 
 /* EL Capitan has strict limits on how many files one
   can create, so create much less resources on mac osx. */
 #define POOL_SIZE 112
+
+//#define POOL_SIZE 12
 
 #else
 

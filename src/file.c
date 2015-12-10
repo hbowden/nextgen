@@ -1,7 +1,7 @@
 
 
 /**
- * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
+ * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice 
@@ -30,6 +30,7 @@
 #include <pthread.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <sys/wait.h>
 #include <sys/mman.h>
 #include <string.h>
 #include <dirent.h>
@@ -66,8 +67,8 @@ static struct executable_context *exec_ctx;
 
 static int get_file(int *file, char **extension)
 {
-	int32_t rtrn;
-	uint32_t index_offset;
+	int32_t rtrn = 0;
+	uint32_t index_offset = 0;
 
     /* Pick a file index offset at random. */
 	rtrn = rand_range(file_count, &index_offset);
@@ -99,6 +100,18 @@ static int get_file(int *file, char **extension)
 int get_exec_path(char **exec_path)
 {
     return 0;
+}
+
+void set_start_addr(uint64_t addr)
+{
+    start_offset = addr;
+
+    return;
+}
+
+uint64_t get_start_addr(void)
+{
+    return (start_offset);
 }
 
 static int32_t create_file_index(void)

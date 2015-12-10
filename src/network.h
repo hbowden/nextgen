@@ -1,7 +1,7 @@
 
 
 /**
- * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
+ * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice 
@@ -18,12 +18,14 @@
 #ifndef NETWORK_H
 #define NETWORK_H
 
-#include "private.h"
+#include <stdint.h>
 
-private extern int start_socket_server(void);
+enum network_mode { SOCKET_SERVER };
 
-private extern int connect_ipv4(int *sockFd);
+extern int32_t setup_network_module(enum network_mode mode);
 
-private extern int connect_ipv6(int *sockFd);
+extern int32_t connect_ipv4(int32_t *sockFd);
+
+extern int32_t connect_ipv6(int32_t *sockFd);
 
 #endif

@@ -18,6 +18,13 @@
 #include "test_utils.h"
 #include "../../src/file.c"
 
+static int test_setup_file_module(void)
+{
+
+
+	return (0);
+}
+
 int main(void)
 {
 	int32_t rtrn = 0;
@@ -35,6 +42,13 @@ int main(void)
     {
         output(ERROR, "Can't init the stats object\n");
         return (-1);
+    }
+
+    rtrn = test_setup_file_module();
+    if(rtrn < 0)
+    {
+    	log_test(FAIL, "Setup file module test failed");
+    	return (-1);
     }
 
 	return (0);

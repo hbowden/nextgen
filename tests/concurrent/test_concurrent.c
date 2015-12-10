@@ -21,6 +21,7 @@
 
 #include <string.h>
 #include <errno.h>
+#include <sys/wait.h>
 
 static int test_msg_send_recv(void)
 {
@@ -36,6 +37,9 @@ static int test_msg_send_recv(void)
 
     /* Initialize the send port. */
     send_port = init_msg_port();
+
+    /* Initialize the remote port */
+    remote_port = init_msg_port();
 
     /* Send port should be greater than zero. */
     assert_stat(send_port > 0);
@@ -67,8 +71,8 @@ static int test_msg_send_recv(void)
     	if(recv_buffer == NULL)
     	    _exit(-1);
 
-    	rtrn = msg_recv(remote_port, recv_buffer);
-    	assert_stat(rtrn == 0);
+    	recv_buffer = (char *) msg_recv(remote_port);
+    	assert_stat(recv_buffer != NULL);
 
         /* Make sure we got the message. */
     	assert_stat(strncmp(recv_buffer, "123456789", 9) == 0);
@@ -82,17 +86,35 @@ static int test_msg_send_recv(void)
     	rtrn = msg_send(send_port, remote_port, buffer);
 	    assert_stat(rtrn == 0);
 
-        int status = 0;
+        int32_t status = 0;
 
-        //wait4(pid, )
+        /* Wait for the child process. */
+        wait4(pid, &status, 0, NULL);
+
+        /* Make sure the process exited normally, if not return an error. */
+        if(WIFEXITED(status) != 0)
+        {
+            output(ERROR, "Bad return value\n");
+
+            return (-1);
+            
+        }
+        else if(WIFSIGNALED(status) != 0)
+        {
+            output(ERROR, "Signal recieved\n");
+
+            return (-1);
+        }
+        else
+        {
+            log_test(SUCCESS, "msg send and recv test passed");
+        }
     }
     else
     {
     	output(ERROR, "Failed to fork child process: %s\n", strerror(errno));
     	return -1;
     }
-
-    log_test(SUCCESS, "msg send test passed");
 
 	return (0);
 }

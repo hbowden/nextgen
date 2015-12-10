@@ -17,43 +17,185 @@
 
 #include "test_utils.h"
 #include "../../src/resource.c"
+#include "../../src/crypto.h"
 
-static int test_get_fd(void)
+static int32_t test_clean_file_pool(void)
 {
-	log_test(DECLARE, "Testing resource module");
+    log_test(DECLARE, "Testing clean_file_pool");
 
+    uint32_t i = 0;
     int32_t rtrn = 0;
+    char **paths = NULL;
+
+    /* Create an array of char pointers. */
+    paths = mem_alloc(sizeof(char *) * POOL_SIZE);
+    if(paths == NULL)
+    {
+        output(ERROR, "Can't allocate array\n");
+        return (-1);
+    }
+
+    /* Loop and allocate each index in the array. */
+    for(i = 0; i < POOL_SIZE; i++)
+    {
+        paths[i] = mem_alloc(PATH_MAX + 1);
+        if(paths[i] == NULL)
+        {
+            output(ERROR, "Can't allocate path index\n");
+            return (-1);
+        }
+    }
+
+    struct memory_block *m_blk = NULL;
+
+    /* Reset i back to zero. */
+    i = 0;
+
+    /* Loop and grab all the file paths in the allocated list. */
+    SLIST_FOREACH(m_blk, &file_pool->allocated_list, list_entry)
+    {
+        struct resource_ctx *resource = (struct resource_ctx *)m_blk->ptr;
+
+        /* Copy the path pointer into the paths index. */
+        memcpy(paths[i], (char *)resource->ptr, strlen((char *)resource->ptr));
+
+        i++;
+    }
+
+     /* Now check the free list for any resource blocks. */
+    SLIST_FOREACH(m_blk, &file_pool->free_list, list_entry)
+    {
+        struct resource_ctx *resource = (struct resource_ctx *)m_blk->ptr;
+
+        /* Copy the path pointer into the paths index. */
+        memcpy(paths[i], (char *)resource->ptr, strlen((char *)resource->ptr));
+
+        i++;
+    }
+
+    /* Now that we have an index of file paths, let's call clean_file_pool().
+    Now we can manually check that clean_file_pool() actually got rid of the files. */
+    rtrn = clean_file_pool();
+
+    /* Should return zero. */
+    assert_stat(rtrn == 0);
+
+    /* Make sure there is no allocated block in the free list. */
+    SLIST_FOREACH(m_blk, &file_pool->free_list, list_entry)
+    {
+        /* The memory block should be NULL. */
+        assert_stat(m_blk == NULL);
+
+        /* The resource pointer should also be NULL. */
+        assert_stat(m_blk->ptr == NULL);
+
+        /* As should the file path pointer. */
+        assert_stat(((struct resource_ctx *)m_blk->ptr)->ptr == NULL);
+    }
+
+    /* Now check the allocated list. */
+    SLIST_FOREACH(m_blk, &file_pool->allocated_list, list_entry)
+    {
+        /* The memory block should be NULL. */
+        assert_stat(m_blk == NULL);
+
+        /* The resource pointer should also be NULL. */
+        assert_stat(m_blk->ptr == NULL);
+
+        /* As should the file path pointer. */
+        assert_stat(((struct resource_ctx *)m_blk->ptr)->ptr == NULL);
+    }
+
     int32_t fd = 0;
 
-    rtrn = get_desc(&fd);
+    /* Now let's loop through the paths array and make sure the file
+    referenced by the file path has been cleaned up. */
+    for(i = 0; i < POOL_SIZE; i++)
+    {
+        fd = open(paths[i], O_RDONLY);
 
-    assert_stat(rtrn == 0);
-    assert_stat(fd > 0);
-	
-    log_test(SUCCESS, "Resource module test passed");
+        /* Make sure the open call failed. */
+        assert_stat(fd < 0);
+    }
 
-    return 0;
+    /* Now let's clean up our mess. */
+    for(i = 0; i < POOL_SIZE; i++)
+    {
+        mem_free(paths[i]);
+    }
+
+    mem_free(paths);
+
+    log_test(SUCCESS, "clean_file_pool test passed");
+
+    return (0);
 }
 
-static int test_setup_resource_module(void)
+static int32_t test_get_dirpath(void)
+{
+    log_test(DECLARE, "Testing get_dirpath");
+
+    char *dirpath = NULL;
+
+    dirpath = get_dirpath();
+
+    assert_stat(dirpath != NULL);
+
+    log_test(SUCCESS, "get_dirpath test passed");
+
+    return (0);
+}
+
+static int32_t test_get_file(void)
+{
+    log_test(DECLARE, "Testing get file path");
+
+    char *path = NULL;
+
+    path = get_filepath();
+
+    assert_stat(path != NULL);
+
+    log_test(SUCCESS, "Get file path test passed");
+
+    return (0);
+}
+
+static int32_t test_get_fd(void)
+{
+	log_test(DECLARE, "Testing get file descriptor");
+
+    int32_t fd = 0;
+
+    fd = get_desc();
+
+    assert_stat(fd > 0);
+	
+    log_test(SUCCESS, "Get file descriptor test passed");
+
+    return (0);
+}
+
+static int32_t test_setup_resource_module(void)
 {
     log_test(DECLARE, "Testing resource module setup");
 
     int32_t rtrn = 0;
 
-    rtrn = create_file_pool();
-
-    assert_stat(rtrn == 0);
-    assert_stat(file_pool != NULL);
-
-    struct memory_block *m_blk = NULL;
-
-    CK_SLIST_FOREACH(m_blk, &file_pool->allocated_list, list_entry)
+    /* We have to init the crypto module first before using the network module. */
+    rtrn = setup_crypto_module(CRYPTO);
+    if(rtrn < 0)
     {
-        assert_stat(m_blk != NULL);
-        assert_stat(m_blk->ptr != NULL);
+        output(ERROR, "Can't setup crypto module\n");
+        return (0);
     }
-    
+
+    /* Build resource pool using the user's home path as the root path. */
+    rtrn = setup_resource_module("/tmp");
+
+    /* setup_resource_module() should return zero on success. */
+    assert(rtrn == 0);
+
     log_test(SUCCESS, "Resource module setup test passed");
 
     return (0);
@@ -89,8 +231,24 @@ int main(void)
 	if(rtrn < 0)
     {
         log_test(FAIL, "get fd test failed");
-	    return -1;
+	    return (-1);
     }
 
-	return 0;
+    rtrn = test_get_file();
+    if(rtrn < 0)
+    {
+        log_test(FAIL, "Get file path test failed");
+        return (-1);
+    }
+
+    rtrn = test_get_dirpath();
+    if(rtrn < 0)
+        log_test(FAIL, "get_dirpath test failed");
+
+    rtrn = test_clean_file_pool();
+    if(rtrn < 0)
+        log_test(FAIL, "clean_file_pool test failed");
+
+
+	return (0);
 }

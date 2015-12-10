@@ -1,7 +1,7 @@
 
 
 /**
- * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
+ * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice 
@@ -16,7 +16,7 @@
  **/
 
 #include "test_utils.h"
-#include "crypto.h"
+#include "../../src/crypto.c"
 #include "memory.h"
 #include "io.h"
 
@@ -128,19 +128,77 @@ static int test_sha512(void)
 	return 0;
 }
 
-static int test_setup_crypto(void)
+static int32_t test_setup_crypto(void)
 {
-	return 0;
+    log_test(DECLARE, "Testing crypto module setup");
+
+    int32_t rtrn = 0;
+
+    rtrn = setup_crypto_module(CRYPTO);
+    assert_stat(rtrn == 0);
+
+    assert_stat(crypto_setup == TRUE);
+
+    assert_stat(rand_range_pointer != NULL);
+
+    log_test(SUCCESS, "crypto module setup test passed");
+
+	return (0);
 }
 
-static int test_rand_range(void)
+static int32_t test_rand_range(void)
 {
-	return 0;
+    log_test(DECLARE, "Testing random range");
+
+    int32_t rtrn = 0;
+    uint32_t number = 0;
+    uint32_t i = 0;
+
+    for(i = 0; i < iterations; i++)
+    {
+        rtrn = rand_range(1000, &number);
+
+        assert_stat(rtrn == 0);
+
+        assert_stat(number <= 1000);
+    }
+
+    log_test(SUCCESS, "random range test passed");
+
+	return (0);
 }
 
-static int test_rand_bytes(void)
+static int32_t test_rand_bytes(void)
 {
-	return 0;
+    log_test(DECLARE, "Testing random bytes");
+
+    int32_t rtrn = 0;
+    char *buf = NULL;
+    uint32_t i = 0;
+
+    for(i = 0; i < iterations; i++)
+    {
+        buf = mem_alloc(1000);
+        if(buf == NULL)
+        {
+            output(ERROR, "Can't allocate buf\n");
+            return (-1);
+        }
+
+        rtrn = rand_bytes(&buf, 1000);
+
+        //output(STD, "len: %d\n", strlen(buf));
+
+        assert_stat(rtrn == 0);
+
+        //assert_stat(strlen(buf) == 1000);
+
+        mem_free(buf);
+    }
+
+    log_test(SUCCESS, "random bytes test passed");
+
+	return (0);
 }
 
 int main(void)
@@ -165,36 +223,36 @@ int main(void)
     if(rtrn < 0)
     {
         log_test(FAIL, "setup crypto test failed");
-        return -1;
+        return (-1);
     }
 
     rtrn = test_sha256();
     if(rtrn < 0)
     {
         log_test(FAIL, "sha256 test failed");
-        return -1;
+        return (-1);
     }
 
     rtrn = test_sha512();
     if(rtrn < 0)
     {
         log_test(FAIL, "sha512 test failed");
-        return -1;
+        return (-1);
     }
 
     rtrn = test_rand_range();
     if(rtrn < 0)
     {
         log_test(FAIL, "random range test failed");
-        return -1;
+        return (-1);
     }
 
     rtrn = test_rand_bytes();
     if(rtrn < 0)
     {
         log_test(FAIL, "random bytes test failed");
-        return -1;
+        return (-1);
     }
 
-    return 0;
+    return (0);
 }

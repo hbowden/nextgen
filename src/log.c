@@ -141,7 +141,7 @@ int log_arguments(struct log_obj *obj)
 
             /* Non pointer values. */
     		case NUMBER:
-    		    sprintf(arg_value, " %s=%llu", entry->arg_context_index[i]->name, *(obj->arg_value_index[i]));
+    		    sprintf(arg_value, " %s=%lu", entry->arg_context_index[i]->name, *(obj->arg_value_index[i]));
     		    break;
 
             default:

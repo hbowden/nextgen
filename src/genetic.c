@@ -19,6 +19,7 @@
 #include "nextgen.h"
 #include "syscall.h"
 #include "memory.h"
+#include "crypto.h"
 #include "io.h"
 
 #include <dtrace.h>
@@ -169,7 +170,56 @@ static int32_t init_world(void)
     return 0;
 }
 
-static int create_first_generation(void)
+static struct job_ctx *create_job(enum job_type type, uint32_t syscall_number)
+{
+    struct job_ctx *job = NULL;
+
+    /* Allocate job context. */
+    job = mem_alloc(sizeof(struct job_ctx));
+    if(job == NULL)
+    {
+        output(ERROR, "Can't allocate job context\n");
+        return NULL;
+    }
+
+    /* Set job values. */
+    job->type = type;
+    job->syscall_number;
+
+    return (job);
+}
+
+static int32_t submit_job(struct job_ctx *job)
+{
+    int32_t rtrn = 0;
+    uint32_t number = 0;
+
+    /* Randomly pick a number. */
+    rtrn = rand_range(number_of_children, &number);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't generate random number\n");
+        return (-1);
+    }
+
+    struct child_ctx *child = NULL;
+
+    /* Grab the child context of the randomly selected child process. */
+    child = get_child_from_index(number);
+    if(child == NULL)
+    {
+        output(ERROR, "Can't get child context\n");
+        return (-1);
+    }
+
+    /* Send the job to the child's message port for processing. */
+    msg_send(map->msg_port, child->msg_port, job);
+
+    return (0);
+}
+
+
+static int32_t create_first_generation(void)
 {
     output(STD, "Creating first generation\n");
 
@@ -181,18 +231,39 @@ static int create_first_generation(void)
         return (-1);
     }
 
-    uint32_t i;
+    uint32_t i, ii;
     int32_t rtrn = 0;
+    uint32_t syscall_symbol = 0;
 
+    /* Loop for each syscall in the syscall table. */
     for(i = 0; i < sys_table->number_of_syscalls; i++)
     {
-       
+        for(ii = 0; ii < SPECIES_POP; ii++)
+        {
+            struct job_ctx *job = NULL;
+
+            syscall_symbol = sys_table->sys_entry[i]->syscall_symbol;
+
+            job = create_job(GENESIS, syscall_symbol);
+            if(job == NULL)
+            {
+                output(ERROR, "Can't create job\n");
+                return (-1);
+            }
+
+            rtrn = submit_job(job);
+            if(rtrn < 0)
+            {
+                output(ERROR, "Can't submit job\n");
+                return (-1);
+            }
+        }
     }
 
-    return 0;
+    return (0);
 }
 
-static int genesis(void)
+static int32_t genesis(void)
 {
     int32_t rtrn = 0;
 
@@ -201,7 +272,7 @@ static int genesis(void)
     if(rtrn < 0)
     {
         output(ERROR, "Can't init world\n");
-        return -1;
+        return (-1);
     }
 
     /* Create the first generation of organisms aka test cases. */
@@ -209,10 +280,10 @@ static int genesis(void)
     if(rtrn < 0)
     {
         output(ERROR, "Can't create first generation\n");
-        return -1;
+        return (-1);
     }
 
-    return 0;
+    return (0);
 }
 
 static void god_loop(void)

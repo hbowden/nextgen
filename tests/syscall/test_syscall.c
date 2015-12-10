@@ -18,8 +18,7 @@
 #include "test_utils.h"
 #include "stdatomic.h"
 #include "../../src/syscall.c"
-
-struct stats *stat;
+#include "../../src/resource.h"
 
 static int test_syscall_setup(void)
 {
@@ -125,7 +124,7 @@ static int test_get_table(void)
         /* Loop for each argument in the syscall entry and verify that they are correct. */
         for(ii = 0; ii < table[i].sys_entry->number_of_args; ii++)
         {
-            /*assert_stat(table[i].sys_entry->get_arg_index[ii] != NULL);
+            assert_stat(table[i].sys_entry->get_arg_index[ii] != NULL);
 
             uint64_t *arg = NULL;
 
@@ -133,7 +132,7 @@ static int test_get_table(void)
 
             assert_stat(rtrn == 0);
 
-            assert_stat(arg != NULL); */
+            assert_stat(arg != NULL);
         }
     }
 
@@ -153,16 +152,21 @@ static int test_get_syscall_table(void)
     /* Make sure the syscall table is not NULL. */
     assert_stat(table != NULL);
 
+    /* The system call entry index should not be NULL. */
+    assert_stat(table->sys_entry != NULL);
+
     uint32_t i, ii;
     int32_t rtrn = 0;
 
-    for(i = 1; i < table->number_of_syscalls; i++)
+    for(i = 0; i < table->number_of_syscalls; i++)
     {
+        /* Make sure the sycall entry is not NULL. */
         assert_stat(table->sys_entry[i] != NULL);
 
+        /* Name of syscall should not be NULL. */
         assert_stat(table->sys_entry[i]->name_of_syscall != NULL);
 
-        assert_stat(table->sys_entry[i]->number_of_args > 0 && table->sys_entry[i]->number_of_args <= 7);
+        assert_stat(table->sys_entry[i]->number_of_args > 0 && table->sys_entry[i]->number_of_args <= ARG_LIMIT);
 
         assert_stat(table->sys_entry[i]->status == ON || table->sys_entry[i]->status == OFF);
 
@@ -320,54 +324,50 @@ int main(void)
         return (-1);
     }
 
-    rtrn = test_syscall_setup();
+    /* Init the crypto module so we can init the resource module. */
+    rtrn = setup_crypto_module(CRYPTO);
     if(rtrn < 0)
     {
-        log_test(FAIL, "Syscall setup test failed");
+        output(ERROR, "Can't setup crypto module");
         return (-1);
     }
+
+    /* We need to init the resource module before using
+    the syscall module. */
+    rtrn = setup_resource_module("/tmp");
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't setup resource module");
+        return (-1);
+    }
+
+    rtrn = test_syscall_setup();
+    if(rtrn < 0)
+        log_test(FAIL, "Syscall setup test failed");
 
     rtrn = test_init_child_context();
     if(rtrn < 0)
-    {
         log_test(FAIL, "init child context test failed");
-        return (-1);
-    }
 
     rtrn = test_get_table();
     if(rtrn < 0)
-    {
         log_test(FAIL, "get table test failed");
-        return (-1);
-    }
 
     rtrn = test_get_syscall_table();
     if(rtrn < 0)
-    {
         log_test(FAIL, "get syscall table test failed");
-        return (-1);
-    }
 
     rtrn = test_get_entry();
     if(rtrn < 0)
-    {
         log_test(FAIL, "get entry test failed");
-        return (-1);
-    }
 
     rtrn = test_child_from_index();
     if(rtrn < 0)
-    {
         log_test(FAIL, "child from index test failed");
-        return (-1);
-    }
 
     rtrn = test_pick_syscall();
     if(rtrn < 0)
-    {
         log_test(FAIL, "Pick syscall test failed");
-        return (-1);
-    }
 
 	return (0);
 }

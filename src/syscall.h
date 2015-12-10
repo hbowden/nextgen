@@ -1,7 +1,7 @@
 
 
 /**
- * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
+ * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice 
@@ -74,7 +74,10 @@ struct child_ctx
 
     /* This pipe is used to inform the main-loop process we are done
     creating and setting up the child process. */
-    int32_t msg_port[2];
+    int32_t pipe_port[2];
+
+    /* Child's message port. */
+    msg_port_t msg_port;
 };
 
 enum child_state {EMPTY};

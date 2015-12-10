@@ -116,7 +116,7 @@ void mem_free_shared(void *ptr, uint64_t nbytes)
     return;
 }
 
-void clean_shared_pool(struct mem_pool_shared *pool)
+void mem_clean_shared_pool(struct mem_pool_shared *pool)
 {
     if(pool == NULL)
         return;
@@ -201,7 +201,7 @@ struct mem_pool_shared *mem_create_shared_pool(uint32_t block_size, uint32_t blo
 
 struct memory_block *mem_get_shared_block(struct mem_pool_shared *pool)
 {
-    /* Check if the arg cleanup list is empty, if it is empty return early. */
+    /* Check if the list is empty, if it is empty return early. */
     if(CK_SLIST_EMPTY(&pool->free_list) == TRUE)
         return NULL;
 

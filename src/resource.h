@@ -1,7 +1,7 @@
 
 
 /**
- * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
+ * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice 
@@ -18,28 +18,37 @@
 #ifndef RESOURCE_H
 #define RESOURCE_H
 
-#include "private.h"
+#include "memory.h"
+
+#include <stdint.h>
 
 //enum resource_type = { desc_r, mount_r, dirpath_r, file_r, socket_r };
 
-private extern int get_desc(int *fd);
+struct resource_ctx
+{
+    struct memory_block *m_blk;
 
-private extern int return_desc(int *fd);
+    void *ptr;
+};
 
-private extern int free_desc(int *fd);
+extern int32_t get_desc(void);
 
-private extern int get_mount(char **path);
+extern int32_t free_desc(int *fd);
 
-private extern int return_mount(char **path);
+extern int32_t get_mount(char **path);
 
-private extern int get_dirpath(char **path);
+extern int32_t free_mount(char **path);
 
-private extern int return_dirpath(char **path);
+extern char *get_dirpath(void);
 
-private extern int get_filepath(char **path);
+extern int32_t free_dirpath(char **path);
 
-private extern int return_filepath(char **path);
+extern char *get_filepath(void);
 
-private extern int setup_resource_module(void);
+extern int32_t free_filepath(char **path);
+
+extern int32_t setup_resource_module(char *path);
+
+extern int32_t cleanup_resource_pool(void);
 
 #endif

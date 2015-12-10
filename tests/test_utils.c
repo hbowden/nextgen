@@ -38,6 +38,8 @@ struct stats *init_stats_obj(void)
     	return NULL;
     }
 
+#ifdef MAC_OSX
+
     /* Create named shared memory. */
     fd = shm_open(shared_path, O_RDWR);
     if(fd < 0)
@@ -46,6 +48,19 @@ struct stats *init_stats_obj(void)
         return NULL;
     }
 
+#endif
+
+#ifdef FREEBSD
+
+    /* Create named shared memory. */
+    fd = shm_open(shared_path, O_RDWR, 0666);
+    if(fd < 0)
+    {
+        output(ERROR, "Can't create named shared memory\n");
+        return NULL;
+    }
+
+#endif
     /* Map named shared object. */
     stat = mmap(NULL, sizeof(struct stats), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if(stat == MAP_FAILED)
