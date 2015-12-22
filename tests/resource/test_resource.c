@@ -19,6 +19,8 @@
 #include "../../src/resource.c"
 #include "../../src/crypto.h"
 
+static uint32_t iterations = 100;
+
 static int32_t test_clean_file_pool(void)
 {
     log_test(DECLARE, "Testing clean_file_pool");
@@ -131,15 +133,66 @@ static int32_t test_clean_file_pool(void)
     return (0);
 }
 
+static int32_t test_get_socket(void)
+{
+    log_test(DECLARE, "Testing get socket");
+
+    int32_t socket = 0;
+
+    uint32_t i;
+
+    for(i = 0; i < iterations; i++)
+    {
+        socket = get_socket();
+
+        assert_stat(socket != 0);
+
+        free_socket(&socket);
+    }
+
+    log_test(SUCCESS, "get socket test passed");
+
+    return (0);
+}
+
+static int32_t test_get_mountpath(void)
+{
+    log_test(DECLARE, "Testing get mountpath");
+
+    char *mountpath = NULL;
+
+    uint32_t i;
+
+    for(i = 0; i < iterations; i++)
+    {
+        mountpath = get_mountpath();
+
+        assert_stat(mountpath != NULL);
+
+        free_mountpath(&mountpath);
+    }
+
+    log_test(SUCCESS, "get mountpath test passed");
+
+    return (0);
+}
+
 static int32_t test_get_dirpath(void)
 {
     log_test(DECLARE, "Testing get_dirpath");
 
     char *dirpath = NULL;
 
-    dirpath = get_dirpath();
+    uint32_t i;
+    
+    for(i = 0; i < iterations; i++)
+    {
+        dirpath = get_dirpath();
 
-    assert_stat(dirpath != NULL);
+        assert_stat(dirpath != NULL);
+
+        free_dirpath(&dirpath);
+    }
 
     log_test(SUCCESS, "get_dirpath test passed");
 
@@ -152,9 +205,16 @@ static int32_t test_get_file(void)
 
     char *path = NULL;
 
-    path = get_filepath();
+    uint32_t i;
+    
+    for(i = 0; i < iterations; i++)
+    {
+        path = get_filepath();
 
-    assert_stat(path != NULL);
+        assert_stat(path != NULL);
+
+        free_filepath(&path);
+    }
 
     log_test(SUCCESS, "Get file path test passed");
 
@@ -167,9 +227,16 @@ static int32_t test_get_fd(void)
 
     int32_t fd = 0;
 
-    fd = get_desc();
+    uint32_t i;
+    
+    for(i = 0; i < iterations; i++)
+    {
+        fd = get_desc();
 
-    assert_stat(fd > 0);
+        assert_stat(fd > 0);
+
+        free_desc(&fd);
+    }
 	
     log_test(SUCCESS, "Get file descriptor test passed");
 
@@ -181,14 +248,6 @@ static int32_t test_setup_resource_module(void)
     log_test(DECLARE, "Testing resource module setup");
 
     int32_t rtrn = 0;
-
-    /* We have to init the crypto module first before using the network module. */
-    rtrn = setup_crypto_module(CRYPTO);
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't setup crypto module\n");
-        return (0);
-    }
 
     /* Build resource pool using the user's home path as the root path. */
     rtrn = setup_resource_module("/tmp");
@@ -220,35 +279,41 @@ int main(void)
         return (-1);
     }
 
-    rtrn = test_setup_resource_module();
+    /* We have to init the crypto module first before using the resource module. */
+    rtrn = setup_crypto_module(CRYPTO);
     if(rtrn < 0)
     {
-        log_test(FAIL, "setup resource module failed");
-        return (-1);
+        output(ERROR, "Can't setup crypto module\n");
+        return (0);
     }
+
+    rtrn = test_setup_resource_module();
+    if(rtrn < 0)
+        log_test(FAIL, "setup resource module failed");
 
 	rtrn = test_get_fd();
 	if(rtrn < 0)
-    {
         log_test(FAIL, "get fd test failed");
-	    return (-1);
-    }
 
     rtrn = test_get_file();
     if(rtrn < 0)
-    {
         log_test(FAIL, "Get file path test failed");
-        return (-1);
-    }
 
     rtrn = test_get_dirpath();
     if(rtrn < 0)
-        log_test(FAIL, "get_dirpath test failed");
+        log_test(FAIL, "get dirpath test failed");
+
+    rtrn = test_get_socket();
+    if(rtrn < 0)
+        log_test(FAIL, "get socket failed");
+
+    rtrn = test_get_mountpath();
+    if(rtrn < 0)
+        log_test(FAIL, "Get mountpath test failed");
 
     rtrn = test_clean_file_pool();
     if(rtrn < 0)
         log_test(FAIL, "clean_file_pool test failed");
-
 
 	return (0);
 }

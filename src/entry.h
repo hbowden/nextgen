@@ -1,7 +1,7 @@
 
 
 /**
- * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
+ * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice 
@@ -19,7 +19,7 @@
 #define ENTRY_H
 
 #include "nextgen.h"
-#include "syscall.h"
+#include "context.h"
 #include "arg_types.h"
 #include "stdatomic.h"
 
@@ -44,7 +44,7 @@ struct syscall_entry_shadow
 
     struct arg_context *arg_context_index[7];
 
-    int32_t (*get_arg_index[7])(uint64_t **);
+    int32_t (*get_arg_index[7])(uint64_t **, struct child_ctx *);
 
     atomic_uint_least64_t return_value;
 };
@@ -64,7 +64,7 @@ struct syscall_entry
 
     int32_t arg_type_index[7];
 
-    int32_t (*get_arg_index[7])(uint64_t **);
+    int32_t (*get_arg_index[7])(uint64_t **, struct child_ctx *);
 };
 
 #endif

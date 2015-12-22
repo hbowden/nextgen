@@ -26,7 +26,7 @@
 #include <sys/wait.h>
 
 /* The number of test to run, keep in sync with test_paths  */
-static uint32_t number_of_test = 10;
+static uint32_t number_of_test = 11;
 
 /* Array of unit test file paths. */
 static char *test_paths[] = {
@@ -40,6 +40,7 @@ static char *test_paths[] = {
     "tests/syscall/test_syscall",
     "tests/file/test_file",
     "tests/genetic/test_genetic",
+    "tests/generate/test_generate",
     NULL   
 };
 

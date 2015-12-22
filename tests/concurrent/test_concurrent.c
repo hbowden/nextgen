@@ -141,10 +141,8 @@ int main(void)
     /* Test sending and recieving IPC messages. */
     rtrn = test_msg_send_recv();
     if(rtrn < 0)
-    {
         log_test(FAIL, "Msg send and recv test failed");
-        return (-1);
-    }
+
 
 	return (0);
 }

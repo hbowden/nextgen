@@ -17,7 +17,6 @@
 
 #include "resource.h"
 #include "concurrent.h"
-#include "nextgen.h"
 #include "platform.h"
 #include "network.h"
 #include "crypto.h"
@@ -42,6 +41,8 @@ static struct mem_pool_shared *file_pool;
 
 static struct mem_pool_shared *socket_pool;
 
+/* The resource free_* functions are inefficient and should be replaced
+ with a more efficent implementations. */
 int32_t get_desc(void)
 {
     int32_t *fd = NULL;
@@ -64,21 +65,113 @@ int32_t get_desc(void)
 	return (*fd);
 }
 
-int32_t free_desc(int *fd)
-{	
+int32_t free_desc(int32_t *fd)
+{
+    /* Declare a memory block pointer. */
+    struct memory_block *m_blk = NULL;
+   
+    /* Loop and find the resource */
+    CK_SLIST_FOREACH(m_blk, &desc_pool->allocated_list, list_entry)
+    {
+        /* Get resource pointer. */
+        struct resource_ctx *resource = (struct resource_ctx *)m_blk->ptr;
 
-	return 0;
+        /* Get the descriptor pointer. */
+        int32_t *desc = (int32_t *)resource->ptr;
+
+        /* If the descriptors match, free the memory block.*/
+        if((*fd) == (*desc))
+            mem_free_shared_block(m_blk, desc_pool);
+    }
+
+	return (0);
 }
 
-int32_t get_mount(char **path)
+int32_t get_socket(void)
 {
-	return 0;
+    int32_t *sock = NULL;
+    struct memory_block *m_blk = NULL;
+
+    /* Grab a shared memory block from the socket pool. */
+    m_blk = mem_get_shared_block(socket_pool);
+    if(m_blk == NULL)
+    {
+        output(ERROR, "Can't get shared block\n");
+        return (-1);
+    }
+
+    /* Get resource pointer. */
+    struct resource_ctx *resource = (struct resource_ctx *)m_blk->ptr;
+
+    /* Set fd to the descriptor we grabbed from the pool. */
+    sock = (int32_t *)resource->ptr;
+
+    return ((*sock));
 }
 
-int32_t free_mount(char **path)
+int32_t free_socket(int32_t *sock_fd)
 {
+    /* Declare a memory block pointer. */
+    struct memory_block *m_blk = NULL;
+   
+    /* Loop and find the resource */
+    SLIST_FOREACH(m_blk, &socket_pool->allocated_list, list_entry)
+    {
+        /* Get resource pointer. */
+        struct resource_ctx *resource = (struct resource_ctx *)m_blk->ptr;
 
-	return 0;
+        /* Get the socket pointer. */
+        int32_t *sock = (int32_t *)resource->ptr;
+
+        /* If the descriptors match, free the memory block.*/
+        if((*sock) == (*sock_fd))
+            mem_free_shared_block(m_blk, socket_pool);
+    }
+
+    return (0);
+}
+
+char *get_mountpath(void)
+{
+    char *path = NULL;
+    struct memory_block *m_blk = NULL;
+
+    /* Grab a shared memory block from the mountpath pool. */
+    m_blk = mem_get_shared_block(mount_pool);
+    if(m_blk == NULL)
+    {
+        output(ERROR, "Can't get shared block\n");
+        return NULL;
+    }
+
+    /* Get resource pointer. */
+    struct resource_ctx *resource = (struct resource_ctx *)m_blk->ptr;
+
+    path = (char *)resource->ptr;
+
+    return (path);
+}
+
+int32_t free_mountpath(char **path)
+{
+    /* Declare a memory block pointer. */
+    struct memory_block *m_blk = NULL;
+   
+    /* Loop and find the resource */
+    SLIST_FOREACH(m_blk, &mount_pool->allocated_list, list_entry)
+    {
+        /* Get resource pointer. */
+        struct resource_ctx *resource = (struct resource_ctx *)m_blk->ptr;
+
+        /* Get the mountpath pointer. */
+        char *dirpath = (char *)resource->ptr;
+
+        /* If the dirpaths match, free the memory block.*/
+        if(strcmp((*path), dirpath) == 0)
+            mem_free_shared_block(m_blk, mount_pool);
+    }
+
+	return (0);
 }
 
 char *get_dirpath(void)
@@ -105,8 +198,24 @@ char *get_dirpath(void)
 
 int32_t free_dirpath(char **path)
 {
+    /* Declare a memory block pointer. */
+    struct memory_block *m_blk = NULL;
+   
+    /* Loop and find the resource */
+    CK_SLIST_FOREACH(m_blk, &dirpath_pool->allocated_list, list_entry)
+    {
+        /* Get resource pointer. */
+        struct resource_ctx *resource = (struct resource_ctx *)m_blk->ptr;
 
-	return 0;
+        /* Get the dirpath pointer. */
+        char *dirpath = (char *)resource->ptr;
+
+        /* If the dirpaths match, free the memory block.*/
+        if(strcmp((*path), dirpath) == 0)
+            mem_free_shared_block(m_blk, dirpath_pool);
+    }
+
+	return (0);
 }
 
 char *get_filepath(void)
@@ -119,7 +228,7 @@ char *get_filepath(void)
     if(m_blk == NULL)
     {
         output(ERROR, "Can't get shared block\n");
-        return NULL;
+        return (NULL);
     }
 
     /* Get resource pointer. */
@@ -133,8 +242,25 @@ char *get_filepath(void)
 
 int32_t free_filepath(char **path)
 {
+    /* Declare a memory block pointer. */
+    struct memory_block *m_blk = NULL;
+   
+    /* Loop and find the resource */
+    CK_SLIST_FOREACH(m_blk, &dirpath_pool->allocated_list, list_entry)
+    {
+        /* Get resource pointer. */
+        struct resource_ctx *resource = (struct resource_ctx *)m_blk->ptr;
 
-	return 0;
+        /* Get the filepath pointer. */
+        char *filepath = (char *)resource->ptr;
+
+        /* If the filepaths match, free the memory block.*/
+        if(strcmp((*path), filepath) == 0)
+            mem_free_shared_block(m_blk, file_pool);
+            printf("Freed path\n");
+    }
+
+	return (0);
 }
 
 static int32_t create_fd_pool(char *path)
@@ -142,7 +268,7 @@ static int32_t create_fd_pool(char *path)
     int32_t rtrn = 0;
 	struct memory_block *m_blk = NULL;
 
-	desc_pool = mem_create_shared_pool(sizeof(int *), POOL_SIZE);
+	desc_pool = mem_create_shared_pool(sizeof(int32_t *), POOL_SIZE);
 	if(desc_pool == NULL)
 	{
 		output(ERROR, "Can't allocate descriptor memory pool\n");
@@ -319,60 +445,56 @@ static int32_t create_file_pool(char *path)
 	return (0);
 }
 
-/*static int create_mount_pool(void)
+/*static int32_t create_mount_pool(char *path)
 {
-	map->mount_pool = mem_create_shared_pool(sizeof(char *), 1024);
-	if(map->mount_pool == NULL)
+	mount_pool = mem_create_shared_pool(sizeof(char *), POOL_SIZE);
+	if(mount_pool == NULL)
 	{
 		output(ERROR, "Can't allocate mount path memory pool\n");
-		return -1;
+		return (-1);
 	}
 
-    int rtrn;
+    int32_t rtrn = 0;
 	struct memory_block *block = NULL;
 
-    CK_SLIST_FOREACH(block, &map->mount_pool->free_list, list_entry)
+    SLIST_FOREACH(block, &mount_pool->free_list, list_entry)
     {
-        char *mount_name auto_clean = NULL;
         char *fs_name auto_clean = NULL;
-
-        char *mount_path = NULL;
-
-        rtrn = generate_name((char **)&mount_name, NULL, DIR_NAME);
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't generate dir name\n");
-            return -1;
-        }
 
         rtrn = generate_name((char **)&fs_name, NULL, DIR_NAME);
         if(rtrn < 0)
         {
             output(ERROR, "Can't generate dir name\n");
-            return -1;
+            return (-1);
         }
 
-        rtrn = asprintf(&mount_path, "/tmp/%s", mount_name);
-        if(rtrn < 0)
+        char *name = NULL;
+
+        name = mem_alloc(9);
+        if(name == NULL)
         {
-            output(ERROR, "Can't join paths: %s\n", strerror(errno));
-            return -1;
+            output(ERROR, "Can't alloc name buffer\n");
+            return (-1);
         }
-        output(STD, "path: %s\n", mount_path);
-        rtrn = mount(fs_name, mount_path, MNT_FORCE, NULL);
+
+        memcpy(name, fs_name, 8);
+
+        output(ERROR, "name: %s\n", name);
+        
+        rtrn = mount(name, path, MNT_FORCE, NULL);
         if(rtrn < 0)
         {
            output(ERROR, "mount: %s\n", strerror(errno));
-           return -1;
+           return (-1);
         }
 
-        block->ptr = mount_path;
+        block->ptr = name;
     }
 
-	return 0;
-}*/
+	return (0);
+} */
 
-static int32_t create_dirpath_pool(void)
+static int32_t create_dirpath_pool(char *path)
 {
 	dirpath_pool = mem_create_shared_pool(sizeof(char *), POOL_SIZE);
 	if(dirpath_pool == NULL)
@@ -417,7 +539,7 @@ static int32_t create_dirpath_pool(void)
         }
 
         /* Join the dir name with the temp path. */
-        rtrn = asprintf(&dir_path, "/tmp/%s", dir_name);
+        rtrn = asprintf(&dir_path, "%s/%s", path, dir_name);
         if(rtrn < 0)
         {
            output(ERROR, "Can't join paths: %s\n", strerror(errno));
@@ -431,7 +553,7 @@ static int32_t create_dirpath_pool(void)
         m_blk->ptr = resource;
     }
 
-	return 0;
+	return (0);
 }
 
 static int32_t clean_file_pool(void)
@@ -445,7 +567,8 @@ static int32_t clean_file_pool(void)
         return (-1);
     }
 
-    assert(&file_pool->allocated_list != NULL);
+    /* Lock the spinlock. */
+    ck_spinlock_lock(&file_pool->lock);
 
     /* Loop and grab all the file paths in the allocated list. */
     SLIST_FOREACH(m_blk, &file_pool->allocated_list, list_entry)
@@ -481,7 +604,53 @@ static int32_t clean_file_pool(void)
         mem_free_shared(m_blk, sizeof(struct memory_block));
     }
 
+    ck_spinlock_unlock(&file_pool->lock);
+
     mem_clean_shared_pool(file_pool);
+
+    return (0);
+}
+
+static int32_t create_socket_pool(void)
+{
+    socket_pool = mem_create_shared_pool(sizeof(int32_t), POOL_SIZE);
+    if(socket_pool == NULL)
+    {
+        output(ERROR, "Can't allocate socket memory pool\n");
+        return (-1);
+    }
+
+    int32_t rtrn = 0;
+    struct memory_block *m_blk = NULL;
+
+    SLIST_FOREACH(m_blk, &socket_pool->free_list, list_entry)
+    {
+        int32_t *sock = NULL;
+
+        struct resource_ctx *resource = NULL;
+
+        resource = mem_alloc_shared(sizeof(struct resource_ctx));
+        if(resource == NULL)
+        {
+            output(ERROR, "Can't alloc resource object\n");
+            return (-1);
+        }
+
+        resource->ptr = mem_alloc_shared(sizeof(int32_t));
+        if(resource->ptr == NULL)
+        {
+            output(ERROR, "Can't alloc resource pointer\n");
+            return (-1);
+        }
+
+        
+
+        memmove(resource->ptr, sock, sizeof(int32_t));
+
+        resource->m_blk = m_blk;
+
+        m_blk->ptr = resource;
+    }
 
     return (0);
 }
@@ -511,10 +680,17 @@ int32_t setup_resource_module(char *path)
     if(rtrn < 0)
     {
         output(ERROR, "Can't start socket server\n");
-        return -1;
+        return (-1);
     }
 
-/*	rtrn = create_mount_pool();
+    rtrn = create_socket_pool();
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't create socket pool\n");
+        return (-1);
+    }
+
+/*	rtrn = create_mount_pool(path);
 	if(rtrn < 0)
 	{
 		output(ERROR, "Can't create mount pool\n");
@@ -525,23 +701,23 @@ int32_t setup_resource_module(char *path)
 	if(rtrn < 0)
 	{
 		output(ERROR, "Can't create file pool\n");
-		return -1;
+		return (-1);
 	}
 
 	rtrn = create_fd_pool(path);
 	if(rtrn < 0)
 	{
 		output(ERROR, "Can't create fd pool\n");
-		return -1;
+		return (-1);
 	}
 
-	rtrn = create_dirpath_pool();
+	rtrn = create_dirpath_pool(path);
 	if(rtrn < 0)
 	{
 		output(ERROR, "Can't create fd pool\n");
-		return -1;
+		return (-1);
 	}
 
-	return 0;
+	return (0);
 }
 

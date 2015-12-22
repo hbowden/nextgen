@@ -1,7 +1,7 @@
 
 
 /**
- * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
+ * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice 
@@ -16,10 +16,10 @@
  **/
 
 #include "memory.h"
-#include "nextgen.h"
 #include "platform.h"
 #include "io.h"
 
+#include <stdlib.h>
 #include <string.h>
 #include <errno.h>
 #include <sys/mman.h>
@@ -88,19 +88,25 @@ void *mem_alloc_shared(uint64_t nbytes)
 
 void *mem_calloc_shared(uint64_t nbytes)
 {
+    if(nbytes == 0)
+    {
+        output(ERROR, "nbytes is zero\n");
+        return (NULL);
+    }
+
     void *pointer = NULL;
 
     pointer = mmap(NULL, nbytes, PROT_READ | PROT_WRITE, MAP_ANON | MAP_SHARED, -1, 0);
     if(pointer == MAP_FAILED)
     {
         output(ERROR, "mmap: %s\n", strerror(errno));
-        return NULL;
+        return (NULL);
     }
 
     if(memset(pointer, 0, nbytes) == NULL)
     {
         output(ERROR, "Can't initialize memory to zero: %s\n", strerror(errno));
-        return NULL;
+        return (NULL);
     }
 
     return (pointer);
@@ -143,11 +149,11 @@ struct mem_pool_shared *mem_create_shared_pool(uint32_t block_size, uint32_t blo
     /* Initialize the memory pool. */
 	struct mem_pool_shared s_pool = {
 
-        .lock = CK_SPINLOCK_INITIALIZER,
+        .lock = SPINLOCK_INITIALIZER,
         .block_size = block_size,
         .block_count = block_count,
-        .free_list = CK_SLIST_HEAD_INITIALIZER(s_pool->free_list),
-        .allocated_list = CK_SLIST_HEAD_INITIALIZER(s_pool->allocated_list)
+        .free_list = SLIST_HEAD_INITIALIZER(s_pool->free_list),
+        .allocated_list = SLIST_HEAD_INITIALIZER(s_pool->allocated_list)
 
     };
 
@@ -158,7 +164,7 @@ struct mem_pool_shared *mem_create_shared_pool(uint32_t block_size, uint32_t blo
 	if(pool == NULL)
 	{
 		output(ERROR, "Can't allocate shared memory\n");
-		return NULL;
+		return (NULL);
 	}
 
     memmove(pool, &s_pool, sizeof(struct mem_pool_shared));
@@ -180,7 +186,7 @@ struct mem_pool_shared *mem_create_shared_pool(uint32_t block_size, uint32_t blo
         if(block == NULL)
         {
         	output(ERROR, "Can't alloc mem_block\n");
-        	return NULL;
+        	return (NULL);
         }
 
         /* Allocate enough space for the user to store what they want. */
@@ -188,7 +194,7 @@ struct mem_pool_shared *mem_create_shared_pool(uint32_t block_size, uint32_t blo
         if(block->ptr == NULL)
         {
         	output(ERROR, "Can't alloc memory block pointer.\n");
-        	return NULL;
+        	return (NULL);
         }
 
 		/* Insert the node in the free list. */
@@ -207,28 +213,28 @@ struct memory_block *mem_get_shared_block(struct mem_pool_shared *pool)
 
     /* Declare a memory block pointer. */
     struct memory_block *block = NULL;
+
+    /* Lock the spinlock for mutual access. */
+    ck_spinlock_lock(&pool->lock);
    
     /* Loop for each node in the list. */
     CK_SLIST_FOREACH(block, &pool->free_list, list_entry)
     {
-        /* Lock the spinlock for mutual access. */
-        ck_spinlock_lock(&pool->lock);
-
     	/* Remove the block from the free_list. */
     	CK_SLIST_REMOVE(&pool->free_list, block, memory_block, list_entry);
 
     	/* Add the block to the allocated block list. */
     	CK_SLIST_INSERT_HEAD(&pool->allocated_list, block, list_entry);
 
-        /* Unlock the spinlock. */
-        ck_spinlock_unlock(&pool->lock);
-
-    	/* Return the empty block. */
-        return (block);
+        /* Break out of loop. */
+        break;
     }
 
-    /* Should not get here. */
-    return NULL;
+    /* Unlock the spinlock. */
+    ck_spinlock_unlock(&pool->lock);
+
+    /* Return the empty block. */
+    return (block);
 }
 
 

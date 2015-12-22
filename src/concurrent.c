@@ -17,7 +17,6 @@
 
 #include "concurrent.h"
 #include "platform.h"
-#include "nextgen.h"
 #include "memory.h"
 #include "io.h"
 
@@ -47,7 +46,7 @@ void cas_loop_int32(atomic_int_fast32_t *target, int32_t value)
 	/* Loop until we can succesfully update the the value. */
     while(1)
     {
-        /* Grab a snapshot of the value that need to be updated. */
+        /* Grab a snapshot of the value that needs to be updated. */
         int32_t snapshot = atomic_load(target);
 
         /* Try swaping the variable if successful break from the loop. */
@@ -62,7 +61,7 @@ void cas_loop_uint32(atomic_uint_fast32_t *target, uint32_t value)
 	/* Loop until we can succesfully update the the value. */
     while(1)
     {
-        /* Grab a snapshot of the value that need to be updated. */
+        /* Grab a snapshot of the value that needs to be updated. */
         uint32_t snapshot = atomic_load(target);
 
         /* Try swaping the variable if successful break from the loop. */
@@ -179,10 +178,6 @@ int32_t fork_pass_port(msg_port_t pass_port, int32_t (*proc_start)(void *arg), v
         /* Now that we have the parent's message port let's recieve a message from the parent so we can
         restore our special port. */
 
-        struct 
-
-        msg_recv()
-
 
         /* Now that we successfully passed our mach port let's call the function pointer passed by the caller. */
         rtrn = proc_start(arg);
@@ -263,8 +258,8 @@ int32_t msg_send(msg_port_t send_port, msg_port_t remote_port, void *msg_data)
 
 void *msg_recv(msg_port_t recv_port)
 {
-    kern_return_t kr = 0;
-    msg_format_response_t recv_msg = NULL;
+  /*kern_return_t kr = 0;
+    msg_format_response_t recv_msg;
     mach_msg_header_t *recv_hdr = NULL;
 
     recv_hdr = &recv_msg.header;
@@ -277,15 +272,16 @@ void *msg_recv(msg_port_t recv_port)
                   recv_hdr->msgh_size,
                   recv_port,
                   MACH_MSG_TIMEOUT_NONE,
-                  MACH_PORT_NUL);
+                  MACH_PORT_NULL);
 
     if(kr != MACH_MSG_SUCCESS)
     {
         mach_error("Can't recieve mach message:\n", kr);
-        return (-1);
+        return (NULL);
     }
 
-    return (recv_msg.data);
+    return (recv_msg.data); */
+    return (NULL);
 }
 
 msg_port_t init_msg_port(void)                      

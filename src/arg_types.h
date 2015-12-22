@@ -21,6 +21,8 @@
 #include "utils.h"
 #include "log.h"
 
+#include <stdint.h>
+
 enum arg_type {
 
     FILE_DESC, 
@@ -53,7 +55,7 @@ struct arg_context
 	const char *name;
 	enum arg_type type;
 	enum yes_no should_free;
-	int log_type;
+	int32_t log_type;
 };
 
 extern struct arg_context *get_arg_context(enum arg_type type);

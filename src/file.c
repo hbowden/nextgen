@@ -175,7 +175,7 @@ static int32_t count_files_directory(uint32_t *count)
     if(directory == NULL)
     {
         output(ERROR, "Can't open dir: %s\n", strerror(errno));
-        return -1;
+        return (-1);
     }
     
     /* Walk the directory. */
@@ -194,10 +194,10 @@ static int32_t count_files_directory(uint32_t *count)
     if(rtrn < 0)
     {
         output(ERROR, "Can't close directory\n");
-        return -1;
+        return (-1);
     }
 
-	return 0;
+	return (0);
 }
 
 int initial_fuzz_run(void)
@@ -445,7 +445,7 @@ void start_main_file_loop(void)
     return;
 }
 
-int setup_file_module(char *exec_path)
+int32_t setup_file_module(char *exec_path)
 {
     int32_t rtrn = 0;
     uint32_t i = 0;
@@ -458,7 +458,7 @@ int setup_file_module(char *exec_path)
     if(rtrn < 0)
     {
         output(ERROR, "Can't count files in the in directory.\n");
-        return -1;
+        return (-1);
     }
 
     /* Create file index. */
@@ -466,7 +466,7 @@ int setup_file_module(char *exec_path)
     if(file_index == NULL)
     {
         output(ERROR, "Can't create file index: %s\n", strerror(errno));
-        return -1;
+        return (-1);
     }
 
     for(i = 0; i < file_count; i++)
@@ -475,7 +475,7 @@ int setup_file_module(char *exec_path)
         if(file_index[i] == NULL)
         {
             output(ERROR, "Can't create shared object\n");
-            return -1;
+            return (-1);
         }
     }
 
@@ -484,9 +484,9 @@ int setup_file_module(char *exec_path)
     if(rtrn < 0)
     {
         output(ERROR, "Can't create file index\n");
-        return -1;
+        return (-1);
     }
     
-    return 0;
+    return (0);
 }
 

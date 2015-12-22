@@ -31,13 +31,17 @@ struct resource_ctx
     void *ptr;
 };
 
+extern int32_t get_socket(void);
+
+extern int32_t free_socket(int32_t *sock_fd);
+
 extern int32_t get_desc(void);
 
-extern int32_t free_desc(int *fd);
+extern int32_t free_desc(int32_t *fd);
 
-extern int32_t get_mount(char **path);
+extern char *get_mountpath(void);
 
-extern int32_t free_mount(char **path);
+extern int32_t free_mountpath(char **path);
 
 extern char *get_dirpath(void);
 

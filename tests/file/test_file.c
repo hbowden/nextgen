@@ -8,7 +8,7 @@
  * and this permission notice appear in all copies.
  * 
  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH 
- * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY 
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY å
  * AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
  * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, 
  * WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
@@ -18,9 +18,46 @@
 #include "test_utils.h"
 #include "../../src/file.c"
 
-static int test_setup_file_module(void)
+static int32_t test_count_files_directory(void)
 {
+    log_test(DECLARE, "Testing count directory");
 
+    int32_t rtrn = 0;
+    uint32_t count = 0;
+
+    rtrn = count_files_directory(&count);
+
+    /* rtrn should equal file module. */
+    assert_stat(rtrn == 0);
+    assert_stat(count > 0);
+
+    log_test(SUCCESS, "count directory test passed");
+
+    return (0);
+}
+
+static int32_t test_setup_file_module(void)
+{
+    log_test(DECLARE, "Testing file module setup");
+
+    int32_t rtrn = 0;
+
+    char *tmp_dir = NULL;
+
+    rtrn = asprintf(&tmp_dir, "/tmp/tmp_dir");
+    if(rtrn < 0)
+    {
+        perror("asprintf");
+        return (-1);
+    }
+
+    /* Give the file module the path of the program to test. */
+    rtrn = setup_file_module("/bin/ls");
+
+    /* rtrn should equal file module. */
+    assert_stat(rtrn == 0);
+
+    log_test(SUCCESS, "Setup file module test passed");
 
 	return (0);
 }
@@ -46,10 +83,11 @@ int main(void)
 
     rtrn = test_setup_file_module();
     if(rtrn < 0)
-    {
     	log_test(FAIL, "Setup file module test failed");
-    	return (-1);
-    }
+
+    rtrn = test_count_files_directory();
+    if(rtrn < 0)
+        log_test(FAIL, "Count files directory test failed");
 
 	return (0);
 }

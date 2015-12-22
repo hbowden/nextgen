@@ -19,13 +19,16 @@
 #include "stdatomic.h"
 #include "../../src/syscall.c"
 #include "../../src/resource.h"
+#include "../../src/crypto.h"
 
 static int test_syscall_setup(void)
 {
     log_test(DECLARE, "Testing syscall module setup");
 
+    int32_t rtrn = 0;
+
     /* Call the setup function. */
-    int32_t rtrn = setup_syscall_module();
+    rtrn = setup_syscall_module();
 
     /* Make sure setup_syscall_module() returns zero. */
     assert_stat(rtrn == 0);
@@ -88,6 +91,8 @@ static int test_init_child_context(void)
 
 static int test_get_table(void)
 {
+    log_test(DECLARE, "Testing get_table");
+
     /* Declare a syscall table in disk format. */
     struct syscall_table *table = NULL;
 
@@ -127,14 +132,24 @@ static int test_get_table(void)
             assert_stat(table[i].sys_entry->get_arg_index[ii] != NULL);
 
             uint64_t *arg = NULL;
+            struct child_ctx *child = NULL;
 
-            int32_t rtrn = table[i].sys_entry->get_arg_index[ii](&arg);
+            child = init_child_context();
+            assert_stat(child != NULL);
+
+            arg = mem_alloc(sizeof(uint64_t));
+            assert_stat(arg != NULL);
+
+            int32_t rtrn = table[i].sys_entry->get_arg_index[ii](&arg, child);
 
             assert_stat(rtrn == 0);
-
             assert_stat(arg != NULL);
+            assert_stat(child->arg_size_index != NULL);
+            //assert_stat(child->arg_size_index[0] > 0);
         }
     }
+
+    log_test(SUCCESS, "get_table test passed");
 
     return (0);
 }
@@ -183,12 +198,21 @@ static int test_get_syscall_table(void)
             assert_stat(table->sys_entry[i]->get_arg_index[ii] != NULL);
 
             uint64_t *arg = NULL;
+            struct child_ctx *child = NULL;
 
-            rtrn = table->sys_entry[i]->get_arg_index[ii](&arg);
+            child = init_child_context();
+            assert_stat(child != NULL);
+
+            arg = mem_alloc(sizeof(uint64_t));
+            assert_stat(arg != NULL);
+
+            rtrn = table->sys_entry[i]->get_arg_index[ii](&arg, child);
 
             assert_stat(rtrn == 0);
 
             assert_stat(arg != NULL);
+            assert_stat(child->arg_size_index != NULL);
+           // assert_stat(child->arg_size_index[0] > 0);
         }
     }
 
@@ -217,8 +241,6 @@ static int test_get_entry(void)
 
         assert_stat(entry->name_of_syscall != NULL);
 
-        assert_stat(entry->syscall_symbol > 0);
-
         assert_stat(entry->number_of_args > 0 && entry->number_of_args <= 7);
 
         assert_stat(entry->status == ON || entry->status == OFF);
@@ -236,12 +258,21 @@ static int test_get_entry(void)
             assert_stat(entry->get_arg_index[ii] != NULL);
 
             uint64_t *arg = NULL;
+            struct child_ctx *child = NULL;
 
-            rtrn = entry->get_arg_index[ii](&arg);
+            child = init_child_context();
+            assert_stat(child != NULL);
+
+            arg = mem_alloc(sizeof(uint64_t));
+            assert_stat(arg != NULL);
+
+            rtrn = entry->get_arg_index[ii](&arg, child);
 
             assert_stat(rtrn == 0);
 
             assert_stat(arg != NULL);
+            assert_stat(child->arg_size_index != NULL);
+            //assert_stat(child->arg_size_index[0] > 0);
         }
     }
 
@@ -296,11 +327,37 @@ static int test_pick_syscall(void)
 
     assert_stat(child->need_alarm == YES || child->need_alarm == NO);
 
-    assert_stat(child->syscall_symbol > 0);
-
     assert_stat(child->had_error == NO);
 
     log_test(SUCCESS, "Pick syscall test passed");
+
+    return (0);
+}
+
+static int32_t test_generate_arguments(void)
+{
+    log_test(DECLARE, "Testing generate arguments");
+
+    int32_t rtrn = 0;
+    struct child_ctx *child = NULL;
+
+    child = init_child_context();
+    assert_stat(child != NULL);
+
+    rtrn = pick_syscall(child);
+    assert_stat(rtrn == 0);
+
+    rtrn = generate_arguments(child);
+    assert_stat(rtrn == 0);
+
+    uint32_t i = 0;
+
+    for(i = 0; i < child->number_of_args; i++)
+    {
+        assert_stat(child->arg_value_index[i] != NULL);
+    }
+
+    log_test(SUCCESS, "Generate args test passed");
 
     return (0);
 }
@@ -368,6 +425,10 @@ int main(void)
     rtrn = test_pick_syscall();
     if(rtrn < 0)
         log_test(FAIL, "Pick syscall test failed");
+
+    rtrn = test_generate_arguments();
+    if(rtrn < 0)
+        log_test(FAIL, "generate arguments test failed");
 
 	return (0);
 }

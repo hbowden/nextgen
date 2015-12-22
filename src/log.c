@@ -1,7 +1,7 @@
 
 
 /**
- * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
+ * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice 
@@ -29,12 +29,13 @@
 #include <errno.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <assert.h>
 
 static char *out_dir_path;
 
-int log_file(char *file_path, char *file_extension)
+int32_t log_file(char *file_path, char *file_extension)
 {
-    int rtrn;
+    int32_t rtrn = 0;
     char *out_path auto_clean = NULL;
 
     /* Create out file path. */
@@ -42,7 +43,7 @@ int log_file(char *file_path, char *file_extension)
     if(rtrn < 0)
     {
         output(ERROR, "Can't create out path: %s\n", strerror(errno));
-        return -1;
+        return (-1);
     }
 
     /* Copy file to the out directory. */
@@ -50,15 +51,15 @@ int log_file(char *file_path, char *file_extension)
     if(rtrn < 0)
     {
         output(ERROR, "Can't copy file to the out directory\n");
-        return -1;
+        return (-1);
     }
     
-    return 0;
+    return (0);
 }
 
-int create_out_directory(char *path)
+int32_t create_out_directory(char *path)
 {
-    int rtrn;
+    int32_t rtrn = 0;
     char *crash_dir auto_clean = NULL;
 
     rtrn = mkdir(path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
@@ -70,32 +71,32 @@ int create_out_directory(char *path)
         if(errno == EEXIST)
         {
             output(STD, "Out directory already exist\n");
-            return -1;
+            return (-1);
         }
 
-        return -1;
+        return (-1);
     }
 
     rtrn = asprintf(&crash_dir, "%s/crash_dir", path);
     if(rtrn < 0)
     {
         output(STD, "Out directory already exist\n");
-        return -1;
+        return (-1);
     }
 
     rtrn = mkdir(crash_dir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     if(rtrn < 0)
     {
         output(ERROR, "Can't create crash directory\n");
-        return -1;
+        return (-1);
     }
 
     out_dir_path = crash_dir;
 
-	return 0;
+	return (0);
 }
 
-int log_arguments(struct log_obj *obj)
+int32_t log_arguments(struct log_obj *obj)
 {
     uint32_t i;
     uint32_t number_of_args = obj->number_of_args;
@@ -138,22 +139,29 @@ int log_arguments(struct log_obj *obj)
     		case POINTER:
     		    sprintf(arg_value, " %s=%p", entry->arg_context_index[i]->name, (void *)obj->arg_value_index[i]);
     		    break;
-
+#ifdef FREEBSD
             /* Non pointer values. */
     		case NUMBER:
     		    sprintf(arg_value, " %s=%lu", entry->arg_context_index[i]->name, *(obj->arg_value_index[i]));
     		    break;
-
+#endif
+#ifdef MAC_OSX
+            /* Non pointer values. */
+            case NUMBER:
+                sprintf(arg_value, " %s=%llu", entry->arg_context_index[i]->name, *(obj->arg_value_index[i]));
+                break;
+#endif
             default:
                 output(ERROR, "Unknown log type\n");
                 return -1;
     	}
 
     	strncat(syscall_log_buf, arg_value, strlen(arg_value));
+
     }
-
+ 
     output(STD, "%s\n", syscall_log_buf);
-
+ 
 	return 0;
 }
 

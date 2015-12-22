@@ -1,7 +1,7 @@
 
 
 /**
- * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
+ * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice 
@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <sys/types.h>
+#include <sys/ptrace.h>
 #include <sys/socket.h>
 #include <sys/param.h>
 #include <sys/wait.h>
@@ -39,93 +40,71 @@
 #include <unistd.h>
 #include <errno.h>
 
-int32_t generate_fd(uint64_t **fd)
+int32_t generate_fd(uint64_t **fd, struct child_ctx *ctx)
 {
-    **fd = get_desc();
+    /* Allocate the descriptor. */
+    (*fd) = mem_alloc(sizeof(int32_t));
+    if((*fd) == NULL)
+    {
+        output(ERROR, "Can't allocate a descriptor\n");
+        return (-1);
+    }
+
+    /* Get a file descriptor from the descriptor pool. */
+    (**fd) = get_desc();
     if((int32_t)(**fd) < 0)
     {
         output(ERROR, "Can't get file descriptor\n");
         return (-1);
     }
 
+    /* Set the argument size. */
+    ctx->arg_size_index[ctx->current_arg] = sizeof(int32_t);
+
 	return (0);
 }
 
-int32_t generate_socket(uint64_t **sock)
+int32_t generate_socket(uint64_t **sock, struct child_ctx *ctx)
 {
-    int rtrn;
-    int socket_fd = 0;
-    unsigned int number;
-    
-    rtrn = rand_range(3, &number);
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't generate random number\n");
-        return -1;
-    }
-
-    *sock = mem_alloc(sizeof(unsigned long));
-    if(*sock == NULL)
+    int32_t rtrn = 0;
+   
+    (*sock) = mem_alloc(sizeof(int32_t));
+    if((*sock) == NULL)
     {
         output(ERROR, "Can't allocate socket\n");
-        return -1;
+        return (-1);
     }
-    
-    switch(number)
+
+    (**sock) = get_socket();
+    if((int32_t)(**sock) < 0)
     {
-        case 0:
-            **sock = (unsigned long) socket(AF_INET6, SOCK_STREAM, 0);
-            break;
-            
-        case 1:
-            **sock = (unsigned long) socket(AF_INET, SOCK_STREAM, 0);
-            break;
-            
-        case 2:
-
-            rtrn = connect_ipv4(&socket_fd);
-            if(rtrn < 0)
-            {
-                output(ERROR, "Can't connect to socket server: 4");
-                return -1;
-            }
-
-            **sock = (unsigned long) socket_fd;
-
-            break;
-            
-        case 3:
-
-            rtrn = connect_ipv6(&socket_fd);
-            if(rtrn < 0)
-            {
-                output(ERROR, "Can't connect to socket server: 6");
-                return -1;
-            }
-
-            **sock = (unsigned long) socket_fd;
-
-            break;
-
-        default:
-            output(ERROR, "Should not get here\n");
-            return -1;
+        output(ERROR, "Can't get socket\n");
+        return (-1);
     }
+
+    ctx->arg_size_index[ctx->current_arg] = sizeof(int32_t);
     
-    return 0;
+    return (0);
 }
 
-int32_t generate_buf(uint64_t **buf)
+int32_t generate_buf(uint64_t **buf, struct child_ctx *ctx)
 {
-    int rtrn;
-    unsigned int number;
-    unsigned int nbytes = 1024;
+    int32_t rtrn = 0;
+    uint32_t number = 0;
+    uint32_t nbytes = 0;
+
+    rtrn = rand_range(1024, &nbytes);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't pick random size\n");
+        return (-1);
+    }
 
     rtrn = rand_range(2, &number);
     if(rtrn < 0)
     {
         output(ERROR, "Can't pick random number\n");
-        return -1;
+        return (-1);
     }
 
     switch(number)
@@ -135,7 +114,7 @@ int32_t generate_buf(uint64_t **buf)
             if(*buf == MAP_FAILED)
             {
                 output(ERROR, "mmap: %s\n", strerror(errno));
-                return -1;
+                return (-1);
             }
             break;
 
@@ -144,7 +123,7 @@ int32_t generate_buf(uint64_t **buf)
             if(*buf == MAP_FAILED)
             {
                 output(ERROR, "mmap: %s\n", strerror(errno));
-                return -1;
+                return (-1);
             }
             break;
 
@@ -153,104 +132,124 @@ int32_t generate_buf(uint64_t **buf)
             if(*buf == MAP_FAILED)
             {
                 output(ERROR, "mmap: %s\n", strerror(errno));
-                return -1;
+                return (-1);
             }
             break;
 
         default:
             output(ERROR, "Should not get here\n");
-            return -1;
+            return (-1);
     }
 
-	return 0;
+    ctx->arg_size_index[ctx->current_arg] = nbytes;
+
+	return (0);
 }
 
-int32_t generate_length(uint64_t **length)
+int32_t generate_length(uint64_t **length, struct child_ctx *ctx)
 {
-	*length = mem_alloc(sizeof(unsigned long));
-	if(*length == NULL)
+    uint32_t last_arg = 0;
+
+    if(ctx->current_arg == 0)
+        last_arg = 0;
+    else
+        last_arg = ctx->current_arg - 1;
+
+    /* Allocate the length buffer */
+	(*length) = mem_alloc(sizeof(uint64_t));
+	if((*length) == NULL)
     {
         output(ERROR, "Can't alloc length\n");
-        return -1;
+        return (-1);
     }
 
-	return 0;
+    /* Set the length to the length of the last syscall argument. */
+    memcpy((*length), &ctx->arg_size_index[last_arg], sizeof(uint64_t));
+
+    /* Set this argument's length. */
+    ctx->arg_size_index[ctx->current_arg] = sizeof(uint64_t);
+
+	return (0);
 }
 
-int32_t generate_path(uint64_t **path)
+int32_t generate_path(uint64_t **path, struct child_ctx *ctx)
 {
-    *path = (uint64_t *) get_filepath();
+    (*path) = (uint64_t *) get_filepath();
     if((*path) == NULL)
     {
         output(ERROR, "Can't get file path\n");
         return (-1);
     }
+
+    ctx->arg_size_index[ctx->current_arg] = strlen((char *)(*path));
     
 	return (0);
 }
 
-int32_t generate_open_flag(uint64_t **flag)
+int32_t generate_open_flag(uint64_t **flag, struct child_ctx *ctx)
 {
-    int32_t rtrn;
-    uint32_t number;
+    int32_t rtrn = 0;
+    uint32_t number = 0;
     
     rtrn = rand_range(7, &number);
     if(rtrn < 0)
     {
         output(ERROR, "Can't generate random number\n");
-        return -1;
+        return (-1);
     }
 
-    *flag = mem_alloc(12);
-    if(*flag == NULL)
+    (*flag) = mem_alloc(12);
+    if((*flag) == NULL)
     {
     	output(ERROR, "Can't alloc flag\n");
-        return -1;
+        return (-1);
     }
     
     switch(number)
     {
-        case 0: **flag |= (unsigned long) O_RDONLY; break;
+        case 0: (**flag) |= (uint64_t) O_RDONLY; break;
             
-        case 1: **flag |= (unsigned long) O_WRONLY; break;
+        case 1: (**flag) |= (uint64_t) O_WRONLY; break;
       
-        case 2: **flag |= (unsigned long) O_RDWR; break;
+        case 2: (**flag) |= (uint64_t) O_RDWR; break;
 
-        case 3: **flag |= (unsigned long) O_NONBLOCK; break;
+        case 3: (**flag) |= (uint64_t) O_NONBLOCK; break;
             
-        case 4: **flag |= (unsigned long) O_APPEND; break;
+        case 4: (**flag) |= (uint64_t) O_APPEND; break;
             
-        case 5: **flag |= (unsigned long) O_CREAT; break;
+        case 5: (**flag) |= (uint64_t) O_CREAT; break;
             
-        case 6: **flag |= (unsigned long) O_TRUNC; break;
+        case 6: (**flag) |= (uint64_t) O_TRUNC; break;
 
-        case 7: **flag |= (unsigned long) O_EXCL; break;
+        case 7: (**flag) |= (uint64_t) O_EXCL; break;
 
         default:
             output(ERROR, "Should not get here\n");
-            return -1;
+            return (-1);
     }
+
+    ctx->arg_size_index[ctx->current_arg] = sizeof(int64_t);
     
-    return 0;
+    return (0);
 }
 
-int32_t generate_mode(uint64_t **mode)
+int32_t generate_mode(uint64_t **mode, struct child_ctx *ctx)
 {
-    int rtrn;
-    unsigned int number;
+    int32_t rtrn = 0;
+    uint32_t number = 0;
 
     rtrn = rand_range(20, &number);
     if(rtrn < 0)
     {
         output(ERROR, "Can't generate random number\n");
-        return -1;
+        return (-1);
     }
 
     *mode = mem_alloc(12);
     if(*mode == NULL)
     {
     	output(ERROR, "Can't alloc mode\n");
-        return -1;
+        return (-1);
     }
     
     switch(number)
@@ -299,42 +298,47 @@ int32_t generate_mode(uint64_t **mode)
             
         default:
             output(ERROR, "Can't get mode\n");
-            return -1;
+            return (-1);
     }
-	return 0;
+
+    ctx->arg_size_index[ctx->current_arg] = sizeof(int64_t);
+
+	return (0);
 }
 
-int32_t generate_fs_stat(uint64_t **stat)
+int32_t generate_fs_stat(uint64_t **stat, struct child_ctx *ctx)
 {
 	struct statfs *stat_buf = mem_alloc(sizeof(struct statfs));
     if(stat_buf == NULL)
     {
     	output(ERROR, "Can't alloc stat\n");
-    	return -1;
+    	return (-1);
     }
 
-    *stat = (uint64_t *)stat_buf;
+    (*stat) = (uint64_t *)stat_buf;
 
-	return 0;
+    ctx->arg_size_index[ctx->current_arg] = sizeof(int64_t);
+
+	return (0);
 }
 
-int32_t generate_fs_stat_flag(uint64_t **flag)
+int32_t generate_fs_stat_flag(uint64_t **flag, struct child_ctx *ctx)
 {
-    int32_t rtrn;
-    uint32_t number;
+    int32_t rtrn = 0;
+    uint32_t number = 0;
 
     *flag = mem_alloc(12);
     if(*flag == NULL)
     {
     	output(ERROR, "Can't alloc flag\n");
-        return -1;
+        return (-1);
     }
     
     rtrn = rand_range(1, &number);
     if(rtrn < 0)
     {
         output(ERROR, "Can't generate random number\n");
-        return -1;
+        return (-1);
     }
     
     switch(number)
@@ -345,21 +349,23 @@ int32_t generate_fs_stat_flag(uint64_t **flag)
 
         default:
             output(ERROR, "Can't pick stat flag\n");
-            return -1;
+            return (-1);
     }
 
-	return 0;
+    ctx->arg_size_index[ctx->current_arg] = sizeof(int64_t);
+
+	return (0);
 }
 
-int32_t generate_pid(uint64_t **pid)
+int32_t generate_pid(uint64_t **pid, struct child_ctx *ctx)
 {
-	pid_t local_pid;
+	pid_t local_pid = 0;
 
 	*pid = mem_alloc(sizeof(unsigned long));
 	if(*pid == NULL)
 	{
 		output(STD, "Can't alloc pid\n");
-		return -1;
+		return (-1);
 	}
 
     local_pid = fork();
@@ -378,71 +384,77 @@ int32_t generate_pid(uint64_t **pid)
     else
     {
         output(ERROR, "Can't create pid: %s\n", strerror(errno));
-        return -1;
+        return (-1);
     }
 
-    **pid = (uint64_t)local_pid;
+    (**pid) = (uint64_t)local_pid;
+
+    ctx->arg_size_index[ctx->current_arg] = sizeof(int64_t);
     
-	return 0;
+	return (0);
 }
 
-int32_t generate_int(uint64_t **integer)
+int32_t generate_int(uint64_t **integer, struct child_ctx *ctx)
 {
-	unsigned int number; 
-    int rtrn;
+	uint32_t number; 
+    int32_t rtrn = 0;
 
-	*integer = mem_alloc(sizeof(unsigned long));
+	*integer = mem_alloc(sizeof(uint64_t));
 	if(*integer == NULL)
 	{
 		output(ERROR, "Can't alloc int\n");
-        return -1;
+        return (-1);
 	}
 
     rtrn = rand_range(INT_MAX, &number);
     if(rtrn < 0)
     {
         output(ERROR, "Can't pick random int\n");
-        return -1;
+        return (-1);
     }
 
-	**integer = (unsigned long)number;
+	(**integer) = (uint64_t)number;
 
-	return 0;
+    ctx->arg_size_index[ctx->current_arg] = sizeof(int64_t);
+
+	return (0);
 }
 
-int32_t generate_rusage(uint64_t **usage)
+int32_t generate_rusage(uint64_t **usage, struct child_ctx *ctx)
 {
-    struct rusage *buf;
+    struct rusage *buf = NULL;
 
     buf = mem_alloc(sizeof(struct rusage));
     if(buf == NULL)
     {
     	output(ERROR, "Can't alloc rusage\n");
-    	return -1;
+    	return (-1);
     }
 
-    *usage = (uint64_t *)buf;
+    (*usage) = (uint64_t *)buf;
 
-	return 0;
+    ctx->arg_size_index[ctx->current_arg] = sizeof(struct rusage);
+
+	return (0);
 }
 
-int32_t generate_wait_option(uint64_t **option)
+int32_t generate_wait_option(uint64_t **option, struct child_ctx *ctx)
 {
-	int rtrn;
-    unsigned int number;
+	int32_t rtrn = 0;
+    uint32_t number = 0;
 
-    *option = mem_alloc(sizeof(unsigned long));
-    if(*option == NULL)
+    (*option) = mem_alloc(sizeof(unsigned long));
+    if((*option) == NULL)
     {
     	output(ERROR, "Can't alloc option\n");
-        return -1;
+        return (-1);
     }
     
     rtrn = rand_range(1, &number);
     if(rtrn < 0)
     {
         output(ERROR, "Can't generate random number\n");
-        return -1;
+        return (-1);
     }
     
     switch(number)
@@ -457,22 +469,24 @@ int32_t generate_wait_option(uint64_t **option)
             
         default:
             output(ERROR, "Should not get here\n");
-            return -1;
+            return (-1);
     }
 
-	return 0;
+    ctx->arg_size_index[ctx->current_arg] = sizeof(int64_t);
+
+	return (0);
 }
 
-int32_t generate_whence(uint64_t **whence)
+int32_t generate_whence(uint64_t **whence, struct child_ctx *ctx)
 {
-    int rtrn;
-    unsigned int number;
+    int32_t rtrn = 0;
+    uint32_t number = 0;
 
-    *whence = mem_alloc(sizeof(unsigned long));
-    if(*whence == NULL)
+    (*whence) = mem_alloc(sizeof(uint64_t));
+    if((*whence) == NULL)
     {
         output(ERROR, "mem_alloc\n");
-        return -1;
+        return (-1);
     }
 
 #ifdef FREEBSD
@@ -481,7 +495,7 @@ int32_t generate_whence(uint64_t **whence)
     if(rtrn < 0)
     {
         output(ERROR, "Can't generate random number\n");
-        return -1;
+        return (-1);
     }
 
 #else
@@ -490,7 +504,7 @@ int32_t generate_whence(uint64_t **whence)
     if(rtrn < 0)
     {
         output(ERROR, "Can't generate random number\n");
-        return -1;
+        return (-1);
     }
 
 #endif
@@ -525,13 +539,15 @@ int32_t generate_whence(uint64_t **whence)
             
         default:
             output(ERROR, "Should not get here\n");
-            return -1;
+            return (-1);
     }
 
-    return 0;
+    ctx->arg_size_index[ctx->current_arg] = sizeof(int64_t);
+
+    return (0);
 }
 
-int32_t generate_offset(uint64_t **offset)
+int32_t generate_offset(uint64_t **offset, struct child_ctx *ctx)
 {
     int32_t rtrn = 0;
 
@@ -539,58 +555,250 @@ int32_t generate_offset(uint64_t **offset)
     if(*offset == NULL)
     {
         output(ERROR, "mem_alloc\n");
-        return -1;
+        return (-1);
     }
     
-    rtrn = rand_range(INT_MAX, (uint32_t *)*offset);
+    rtrn = rand_range(INT_MAX, (uint32_t *)(*offset));
     if(rtrn < 0)
     {
         output(ERROR, "Can't generate random number\n");
-        return -1;
+        return (-1);
     }
 
-    return 0;
+    ctx->arg_size_index[ctx->current_arg] = sizeof(uint64_t);
+
+    return (0);
 }
 
-int32_t generate_mount_path(uint64_t **path)
+int32_t generate_mountpath(uint64_t **path, struct child_ctx *ctx)
 {
-    return 0;
+    return (0);
 }
 
-int32_t generate_mount_type(uint64_t **type)
+int32_t generate_mount_type(uint64_t **type, struct child_ctx *ctx)
 {
 
-    return 0;
+    return (0);
 }
 
-int32_t generate_dirpath(uint64_t **dirpath)
+int32_t generate_dirpath(uint64_t **dirpath, struct child_ctx *ctx)
 {
+    (*dirpath) = (uint64_t *) get_dirpath();
+    if((*dirpath) == NULL)
+    {
+        output(ERROR, "Can't get directory path\n");
+        return (-1);
+    }
 
-    return 0;
+    ctx->arg_size_index[ctx->current_arg] = strlen((char *)(*dirpath));
+
+    return (0);
 }
 
-int32_t generate_mount_flags(uint64_t **flag)
+int32_t generate_mount_flags(uint64_t **flag, struct child_ctx *ctx)
 {
+    int32_t rtrn = 0;
+    uint32_t number = 0;
 
-    return 0;
+    (*flag) = mem_alloc(sizeof(uint64_t));
+    if((*flag) == NULL)
+    {
+        output(ERROR, "Can't alloc mount flags\n");
+        return (-1);
+    }
+    
+    rtrn = rand_range(6, &number);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't generate random number\n");
+        return (-1);
+    }
+    
+    switch(number)
+    {
+        case 0:
+            (**flag) = MNT_RDONLY;
+            break;
+            
+        case 1:
+            (**flag) = MNT_NOEXEC;
+            break;
+
+        case 2:
+            (**flag) = MNT_NOSUID;
+            break;
+
+        case 3:
+            (**flag) = MNT_NODEV;
+            break;
+
+        case 4:
+            (**flag) = MNT_UNION;
+            break;
+
+        case 5:
+            (**flag) = MNT_SYNCHRONOUS;
+            break;
+
+        case 6:
+            (**flag) = MNT_CPROTECT;
+            break;
+            
+        default:
+            output(ERROR, "Should not get here\n");
+            return (-1);
+    }
+
+    ctx->arg_size_index[ctx->current_arg] = sizeof(uint64_t);
+
+    return (0);
 }
 
-int32_t generate_unmount_flags(uint64_t **flag)
+int32_t generate_unmount_flags(uint64_t **flag, struct child_ctx *ctx)
 {
-    return 0;
+    int32_t rtrn = 0;
+    uint32_t number = 0;
+
+    (*flag) = mem_alloc(sizeof(uint64_t));
+    if((*flag) == NULL)
+    {
+        output(ERROR, "Can't alloc mount flags\n");
+        return (-1);
+    }
+    
+    rtrn = rand_range(6, &number);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't generate random number\n");
+        return (-1);
+    }
+    
+    switch(number)
+    {
+        case 0:
+            (**flag) = MNT_RDONLY;
+            break;
+            
+        case 1:
+            (**flag) = MNT_NOEXEC;
+            break;
+
+        case 2:
+            (**flag) = MNT_NOSUID;
+            break;
+
+        case 3:
+            (**flag) = MNT_NODEV;
+            break;
+
+        case 4:
+            (**flag) = MNT_UNION;
+            break;
+
+        case 5:
+            (**flag) = MNT_SYNCHRONOUS;
+            break;
+
+        case 6:
+            (**flag) = MNT_CPROTECT;
+            break;
+            
+        default:
+            output(ERROR, "Should not get here\n");
+            return (-1);
+    }
+
+    ctx->arg_size_index[ctx->current_arg] = sizeof(uint64_t);
+
+    return (0);
 }
 
-int32_t generate_request(uint64_t **flag)
+int32_t generate_request(uint64_t **flag, struct child_ctx *ctx)
 {
-    return 0;
+    int32_t rtrn = 0;
+    uint32_t number = 0;
+    int32_t request[] = { PT_TRACE_ME, PT_DENY_ATTACH, PT_CONTINUE, 
+                        PT_STEP, PT_KILL, PT_ATTACH, PT_ATTACHEXC,
+                        PT_DETACH };
+
+    (*flag) = mem_alloc(sizeof(uint64_t));
+    if((*flag) == NULL)
+    {
+        output(ERROR, "Can't alloc mount flags\n");
+        return (-1);
+    }
+    
+    rtrn = rand_range(7, &number);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't generate random number\n");
+        return (-1);
+    }
+
+    memcpy((*flag), &request[number], sizeof(int32_t));
+
+    ctx->arg_size_index[ctx->current_arg] = sizeof(int32_t);
+
+    return (0);
 }
 
-int32_t generate_recv_flags(uint64_t **flag)
+int32_t generate_recv_flags(uint64_t **flag, struct child_ctx *ctx)
 {
-    return 0;
+    int32_t rtrn = 0;
+    uint32_t number = 0;
+
+    (*flag) = mem_alloc(sizeof(uint64_t));
+    if((*flag) == NULL)
+    {
+        output(ERROR, "Can't alloc mount flags\n");
+        return (-1);
+    }
+    
+    rtrn = rand_range(2, &number);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't generate random number\n");
+        return (-1);
+    }
+    
+    switch(number)
+    {
+        case 0:
+            (**flag) = MSG_OOB;
+            break;
+            
+        case 1:
+            (**flag) = MSG_PEEK;
+            break;
+
+        case 2:
+            (**flag) = MSG_WAITALL;
+            break;
+            
+        default:
+            output(ERROR, "Should not get here\n");
+            return (-1);
+    }
+
+    ctx->arg_size_index[ctx->current_arg] = sizeof(uint64_t);
+
+    return (0);
 }
 
-int32_t generate_dev(uint64_t **dev)
+int32_t generate_dev(uint64_t **dev, struct child_ctx *ctx)
 {
-    return 0;
+    (*dev) = mem_alloc(sizeof(dev_t));
+    if((*dev) == NULL)
+    {
+        output(ERROR, "Can't alloc dev\n");
+        return (-1);
+    }
+
+    dev_t device;
+
+    memmove((*dev), &device, sizeof(dev_t));
+
+    ctx->arg_size_index[ctx->current_arg] = sizeof(dev_t);
+
+    return (0);
 }

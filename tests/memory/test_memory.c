@@ -24,17 +24,18 @@
 #include <string.h>
 #include <sys/mman.h>
 #include <unistd.h>
-#include <assert.h>
+#include <stdint.h>
+#include <pthread.h>
 
 #define count 32768
 
 struct test_obj
 {
-    int value;
+    int32_t value;
     char *ptr;
 };
 
-static int test_mem_alloc(void)
+static int32_t test_mem_alloc(void)
 {
     log_test(DECLARE, "Testing heap memory allocator");
 
@@ -54,7 +55,7 @@ static int test_mem_alloc(void)
 	return 0;
 }
 
-static int test_mem_alloc_shared(void)
+static int32_t test_mem_alloc_shared(void)
 {
 	log_test(DECLARE, "Testing shared memory allocator");
 
@@ -118,7 +119,47 @@ static int test_mem_alloc_shared(void)
     return 0;
 }
 
-static int test_shared_pool(void)
+static void *thread1_start(void *arg)
+{
+    uint32_t i;
+    struct mem_pool_shared *pool = (struct mem_pool_shared *)arg;
+    struct memory_block *m_blk = NULL;
+
+    /* Retrieve all the blocks, then return them. */
+    for(i = 0; i < count / 3; i++)
+    {
+        m_blk = mem_get_shared_block(pool);
+
+        assert_stat(m_blk != NULL);
+        assert_stat(m_blk->ptr != NULL);
+
+        mem_free_shared_block(m_blk, pool);
+    }
+
+    return (NULL);
+}
+
+static void *thread2_start(void *arg)
+{
+    uint32_t i;
+    struct mem_pool_shared *pool = (struct mem_pool_shared *)arg;
+    struct memory_block *m_blk = NULL;
+
+    /* Retrieve all the blocks, then return them. */
+    for(i = 0; i < count / 3; i++)
+    {
+        m_blk = mem_get_shared_block(pool);
+
+        assert_stat(m_blk != NULL);
+        assert_stat(m_blk->ptr != NULL);
+
+        mem_free_shared_block(m_blk, pool);
+    }
+
+    return (NULL);
+}
+
+static int32_t test_shared_pool(void)
 {
     log_test(DECLARE, "Testing shared memory pool");
 
@@ -141,7 +182,7 @@ static int test_shared_pool(void)
     assert_stat(pool != NULL);
 
     assert_stat(pool->block_size == sizeof(struct test_obj));
-    assert_stat(pool->block_count == 32768);
+    assert_stat(pool->block_count == count);
 
     uint32_t i = 0;
     struct memory_block *m_blk = NULL;
@@ -166,10 +207,10 @@ static int test_shared_pool(void)
     }
     
     /* Make sure the number of blocks we put in is how much that came out. */
-    assert_stat(number_of_blocks == 32768);
+    assert_stat(number_of_blocks == count);
 
     /* Retrieve all the blocks, then return them. */
-    for(i = 0; i < 32768; i++)
+    for(i = 0; i < count; i++)
     {
         m_blk = mem_get_shared_block(pool);
 
@@ -179,30 +220,138 @@ static int test_shared_pool(void)
         mem_free_shared_block(m_blk, pool);
     }
 
-    log_test(SUCCESS, "Shared memory pool");
+    int32_t rtrn = 0;
+    pthread_t thread1, thread2;
 
-    return 0;
+    rtrn = pthread_create(&thread1, NULL, thread1_start, pool);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't create thread\n");
+        return (0);
+    }
+
+    rtrn = pthread_create(&thread2, NULL, thread2_start, pool);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't create thread\n");
+        return (0);
+    }
+
+    /* Retrieve all the blocks, then return them. */
+    for(i = 0; i < count / 3; i++)
+    {
+        m_blk = mem_get_shared_block(pool);
+
+        assert_stat(m_blk != NULL);
+        assert_stat(m_blk->ptr != NULL);
+
+        mem_free_shared_block(m_blk, pool);
+    }
+
+    void *buf = NULL;
+
+    rtrn = pthread_join(thread1, &buf);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't join thread1\n");
+        return (-1);
+    }
+
+    rtrn = pthread_join(thread2, &buf);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't join thread2\n");
+        return (-1);
+    }
+
+    log_test(SUCCESS, "Shared memory pool test passed");
+
+    return (0);
 }
 
-static int test_mem_calloc(void)
+static int32_t test_mem_calloc(void)
 {
     log_test(DECLARE, "Testing mem calloc");
 
+    char *buffer = NULL;
 
+    buffer = mem_calloc(1, 1000);
+    assert_stat(buffer != NULL);
 
-    
+    uint32_t i;
+
+    for(i = 0; i < 1000; i++)
+    {
+        assert_stat(buffer[i] == 0);
+    }
 
     log_test(SUCCESS, "Mem calloc test passed");
 
-    return 0;
+    return (0);
 }
 
-static int test_mem_calloc_shared(void)
+static int32_t test_mem_calloc_shared(void)
 {
     log_test(DECLARE, "Testing mem calloc shared");
 
+    char *buf = NULL;
 
+    /* Make sure mem_calloc_shared() fails when passed a zero size. */
+    buf = mem_calloc_shared(0);
+    assert_stat(buf == NULL);
 
+    buf = mem_calloc_shared(10);
+    assert_stat(buf != NULL);
+
+    pid_t pid = 0;
+    int32_t rtrn = 0;
+    int32_t port[2];
+
+    rtrn = pipe(port);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't create pipe: %s\n", strerror(errno));
+        return (-1);
+    }
+
+    pid = fork();
+    if(pid == 0)
+    {
+        uint32_t i;
+
+        for(i = 0; i < 10; i++)
+        {
+            assert_stat(buf[i] == 0);
+        }
+
+        write(port[1], "1", 1);
+
+        _exit(0);
+    }
+    else if(pid > 0)
+    {
+        char *buf2 = mem_alloc(2);
+        if(buf2 == NULL)
+        {
+            return -1;
+        }
+
+        /* Wait for the child to be done setting up. */
+        ssize_t ret = read(port[0], buf2, 1);
+        if(ret < 1)
+        {
+            mem_free(buf2);
+            return -1;
+        }
+
+        mem_free(buf2);
+    }
+    else
+    {
+        return -1;
+    }
+
+    munmap(buf, 10);
     
 
     log_test(SUCCESS, "Mem calloc shared test passed");
@@ -231,39 +380,24 @@ int main(void)
 
     rtrn = test_shared_pool();
     if(rtrn < 0)
-    {
         log_test(FAIL, "shared pool test failed");
-        return -1;
-    }
 
     rtrn = test_mem_alloc();
     if(rtrn < 0)
-    {
         log_test(FAIL, "memory allocator test failed");
-        return -1;
-    }
 
     rtrn = test_mem_alloc_shared();
     if(rtrn < 0)
-    {
         log_test(FAIL, "anonymous shared memory allocator test failed");
-        return -1;
-    }
 
     rtrn = test_mem_calloc();
     if(rtrn < 0)
-    {
         log_test(FAIL, "calloc test failed");
-        return -1;
-    }
 
     rtrn = test_mem_calloc_shared();
     if(rtrn < 0)
-    {
         log_test(FAIL, "calloc shared test failed");
-        return -1;
-    }
 
-    return 0;
+    return (0);
 }
 

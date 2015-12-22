@@ -76,7 +76,7 @@ static int test_sha256(void)
 	return 0;
 }
 
-static int test_sha512(void)
+static int32_t test_sha512(void)
 {
 	log_test(DECLARE, "Testing sha512");
 
@@ -93,7 +93,7 @@ static int test_sha512(void)
         if(buf == NULL)
         {
             output(ERROR, "Can't allocate buffer\n");
-            return -1;
+            return (-1);
         }
 
 		/* Create a random buffer with rand_bytes. */
@@ -101,7 +101,7 @@ static int test_sha512(void)
         if(rtrn < 0)
         {
             output(ERROR, "Can't get random bytes\n");
-            return -1;
+            return (-1);
         }
 
         /* buf should not be NULL. */
@@ -187,11 +187,9 @@ static int32_t test_rand_bytes(void)
 
         rtrn = rand_bytes(&buf, 1000);
 
-        //output(STD, "len: %d\n", strlen(buf));
-
         assert_stat(rtrn == 0);
 
-        //assert_stat(strlen(buf) == 1000);
+        assert_stat(strlen(buf) <= 1000);
 
         mem_free(buf);
     }
@@ -221,38 +219,23 @@ int main(void)
 
     rtrn = test_setup_crypto();
     if(rtrn < 0)
-    {
         log_test(FAIL, "setup crypto test failed");
-        return (-1);
-    }
 
     rtrn = test_sha256();
     if(rtrn < 0)
-    {
         log_test(FAIL, "sha256 test failed");
-        return (-1);
-    }
 
     rtrn = test_sha512();
     if(rtrn < 0)
-    {
         log_test(FAIL, "sha512 test failed");
-        return (-1);
-    }
 
     rtrn = test_rand_range();
     if(rtrn < 0)
-    {
         log_test(FAIL, "random range test failed");
-        return (-1);
-    }
 
     rtrn = test_rand_bytes();
     if(rtrn < 0)
-    {
         log_test(FAIL, "random bytes test failed");
-        return (-1);
-    }
 
     return (0);
 }

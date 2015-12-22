@@ -1,9 +1,7 @@
 camellia/libcrypto_la-cmll_ecb.lo: camellia/cmll_ecb.c \
   ../include/openssl/camellia.h ../include/openssl/opensslconf.h \
-  ../include/openssl/opensslfeatures.h /usr/include/stddef.h \
-  ../include/compat/sys/cdefs.h /usr/include/sys/cdefs.h \
-  /usr/include/sys/_null.h /usr/include/sys/_types.h \
-  /usr/include/machine/_types.h /usr/include/x86/_types.h \
+  ../include/openssl/opensslfeatures.h \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../lib/clang/7.0.0/include/stddef.h \
   camellia/cmll_locl.h
 
 ../include/openssl/camellia.h:
@@ -12,18 +10,6 @@ camellia/libcrypto_la-cmll_ecb.lo: camellia/cmll_ecb.c \
 
 ../include/openssl/opensslfeatures.h:
 
-/usr/include/stddef.h:
-
-../include/compat/sys/cdefs.h:
-
-/usr/include/sys/cdefs.h:
-
-/usr/include/sys/_null.h:
-
-/usr/include/sys/_types.h:
-
-/usr/include/machine/_types.h:
-
-/usr/include/x86/_types.h:
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../lib/clang/7.0.0/include/stddef.h:
 
 camellia/cmll_locl.h:

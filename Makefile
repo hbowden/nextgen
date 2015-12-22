@@ -15,7 +15,7 @@ CK = ck-0.5.0
 LIBRESSL = libressl-2.3.1
 
 # Set the root directory path, ie the path to the nextgen directory.
-CURRENT_DIR = $(shell pwd)
+ROOT_DIR = $(shell pwd)
 
 # Set the operating system.
 OPERATING_SYSTEM = $(shell uname)
@@ -32,8 +32,8 @@ MAKE = gmake
 # Include directories.
 INCLUDES = -I/usr/local/include/ -I/usr/src/cddl/compat/opensolaris/include -I/usr/src/cddl/contrib/opensolaris/lib/libdtrace/common/ \
            -I/usr/src/sys/cddl/compat/opensolaris -I/usr/src/sys/cddl/contrib/opensolaris/uts/common/ -Isrc/syscalls/freebsd/ \
-           -I$(CURRENT_DIR)/deps/capstone-3.0.4/ -I$(CURRENT_DIR)/deps/capstone-3.0.4/include -I$(CURRENT_DIR)/deps/$(CK)/include \
-           -I$(CURRENT_DIR)/src
+           -I$(ROOT_DIR)/deps/capstone-3.0.4/ -I$(ROOT_DIR)/deps/capstone-3.0.4/include -I$(ROOT_DIR)/deps/$(CK)/include \
+           -I$(ROOT_DIR)/src
 
 # Libraries to link.
 LIBS = -lpthread -ldtrace -lproc -lctf -lelf -lz -lrtld_db -lutil -lcrypto deps/capstone-3.0.4/libcapstone.a deps/$(CK)/src/libck.a \
@@ -54,21 +54,22 @@ ENTRY_SOURCES = src/syscalls/freebsd/entry_read.c src/syscalls/freebsd/entry_wri
 
 endif
 
+# Mac OSX build settings.
 ifeq ($(OPERATING_SYSTEM), Darwin)
 
 CC = clang
 
 MAKE = make
 
-INCLUDES = -i$(CURRENT_DIR)/stdatomic.h -I/usr/include -Isrc/syscalls/mac/ -I$(CURRENT_DIR)/deps/capstone-3.0.4/ \
-           -I$(CURRENT_DIR)/deps/capstone-3.0.4/include -I$(CURRENT_DIR)/deps/$(CK)/include -I$(CURRENT_DIR)/src \
-           -I$(CURRENT_DIR)/deps/$(LIBRESSL)/include
+INCLUDES = -i$(ROOT_DIR)/stdatomic.h -I/usr/include -Isrc/syscalls/mac/ -I$(ROOT_DIR)/deps/capstone-3.0.4/ \
+           -I$(ROOT_DIR)/deps/capstone-3.0.4/include -I$(ROOT_DIR)/deps/$(CK)/include -I$(ROOT_DIR)/src \
+           -I$(ROOT_DIR)/deps/$(LIBRESSL)/include
 
 LIBS = -lpthread -ldtrace -lproc -lz -lutil deps/capstone-3.0.4/libcapstone.a deps/$(LIBRESSL)/crypto/.libs/libcrypto.a
 
 SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-used-but-marked-unused -Wno-padded -Wno-unused-parameter \
                     -Wno-unused-variable -Wno-missing-noreturn -Wno-format-nonliteral -Wno-unused-value \
-                    -Wno-gnu-statement-expression -Wno-cast-qual -Wno-cast-align
+                    -Wno-gnu-statement-expression -Wno-cast-qual -Wno-cast-align -Wno-deprecated-declarations
 
 CFLAGS = -DMAC_OSX -std=c99 -Werror -Wall -Weverything -pedantic -g -fstack-protector-all -O3
 
@@ -101,9 +102,9 @@ CC = gcc
 
 MAKE = make
 
-INCLUDES = -I/usr/include -Isrc/syscalls/Linux/ -I$(CURRENT_DIR)/deps/capstone-3.0.4/ \
-           -I$(CURRENT_DIR)/deps/capstone-3.0.4/include -I$(CURRENT_DIR)/deps/$(CK)/include -I$(CURRENT_DIR)/src \
-           -I$(CURRENT_DIR)/deps/$(LIBRESSL)/include
+INCLUDES = -I/usr/include -Isrc/syscalls/Linux/ -I$(ROOT_DIR)/deps/capstone-3.0.4/ \
+           -I$(ROOT_DIR)/deps/capstone-3.0.4/include -I$(ROOT_DIR)/deps/$(CK)/include -I$(ROOT_DIR)/src \
+           -I$(ROOT_DIR)/deps/$(LIBRESSL)/include
 
 LIBS = -lpthread -ldtrace -lproc -lz -lpthread -lutil -lcrypto -lcapstone
 
@@ -115,22 +116,23 @@ endif
 
 all:
 
-	cd $(CURRENT_DIR)/deps/$(CK) && ./configure && $(MAKE);
-	cd $(CURRENT_DIR)/deps/capstone-3.0.4 && $(MAKE);
-	cd $(CURRENT_DIR)/deps/$(LIBRESSL) && ./configure && $(MAKE)
+	cd $(ROOT_DIR)/deps/$(CK) && ./configure && $(MAKE);
+	cd $(ROOT_DIR)/deps/capstone-3.0.4 && $(MAKE);
+	cd $(ROOT_DIR)/deps/$(LIBRESSL) && ./configure && $(MAKE)
 
 	$(CC) $(CFLAGS) $(INCLUDES) -o nextgen src/main.c $(SOURCES) $(ENTRY_SOURCES) $(LIBS) $(SILENCED_WARNINGS)
 
-	cd $(CURRENT_DIR)/tests/crypto && $(MAKE);
-	cd $(CURRENT_DIR)/tests/memory && $(MAKE);
-	cd $(CURRENT_DIR)/tests/parser && $(MAKE);
-	cd $(CURRENT_DIR)/tests/genetic && $(MAKE);
-	cd $(CURRENT_DIR)/tests/reaper && $(MAKE);
-	cd $(CURRENT_DIR)/tests/resource && $(MAKE);
-	cd $(CURRENT_DIR)/tests/syscall && $(MAKE);
-	cd $(CURRENT_DIR)/tests/concurrent && $(MAKE);
-	cd $(CURRENT_DIR)/tests/file && $(MAKE);
-	cd $(CURRENT_DIR)/tests/network && $(MAKE);
+	cd $(ROOT_DIR)/tests/crypto && $(MAKE) 
+	cd $(ROOT_DIR)/tests/memory && $(MAKE);
+	cd $(ROOT_DIR)/tests/parser && $(MAKE);
+	cd $(ROOT_DIR)/tests/genetic && $(MAKE);
+	cd $(ROOT_DIR)/tests/reaper && $(MAKE);
+	cd $(ROOT_DIR)/tests/resource && $(MAKE);
+	cd $(ROOT_DIR)/tests/syscall && $(MAKE);
+	cd $(ROOT_DIR)/tests/concurrent && $(MAKE);
+	cd $(ROOT_DIR)/tests/file && $(MAKE);
+	cd $(ROOT_DIR)/tests/network && $(MAKE);
+	cd $(ROOT_DIR)/tests/generate && $(MAKE);
 
 	$(CC) $(CFLAGS) $(INCLUDES) -o test_suite tests/tests.c tests/test_utils.c -Itests $(SOURCES) $(ENTRY_SOURCES) $(LIBS) $(SILENCED_WARNINGS)
 
@@ -144,40 +146,41 @@ quick:
 
 	$(CC) $(CFLAGS) $(INCLUDES) -o nextgen src/main.c $(SOURCES) $(ENTRY_SOURCES) $(LIBS) $(SILENCED_WARNINGS)
 
-	cd $(CURRENT_DIR)/tests/crypto && $(MAKE);
-	cd $(CURRENT_DIR)/tests/memory && $(MAKE);
-	cd $(CURRENT_DIR)/tests/parser && $(MAKE);
-	cd $(CURRENT_DIR)/tests/genetic && $(MAKE);
-	cd $(CURRENT_DIR)/tests/reaper && $(MAKE);
-	cd $(CURRENT_DIR)/tests/resource && $(MAKE);
-	cd $(CURRENT_DIR)/tests/syscall && $(MAKE);
-	cd $(CURRENT_DIR)/tests/concurrent && $(MAKE);
-	cd $(CURRENT_DIR)/tests/file && $(MAKE);
-	cd $(CURRENT_DIR)/tests/network && $(MAKE);
+	cd $(ROOT_DIR)/tests/crypto && $(MAKE);
+	cd $(ROOT_DIR)/tests/memory && $(MAKE);
+	cd $(ROOT_DIR)/tests/parser && $(MAKE);
+	cd $(ROOT_DIR)/tests/genetic && $(MAKE);
+	cd $(ROOT_DIR)/tests/reaper && $(MAKE);
+	cd $(ROOT_DIR)/tests/resource && $(MAKE);
+	cd $(ROOT_DIR)/tests/syscall && $(MAKE);
+	cd $(ROOT_DIR)/tests/concurrent && $(MAKE);
+	cd $(ROOT_DIR)/tests/file && $(MAKE);
+	cd $(ROOT_DIR)/tests/network && $(MAKE);
+	cd $(ROOT_DIR)/tests/generate && $(MAKE);
 
 .PHONY: asan
 asan:
 
-	cd $(CURRENT_DIR)/deps/$(CK) && ./configure && $(MAKE);
-	cd $(CURRENT_DIR)/deps/capstone-3.0.4 && $(MAKE);
-	cd $(CURRENT_DIR)/deps/$(LIBRESSL) && ./configure && $(MAKE)
+	cd $(ROOT_DIR)/deps/$(CK) && ./configure && $(MAKE);
+	cd $(ROOT_DIR)/deps/capstone-3.0.4 && $(MAKE);
+	cd $(ROOT_DIR)/deps/$(LIBRESSL) && ./configure && $(MAKE)
 
 	$(CC) $(CFLAGS) $(ASAN_FLAGS) $(INCLUDES) -o nextgen src/main.c $(SOURCES) $(ENTRY_SOURCES) $(LIBS) $(SILENCED_WARNINGS)
 
 .PHONY: valgrind
 valgrind:
 
-	cd $(CURRENT_DIR)/deps/ck-0.4.5 && ./configure && $(MAKE);
-	cd $(CURRENT_DIR)/deps/capstone-3.0.4 && $(MAKE);
-	cd $(CURRENT_DIR)/deps/libressl-2.3.0 && ./configure && $(MAKE)
+	cd $(ROOT_DIR)/deps/ck-0.4.5 && ./configure && $(MAKE);
+	cd $(ROOT_DIR)/deps/capstone-3.0.4 && $(MAKE);
+	cd $(ROOT_DIR)/deps/libressl-2.3.0 && ./configure && $(MAKE)
 
 	$(CC) $(CFLAGS) $(VALGRIND_FLAGS) $(INCLUDES) -o nextgen src/main.c  $(SOURCES) $(ENTRY_SOURCES) $(LIBS) $(SILENCED_WARNINGS)
 
 .PHONY: test
 test:
 
-	cd $(CURRENT_DIR)/deps/ck-0.4.5 && $(MAKE) check;
-	cd $(CURRENT_DIR)/deps/capstone-3.0.4 && $(MAKE) check;
+	cd $(ROOT_DIR)/deps/ck-0.4.5 && $(MAKE) check;
+	cd $(ROOT_DIR)/deps/capstone-3.0.4 && $(MAKE) check;
 	./test_suite;
 
 .PHONY: test-quick
@@ -188,8 +191,8 @@ test-quick:
 .PHONY: clean
 clean:
 
-	cd $(CURRENT_DIR)/deps/capstone-3.0.4 && $(MAKE) clean
-	cd $(CURRENT_DIR)/deps/$(LIBRESSL) && $(MAKE) clean
+	cd $(ROOT_DIR)/deps/capstone-3.0.4 && $(MAKE) clean
+	cd $(ROOT_DIR)/deps/$(LIBRESSL) && $(MAKE) clean
 	cd deps/$(CK) && $(MAKE) clean
 	rm -rf nextgen
 	rm -rf test_suite
