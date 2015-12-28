@@ -17,6 +17,7 @@ LIBRESSL = libressl-2.3.1
 # Set the root directory path, ie the path to the nextgen directory.
 ROOT_DIR = $(shell pwd)
 
+# Export some variables.
 export CK LIBRESSL ROOT_DIR
 
 # Set the operating system.
@@ -78,11 +79,11 @@ CC = clang
 
 MAKE = make
 
-INCLUDES = -i$(ROOT_DIR)/stdatomic.h -I/usr/include -Isrc/syscalls/mac/ -I$(ROOT_DIR)/deps/capstone-3.0.4/ \
+INCLUDES = -i$(ROOT_DIR)/stdatomic.h -I/usr/include -I$(ROOT_DIR)/src/syscalls/mac/ -I$(ROOT_DIR)/deps/capstone-3.0.4/ \
            -I$(ROOT_DIR)/deps/capstone-3.0.4/include -I$(ROOT_DIR)/deps/$(CK)/include -I$(ROOT_DIR)/src \
-           -I$(ROOT_DIR)/deps/$(LIBRESSL)/include
+           -I$(ROOT_DIR)/deps/$(LIBRESSL)/include -I$(ROOT_DIR)/tests
 
-LIBS = -lpthread -ldtrace -lproc -lz -lutil deps/capstone-3.0.4/libcapstone.a deps/$(LIBRESSL)/crypto/.libs/libcrypto.a
+LIBS = -lpthread -ldtrace -lproc -lz -lutil $(ROOT_DIR)/deps/capstone-3.0.4/libcapstone.a $(ROOT_DIR)/deps/$(LIBRESSL)/crypto/.libs/libcrypto.a
 
 SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-used-but-marked-unused -Wno-padded -Wno-unused-parameter \
                     -Wno-unused-variable -Wno-missing-noreturn -Wno-format-nonliteral -Wno-unused-value \
@@ -90,10 +91,9 @@ SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-used-but-marked-unused -Wno-padd
 
 CFLAGS = -DMAC_OSX -std=c99 -Werror -Wall -Weverything -pedantic -g -fstack-protector-all -O3
 
-ENTRY_SOURCES = src/syscalls/mac/entry_read.c src/syscalls/mac/entry_write.c src/syscalls/mac/entry_open.c \
-                src/syscalls/mac/entry_close.c src/syscalls/mac/entry_wait4.c src/syscalls/mac/entry_link.c \
-                src/syscalls/mac/entry_unlink.c src/syscalls/mac/entry_chdir.c src/syscalls/mac/entry_fchdir.c \
-                src/syscalls/mac/entry_mknod.c src/syscalls/mac/entry_chmod.c src/syscalls/mac/entry_getfsstat.c
+ENTRY_SOURCES := $(wildcard $(ROOT_DIR)/src/syscalls/mac/*.c)
+
+export MAKE INCLUDES CC LIBS SILENCED_WARNINGS CFLAGS ENTRY_SOURCES
 
 endif
 
