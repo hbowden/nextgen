@@ -1,7 +1,7 @@
 
 
 /**
- * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
+ * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice 
@@ -81,13 +81,14 @@ struct parser_ctx *parse_cmd_line(int argc, char *argv[])
     if(ctx == NULL)
     {
         output(ERROR, "Can't allocate parser context\n");
-        return NULL;
+        return (NULL);
     }
 
     /* Default to smart_mode and crypto numbers. */
     ctx->smart_mode = TRUE;
     ctx->method = CRYPTO;
 
+    /* Parse the command line. */
     while((ch = getopt_long(argc, argv, optstring, longopts, NULL)) != -1)
     {
         switch(ch)
@@ -95,7 +96,7 @@ struct parser_ctx *parse_cmd_line(int argc, char *argv[])
             /* Display banner and exit. */
             case 'h':
                 display_help_banner();
-                return NULL;
+                return (NULL);
 
             case 'p':
                 pFlag = TRUE;
@@ -114,7 +115,7 @@ struct parser_ctx *parse_cmd_line(int argc, char *argv[])
                 if(rtrn < 0)
                 {
                     output(ERROR, "asprintf: %s\n", strerror(errno));
-                    return NULL;
+                    return (NULL);
                 }
 
                 eFlag = TRUE;
@@ -125,7 +126,7 @@ struct parser_ctx *parse_cmd_line(int argc, char *argv[])
                 if(rtrn < 0)
                 {
                     output(ERROR, "asprintf: %s\n", strerror(errno));
-                    return NULL;
+                    return (NULL);
                 }
 
                 iFlag = TRUE;
@@ -136,7 +137,7 @@ struct parser_ctx *parse_cmd_line(int argc, char *argv[])
                 if(rtrn < 0)
                 {
                     output(ERROR, "asprintf: %s\n", strerror(errno));
-                    return NULL;
+                    return (NULL);
                 }
 
                 oFlag = TRUE;
@@ -175,13 +176,13 @@ struct parser_ctx *parse_cmd_line(int argc, char *argv[])
                 if(rtrn < 0)
                 {
                     output(ERROR, "asprintf: %s\n", strerror(errno));
-                    return NULL;
+                    return (NULL);
                 }
                 break;
 
             default:
               output(ERROR, "Unknown option\n");
-              return NULL;
+              return (NULL);
         }
     }
 
@@ -292,13 +293,14 @@ static int init_syscall_mapping(struct shared_map **mapping, struct parser_ctx *
 /**
  * We use this function to initialize all the shared maps member values.
  **/
-int init_shared_mapping(struct shared_map **mapping, struct parser_ctx *ctx)
+int32_t init_shared_mapping(struct shared_map **mapping, struct parser_ctx *ctx)
 {
-    int rtrn;
+    int32_t rtrn = 0;
 
     /* Set the fuzzing mode selected by the user. */
     (*mapping)->mode = ctx->mode;
 
+    /* Set the crypto method. */
     (*mapping)->method = ctx->method;
 
     /* Set intelligence mode. */
@@ -311,14 +313,14 @@ int init_shared_mapping(struct shared_map **mapping, struct parser_ctx *ctx)
     atomic_init(&(*mapping)->runloop_pid, 0);
 
     /* Do mode specific shared mapping setup. */
-    switch((int)ctx->mode)
+    switch((int32_t)ctx->mode)
     {
         case MODE_SYSCALL:
             rtrn = init_syscall_mapping(mapping, ctx);
             if(rtrn < 0)
             {
                 output(ERROR, "Can't init syscall mapping\n");
-                return -1;
+                return (-1);
             }
             break;
 
@@ -327,7 +329,7 @@ int init_shared_mapping(struct shared_map **mapping, struct parser_ctx *ctx)
             if(rtrn < 0)
             {
                 output(ERROR, "Can't init file mapping\n");
-                return -1;
+                return (-1);
             }
             break;
 
@@ -336,16 +338,16 @@ int init_shared_mapping(struct shared_map **mapping, struct parser_ctx *ctx)
             if(rtrn < 0)
             {
                 output(ERROR, "Can't init network mapping\n");
-                return -1;
+                return (-1);
             }
             break;
 
         default:
             output(ERROR, "Unknown fuzzing mode\n");
-            return -1;
+            return (-1);
     }
     
-    return 0;
+    return (0);
 
 }
 

@@ -36,7 +36,7 @@ static int test_sha256(void)
 	for(i = 0; i < iterations; i++)
 	{
         /* Allocate a buffer to place random bytes in. */
-        buf = mem_alloc(1000);
+        buf = mem_alloc(1001);
         if(buf == NULL)
         {
             output(ERROR, "Can't allocate buffer\n");
@@ -89,7 +89,7 @@ static int32_t test_sha512(void)
 	for(i = 0; i < iterations; i++)
 	{
         /* Allocate a buffer to place random bytes in. */
-        buf = mem_alloc(1000);
+        buf = mem_alloc(1001);
         if(buf == NULL)
         {
             output(ERROR, "Can't allocate buffer\n");
@@ -178,7 +178,7 @@ static int32_t test_rand_bytes(void)
 
     for(i = 0; i < iterations; i++)
     {
-        buf = mem_alloc(1000);
+        buf = mem_alloc(1001);
         if(buf == NULL)
         {
             output(ERROR, "Can't allocate buf\n");

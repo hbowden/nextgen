@@ -1,7 +1,7 @@
 
 
 /**
- * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
+ * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice 
@@ -119,34 +119,14 @@ static int32_t test_mem_alloc_shared(void)
     return 0;
 }
 
-static void *thread1_start(void *arg)
+static void *thread_start(void *arg)
 {
     uint32_t i;
     struct mem_pool_shared *pool = (struct mem_pool_shared *)arg;
     struct memory_block *m_blk = NULL;
 
     /* Retrieve all the blocks, then return them. */
-    for(i = 0; i < count / 3; i++)
-    {
-        m_blk = mem_get_shared_block(pool);
-
-        assert_stat(m_blk != NULL);
-        assert_stat(m_blk->ptr != NULL);
-
-        mem_free_shared_block(m_blk, pool);
-    }
-
-    return (NULL);
-}
-
-static void *thread2_start(void *arg)
-{
-    uint32_t i;
-    struct mem_pool_shared *pool = (struct mem_pool_shared *)arg;
-    struct memory_block *m_blk = NULL;
-
-    /* Retrieve all the blocks, then return them. */
-    for(i = 0; i < count / 3; i++)
+    for(i = 0; i < count; i++)
     {
         m_blk = mem_get_shared_block(pool);
 
@@ -223,22 +203,22 @@ static int32_t test_shared_pool(void)
     int32_t rtrn = 0;
     pthread_t thread1, thread2;
 
-    rtrn = pthread_create(&thread1, NULL, thread1_start, pool);
+    rtrn = pthread_create(&thread1, NULL, thread_start, pool);
     if(rtrn < 0)
     {
         output(ERROR, "Can't create thread\n");
         return (0);
     }
 
-    rtrn = pthread_create(&thread2, NULL, thread2_start, pool);
+    rtrn = pthread_create(&thread2, NULL, thread_start, pool);
     if(rtrn < 0)
     {
         output(ERROR, "Can't create thread\n");
         return (0);
     }
 
-    /* Retrieve all the blocks, then return them. */
-    for(i = 0; i < count / 3; i++)
+    /* Retrieve some blocks, then return them. */
+    for(i = 0; i < count; i++)
     {
         m_blk = mem_get_shared_block(pool);
 
@@ -300,6 +280,8 @@ static int32_t test_mem_calloc_shared(void)
     buf = mem_calloc_shared(0);
     assert_stat(buf == NULL);
 
+    /* Buf should not be NULL when passing a number
+    greater than zero. */
     buf = mem_calloc_shared(10);
     assert_stat(buf != NULL);
 
@@ -331,10 +313,7 @@ static int32_t test_mem_calloc_shared(void)
     else if(pid > 0)
     {
         char *buf2 = mem_alloc(2);
-        if(buf2 == NULL)
-        {
-            return -1;
-        }
+        assert_stat(buf2 != NULL);
 
         /* Wait for the child to be done setting up. */
         ssize_t ret = read(port[0], buf2, 1);
@@ -348,6 +327,7 @@ static int32_t test_mem_calloc_shared(void)
     }
     else
     {
+        output(ERROR, "Can't create child proc\n");
         return -1;
     }
 
@@ -386,10 +366,6 @@ int main(void)
     if(rtrn < 0)
         log_test(FAIL, "memory allocator test failed");
 
-    rtrn = test_mem_alloc_shared();
-    if(rtrn < 0)
-        log_test(FAIL, "anonymous shared memory allocator test failed");
-
     rtrn = test_mem_calloc();
     if(rtrn < 0)
         log_test(FAIL, "calloc test failed");
@@ -397,6 +373,10 @@ int main(void)
     rtrn = test_mem_calloc_shared();
     if(rtrn < 0)
         log_test(FAIL, "calloc shared test failed");
+
+    rtrn = test_mem_alloc_shared();
+    if(rtrn < 0)
+        log_test(FAIL, "anonymous shared memory allocator test failed");
 
     return (0);
 }

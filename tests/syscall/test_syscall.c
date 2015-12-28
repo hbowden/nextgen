@@ -183,7 +183,7 @@ static int test_get_syscall_table(void)
 
         assert_stat(table->sys_entry[i]->number_of_args > 0 && table->sys_entry[i]->number_of_args <= ARG_LIMIT);
 
-        assert_stat(table->sys_entry[i]->status == ON || table->sys_entry[i]->status == OFF);
+        assert_stat(atomic_load(&table->sys_entry[i]->status) == ON || atomic_load(&table->sys_entry[i]->status) == OFF);
 
         assert_stat(table->sys_entry[i]->requires_root == YES || table->sys_entry[i]->requires_root == NO);
 
@@ -243,7 +243,7 @@ static int test_get_entry(void)
 
         assert_stat(entry->number_of_args > 0 && entry->number_of_args <= 7);
 
-        assert_stat(entry->status == ON || entry->status == OFF);
+        assert_stat(atomic_load(&entry->status) == ON || atomic_load(&entry->status) == OFF);
 
         assert_stat(entry->requires_root == YES || entry->requires_root == NO);
 

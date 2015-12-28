@@ -40,12 +40,12 @@
 #include <errno.h>
 #include <sys/mman.h>
 
-static int start_network_mode_runtime(void)
+static int32_t start_network_mode_runtime(void)
 {
-    return 0;
+    return (0);
 }
 
-static int start_syscall_mode_runtime(void)
+static int32_t start_syscall_mode_runtime(void)
 {
     pid_t runloop_pid = 0;
 
@@ -80,19 +80,19 @@ static int start_syscall_mode_runtime(void)
         /* Display stats for the user. */
         output(STD, "Sycall test completed: %ld\n", atomic_load(&map->test_counter));
 
-        return 0;
+        return (0);
     }
     else
     {
         output(ERROR, "runloop fork failed: %s\n", strerror(errno));
-        return -1;
+        return (-1);
     }
 }
 
-static int start_file_mode_runtime(void)
+static int32_t start_file_mode_runtime(void)
 {
     start_main_file_loop();
-    return 0;
+    return (0);
 }
 
 static int setup_file_mode_runtime(void)
@@ -109,7 +109,7 @@ static int setup_file_mode_runtime(void)
         return -1;
     }
 
-    rtrn = setup_file_module(map->exec_path);
+    rtrn = setup_file_module(map->exec_path, map->path_to_in_dir);
     if(rtrn < 0)
     {
         output(ERROR, "Can't setup file module\n");
@@ -121,7 +121,7 @@ static int setup_file_mode_runtime(void)
     {
         output(ERROR, "Can't setup probe module\n");
         return -1;
-    }
+    } 
 
     rtrn = setup_plugin_module();
     if(rtrn < 0)

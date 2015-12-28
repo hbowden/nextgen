@@ -112,7 +112,7 @@ struct stats *create_stats_obj(void)
 /* Function for logging test results. */
 void log_test(enum log_type type, const char *input)
 {
-	switch((int)type)
+	switch((int32_t)type)
 	{
 		case DECLARE:
             stat->test_ran++;
@@ -126,7 +126,7 @@ void log_test(enum log_type type, const char *input)
 
 		case FAIL:
 		    stat->fails++;
-		    output(STD, BOLD_RED"%s\n"RESET"\n", input);
+		    output(STD, BOLD_RED"%s"RESET"\n", input);
 		    break;
 	}
     
@@ -153,7 +153,7 @@ int32_t init_test_framework(void)
     	return (-1);
     }
 
-    free(home);
+    mem_free(home);
 
 	return (0);
 }

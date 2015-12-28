@@ -577,6 +577,7 @@ int32_t generate_mountpath(uint64_t **path, struct child_ctx *ctx)
 
 int32_t generate_mount_type(uint64_t **type, struct child_ctx *ctx)
 {
+    
 
     return (0);
 }
@@ -599,7 +600,24 @@ int32_t generate_mount_flags(uint64_t **flag, struct child_ctx *ctx)
 {
     int32_t rtrn = 0;
     uint32_t number = 0;
+    
+#ifdef MAC_OSX
 
+    int32_t flags[] = { MNT_RDONLY, MNT_NOEXEC, MNT_NOSUID,
+                        MNT_NODEV, MNT_UNION, MNT_SYNCHRONOUS,
+                        MNT_CPROTECT };
+
+    uint32_t range = 7;
+
+#endif
+#ifdef FREEBSD
+
+    int32_t flags[] = { MNT_RDONLY, MNT_NOEXEC, MNT_NOSUID,
+                        MNT_UNION, MNT_SYNCHRONOUS };
+
+    uint32_t range = 5;
+
+#endif
     (*flag) = mem_alloc(sizeof(uint64_t));
     if((*flag) == NULL)
     {
@@ -607,46 +625,11 @@ int32_t generate_mount_flags(uint64_t **flag, struct child_ctx *ctx)
         return (-1);
     }
     
-    rtrn = rand_range(6, &number);
+    rtrn = rand_range(range, &number);
     if(rtrn < 0)
     {
         output(ERROR, "Can't generate random number\n");
         return (-1);
-    }
-    
-    switch(number)
-    {
-        case 0:
-            (**flag) = MNT_RDONLY;
-            break;
-            
-        case 1:
-            (**flag) = MNT_NOEXEC;
-            break;
-
-        case 2:
-            (**flag) = MNT_NOSUID;
-            break;
-
-        case 3:
-            (**flag) = MNT_NODEV;
-            break;
-
-        case 4:
-            (**flag) = MNT_UNION;
-            break;
-
-        case 5:
-            (**flag) = MNT_SYNCHRONOUS;
-            break;
-
-        case 6:
-            (**flag) = MNT_CPROTECT;
-            break;
-            
-        default:
-            output(ERROR, "Should not get here\n");
-            return (-1);
     }
 
     ctx->arg_size_index[ctx->current_arg] = sizeof(uint64_t);
@@ -658,7 +641,24 @@ int32_t generate_unmount_flags(uint64_t **flag, struct child_ctx *ctx)
 {
     int32_t rtrn = 0;
     uint32_t number = 0;
+    
+#ifdef MAC_OSX
 
+    int32_t flags[] = { MNT_RDONLY, MNT_NOEXEC, MNT_NOSUID,
+                        MNT_NODEV, MNT_UNION, MNT_SYNCHRONOUS,
+                        MNT_CPROTECT };
+
+    uint32_t range = 7;
+
+#endif
+#ifdef FREEBSD
+
+    int32_t flags[] = { MNT_RDONLY, MNT_NOEXEC, MNT_NOSUID,
+                        MNT_UNION, MNT_SYNCHRONOUS };
+
+    uint32_t range = 5;
+
+#endif
     (*flag) = mem_alloc(sizeof(uint64_t));
     if((*flag) == NULL)
     {
@@ -666,46 +666,11 @@ int32_t generate_unmount_flags(uint64_t **flag, struct child_ctx *ctx)
         return (-1);
     }
     
-    rtrn = rand_range(6, &number);
+    rtrn = rand_range(range, &number);
     if(rtrn < 0)
     {
         output(ERROR, "Can't generate random number\n");
         return (-1);
-    }
-    
-    switch(number)
-    {
-        case 0:
-            (**flag) = MNT_RDONLY;
-            break;
-            
-        case 1:
-            (**flag) = MNT_NOEXEC;
-            break;
-
-        case 2:
-            (**flag) = MNT_NOSUID;
-            break;
-
-        case 3:
-            (**flag) = MNT_NODEV;
-            break;
-
-        case 4:
-            (**flag) = MNT_UNION;
-            break;
-
-        case 5:
-            (**flag) = MNT_SYNCHRONOUS;
-            break;
-
-        case 6:
-            (**flag) = MNT_CPROTECT;
-            break;
-            
-        default:
-            output(ERROR, "Should not get here\n");
-            return (-1);
     }
 
     ctx->arg_size_index[ctx->current_arg] = sizeof(uint64_t);
@@ -717,9 +682,32 @@ int32_t generate_request(uint64_t **flag, struct child_ctx *ctx)
 {
     int32_t rtrn = 0;
     uint32_t number = 0;
+
+#ifdef MAC_OSX
+
     int32_t request[] = { PT_TRACE_ME, PT_DENY_ATTACH, PT_CONTINUE, 
                         PT_STEP, PT_KILL, PT_ATTACH, PT_ATTACHEXC,
                         PT_DETACH };
+
+    uint32_t range = 7;
+
+#endif
+#ifdef FREEBSD
+
+    int32_t request[] = { PT_TRACE_ME, PT_READ_I, PT_WRITE_I,
+                          PT_IO, PT_CONTINUE, PT_STEP, PT_KILL,
+                          PT_ATTACH, PT_DETACH, PT_GETREGS, 
+                          PT_SETREGS, PT_GETFPREGS, PT_SETFPREGS,
+                          PT_GETDBREGS, PT_SETDBREGS, PT_LWPINFO,
+                          PT_GETNUMLWPS, PT_GETLWPLIST, PT_SETSTEP,
+                          PT_CLEARSTEP, PT_SUSPEND, PT_RESUME,
+                          PT_TO_SCE, PT_TO_SCX, PT_SYSCALL,
+                          PT_FOLLOW_FORK, PT_VM_TIMESTAMP,
+                          PT_VM_ENTRY};
+
+    uint32_t range = 28;
+
+#endif                        
 
     (*flag) = mem_alloc(sizeof(uint64_t));
     if((*flag) == NULL)
@@ -728,7 +716,7 @@ int32_t generate_request(uint64_t **flag, struct child_ctx *ctx)
         return (-1);
     }
     
-    rtrn = rand_range(7, &number);
+    rtrn = rand_range(range, &number);
     if(rtrn < 0)
     {
         output(ERROR, "Can't generate random number\n");

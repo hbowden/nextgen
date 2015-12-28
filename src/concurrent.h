@@ -1,7 +1,7 @@
 
 
 /**
- * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
+ * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice 
@@ -73,7 +73,7 @@ with the argument arg. This function is necessary to support message ports on Ma
 which are implemented with mach ports. Because mach ports are not passed on fork()
 calls, we have to do a little dance to pass mach ports via special ports. On 
 systems besides Mac OSX, fork_pass_port() is just a simple wrapper around fork(). */
-int32_t fork_pass_port(msg_port_t pass_port, int32_t (*proc_start)(void *arg), void *arg);
+int32_t fork_pass_port(msg_port_t pass_port, int32_t (*proc_start)(msg_port_t port, void *arg), void *arg);
 
 /* Recieve Message from message queue. */
 extern void *msg_recv(msg_port_t recv_port);

@@ -23,6 +23,24 @@
 #include <errno.h>
 #include <sys/wait.h>
 
+static int32_t child_proc_start(msg_port_t remote_port, void *arg)
+{
+    char *recv_buffer = NULL;
+
+    recv_buffer = mem_alloc(10);
+    if(recv_buffer == NULL)
+        _exit(-1);
+
+    recv_buffer = (char *) msg_recv(remote_port);
+    assert_stat(recv_buffer != NULL);
+
+    /* Make sure we got the message. */
+    assert_stat(strncmp(recv_buffer, "123456789", 9) == 0);
+        
+    /* Exit and clean up the child process. */
+     _exit(0);
+}
+
 static int test_msg_send_recv(void)
 {
 	log_test(DECLARE, "Testing msg send and msg recv");
@@ -61,60 +79,35 @@ static int test_msg_send_recv(void)
 
 	pid_t pid = 0;
 
-	/* Fork and create a child process. */
-    pid = fork();
-    if(pid == 0)
+	/* Fork and pass the child the remote port. */
+    pid = fork_pass_port(remote_port, child_proc_start, NULL);
+    assert_stat(pid > 0);
+   
+    /* Send a message to the child process. */
+    rtrn = msg_send(send_port, remote_port, buffer);
+	assert_stat(rtrn == 0);
+
+    int32_t status = 0;
+
+    /* Wait for the child process. */
+    wait4(pid, &status, 0, NULL);
+
+    /* Make sure the process exited normally, if not return an error. */
+    if(WIFEXITED(status) != 0)
     {
-    	char *recv_buffer = NULL;
+        output(ERROR, "Bad return value\n");
 
-    	recv_buffer = mem_alloc(10);
-    	if(recv_buffer == NULL)
-    	    _exit(-1);
-
-    	recv_buffer = (char *) msg_recv(remote_port);
-    	assert_stat(recv_buffer != NULL);
-
-        /* Make sure we got the message. */
-    	assert_stat(strncmp(recv_buffer, "123456789", 9) == 0);
-        
-        /* Exit and clean up the child process. */
-        _exit(0);
-    }
-    else if(pid > 0)
-    {
-    	/* Send a message to the child process. */
-    	rtrn = msg_send(send_port, remote_port, buffer);
-	    assert_stat(rtrn == 0);
-
-        int32_t status = 0;
-
-        /* Wait for the child process. */
-        wait4(pid, &status, 0, NULL);
-
-        /* Make sure the process exited normally, if not return an error. */
-        if(WIFEXITED(status) != 0)
-        {
-            output(ERROR, "Bad return value\n");
-
-            return (-1);
+        return (-1);
             
-        }
-        else if(WIFSIGNALED(status) != 0)
-        {
-            output(ERROR, "Signal recieved\n");
-
-            return (-1);
-        }
-        else
-        {
-            log_test(SUCCESS, "msg send and recv test passed");
-        }
     }
-    else
+    else if(WIFSIGNALED(status) != 0)
     {
-    	output(ERROR, "Failed to fork child process: %s\n", strerror(errno));
-    	return -1;
+        output(ERROR, "Signal recieved\n");
+
+        return (-1);
     }
+
+    log_test(SUCCESS, "msg send and recv test passed");
 
 	return (0);
 }

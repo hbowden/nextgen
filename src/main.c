@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
+ * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice 
@@ -28,7 +28,7 @@
  **/
 int main(int argc, char *argv[])
 {
-    int rtrn;
+    int32_t rtrn = 0;
     struct parser_ctx *ctx = NULL;
 
     /* Create a shared memory map so that we can share state with other threads and procceses. */
@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
     if(map == NULL)
     {
         output(ERROR, "Can't create shared object.\n");
-        return -1;
+        return (-1);
     }
 
     /* Parse the command line for user input. parse_cmd_line() will set variables
@@ -45,14 +45,14 @@ int main(int argc, char *argv[])
     if(ctx == NULL)
     {
         output(ERROR, "Can't parse command line.\n");
-        return -1;
+        return (-1);
     }
 
     rtrn = check_root();
     if(rtrn != 0)
     {
         output(STD, "Run nextgen as root\n");
-        return -1;
+        return (-1);
     }
 
     /* Setup the shared map now that we got our options from the command line. */
@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
     if(rtrn < 0)
     {
         output(ERROR, "Can't initialize.\n");
-        return -1;
+        return (-1);
     }
 
     /* Setup the fuzzer running enviroment. */
@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
     {
         output(ERROR, "Can't setup runtime enviroment.\n");
         clean_shared_mapping();
-        return -1;
+        return (-1);
     }
 
     /* Start the main fuzzing loop. */
@@ -78,10 +78,10 @@ int main(int argc, char *argv[])
     {
         output(ERROR, "Can't start runtime enviroment.\n");
         clean_shared_mapping();
-        return -1;
+        return (-1);
     }
     
     /* We should only reach here on ctrl-c. */
     clean_shared_mapping();
-    return 0;
+    return (0);
 }

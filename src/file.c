@@ -26,7 +26,6 @@
 #include "io.h"
 
 #include <stdio.h>
-#include <stdint.h>
 #include <pthread.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -445,13 +444,16 @@ void start_main_file_loop(void)
     return;
 }
 
-int32_t setup_file_module(char *exec_path)
+int32_t setup_file_module(char *exec_path, char *input)
 {
     int32_t rtrn = 0;
     uint32_t i = 0;
 
     /* Set exec path. */
     path_to_exec = exec_path;
+
+    /* Set input directory. */
+    input_dir = input;
 
     /* Count how many files are in the input directory. */
     rtrn = count_files_directory(&file_count);

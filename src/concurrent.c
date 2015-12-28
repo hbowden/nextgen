@@ -100,6 +100,12 @@ void *msg_recv(msg_port_t recv_port)
     return (message);
 }
 
+int32_t fork_pass_port(msg_port_t pass_port, int32_t (*proc_start)(msg_port_t port, void *arg), void *arg)
+{
+
+    return (0);
+}
+
 #endif
 
 #ifdef MAC_OSX
@@ -138,7 +144,7 @@ typedef struct
 
 } msg_format_response_r_t;
 
-int32_t fork_pass_port(msg_port_t pass_port, int32_t (*proc_start)(void *arg), void *arg)
+int32_t fork_pass_port(msg_port_t pass_port, int32_t (*proc_start)(msg_port_t port, void *arg), void *arg)
 {
     pid_t pid = 0;
     int32_t rtrn = 0;
@@ -180,7 +186,7 @@ int32_t fork_pass_port(msg_port_t pass_port, int32_t (*proc_start)(void *arg), v
 
 
         /* Now that we successfully passed our mach port let's call the function pointer passed by the caller. */
-        rtrn = proc_start(arg);
+        rtrn = proc_start(pass_port, arg);
         if(rtrn < 0)
         {
             output(ERROR, "proccess start function failed\n");

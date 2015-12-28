@@ -137,6 +137,7 @@ int32_t rand_range(uint32_t range, uint32_t *number)
         return (-1);
     }
 
+    /* Call the random range interface. */
     return (rand_range_pointer(range, number));
 }
 
@@ -151,7 +152,7 @@ static int32_t setup_hardware_acceleration(void)
     if(engine == NULL)
     {
     	output(STD, "No intel random number generator detected\n");
-    	return 1;
+    	return (1); /* Return one, when we can't detect a hardware random  */
     }
 
     /* Note. openssl use's zero for it's success exit code. */
@@ -159,17 +160,17 @@ static int32_t setup_hardware_acceleration(void)
     if(rtrn == 0)
     {
         output(ERROR, "Can't init crypto engine\n");
-        return -1;
+        return (-1);
     }
 
     rtrn = ENGINE_set_default(engine, ENGINE_METHOD_RAND);
     if(rtrn == 0)
     {
         output(ERROR, "Can't set default method\n");
-        return -1;
+        return (-1);
     }
     
-    return 0;
+    return (0);
 }
 
 int32_t sha512(char *in, char **out)
@@ -183,38 +184,36 @@ int32_t sha512(char *in, char **out)
     if(rtrn < 0)
     {
         output(ERROR, "Sha init\n");
-        return -1;
+        return (-1);
     }
     
     rtrn = SHA512_Update(&ctx, in, strlen(in));
     if(rtrn < 0)
     {
         output(ERROR, "Can't update input string\n");
-        return -1;
+        return (-1);
     }
     
     rtrn = SHA512_Final(hash, &ctx);
     if(rtrn < 0)
     {
         output(ERROR, "Can't do this\n");
-        return -1;
+        return (-1);
     }
     
-    *out = mem_alloc((SHA512_DIGEST_LENGTH * 2) + 1);
-    if(*out == NULL)
+    (*out) = mem_alloc((SHA512_DIGEST_LENGTH * 2) + 1);
+    if((*out) == NULL)
     {
         output(ERROR, "Can't allocate output buf\n");
-        return -1;
+        return (-1);
     }
     
     for(i = 0; i < SHA512_DIGEST_LENGTH; i++)
-    {
         sprintf(*out + (i * 2), "%02x", hash[i]);
-    }
 
     (*out)[128] = '\0';
 
-    return 0;
+    return (0);
 }
 
 int32_t sha256(char *in, char **out)
@@ -229,41 +228,39 @@ int32_t sha256(char *in, char **out)
     if(rtrn < 0)
     {
         output(ERROR, "Sha Init Error\n");
-        return -1;
+        return (-1);
     }
     
     rtrn = SHA256_Update(&sha256, in, strlen(in));
     if(rtrn < 0)
     {
         output(ERROR, "Sha Update Error\n");
-        return -1;
+        return (-1);
     }
     
     rtrn = SHA256_Final(hash, &sha256);
     if(rtrn < 0)
     {
         output(ERROR, "Sha Final Error\n");
-        return -1;
+        return (-1);
     }
 
     /* Allocate the output buffer. */
-    *out = mem_alloc((SHA256_DIGEST_LENGTH * 2) + 1);
-    if(*out == NULL)
+    (*out) = mem_alloc((SHA256_DIGEST_LENGTH * 2) + 1);
+    if((*out) == NULL)
     {
         output(ERROR, "Can't allocate output buf\n");
-        return -1;
+        return (-1);
     }
     
     /* Convert hash to hex format. */
     for(i = 0; i < SHA256_DIGEST_LENGTH; i++)
-    {
         sprintf(*out + (i * 2), "%02x", hash[i]);
-    }
 
     /* null terminate the hash. */
     (*out)[64] = '\0';
     
-    return 0;
+    return (0);
 }
 
 /*  */
@@ -381,6 +378,7 @@ int32_t setup_crypto_module(enum crypto_method method)
         return (-1);
     }
 
+    /* Good ol rtrn. */
     int32_t rtrn = 0;
 
     /* Init openssl/libressl library. */
@@ -411,6 +409,7 @@ int32_t setup_crypto_module(enum crypto_method method)
         case 0:
             output(STD, "Using hardware crypto PRNG\n");
             software_prng = 0;
+            crypto_setup = TRUE;
             break;
 
         case 1: 

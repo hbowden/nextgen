@@ -1,7 +1,9 @@
 aes/libcrypto_la-aes_ctr.lo: aes/aes_ctr.c ../include/openssl/aes.h \
   ../include/openssl/opensslconf.h ../include/openssl/opensslfeatures.h \
-  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../lib/clang/7.0.0/include/stddef.h \
-  ../include/openssl/modes.h
+  /usr/include/stddef.h ../include/compat/sys/cdefs.h \
+  /usr/include/sys/cdefs.h /usr/include/sys/_null.h \
+  /usr/include/sys/_types.h /usr/include/machine/_types.h \
+  /usr/include/x86/_types.h ../include/openssl/modes.h
 
 ../include/openssl/aes.h:
 
@@ -9,6 +11,18 @@ aes/libcrypto_la-aes_ctr.lo: aes/aes_ctr.c ../include/openssl/aes.h \
 
 ../include/openssl/opensslfeatures.h:
 
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../lib/clang/7.0.0/include/stddef.h:
+/usr/include/stddef.h:
+
+../include/compat/sys/cdefs.h:
+
+/usr/include/sys/cdefs.h:
+
+/usr/include/sys/_null.h:
+
+/usr/include/sys/_types.h:
+
+/usr/include/machine/_types.h:
+
+/usr/include/x86/_types.h:
 
 ../include/openssl/modes.h:

@@ -28,21 +28,21 @@ static int test_cmd_parser(void)
 {
 	log_test(DECLARE, "Testing command line parser");
 
-	int argc = 1;
-	int rtrn;
-	char **args;
+	int32_t argc = 1;
+	int32_t rtrn = 0;
+	char **args = NULL;
 	struct parser_ctx *ctx = NULL;
-    unsigned int i;
+    uint32_t i;
 
     args = mem_alloc(sizeof(char *) * 6);
     if(args == NULL)
-    	return -1;
+    	return (-1);
 
     for(i = 0; i < 6; i++)
     {
     	args[i] = mem_alloc(1025);
     	if(args[i] == NULL)
-    		return -1;
+    		return (-1);
     }
 
     /* Make sure a null ctx struct is returned because we didn't

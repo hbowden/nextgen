@@ -30,7 +30,7 @@ struct syscall_entry entry_mount = {
     .get_arg_index[FIRST_ARG] = &generate_mount_type,
 
     .arg_type_index[SECOND_ARG] = MOUNT_PATH,
-    .get_arg_index[SECOND_ARG] = &generate_mount_path,
+    .get_arg_index[SECOND_ARG] = &generate_mountpath,
 
     .arg_type_index[THIRD_ARG] = MOUNT_FLAG,
     .get_arg_index[THIRD_ARG] = &generate_mount_flags,

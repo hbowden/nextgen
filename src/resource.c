@@ -643,7 +643,19 @@ static int32_t create_socket_pool(void)
             return (-1);
         }
 
-        
+        sock = mem_alloc(sizeof(int32_t));
+        if(sock == NULL)
+        {
+            output(ERROR, "Can't allocate socket\n");
+            return (-1);
+        }
+
+        rtrn = connect_ipv6(sock);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't create socket\n");
+            return (-1);
+        }
 
         memmove(resource->ptr, sock, sizeof(int32_t));
 
@@ -683,13 +695,6 @@ int32_t setup_resource_module(char *path)
         return (-1);
     }
 
-    rtrn = create_socket_pool();
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't create socket pool\n");
-        return (-1);
-    }
-
 /*	rtrn = create_mount_pool(path);
 	if(rtrn < 0)
 	{
@@ -703,6 +708,13 @@ int32_t setup_resource_module(char *path)
 		output(ERROR, "Can't create file pool\n");
 		return (-1);
 	}
+
+    rtrn = create_socket_pool();
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't create socket pool\n");
+        return (-1);
+    }
 
 	rtrn = create_fd_pool(path);
 	if(rtrn < 0)

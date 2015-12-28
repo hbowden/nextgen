@@ -20,7 +20,7 @@
 
 #include <stdint.h>
 
-extern int32_t setup_file_module(char *exec_path);
+extern int32_t setup_file_module(char *exec_path, char *input);
 
 extern void start_main_file_loop(void);
 

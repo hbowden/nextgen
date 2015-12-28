@@ -81,7 +81,7 @@ static void reaper(void)
 
     while(atomic_load(&map->stop) != TRUE)
     {
-        unsigned int i = 0;
+        uint32_t i = 0;
         struct child_ctx *child = NULL;
 
         /* Loop for each child processe. */
@@ -107,7 +107,7 @@ static void reaper(void)
 
 /* This function sets up and run's the reaper process. The reaper kills and replaces child
 processes that are not functioning properly. */
-int setup_reaper_module(pid_t *reaper_pid)
+int32_t setup_reaper_module(pid_t *reaper_pid)
 {
     /* Fork and create a child process. */
     *reaper_pid = fork();

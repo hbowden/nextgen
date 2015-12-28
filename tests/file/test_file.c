@@ -52,7 +52,7 @@ static int32_t test_setup_file_module(void)
     }
 
     /* Give the file module the path of the program to test. */
-    rtrn = setup_file_module("/bin/ls");
+    rtrn = setup_file_module("/bin/ls", tmp_dir);
 
     /* rtrn should equal file module. */
     assert_stat(rtrn == 0);

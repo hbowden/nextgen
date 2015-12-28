@@ -17,8 +17,24 @@ LIBRESSL = libressl-2.3.1
 # Set the root directory path, ie the path to the nextgen directory.
 ROOT_DIR = $(shell pwd)
 
+export CK LIBRESSL ROOT_DIR
+
 # Set the operating system.
 OPERATING_SYSTEM = $(shell uname)
+
+# Test Suite build script.
+TEST_SUITE = cd $(ROOT_DIR)/tests/crypto && $(MAKE) && \
+	         cd $(ROOT_DIR)/tests/memory && $(MAKE) && \
+	         cd $(ROOT_DIR)/tests/parser && $(MAKE) && \
+	         cd $(ROOT_DIR)/tests/genetic && $(MAKE) && \
+	         cd $(ROOT_DIR)/tests/reaper && $(MAKE) && \
+	         cd $(ROOT_DIR)/tests/resource && $(MAKE) && \
+	         cd $(ROOT_DIR)/tests/syscall && $(MAKE) && \
+	         cd $(ROOT_DIR)/tests/concurrent && $(MAKE) && \
+	         cd $(ROOT_DIR)/tests/file && $(MAKE) && \
+	         cd $(ROOT_DIR)/tests/network && $(MAKE) && \
+	         cd $(ROOT_DIR)/tests/generate && $(MAKE);
+
 
 # Set FreeBSD specific variables.
 ifeq ($(OPERATING_SYSTEM), FreeBSD)
@@ -31,26 +47,27 @@ MAKE = gmake
 
 # Include directories.
 INCLUDES = -I/usr/local/include/ -I/usr/src/cddl/compat/opensolaris/include -I/usr/src/cddl/contrib/opensolaris/lib/libdtrace/common/ \
-           -I/usr/src/sys/cddl/compat/opensolaris -I/usr/src/sys/cddl/contrib/opensolaris/uts/common/ -Isrc/syscalls/freebsd/ \
+           -I/usr/src/sys/cddl/compat/opensolaris -I/usr/src/sys/cddl/contrib/opensolaris/uts/common/ -I$(ROOT_DIR)/src/syscalls/freebsd/ \
            -I$(ROOT_DIR)/deps/capstone-3.0.4/ -I$(ROOT_DIR)/deps/capstone-3.0.4/include -I$(ROOT_DIR)/deps/$(CK)/include \
-           -I$(ROOT_DIR)/src
+           -I$(ROOT_DIR)/src -I$(ROOT_DIR)/tests
 
 # Libraries to link.
-LIBS = -lpthread -ldtrace -lproc -lctf -lelf -lz -lrtld_db -lutil -lcrypto deps/capstone-3.0.4/libcapstone.a deps/$(CK)/src/libck.a \
-       deps/$(LIBRESSL)/crypto/.libs/libcrypto.a
+LIBS = -lpthread -ldtrace -lproc -lctf -lelf -lz -lrtld_db -lutil -lcrypto $(ROOT_DIR)/deps/capstone-3.0.4/libcapstone.a $(ROOT_DIR)/deps/$(CK)/src/libck.a \
+       $(ROOT_DIR)/deps/$(LIBRESSL)/crypto/.libs/libcrypto.a
 
 # Warnings to silence.
 SILENCED_WARNINGS = -Wno-incompatible-pointer-types-discards-qualifiers -Wno-used-but-marked-unused -Wno-padded -Wno-unused-parameter \
                     -Wno-unused-variable -Wno-missing-noreturn -Wno-format-nonliteral -Wno-unused-value \
-                    -Wno-gnu-statement-expression -Wno-cast-qual -Wno-unknown-pragmas -Wno-sign-conversion -Wno-cast-align
+                    -Wno-gnu-statement-expression -Wno-cast-qual -Wno-unknown-pragmas -Wno-sign-conversion -Wno-cast-align \
+                    -Wno-reserved-id-macro
 
 # Compiler flags.
-CFLAGS = -DFREEBSD -std=c99 -Werror -Wall -Weverything -Wno-pedantic -g -fstack-protector-all -O3
+CFLAGS = -DFREEBSD -fsanitize=address -std=c99 -Werror -Wall -Weverything -Wno-pedantic -g -fstack-protector-all -O3
 
 # Syscall entries C files.
-ENTRY_SOURCES = src/syscalls/freebsd/entry_read.c src/syscalls/freebsd/entry_write.c src/syscalls/freebsd/entry_open.c src/syscalls/freebsd/entry_close.c src/syscalls/freebsd/entry_wait4.c \
-                src/syscalls/freebsd/entry_creat.c src/syscalls/freebsd/entry_link.c src/syscalls/freebsd/entry_unlink.c src/syscalls/freebsd/entry_chdir.c src/syscalls/freebsd/entry_fchdir.c \
-                src/syscalls/freebsd/entry_mknod.c src/syscalls/freebsd/entry_chmod.c src/syscalls/freebsd/entry_getfsstat.c src/syscalls/freebsd/entry_lseek.c src/syscalls/freebsd/entry_setuid.c src/syscalls/freebsd/entry_ptrace.c src/syscalls/freebsd/entry_recvmsg.c
+ENTRY_SOURCES := $(wildcard $(ROOT_DIR)/src/syscalls/freebsd/*.c)
+
+export MAKE INCLUDES CC LIBS SILENCED_WARNINGS CFLAGS ENTRY_SOURCES
 
 endif
 
@@ -122,17 +139,7 @@ all:
 
 	$(CC) $(CFLAGS) $(INCLUDES) -o nextgen src/main.c $(SOURCES) $(ENTRY_SOURCES) $(LIBS) $(SILENCED_WARNINGS)
 
-	cd $(ROOT_DIR)/tests/crypto && $(MAKE) 
-	cd $(ROOT_DIR)/tests/memory && $(MAKE);
-	cd $(ROOT_DIR)/tests/parser && $(MAKE);
-	cd $(ROOT_DIR)/tests/genetic && $(MAKE);
-	cd $(ROOT_DIR)/tests/reaper && $(MAKE);
-	cd $(ROOT_DIR)/tests/resource && $(MAKE);
-	cd $(ROOT_DIR)/tests/syscall && $(MAKE);
-	cd $(ROOT_DIR)/tests/concurrent && $(MAKE);
-	cd $(ROOT_DIR)/tests/file && $(MAKE);
-	cd $(ROOT_DIR)/tests/network && $(MAKE);
-	cd $(ROOT_DIR)/tests/generate && $(MAKE);
+	$(TEST_SUITE)
 
 	$(CC) $(CFLAGS) $(INCLUDES) -o test_suite tests/tests.c tests/test_utils.c -Itests $(SOURCES) $(ENTRY_SOURCES) $(LIBS) $(SILENCED_WARNINGS)
 
@@ -146,26 +153,18 @@ quick:
 
 	$(CC) $(CFLAGS) $(INCLUDES) -o nextgen src/main.c $(SOURCES) $(ENTRY_SOURCES) $(LIBS) $(SILENCED_WARNINGS)
 
-	cd $(ROOT_DIR)/tests/crypto && $(MAKE);
-	cd $(ROOT_DIR)/tests/memory && $(MAKE);
-	cd $(ROOT_DIR)/tests/parser && $(MAKE);
-	cd $(ROOT_DIR)/tests/genetic && $(MAKE);
-	cd $(ROOT_DIR)/tests/reaper && $(MAKE);
-	cd $(ROOT_DIR)/tests/resource && $(MAKE);
-	cd $(ROOT_DIR)/tests/syscall && $(MAKE);
-	cd $(ROOT_DIR)/tests/concurrent && $(MAKE);
-	cd $(ROOT_DIR)/tests/file && $(MAKE);
-	cd $(ROOT_DIR)/tests/network && $(MAKE);
-	cd $(ROOT_DIR)/tests/generate && $(MAKE);
+	$(TEST_SUITE)
+
+	$(CC) $(CFLAGS) $(INCLUDES) -o test_suite tests/tests.c tests/test_utils.c -Itests $(SOURCES) $(ENTRY_SOURCES) $(LIBS) $(SILENCED_WARNINGS)
 
 .PHONY: asan
 asan:
 
-	cd $(ROOT_DIR)/deps/$(CK) && ./configure && $(MAKE);
-	cd $(ROOT_DIR)/deps/capstone-3.0.4 && $(MAKE);
-	cd $(ROOT_DIR)/deps/$(LIBRESSL) && ./configure && $(MAKE)
-
 	$(CC) $(CFLAGS) $(ASAN_FLAGS) $(INCLUDES) -o nextgen src/main.c $(SOURCES) $(ENTRY_SOURCES) $(LIBS) $(SILENCED_WARNINGS)
+
+	$(TEST_SUITE)
+
+	$(CC) $(CFLAGS) $(ASAN_FLAGS) $(INCLUDES) -o test_suite tests/tests.c tests/test_utils.c -Itests $(SOURCES) $(ENTRY_SOURCES) $(LIBS) $(SILENCED_WARNINGS)
 
 .PHONY: valgrind
 valgrind:
