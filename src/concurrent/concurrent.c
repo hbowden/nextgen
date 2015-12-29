@@ -43,7 +43,7 @@
 /* Compare and swap loop for swapping atomic int32 values. */ 
 void cas_loop_int32(atomic_int_fast32_t *target, int32_t value)
 {
-	/* Loop until we can succesfully update the the value. */
+    /* Loop until we can succesfully update the the value. */
     while(1)
     {
         /* Grab a snapshot of the value that needs to be updated. */
@@ -58,7 +58,7 @@ void cas_loop_int32(atomic_int_fast32_t *target, int32_t value)
 /* CAS loop for swapping atomic uint32 values. */ 
 void cas_loop_uint32(atomic_uint_fast32_t *target, uint32_t value)
 {
-	/* Loop until we can succesfully update the the value. */
+    /* Loop until we can succesfully update the the value. */
     while(1)
     {
         /* Grab a snapshot of the value that needs to be updated. */

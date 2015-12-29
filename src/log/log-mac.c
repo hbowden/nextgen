@@ -19,7 +19,7 @@
 
 int32_t log_arguments(uint32_t number_of_args, 
                       const char *syscall_name,
-	                  uint64_t **arg_value_array, 
+	              uint64_t **arg_value_array, 
                       struct arg_context **arg_context_array)
 {
     char *arg_value auto_clean = mem_alloc(1024);
@@ -44,15 +44,15 @@ int32_t log_arguments(uint32_t number_of_args,
     {
     	switch((int32_t)arg_context_array[i]->log_type)
     	{
-    		/* File and directory paths. */
-    		case PATH:
-    		    sprintf(arg_value, " %s=%s", arg_context_array[i]->name, (char *)arg_value_array[i]);
-    		    break;
+    	    /* File and directory paths. */
+    	    case PATH:
+                sprintf(arg_value, " %s=%s", arg_context_array[i]->name, (char *)arg_value_array[i]);
+    		break;
 
             /* Pointers. */
-    		case POINTER:
-    		    sprintf(arg_value, " %s=%p", arg_context_array[i]->name, (void *)arg_value_array[i]);
-    		    break;
+    	    case POINTER:
+    		sprintf(arg_value, " %s=%p", arg_context_array[i]->name, (void *)arg_value_array[i]);
+    		break;
 
             /* Non pointer values. */
             case NUMBER:
@@ -69,5 +69,5 @@ int32_t log_arguments(uint32_t number_of_args,
  
     output(STD, "%s\n", syscall_log_buf);
  
-	return (0);
+    return (0);
 }

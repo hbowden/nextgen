@@ -26,11 +26,11 @@ void *mem_alloc(uint64_t nbytes)
 {
     void *ptr = NULL;
 
-	if(nbytes == 0)
-	{
-		output(ERROR, "Can't allocate zero bytes\n");
+    if(nbytes == 0)
+    {
+        output(ERROR, "Can't allocate zero bytes\n");
         return NULL;
-	}
+    }
 
     ptr = malloc(nbytes);
     if(ptr == NULL)
@@ -39,7 +39,7 @@ void *mem_alloc(uint64_t nbytes)
         return NULL;
     }
 
-	return (ptr);
+    return (ptr);
 }
 
 void *mem_calloc(uint64_t nbytes)
@@ -78,9 +78,9 @@ void mem_free(void *ptr)
 
 void *mem_alloc_shared(uint64_t nbytes)
 {
-	void *pointer = NULL;
+   void *pointer = NULL;
 
-	pointer = mmap(NULL, nbytes, PROT_READ | PROT_WRITE, MAP_ANON | MAP_SHARED, -1, 0);
+    pointer = mmap(NULL, nbytes, PROT_READ | PROT_WRITE, MAP_ANON | MAP_SHARED, -1, 0);
     if(pointer == MAP_FAILED)
     {
         output(ERROR, "mmap: %s\n", strerror(errno));
@@ -161,6 +161,7 @@ struct mem_pool_shared *mem_create_shared_pool(uint32_t block_size, uint32_t blo
     }
 
     /* Initialize the memory pool. */
+<<<<<<< HEAD
 	struct mem_pool_shared s_pool = {
 
         .lock = NX_SPINLOCK_INITIALIZER,
@@ -169,19 +170,32 @@ struct mem_pool_shared *mem_create_shared_pool(uint32_t block_size, uint32_t blo
         .free_list = NX_SLIST_HEAD_INITIALIZER(s_pool->free_list),
         .allocated_list = NX_SLIST_HEAD_INITIALIZER(s_pool->allocated_list)
 
+=======
+    struct mem_pool_shared s_pool = {
+        .lock = SPINLOCK_INITIALIZER,
+        .block_size = block_size,
+        .block_count = block_count,
+        .free_list = SLIST_HEAD_INITIALIZER(s_pool->free_list),
+        .allocated_list = SLIST_HEAD_INITIALIZER(s_pool->allocated_list)
+>>>>>>> 81fe1fbe7a9155992166169b37d32fb947c4b4bd
     };
 
     memmove(pool, &s_pool, sizeof(struct mem_pool_shared));
 
     /* Init the free and allocated block list. */
+<<<<<<< HEAD
 	NX_SLIST_INIT(&pool->free_list);
 	NX_SLIST_INIT(&pool->allocated_list);
+=======
+    SLIST_INIT(&pool->free_list);
+    SLIST_INIT(&pool->allocated_list);
+>>>>>>> 81fe1fbe7a9155992166169b37d32fb947c4b4bd
 
-	uint32_t i;
+    uint32_t i;
 
     /* Create blocks of the number requested by the caller of this function. */
-	for(i = 0; i < block_count; i++)
-	{
+    for(i = 0; i < block_count; i++)
+    {
         /* Declare memory block. */
         struct memory_block *block = NULL;
 
@@ -189,24 +203,30 @@ struct mem_pool_shared *mem_create_shared_pool(uint32_t block_size, uint32_t blo
         block = mem_alloc_shared(sizeof(struct memory_block));
         if(block == NULL)
         {
-        	output(ERROR, "Can't alloc mem_block\n");
-        	return (NULL);
+            output(ERROR, "Can't alloc mem_block\n");
+            return (NULL);
         }
 
         /* Allocate enough space for the user to store what they want. */
         block->ptr = mem_alloc_shared(block_size);
         if(block->ptr == NULL)
         {
-        	output(ERROR, "Can't alloc memory block pointer.\n");
-        	return (NULL);
+            output(ERROR, "Can't alloc memory block pointer.\n");
+            return (NULL);
         }
 
+<<<<<<< HEAD
 		/* Insert the node in the free list. */
         NX_SLIST_INSERT_HEAD(&pool->free_list, block);
 	}
+=======
+	/* Insert the node in the free list. */
+        SLIST_INSERT_HEAD(&pool->free_list, block);
+    }
+>>>>>>> 81fe1fbe7a9155992166169b37d32fb947c4b4bd
 
     /* Return memory pool pointer. */
-	return (pool);
+    return (pool);
 }
 
 struct memory_block *mem_get_shared_block(struct mem_pool_shared *pool)
