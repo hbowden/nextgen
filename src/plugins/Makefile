@@ -1,20 +1,43 @@
 SOURCES = plugin.c
 
 INCLUDES = -I../ -I../../deps/ck-0.5.0/include
+
+OPERATING_SYSTEM = $(shell uname)
+
+# FreeBSD build options.
+ifeq ($(OPERATING_SYSTEM), FreeBSD)
+
+SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-padded \
+                    -Wno-unused-parameter -Wno-cast-qual 
+
+FLAGS = -DFREEBSD -shared -fPIC -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
+
+LIB = ../io/libnxio.so ../memory/libnxmemory.so \
+      ../utils/libnxutils.so
+      
+LIB_NAME = libnxplugin.so
+
+endif
+
+# Mac OSX build options.
+ifeq ($(OPERATING_SYSTEM), Darwin)
            
 SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-padded \
-                    -Wno-unused-parameter -Wno-cast-qual \
+                    -Wno-unused-parameter -Wno-cast-qual 
 
-FLAGS = -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
+FLAGS = -dynamiclib -DMAC_OSX -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
 
 LIB = ../io/libnxio.dylib ../memory/libnxmemory.dylib \
       ../utils/libnxutils.dylib
       
 LIB_NAME = libnxplugin.dylib
 
+
+endif
+
 all:
 
-	$(CC) -dynamiclib -DMAC_OSX $(FLAGS) $(SILENCED_WARNINGS) $(INCLUDES) $(SOURCES) $(LIB) -o $(LIB_NAME)
+	$(CC) $(FLAGS) $(SILENCED_WARNINGS) $(INCLUDES) $(SOURCES) $(LIB) -o $(LIB_NAME)
 
 .PHONY: clean
 clean:

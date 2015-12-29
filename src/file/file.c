@@ -29,7 +29,11 @@
 #include <string.h>
 #include <dirent.h>
 
-#ifdef MAC_OSX
+#ifdef FREEBSD
+
+#include "file-freebsd.h"
+
+#elif MAC_OSX
 
 #include "file-mac.h"
 

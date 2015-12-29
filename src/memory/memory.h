@@ -25,7 +25,7 @@ struct memory_block
 {
     void *ptr;
 
-    SLIST_ENTRY(memory_block);
+    NX_SLIST_ENTRY(memory_block);
 };
 
 /* Memory pool data structure. */
@@ -41,10 +41,10 @@ struct mem_pool_shared
 	uint32_t block_count;
 
     /* Shared memory list that represents the memory pool. */
-    SLIST_HEAD(free_list, memory_block);
+    NX_SLIST_HEAD(free_list, memory_block);
 
     /* Shared memory list that represents the memory pool. */
-    SLIST_HEAD(allocated_list, memory_block);
+    NX_SLIST_HEAD(allocated_list, memory_block);
 };
 
 /* Macro for initializing shared memory pool. */

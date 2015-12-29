@@ -21,9 +21,9 @@
 #define SYS_creat 0
 
 #include "../../private.h"
-#include "../../arg_types.h"
-#include "../../entry.h"
-#include "../../generate.h"
+#include "../arg_types.h"
+#include "../entry.h"
+#include "../generate.h"
 
 #include <sys/syscall.h>
 

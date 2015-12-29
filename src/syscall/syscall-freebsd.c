@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
+ * Copyright (c) 2016, Harrison Bowden, Minneapolis, MN
  * 
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice 
@@ -12,38 +12,11 @@
  * WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
+ 
+#include "syscall-freebsd.h"
+#include "freebsd_syscall_table.h"
 
-#ifndef LOG_H
-#define LOG_H
-
-#include <stdint.h>
-
-#ifdef FREEBSD
-
-#include "log-freebsd.h"
-
-#elif MAC_OSX
-
-#include "log-mac.h"
-
-#endif
-
-struct log_obj
+struct syscall_table *get_table(void)
 {
-	int32_t ret_value;
-	int32_t had_error;
-	uint32_t number_of_args;
-	uint32_t syscall_number;
-	const char *err_value;
-	const char *name_of_syscall;
-	uint64_t **arg_value_index;
-
-};
-
-extern int32_t create_out_directory(char *path);
-
-extern int32_t log_results(struct log_obj *obj);
-
-extern int32_t log_file(char *file_path, char *file_extension);
-
-#endif
+	return (freebsd_syscall_table);
+}

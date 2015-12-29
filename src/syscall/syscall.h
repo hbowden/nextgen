@@ -22,7 +22,11 @@
 #include "stdatomic.h"
 #include "context.h"
 
-#ifdef MAC_OSX
+#ifdef FREEBSD
+
+#include "syscall-freebsd.h"
+
+#elif MAC_OSX
 
 #include "syscall-mac.h"
 

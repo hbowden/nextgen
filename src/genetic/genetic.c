@@ -1,5 +1,3 @@
-
-
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
@@ -47,7 +45,7 @@ struct organism_ctx
 
     struct chromosome_ctx *chromosome;
 
-    SLIST_ENTRY(organism_ctx);
+    NX_SLIST_ENTRY(organism_ctx);
 };
 
 struct species_ctx
@@ -58,7 +56,7 @@ struct species_ctx
 
     double average_species_fitness;
 
-    SLIST_HEAD(organism_list, organism_ctx);
+    NX_SLIST_HEAD(organism_list, organism_ctx);
 };
 
 struct world_population

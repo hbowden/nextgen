@@ -16,7 +16,6 @@
  **/
 
 #include "plugin.h"
-#include "nextgen.h"
 #include "memory/memory.h"
 #include "io/io.h"
 #include "utils/utils.h"

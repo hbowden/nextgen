@@ -24,45 +24,43 @@
 #include <stdint.h>
 #include <sys/time.h>
 
-#define SPINLOCK_INITIALIZER CK_SPINLOCK_INITIALIZER
+#define NX_SPINLOCK_INITIALIZER CK_SPINLOCK_INITIALIZER
 
-#define LIST_ENTRY(x) CK_LIST_ENTRY(x) list_entry
-#define SLIST_ENTRY(x) CK_SLIST_ENTRY(x) list_entry
+#define NX_LIST_ENTRY(x) CK_LIST_ENTRY(x) list_entry
+#define NX_SLIST_ENTRY(x) CK_SLIST_ENTRY(x) list_entry
 
-#define LIST_HEAD(name,type) 
-#define SLIST_HEAD(name,type) CK_SLIST_HEAD(name, type) name
+#define NX_LIST_HEAD(name,type) 
+#define NX_SLIST_HEAD(name,type) CK_SLIST_HEAD(name, type) name
 
-#define SLIST_HEAD_INITIALIZER CK_SLIST_HEAD_INITIALIZER
+#define NX_SLIST_HEAD_INITIALIZER CK_SLIST_HEAD_INITIALIZER
 
-#define SLIST_INIT(list) CK_SLIST_INIT(list)
+#define NX_SLIST_INIT(list) CK_SLIST_INIT(list)
 
-#define SLIST_INSERT_HEAD(pool, blk) CK_SLIST_INSERT_HEAD(pool, blk, list_entry)
+#define NX_SLIST_INSERT_HEAD(pool, blk) CK_SLIST_INSERT_HEAD(pool, blk, list_entry)
 
-#define SLIST_FOREACH(block, list) CK_SLIST_FOREACH(block, list, list_entry)
+#define NX_SLIST_FOREACH(block, list) CK_SLIST_FOREACH(block, list, list_entry)
 
-#define SLIST_REMOVE(list, blk, type) CK_SLIST_REMOVE(list, blk, type, list_entry)
+#define NX_SLIST_REMOVE(list, blk, type) CK_SLIST_REMOVE(list, blk, type, list_entry)
 
-#define spinlock_lock(lock) ck_spinlock_lock(lock)
+#define nx_spinlock_lock(lock) ck_spinlock_lock(lock)
 
-#define spinlock_unlock(lock) ck_spinlock_unlock(lock)
+#define nx_spinlock_unlock(lock) ck_spinlock_unlock(lock)
 
 typedef ck_spinlock_t spinlock_t;
-
-#ifdef MAC_OSX
-
-#include <mach/port.h>
-#include <mach/mach.h>
-
-/* Message ports are really mach ports on Mac OSX systems. */
-typedef mach_port_t msg_port_t;
-
-#endif
 
 #ifdef FREEBSD
 
 #include <mqueue.h>
 
 typedef mqd_t msg_port_t;
+
+#elif MAC_OSX
+
+#include <mach/port.h>
+#include <mach/mach.h>
+
+/* Message ports are really mach ports on Mac OSX systems. */
+typedef mach_port_t msg_port_t;
 
 #endif
 

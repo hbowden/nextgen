@@ -18,9 +18,11 @@
 #ifndef PROBE_FREEBSD_H
 #define PROBE_FREEBSD_H
 
-#include "private.h"
+#include <unistd.h>
 #include <stdint.h>
 
-private extern int32_t start_and_pause_target(void);
+extern int32_t start_and_pause_target(char *exec_path, pid_t *target_pid);
+
+extern int32_t inject_fork_server(uint64_t main_address);
 
 #endif

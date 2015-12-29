@@ -1,5 +1,3 @@
-
-
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
@@ -68,7 +66,7 @@ int32_t free_desc(int32_t *fd)
     struct memory_block *m_blk = NULL;
    
     /* Loop and find the resource */
-    SLIST_FOREACH(m_blk, &desc_pool->allocated_list)
+    NX_SLIST_FOREACH(m_blk, &desc_pool->allocated_list)
     {
         /* Get resource pointer. */
         struct resource_ctx *resource = (struct resource_ctx *)m_blk->ptr;
@@ -115,7 +113,7 @@ int32_t free_socket(int32_t *sock_fd)
     struct memory_block *m_blk = NULL;
    
     /* Loop and find the resource */
-    SLIST_FOREACH(m_blk, &socket_pool->allocated_list)
+    NX_SLIST_FOREACH(m_blk, &socket_pool->allocated_list)
     {
         /* Get resource pointer. */
         struct resource_ctx *resource = (struct resource_ctx *)m_blk->ptr;
@@ -161,7 +159,7 @@ int32_t free_mountpath(char **path)
     struct memory_block *m_blk = NULL;
    
     /* Loop and find the resource */
-    SLIST_FOREACH(m_blk, &mount_pool->allocated_list)
+    NX_SLIST_FOREACH(m_blk, &mount_pool->allocated_list)
     {
         /* Get resource pointer. */
         struct resource_ctx *resource = (struct resource_ctx *)m_blk->ptr;
@@ -208,7 +206,7 @@ int32_t free_dirpath(char **path)
     struct memory_block *m_blk = NULL;
    
     /* Loop and find the resource */
-    SLIST_FOREACH(m_blk, &dirpath_pool->allocated_list)
+    NX_SLIST_FOREACH(m_blk, &dirpath_pool->allocated_list)
     {
         /* Get resource pointer. */
         struct resource_ctx *resource = (struct resource_ctx *)m_blk->ptr;
@@ -255,7 +253,7 @@ int32_t free_filepath(char **path)
     struct memory_block *m_blk = NULL;
    
     /* Loop and find the resource */
-    SLIST_FOREACH(m_blk, &file_pool->allocated_list)
+    NX_SLIST_FOREACH(m_blk, &file_pool->allocated_list)
     {
         /* Get resource pointer. */
         struct resource_ctx *resource = (struct resource_ctx *)m_blk->ptr;
@@ -517,7 +515,7 @@ static int32_t create_dirpath_pool(char *path)
     int32_t rtrn = 0;
 	struct memory_block *m_blk = NULL;
 
-    SLIST_FOREACH(m_blk, &dirpath_pool->free_list)
+    NX_SLIST_FOREACH(m_blk, &dirpath_pool->free_list)
     {
         /* Temp variable that we define with auto_clean so that we 
         don't have to worry about calling free. */
@@ -579,10 +577,10 @@ static int32_t clean_file_pool(void)
     }
 
     /* Lock the spinlock. */
-    ck_spinlock_lock(&file_pool->lock);
+    nx_spinlock_lock(&file_pool->lock);
 
     /* Loop and grab all the file paths in the allocated list. */
-    SLIST_FOREACH(m_blk, &file_pool->allocated_list)
+    NX_SLIST_FOREACH(m_blk, &file_pool->allocated_list)
     {
         struct resource_ctx *resource = (struct resource_ctx *)m_blk->ptr;
 
@@ -599,7 +597,7 @@ static int32_t clean_file_pool(void)
     }
 
     /* Now check the free list for any resource blocks. */
-    SLIST_FOREACH(m_blk, &file_pool->free_list)
+    NX_SLIST_FOREACH(m_blk, &file_pool->free_list)
     {
         struct resource_ctx *resource = (struct resource_ctx *)m_blk->ptr;
 
@@ -615,7 +613,7 @@ static int32_t clean_file_pool(void)
         mem_free_shared(m_blk, sizeof(struct memory_block));
     }
 
-    ck_spinlock_unlock(&file_pool->lock);
+    nx_spinlock_unlock(&file_pool->lock);
 
     mem_clean_shared_pool(file_pool);
 
@@ -634,7 +632,7 @@ static int32_t create_socket_pool(void)
     int32_t rtrn = 0;
     struct memory_block *m_blk = NULL;
 
-    SLIST_FOREACH(m_blk, &socket_pool->free_list)
+    NX_SLIST_FOREACH(m_blk, &socket_pool->free_list)
     {
         int32_t *sock = NULL;
 
@@ -743,4 +741,3 @@ int32_t setup_resource_module(char *path)
 
 	return (0);
 }
-

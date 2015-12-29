@@ -18,7 +18,11 @@
 
 #include <stdint.h>
 
-#ifdef MAC_OSX
+#ifdef FREEBSD
+
+#include "disas-freebsd.h"
+
+#elif MAC_OSX
 
 #include "disas-mac.h"
 

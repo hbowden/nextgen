@@ -13,10 +13,11 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#include "file-mac.h"
+#include "file-freebsd.h"
 #include "memory/memory.h"
 #include "utils/utils.h"
 #include "io/io.h"
+#include "platform.h"
 
 #include <signal.h>
 #include <stdio.h>
@@ -24,6 +25,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <string.h>
+#include <sys/wait.h>
 
 static void *kill_test_proc(void *kill_pid)
 {

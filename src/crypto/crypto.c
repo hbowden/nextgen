@@ -141,11 +141,6 @@ int32_t rand_range(uint32_t range, uint32_t *number)
 
 static int32_t setup_hardware_acceleration(void)
 {
-
-#ifndef MAC_OSX
-    ENGINE_load_rdrand();
-#endif
-
     ENGINE* engine = ENGINE_by_id("rdrand");
     if(engine == NULL)
     {

@@ -43,65 +43,6 @@ struct syscall_table *get_table(void)
     return (freebsd_syscall_table);
 }
 
-int32_t _inject_fork_server(void)
-{
-    output(STD, "Creating fork server\n");
-
-    /* Variables. */
-    struct reg regs;
-    int32_t orig = 0;
-    int32_t status = 0;
-    uint64_t start_offset = 0;
-        
-    /* Lets save the code at main in the target process. */
-    orig = ptrace(PT_READ_I, atomic_load(&map->target_pid), (caddr_t)&start_offset, 0);
-
-    start_offset = get_start_addr();
-
-    /* Let's set a breakpoint on main. */
-    ptrace(PT_WRITE_I, atomic_load(&map->target_pid), (caddr_t)&start_offset, (orig & TRAP_MASK) | TRAP_INST);
-
-    /* Now we continue until the breakpoint. */
-    ptrace(PT_CONTINUE, atomic_load(&map->target_pid), (caddr_t)1, 0);
-
-    /* Wait until the breakpoint is hit. */
-    wait_on(&map->target_pid, &status);
-
-    if(WIFCONTINUED(status) != 0)
-    {
-        output(ERROR, "The process we are testing is continuing?\n");
-        return -1;
-    }
-
-    /* Check if the process exited. */
-    if(WIFEXITED(status) != 0)
-    {
-        output(ERROR, "The process we are testing has exited prematurely\n");
-        return -1;
-    }
-
-    /* Check if the process was terminated due to a signal. */
-    if(WIFSIGNALED(status) != 0)
-    {
-        output(ERROR, "The process we are testing has exited due to a signal\n");
-        return -1;
-    }
-
-     /* Check if the process exited stopped due to ptrace. This is the Macro that we hope
-    evaluates to true. */
-    if(WIFSTOPPED(status) != 0)
-    {
-        
-    }
-
-    /* Lets grab the registers at main/breakpoint .*/
-    ptrace(PT_GETREGS, atomic_load(&map->target_pid), (caddr_t)&regs, 0);
-
-    printf("rax: Ox%lx\n", regs.r_rax);
-
-    return 0;
-}
-
 int32_t _get_load_address(void)
 {
     int32_t fd = 0;

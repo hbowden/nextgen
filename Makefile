@@ -1,20 +1,44 @@
 # Set the root directory path, ie the path to the nextgen directory.
 ROOT_DIR = $(shell pwd)
 
-MAKE = make
+SOURCES = src/main.c
 
-SOURCES = src/main.c 
-
-CC = clang
-
-FLAGS = -DMAC_OSX -Wall -Werror -Weverything -pedantic -g -O3 -std=c99
-
-SILENCED_WARNINGS = -Wno-padded -Wno-reserved-id-macro
+CK = ck-0.5.0
+LIBRESSL = libressl-2.3.1
+CAPSTONE = capstone-3.0.4
 
 LIB = src/runtime/libnxruntime.dylib src/memory/libnxmemory.dylib \
       src/utils/libnxutils.dylib src/io/libnxio.dylib
 
 INCLUDE = -Ideps/ck-0.5.0/include -Isrc
+
+OPERATING_SYSTEM = $(shell uname)
+
+# FreeBSD build options.
+ifeq ($(OPERATING_SYSTEM), FreeBSD)
+
+CC = clang
+
+MAKE = gmake
+
+FLAGS = -DFREEBSD -Wall -Werror -Weverything -pedantic -g -O3 -std=c99
+
+SILENCED_WARNINGS = -Wno-padded -Wno-reserved-id-macro
+
+endif
+
+# Mac OSX build options.
+ifeq ($(OPERATING_SYSTEM), Darwin)
+
+CC = clang
+
+MAKE = make
+
+FLAGS = -DMAC_OSX -Wall -Werror -Weverything -pedantic -g -O3 -std=c99
+
+SILENCED_WARNINGS = -Wno-padded -Wno-reserved-id-macro
+
+endif
 
 PROG = nextgen
 
@@ -55,6 +79,16 @@ CLEAN_NX_LIBS = cd $(ROOT_DIR)/src/io && $(MAKE) clean && \
                 cd $(ROOT_DIR)/src/runtime && $(MAKE) clean
 
 all:
+
+	cd deps/$(CK) && ./configure && $(MAKE);
+	cd deps/$(CAPSTONE) && $(MAKE);
+	cd deps/$(LIBRESSL) && ./configure && $(MAKE);
+
+	$(BUILD_NX_LIBS)
+
+	$(CC) $(FLAGS) $(SOURCES) $(LIB) $(INCLUDE) $(SILENCED_WARNINGS) -o $(PROG)
+
+quick:
 
 	$(BUILD_NX_LIBS)
 
