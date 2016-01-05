@@ -1,7 +1,7 @@
 
 
 /**
- * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
+ * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice 
@@ -67,17 +67,17 @@ int32_t get_extension(char *path, char **extension)
     if(pointer == NULL)
     {
         output(ERROR, "Can't find . :\n", strerror(errno));
-        return -1;
+        return (-1);
     }
 
     int32_t rtrn = asprintf(extension, "%s\n", pointer + 1);
     if(rtrn < 0)
     {
         output(ERROR, "Can't alloc extension: %s\n", strerror(errno));
-        return -1;
+        return (-1);
     }
 
-    return 0;
+    return (0);
 }
 
 int32_t get_core_count(uint32_t *core_count)
@@ -93,13 +93,13 @@ int32_t get_core_count(uint32_t *core_count)
     if(rtrn < 0)
     {
         output(ERROR, "sysctl: %s\n", strerror(errno));
-        return -1;
+        return (-1);
     }
 
-    if(*core_count < 1)
-    	*core_count = (uint32_t) 1;
+    if((*core_count) < 1)
+    	(*core_count) = (uint32_t) 1;
 
-	return 0;
+	return (0);
 }
 
 int32_t generate_name(char **name, char *extension, enum name_type type)
@@ -114,7 +114,7 @@ int32_t generate_name(char **name, char *extension, enum name_type type)
     if(random_data == NULL)
     {
         output(STD, "Can't Allocate Space\n");
-        return -1;
+        return (-1);
     }
     
     /* Grab some random bytes. */
@@ -122,7 +122,7 @@ int32_t generate_name(char **name, char *extension, enum name_type type)
     if(rtrn < 0)
     {
         output(STD, "Can't get random bytes\n");
-        return -1;
+        return (-1);
     }
 
     /* Null terminate the random byte string. */
@@ -133,10 +133,10 @@ int32_t generate_name(char **name, char *extension, enum name_type type)
     if(rtrn < 0)
     {
         output(STD, "Can't Hash Random Data\n");
-        return -1;
+        return (-1);
     }
     
-    switch((int)type)
+    switch((int32_t)type)
     {
         case DIR_NAME:
             
@@ -144,7 +144,7 @@ int32_t generate_name(char **name, char *extension, enum name_type type)
             if(rtrn < 0)
             {
                 output(STD, "Can't create dir path: %s\n", strerror(errno));
-                return -1;
+                return (-1);
             }
             
             break;
@@ -155,24 +155,24 @@ int32_t generate_name(char **name, char *extension, enum name_type type)
             if(rtrn < 0)
             {
                 output(STD, "Can't create file path: %s\n", strerror(errno));
-                return -1;
+                return (-1);
             }
             
             break;
             
         default:
             output(STD, "Should not get here\n");
-            return -1;
+            return (-1);
     }
 
-    return 0;
+    return (0);
 }
 
-int get_home(char **home)
+int32_t get_home(char **home)
 {
-    uid_t uid;
-    struct passwd *pwd;
-    int rtrn;
+    uid_t uid = 0;
+    struct passwd *pwd = NULL;
+    int32_t rtrn = 0;
     
     /* Get User UID */
     uid = getuid();
@@ -181,7 +181,7 @@ int get_home(char **home)
     if(!(pwd = getpwuid(uid)))
     {
         output(ERROR, "Can't Get pwd struct: %s\n", strerror(errno));
-        return -1;
+        return (-1);
     }
     
     /* Copy User Home Directory to buffer supplied to function */
@@ -189,9 +189,9 @@ int get_home(char **home)
     if(rtrn < 0)
     {
         output(ERROR, "Can't Create home string: %s\n", strerror(errno));
-        return -1;  
+        return (-1);  
     }
     
     /* Exit */
-    return 0;
+    return (0);
 }

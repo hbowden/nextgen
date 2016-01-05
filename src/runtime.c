@@ -106,28 +106,31 @@ static int setup_file_mode_runtime(void)
     if(rtrn < 0)
     {
         output(ERROR, "Can't create output directory: %s\n", map->path_to_out_dir);
-        return -1;
+        return (-1);
     }
 
+    /* Setup the file fuzzing module. */
     rtrn = setup_file_module(map->exec_path, map->path_to_in_dir);
     if(rtrn < 0)
     {
         output(ERROR, "Can't setup file module\n");
-        return -1;
+        return (-1);
     }
 
+    /* Setup the probe module. */
     rtrn = setup_probe_module(map->exec_path);
     if(rtrn < 0)
     {
         output(ERROR, "Can't setup probe module\n");
-        return -1;
+        return (-1);
     } 
 
+    /* Setup the plugin module. */
     rtrn = setup_plugin_module();
     if(rtrn < 0)
     {
         output(ERROR, "Can't setup plugin module\n");
-        return -1;
+        return (-1);
     }
 
     /* Check if the user want's dumb or smart mode. */

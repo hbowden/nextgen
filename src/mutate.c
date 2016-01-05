@@ -1,7 +1,7 @@
 
 
 /**
- * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
+ * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice 
@@ -65,7 +65,7 @@ int32_t mutate_file(char **file, const char *file_extension,  uint64_t *file_siz
             }
 
             /* Exit early. */
-            return 0;
+            return (0);
         }
 
         /* Randomly select a file format feature to test. */
@@ -83,7 +83,7 @@ int32_t mutate_file(char **file, const char *file_extension,  uint64_t *file_siz
         if(rtrn < 0)
         {
             output(ERROR, "Can't get feature constraints\n");
-            return -1;
+            return (-1);
         }
 
         
@@ -97,15 +97,15 @@ int32_t mutate_file(char **file, const char *file_extension,  uint64_t *file_siz
         if(rtrn < 0)
         {
             output(ERROR, "Can't mutate file randomly\n");
-            return -1;
+            return (-1);
         }
     }
 
-    return 0;
+    return (0);
 }
 
 int32_t mutate_arguments(struct child_ctx *ctx)
 {
 
-	return 0;
+	return (0);
 }

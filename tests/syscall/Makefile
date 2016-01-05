@@ -5,7 +5,7 @@ SOURCES = test_syscall.c ../test_utils.c ../../src/memory.c ../../src/io.c  \
 
 all:
 
-	$(CC) $(CFLAGS) $(SILENCED_WARNINGS) $(ENTRY_SOURCES) $(INCLUDES) $(SOURCES) $(LIBS) -o test_syscall
+	$(CC) $(FLAGS) $(SILENCED_WARNINGS) $(ENTRY_SOURCES) $(INCLUDES) $(SOURCES) $(LIBS) -o test_syscall
 
 .PHONY: clean
 clean:

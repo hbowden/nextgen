@@ -3,7 +3,7 @@ SOURCES = test_resource.c ../test_utils.c ../../src/memory.c ../../src/io.c ../.
 
 all:
 
-	$(CC) $(CFLAGS) $(SILENCED_WARNINGS) $(INCLUDES) $(SOURCES) $(LIBS) -o test_resource
+	$(CC) $(FLAGS) $(SILENCED_WARNINGS) $(INCLUDES) $(SOURCES) $(LIBS) -o test_resource
 
 .PHONY: clean
 clean:

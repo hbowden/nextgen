@@ -64,36 +64,36 @@ static char *input_dir;
 /* Here is where we keep data about the executable we are fuzzing. */
 static struct executable_context *exec_ctx;
 
-static int get_file(int *file, char **extension)
+static int32_t get_file(int32_t *file, char **extension)
 {
 	int32_t rtrn = 0;
-	uint32_t index_offset = 0;
+	uint32_t offset = 0;
 
     /* Pick a file index offset at random. */
-	rtrn = rand_range(file_count, &index_offset);
+	rtrn = rand_range(file_count, &offset);
 	if(rtrn < 0)
 	{
 		output(ERROR, "Can't pick random number\n");
-		return -1;
+		return (-1);
 	}
 
     /* Open the file at the random offset. */
-	*file = open(file_index[index_offset], O_RDONLY);
-	if(*file < 0)
+	(*file) = open(file_index[offset], O_RDONLY);
+	if((*file) < 0)
 	{
 		output(ERROR, "Can't open file: %s\n", strerror(errno));
-		return -1;
+		return (-1);
 	}
 
     /* Get the file extension for the file we just opened. */
-	rtrn = get_extension(file_index[index_offset], extension);
+	rtrn = get_extension(file_index[offset], extension);
 	if(rtrn < 0)
 	{
 		output(ERROR, "Can't get extension\n");
-		return -1;
+		return (-1);
 	}
 	
-    return 0;
+    return (0);
 }
 
 int get_exec_path(char **exec_path)
@@ -126,7 +126,7 @@ static int32_t create_file_index(void)
     if(directory == NULL)
     {
         output(ERROR, "Can't open dir: %s\n", strerror(errno));
-        return -1;
+        return (-1);
     }
     
     /* Walk the directory. */
@@ -142,7 +142,7 @@ static int32_t create_file_index(void)
         {
             /* Ignore error for closedir() because we are going to quit anyway. */
             closedir(directory);
-            return -1;
+            return (-1);
         }
 
         /* Set index element to the file path we just copied. */
@@ -157,10 +157,10 @@ static int32_t create_file_index(void)
     if(rtrn < 0)
     {
         output(ERROR, "Can't close directory\n");
-        return -1;
+        return (-1);
     }
 
-	return 0;
+	return (0);
 }
 
 static int32_t count_files_directory(uint32_t *count)
@@ -243,9 +243,8 @@ static int32_t test_exec_with_file_in_child(char *file_path, char *file_extensio
     if(child_pid == 0)
     {
         if(atomic_load(&map->stop) == TRUE)
-        {
              _exit(0);
-        }
+
 
         char * const argv[] = {file_path, NULL};
 
@@ -432,10 +431,10 @@ void start_main_file_loop(void)
         }
 
         /* Clean up our mess. */
-        free(file_path);
-        free(file_name);
-        free(file_extension);
-        munmap(file_buffer, (size_t)file_size);
+        mem_free(file_path);
+        mem_free(file_name);
+        mem_free(file_extension);
+        mem_free_shared(file_buffer, (size_t)file_size);
         close(file);
     }
 
@@ -463,7 +462,7 @@ int32_t setup_file_module(char *exec_path, char *input)
         return (-1);
     }
 
-    /* Create file index. */
+    /* Allocate file array. */
     file_index = mem_alloc((file_count + 1) * sizeof(char *));
     if(file_index == NULL)
     {
@@ -471,6 +470,7 @@ int32_t setup_file_module(char *exec_path, char *input)
         return (-1);
     }
 
+    /* Allocate the indivual array indicie. */
     for(i = 0; i < file_count; i++)
     {
         file_index[i] = mem_alloc(1025);

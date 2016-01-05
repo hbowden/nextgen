@@ -1,7 +1,7 @@
 
 
 /**
- * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
+ * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice 
@@ -36,10 +36,10 @@ struct stats
     uint32_t asserts_ran;
 };
 
-extern struct stats *stat;
+extern struct stats *test_stat;
 
 /* Assert macro but with a counter. */
-#define assert_stat(arg) stat->asserts_ran++; assert(arg)
+#define assert_stat(arg) test_stat->asserts_ran++; assert(arg)
 
 extern void log_test(enum log_type type, const char *input);
 

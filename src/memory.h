@@ -1,7 +1,7 @@
 
 
 /**
- * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
+ * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice 
@@ -28,6 +28,7 @@ struct memory_block
     SLIST_ENTRY(memory_block);
 };
 
+/* Memory pool data structure. */
 struct mem_pool_shared
 {
 	/* Spin lock used to protect underlying data structures in the pool. */
@@ -39,15 +40,17 @@ struct mem_pool_shared
     /* The number of blocks in the memory pool. */
 	uint32_t block_count;
 
-    /* Shared memory list the represents the memory pool. */
+    /* Shared memory list that represents the memory pool. */
     SLIST_HEAD(free_list, memory_block);
 
-    /* Shared memory list the represents the memory pool. */
+    /* Shared memory list that represents the memory pool. */
     SLIST_HEAD(allocated_list, memory_block);
 };
 
+/* Macro for initializing shared memory pool. */
 #define init_shared_pool(pool,block) CK_SLIST_FOREACH(block, pool->free_list, list_entry)
 
+/* General purpose heap memory allocator. */
 extern void *mem_alloc(uint64_t nbytes);
 
 extern void *mem_calloc(uint64_t count, uint64_t nbytes);

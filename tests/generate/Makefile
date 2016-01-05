@@ -8,7 +8,7 @@ UNIT_TEST = test_generate
 
 all:
 
-	$(CC) $(CFLAGS) $(SILENCED_WARNINGS) $(ENTRY_SOURCES) $(INCLUDES) $(SOURCES) $(LIBS) -o $(UNIT_TEST) 
+	$(CC) $(FLAGS) $(SILENCED_WARNINGS) $(ENTRY_SOURCES) $(INCLUDES) $(SOURCES) $(LIBS) -o $(UNIT_TEST) 
 
 .PHONY: clean
 clean:

@@ -5,7 +5,7 @@ SOURCES = test_genetic.c ../test_utils.c ../../src/memory.c ../../src/io.c  \
 
 all:
 
-	$(CC) $(CFLAGS) $(SILENCED_WARNINGS) $(INCLUDES) $(SOURCES) $(ENTRY_SOURCES) $(LIBS) -o test_genetic
+	$(CC) $(FLAGS) $(SILENCED_WARNINGS) $(INCLUDES) $(SOURCES) $(ENTRY_SOURCES) $(LIBS) -o test_genetic
 
 .PHONY: clean
 clean:

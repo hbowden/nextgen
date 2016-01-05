@@ -1,6 +1,5 @@
 
 
-
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
@@ -9,7 +8,7 @@
  * and this permission notice appear in all copies.
  * 
  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH 
- * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY 
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY å
  * AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
  * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, 
  * WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
@@ -17,13 +16,21 @@
  **/
 
 #include "test_utils.h"
-#include "../../src/network.c"
+#include "../../src/io.h"
+#include "../../src/plugin.c"
 
-static int32_t test_setup_network_module(void)
+#include <stdint.h>
+
+static int32_t test_setup_plugin_module(void)
 {
-	log_test(DECLARE, "Testing setup network module");
+	log_test(DECLARE, "Testing setup plugin module");
 
-	log_test(SUCCESS, "Setup network module test passed");
+	int32_t rtrn = 0;
+
+	rtrn = setup_plugin_module();
+	assert_stat(rtrn == 0);
+
+    log_test(SUCCESS, "Setup plugin module test passed");
 
 	return (0);
 }
@@ -32,6 +39,7 @@ int main(void)
 {
 	int32_t rtrn = 0;
 
+    /* Init the unit testing framework. */
     rtrn = init_test_framework();
     if(rtrn < 0)
     {
@@ -47,12 +55,9 @@ int main(void)
         return (-1);
     }
 
-    rtrn = test_setup_network_module();
-    if(rtrn < 0)
-    {
-    	log_test(FAIL, "setup network module test failed");
-	    return (-1);
-    }
+    rtrn = test_setup_plugin_module();
+    if(rtrn)
+    	log_test(FAIL, "Setup plugin module test failed");
 
-	return (0);
+    return (0);
 }

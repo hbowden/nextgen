@@ -59,8 +59,8 @@ int main(void)
     }
 
     /* Initialize the stats object. */
-    stat = init_stats_obj();
-    if(stat == NULL)
+    test_stat = init_stats_obj();
+    if(test_stat == NULL)
     {
         output(ERROR, "Can't init the stats object\n");
         return (-1);

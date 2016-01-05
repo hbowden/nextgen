@@ -26,14 +26,27 @@
 #include <stdint.h>
 #include <sys/time.h>
 
+#define SPINLOCK_INITIALIZER CK_SPINLOCK_INITIALIZER
+
 #define LIST_ENTRY(x) CK_LIST_ENTRY(x) list_entry
 #define SLIST_ENTRY(x) CK_SLIST_ENTRY(x) list_entry
 
 #define LIST_HEAD(name,type) 
 #define SLIST_HEAD(name,type) CK_SLIST_HEAD(name, type) name
 
-#define SPINLOCK_INITIALIZER CK_SPINLOCK_INITIALIZER
 #define SLIST_HEAD_INITIALIZER CK_SLIST_HEAD_INITIALIZER
+
+#define SLIST_INIT(list) CK_SLIST_INIT(list)
+
+#define SLIST_INSERT_HEAD(pool, blk) CK_SLIST_INSERT_HEAD(pool, blk, list_entry)
+
+#define SLIST_FOREACH(block, list) CK_SLIST_FOREACH(block, list, list_entry)
+
+#define SLIST_REMOVE(list, blk, type) CK_SLIST_REMOVE(list, blk, type, list_entry)
+
+#define spinlock_lock(lock) ck_spinlock_lock(lock)
+
+#define spinlock_unlock(lock) ck_spinlock_unlock(lock)
 
 typedef ck_spinlock_t spinlock_t;
 

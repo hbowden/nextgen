@@ -1,7 +1,7 @@
 
 
 /**
- * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
+ * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice 
@@ -20,7 +20,6 @@
 
 #include <stdio.h>
 #include <stdint.h>
-#include <string.h>
 #include <stdarg.h>
 #include <stdlib.h>
 
@@ -33,21 +32,21 @@ enum csp { SET, UNSET };
 enum name_type { DIR_NAME, FILE_NAME };
 
 /* This function as the name implies gets the file size. */
-extern int get_file_size(int32_t fd, uint64_t *size);
+extern int32_t get_file_size(int32_t fd, uint64_t *size);
 
 /* Get the file extension */
-extern int get_extension(char *path, char **extension);
+extern int32_t get_extension(char *path, char **extension);
 
 /* Get the core count of the system we are on. This will include virtual cores on hyperthreaded systems. */
-extern int get_core_count(uint32_t *core_count);
+extern int32_t get_core_count(uint32_t *core_count);
 
-/* Can be used to create random file and directory paths. */
-extern int generate_name(char **name, char *extension, enum name_type type);
+/* Can be used to create random file and directory names. */
+extern int32_t generate_name(char **name, char *extension, enum name_type type);
 
-/* Grabs the path to the user's home directory\n*/
-extern int get_home(char **home);
+/* Grabs the path to the user's home directory. */
+extern int32_t get_home(char **home);
 
 /* This function will return zero if the process calling it has root privileges. */
-extern int check_root(void);
+extern int32_t check_root(void);
 
 #endif

@@ -71,7 +71,7 @@ static struct world_population *world;
 int32_t create_new_generation(char **file, uint64_t *file_size, char *file_extension)
 {
 	
-	return 0;
+	return (0);
 }
 
 static int32_t init_world(void)
@@ -83,7 +83,7 @@ static int32_t init_world(void)
     if(world == NULL)
     {
         output(ERROR, "Can't allocate world\n");
-        return -1;
+        return (-1);
     }
 
     /* Grab a copy of the syscall table. */
@@ -91,7 +91,7 @@ static int32_t init_world(void)
     if(sys_table == NULL)
     {
         output(ERROR, "Can't get system table\n");
-        return -1;
+        return (-1);
     }
 
     /* Set the number of species to the number of syscalls. */
@@ -105,7 +105,7 @@ static int32_t init_world(void)
     if(world->species == NULL)
     {
         output(ERROR, "Can't create species index\n");
-        return -1;
+        return (-1);
     }
 
     uint32_t i;
@@ -137,7 +137,7 @@ static int32_t init_world(void)
             return -1;
         }
 
-        specie = &ctx;
+        memmove(specie, &ctx, sizeof(struct species_ctx));
 
         uint32_t ii;
 
@@ -149,14 +149,14 @@ static int32_t init_world(void)
             if(organism == NULL)
             {
                 output(ERROR, "Can't allocate organism context\n");
-                return -1;
+                return (-1);
             }
 
             organism->chromosome = mem_alloc(sizeof(struct chromosome_ctx));
             if(organism->chromosome == NULL)
             {
                 output(ERROR, "Can't allocate chromosome context\n");
-                return -1;
+                return (-1);
             }
 
             organism->fitness = 0;
@@ -167,7 +167,7 @@ static int32_t init_world(void)
         world->species[i] = specie;
     }
 
-    return 0;
+    return (0);
 }
 
 static struct job_ctx *create_job(enum job_type type, uint32_t syscall_number)

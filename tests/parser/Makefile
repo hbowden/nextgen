@@ -2,7 +2,7 @@ SOURCES = test_cmd_parser.c ../test_utils.c ../../src/memory.c ../../src/io.c ..
 
 all:
 
-	$(CC) $(CFLAGS) $(SILENCED_WARNINGS) $(INCLUDES) $(SOURCES) $(LIBS) -o test_parser
+	$(CC) $(FLAGS) $(SILENCED_WARNINGS) $(INCLUDES) $(SOURCES) $(LIBS) -o test_parser
 
 .PHONY: clean
 clean:

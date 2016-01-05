@@ -210,8 +210,8 @@ int main(void)
         return (-1);
     }
 
-    stat = init_stats_obj();
-    if(stat == NULL)
+    test_stat = init_stats_obj();
+    if(test_stat == NULL)
     {
         output(ERROR, "Can't init the stats object\n");
         return (-1);

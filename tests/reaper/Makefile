@@ -5,7 +5,7 @@ SOURCES = test_reaper.c ../test_utils.c ../../src/memory.c ../../src/io.c ../../
 
 all:
 
-	$(CC) $(CFLAGS) $(SILENCED_WARNINGS) $(ENTRY_SOURCES) $(INCLUDES) $(SOURCES) $(LIBS) -o test_reaper
+	$(CC) $(FLAGS) $(SILENCED_WARNINGS) $(ENTRY_SOURCES) $(INCLUDES) $(SOURCES) $(LIBS) -o test_reaper
 
 .PHONY: clean
 clean:

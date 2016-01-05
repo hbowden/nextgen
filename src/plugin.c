@@ -1,7 +1,7 @@
 
 
 /**
- * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
+ * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice 
@@ -35,7 +35,7 @@ static struct plugin_ctx **plugins;
 int32_t supported_file(const char *file_extension, unsigned int *plugin_offset)
 {
 
-	return 0;
+	return (0);
 }
 
 static int32_t count_plugins(uint32_t *count)
@@ -66,7 +66,7 @@ static int32_t count_plugins(uint32_t *count)
         if(rtrn < 0)
         {
         	output(ERROR, "Can't get file extension\n");
-        	return -1;
+        	return (-1);
         }
 
         /* Increment the plugin count if the file is a shared object. */

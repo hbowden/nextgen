@@ -24,7 +24,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-struct stats *stat = NULL;
+struct stats *test_stat = NULL;
 
 static char *shared_path = NULL;
 
@@ -62,14 +62,14 @@ struct stats *init_stats_obj(void)
 
 #endif
     /* Map named shared object. */
-    stat = mmap(NULL, sizeof(struct stats), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-    if(stat == MAP_FAILED)
+    test_stat = mmap(NULL, sizeof(struct stats), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    if(test_stat == MAP_FAILED)
     {
         output(ERROR, "Can't mmap shared object: %s\n", strerror(errno));
         return NULL;
     }
 
-	return (stat);
+	return (test_stat);
 }
 
 struct stats *create_stats_obj(void)
@@ -99,33 +99,33 @@ struct stats *create_stats_obj(void)
     }
 
     /* Map named shared object. */
-    stat = mmap(NULL, sizeof(struct stats), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-    if(stat == MAP_FAILED)
+    test_stat = mmap(NULL, sizeof(struct stats), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    if(test_stat == MAP_FAILED)
     {
         output(ERROR, "Can't mmap shared object: %s\n", strerror(errno));
         return NULL;
     }
 
-	return (stat);
+	return (test_stat);
 }
-
+  
 /* Function for logging test results. */
 void log_test(enum log_type type, const char *input)
 {
 	switch((int32_t)type)
 	{
 		case DECLARE:
-            stat->test_ran++;
+            test_stat->test_ran++;
 		    output(STD, "[%s]\n", input);
 		    break;
 
 		case SUCCESS:
-		    stat->successes++;
+		    test_stat->successes++;
 		    output(STD, BOLD_GREEN"%s"RESET"\n", input);
 		    break;
 
 		case FAIL:
-		    stat->fails++;
+		    test_stat->fails++;
 		    output(STD, BOLD_RED"%s"RESET"\n", input);
 		    break;
 	}

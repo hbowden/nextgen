@@ -26,13 +26,14 @@
 #include <sys/wait.h>
 
 /* The number of test to run, keep in sync with test_paths  */
-static uint32_t number_of_test = 11;
+static uint32_t number_of_test = 13;
 
 /* Array of unit test file paths. */
 static char *test_paths[] = {
     "tests/memory/test_memory",
     "tests/concurrent/test_concurrent",
-    "tests/crypto/test_crypto", 
+    "tests/crypto/test_crypto",
+    "tests/utils/test_utils",
     "tests/parser/test_parser", 
     "tests/reaper/test_reaper",
     "tests/network/test_network",
@@ -41,6 +42,7 @@ static char *test_paths[] = {
     "tests/file/test_file",
     "tests/genetic/test_genetic",
     "tests/generate/test_generate",
+    "tests/plugin/test_plugins",
     NULL   
 };
 
@@ -128,18 +130,18 @@ int main(void)
     }
 
     /* Create the stats object. */
-    stat = create_stats_obj();
-    if(stat == NULL)
+    test_stat = create_stats_obj();
+    if(test_stat == NULL)
     {
         output(ERROR, "Can't create stats object\n");
         return (-1);
     }
 
     /* Set stats members to zero. */
-    stat->fails = 0;
-    stat->test_ran = 0;
-    stat->successes = 0;
-    stat->asserts_ran = 0;
+    test_stat->fails = 0;
+    test_stat->test_ran = 0;
+    test_stat->successes = 0;
+    test_stat->asserts_ran = 0;
 
     /* Loop and execute each test in the test array. */
     for(i = 0; i < number_of_test; i++)
@@ -157,7 +159,7 @@ int main(void)
 
     /* Output results. */
     output(STD, "[%d] %ld successful assertions, %ld test passed, and %ld test failed.\n", \
-          (100 * stat->successes) / stat->test_ran, stat->asserts_ran, stat->successes, stat->fails);
+          (100 * test_stat->successes) / test_stat->test_ran, test_stat->asserts_ran, test_stat->successes, test_stat->fails);
 
 	return (0);
 }

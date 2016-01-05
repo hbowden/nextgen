@@ -512,7 +512,7 @@ int32_t generate_whence(uint64_t **whence, struct child_ctx *ctx)
     switch(number)
     {
         case 0:
-            **whence = SEEK_SET;
+            (**whence) = SEEK_SET;
             break;
             
         case 1:
@@ -534,7 +534,7 @@ int32_t generate_whence(uint64_t **whence, struct child_ctx *ctx)
             break;
 
     #else
-         /* Nothing */
+        /* Nothing */
     #endif 
             
         default:
@@ -551,8 +551,8 @@ int32_t generate_offset(uint64_t **offset, struct child_ctx *ctx)
 {
     int32_t rtrn = 0;
 
-    *offset = mem_alloc(sizeof(uint64_t));
-    if(*offset == NULL)
+    (*offset) = mem_alloc(sizeof(uint64_t));
+    if((*offset) == NULL)
     {
         output(ERROR, "mem_alloc\n");
         return (-1);
@@ -632,7 +632,11 @@ int32_t generate_mount_flags(uint64_t **flag, struct child_ctx *ctx)
         return (-1);
     }
 
-    ctx->arg_size_index[ctx->current_arg] = sizeof(uint64_t);
+    /* Copy randomly chosen flag value to flag buffer. */
+    memcpy((*flag), &flags[number], sizeof(int32_t));
+
+    /* Set argument size. */
+    ctx->arg_size_index[ctx->current_arg] = sizeof(uint32_t);
 
     return (0);
 }
@@ -673,7 +677,11 @@ int32_t generate_unmount_flags(uint64_t **flag, struct child_ctx *ctx)
         return (-1);
     }
 
-    ctx->arg_size_index[ctx->current_arg] = sizeof(uint64_t);
+    /* Copy randomly chosen flag value to flag buffer. */
+    memcpy((*flag), &flags[number], sizeof(int32_t));
+
+    /* Set arg size. */
+    ctx->arg_size_index[ctx->current_arg] = sizeof(uint32_t);
 
     return (0);
 }
@@ -703,7 +711,7 @@ int32_t generate_request(uint64_t **flag, struct child_ctx *ctx)
                           PT_CLEARSTEP, PT_SUSPEND, PT_RESUME,
                           PT_TO_SCE, PT_TO_SCX, PT_SYSCALL,
                           PT_FOLLOW_FORK, PT_VM_TIMESTAMP,
-                          PT_VM_ENTRY};
+                          PT_VM_ENTRY };
 
     uint32_t range = 28;
 
