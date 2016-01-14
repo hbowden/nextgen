@@ -19,14 +19,16 @@
 #include "../../src/syscall.h"
 #include "../../src/nextgen.h"
 #include "../../src/memory.h"
+#include <signal.h>
 #include "test_utils.h"
+
+static pid_t reaper_pid;
 
 static int32_t test_reaper(void)
 {
 	log_test(DECLARE, "Testing reaper module");
 
-    int rtrn;
-    pid_t reaper_pid;
+    int32_t rtrn = 0;
 
     rtrn = setup_reaper_module(&reaper_pid);
     assert_stat(rtrn == 0);
@@ -34,7 +36,7 @@ static int32_t test_reaper(void)
 
     struct child_ctx *child = NULL;
 
-    unsigned int i = 0;
+    uint32_t i = 0;
 
     for(i = 0; i < number_of_children; i++)
     {
@@ -81,5 +83,9 @@ int main(void)
     if(rtrn < 0)
         log_test(FAIL, "Reaper test failed");
 
-    return (0);
+
+    /* Kill the reaper process. */
+    kill(reaper_pid, SIGKILL);
+
+    _exit(0);
 }

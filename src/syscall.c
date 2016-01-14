@@ -17,6 +17,7 @@
 
 #include "syscall.h"
 #include "entry.h"
+#include "probe.h"
 #include "syscall_table.h"
 #include "crypto.h"
 #include "signals.h"
@@ -56,7 +57,7 @@ static struct syscall_table_shadow *sys_table;
 int32_t cleanup_syscall_table(void)
 {
     
-    return 0;
+    return (0);
 }
 
 struct syscall_entry_shadow *get_entry(uint32_t syscall_number)
@@ -64,7 +65,7 @@ struct syscall_entry_shadow *get_entry(uint32_t syscall_number)
     /* If the syscall number passed is greater than the total number
     of syscalls return NULL. */
     if(syscall_number > sys_table->number_of_syscalls)
-        return NULL;
+        return (NULL);
 
     struct syscall_entry_shadow *entry = NULL;
 
@@ -73,7 +74,7 @@ struct syscall_entry_shadow *get_entry(uint32_t syscall_number)
     if(entry == NULL)
     {
         output(ERROR, "Can't allocate syscall entry\n");
-        return NULL;
+        return (NULL);
     }
 
     /* Set the entry to the one in the syscall table. */
@@ -82,6 +83,8 @@ struct syscall_entry_shadow *get_entry(uint32_t syscall_number)
     return (entry);
 }
 
+/* Don't use inside of the syscall module. This function is for 
+Other modules like the reaper module to get child processes. */
 struct child_ctx *get_child_from_index(uint32_t i)
 {
     if(i > number_of_children)
@@ -101,7 +104,7 @@ struct child_ctx *get_child_from_index(uint32_t i)
     return (child);
 }
 
-static int32_t get_child_index_number(void)
+static int32_t get_child_index_number(uint32_t *index_num)
 {
     uint32_t i = 0;
     pid_t pid = getpid();
@@ -110,30 +113,66 @@ static int32_t get_child_index_number(void)
     for(i = 0; i < number_of_children; i++)
     {
         if(atomic_load(&children[i]->pid) == pid)
-            return (int32_t)(i);
+        {
+            /* The PIDS match so set the index number and exit the function. */
+            (*index_num) = i;
+            return (0);
+        }
     }
-
     /* Should not get here, but if we do return an error. */
     return (-1);
 }
 
+static struct log_obj *create_log_object(struct child_ctx *ctx)
+{
+    struct log_obj *obj = NULL;
+
+    obj = mem_alloc(sizeof(struct log_obj));
+    if(obj == NULL)
+    {
+        output(ERROR, "Can't allocate a log object\n");
+        return (NULL);
+    }
+
+    obj->name_of_syscall = ctx->name_of_syscall;
+    obj->number_of_args = ctx->number_of_args;
+    obj->syscall_number = ctx->syscall_number;
+
+    uint32_t i;
+
+    obj->arg_value_index = ctx->arg_value_index;
+
+    for(i = 0; i < obj->number_of_args; i++)
+    {
+        obj->arg_value_index[i] = ctx->arg_value_index[i];
+    }
+
+    return (obj);
+}
+
 static void exit_child(void)
 {
-    int32_t child_number = 0;
+    int32_t rtrn = 0;
+    struct child_ctx *ctx = NULL;
 
-    /* Grab the child_ctx index number for this child process. */
-    child_number = get_child_index_number();
-    if(child_number < 0)
+    /* Get our childs context object. */
+    ctx = get_child_ctx();
+    if(ctx == NULL)
     {
-        output(ERROR, "Can't grab child number\n");
+        output(ERROR, "Can't get child context\n");
         _exit(-1);
     }
 
-    /* Grab child context. */
-    struct child_ctx *ctx = children[child_number];
+    /* Clean up kernel probes. */
+    rtrn = cleanup_kernel_probes(ctx->probe_handle);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't clean up kernel probes");
+        _exit(-1);
+    }
 
     /* Set the PID as empty. */
-    cas_loop_int32(&children[child_number]->pid, EMPTY); 
+    cas_loop_int32(&ctx->pid, EMPTY); 
 
     /* Decrement the running child counter. */
     atomic_fetch_sub(&running_children, 1);
@@ -161,30 +200,56 @@ static int32_t free_old_arguments(struct child_ctx *ctx)
         /* Handle args that require special cleanup procedures. */
         switch((int32_t)entry->arg_context_index[i]->type)
         {
+            /* Below is the resource types ie they are from resource.h. They must be freed using special
+            functions and the free must be done on the arg_copy_index so 
+            the free_* functions don't use the mutated value in arg_value_index. */
             case FILE_DESC:
-                rtrn = free_desc((int32_t *)ctx->arg_value_index[i]);
+                rtrn = free_desc((int32_t *)ctx->arg_copy_index[i]);
                 if(rtrn < 0)
                     output(ERROR, "Can't free descriptor\n");
                     /* Don't return on errors, just keep looping. */
                 break;
 
             case FILE_PATH:
-                rtrn = free_filepath((char **)&(ctx->arg_value_index[i]));
+                rtrn = free_filepath((char **)&(ctx->arg_copy_index[i]));
                 if(rtrn < 0)
                     output(ERROR, "Can't free filepath\n");
                     /* Don't return on errors, just keep looping. */
                 break;
 
             case DIR_PATH:
-                rtrn = free_dirpath((char **)&(ctx->arg_value_index[i]));
+                rtrn = free_dirpath((char **)&(ctx->arg_copy_index[i]));
                 if(rtrn < 0)
                     output(ERROR, "Can't free dirpath\n");
                     /* Don't return on errors, just keep looping. */
                 break;
 
+            case SOCKET:
+                rtrn = free_socket((int32_t *)ctx->arg_copy_index[i]);
+                if(rtrn < 0)
+                    output(ERROR, "Can't free socket\n");
+                    /* Don't return on errors, just keep looping. */
+                break;
+            /* End of resource types. */
+
+            /* Clean this with mem_free_shared(). */
+            case VOID_BUF:
+                mem_free_shared(ctx->arg_value_index[i], ctx->arg_size_index[i]);
+                break;
+
+            /* Kill the temp process using the copy value
+               so that we don't use the mutated value
+               in arg_value_index[i]. */
+            case PID:
+                rtrn = kill((pid_t)(*ctx->arg_copy_index[i]), SIGKILL);
+                if(rtrn < 0)
+                    output(ERROR, "Can't kill child: %s\n", strerror(errno));
+                    /* Don't return on errors, just keep looping. */
+                break;
+
             default:
                 /* Free value if non NULL. */
-                //mem_free(ctx->arg_value_index[i]);
+                mem_free(ctx->arg_value_index[i]);
                 break;
         }
     }
@@ -201,38 +266,141 @@ static struct job_ctx *get_job(struct child_ctx *ctx)
     if(job == NULL)
     {
         output(ERROR, "Can't recieve message\n");
-        return NULL;
+        return (NULL);
     }
 
     return (job);
 }
 
+static int32_t process_new_generation(struct job_ctx *job)
+{
+    return (0);
+}
+
+static int32_t process_genesis(struct job_ctx *job)
+{
+    int32_t rtrn = 0;
+    struct log_obj *obj = NULL;
+    struct child_ctx *ctx = NULL;
+
+    /* Get our child context. */
+    ctx = get_child_ctx();
+    if(ctx == NULL)
+    {
+        output(ERROR, "Can't get child context\n");
+        exit_child();
+    }
+  
+    /* Set the return jump so that we can try fuzzing again on a signal. */
+    rtrn = setjmp(ctx->return_jump);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't set return jump\n");
+        exit_child();
+    }
+
+    /* Randomly pick the syscall to test. */
+    rtrn = pick_syscall(ctx);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't pick syscall to test\n");
+        exit_child();
+    }
+
+    /* Generate arguments for the syscall selected. */
+    rtrn = generate_arguments(ctx);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't generate arguments\n");
+        exit_child();
+    }
+
+    /* Mutate the arguments randomly. */
+    rtrn = mutate_arguments(ctx);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't mutate arguments\n");
+        exit_child();
+    }
+
+    /* Create a log object to pass to the logging module. */
+    obj = create_log_object(ctx);
+    if(obj == NULL)
+    {
+        output(ERROR, "Can't create log object\n");
+        exit_child();
+    }
+
+    /* Log the arguments before we use them, in case we cause a
+    kernel panic, so we know what caused the panic. */
+    rtrn = log_arguments(obj);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't log arguments\n");
+        exit_child();
+    }
+
+    /* Run the syscall we selected with the arguments we generated and mutated. This call usually
+    crashes and causes us to jumb back to the setjmp call above.*/
+    rtrn = test_syscall(ctx);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Syscall call failed\n");
+        exit_child();
+    }
+
+    obj->err_value = ctx->err_value;
+    obj->had_error = ctx->had_error;
+    obj->ret_value = ctx->ret_value;
+
+    /* Log return values. */
+    rtrn = log_results(obj);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't log results\n");
+        exit_child();
+    }
+
+    /* If we didn't crash cleanup are mess. If we don't do this the generate
+    functions will crash in a hard to understand way. */
+    free_old_arguments(ctx);
+
+    return (0);
+}
+
 static int32_t do_job(struct job_ctx *job)
 {
-    printf("Loop\n");
-    
-    return (0);
+    /* Figure out what job type is being process. */
+    switch((int32_t)job->type)
+    {
+        case GENESIS:
+            return (process_genesis(job));
+
+        case NEW_GENERATION:
+            return (process_new_generation(job));
+
+        default:
+            output(ERROR, "Unknown job type\n");
+            return (-1);
+    }
 }
 
 static void start_smart_syscall_child(void)
 {
     int32_t rtrn = 0;
-    int32_t child_number = 0;
+    struct child_ctx *ctx = NULL;
 
-    /* Grab the child_ctx index number for this child process. */
-    child_number = get_child_index_number();
-    if(child_number < 0)
+    ctx = get_child_ctx();
+    if(ctx == NULL)
     {
-        output(ERROR, "Can't grab child number\n");
+        output(ERROR, "Can't get child context\n");
         exit_child();
     }
 
-    /* Grab child context. */
-    struct child_ctx *ctx = children[child_number];
-
     /* Set the return jump so that we can try fuzzing again on a signal. This 
     is required on some operating systems because they can't clean up old 
-    processes fast enough for us. */
+    processes fast enough for us. It also alows us to do PRNG seeding and
+    probe injection and teardown less often. */
     rtrn = setjmp(ctx->return_jump);
     if(rtrn < 0)
     {
@@ -265,31 +433,33 @@ static void start_smart_syscall_child(void)
     exit_child();
 }
 
-static struct log_obj *create_log_object(struct child_ctx *ctx)
+struct child_ctx *get_child_ctx(void)
 {
-    struct log_obj *obj = NULL;
+    int32_t rtrn = 0;
+    uint32_t child_number = 0;
+    struct child_ctx *child = NULL;
 
-    obj = mem_alloc(sizeof(struct log_obj));
-    if(obj == NULL)
+    /* Allocate a child context object. */
+    child = mem_alloc(sizeof(struct child_ctx));
+    if(child == NULL)
     {
-        output(ERROR, "Can't allocate a log object\n");
+        output(ERROR, "Can't allocate child context\n");
         return (NULL);
     }
 
-    obj->name_of_syscall = ctx->name_of_syscall;
-    obj->number_of_args = ctx->number_of_args;
-    obj->syscall_number = ctx->syscall_number;
-
-    uint32_t i;
-
-    obj->arg_value_index = ctx->arg_value_index;
-
-    for(i = 0; i < obj->number_of_args; i++)
+    /* Grab the child_ctx index number for this child process. */
+    rtrn = get_child_index_number(&child_number);
+    if(rtrn < 0)
     {
-        obj->arg_value_index[i] = ctx->arg_value_index[i];
+        output(ERROR, "Can't grab child number\n");
+        return (NULL);
     }
 
-    return (obj);
+    /* Grab child context. */
+    child = children[child_number];
+
+    /* Return our child context. */
+    return (child);
 }
 
 /**
@@ -298,20 +468,17 @@ static struct log_obj *create_log_object(struct child_ctx *ctx)
 static void start_syscall_child(void)
 {
     int32_t rtrn = 0;
-    int32_t child_number = 0;
     struct log_obj *obj = NULL;
+    struct child_ctx *ctx = NULL;
 
-    /* Grab the child_ctx index number for this child process. */
-    child_number = get_child_index_number();
-    if(child_number < 0)
+    /* Get our child context. */
+    ctx = get_child_ctx();
+    if(ctx == NULL)
     {
-        output(ERROR, "Can't grab child number\n");
+        output(ERROR, "Can't get child context\n");
         exit_child();
     }
-
-    /* Grab child context. */
-    struct child_ctx *ctx = children[child_number];
-
+  
     /* Set the return jump so that we can try fuzzing again on a signal. */
     rtrn = setjmp(ctx->return_jump);
     if(rtrn < 0)
@@ -394,28 +561,6 @@ static void start_syscall_child(void)
     exit_child();
 }
 
-struct child_ctx *get_child_ctx(void)
-{
-    struct child_ctx *child = NULL;
-
-    child = mem_alloc(sizeof(struct child_ctx));
-    if(child == NULL)
-    {
-        output(ERROR, "Can't allocate child context\n");
-        return NULL;
-    }
-
-    child = get_child_ctx();
-    if(child == NULL)
-    {
-        output(ERROR, "Can't get child context\n");
-        mem_free(child); /* Free on error so we don't leak memory. */
-        return NULL;
-    }
-
-    return (child);
-}
-
 static int32_t init_syscall_child(uint32_t i)
 {
     int32_t rtrn = 0;
@@ -438,6 +583,18 @@ static int32_t init_syscall_child(uint32_t i)
         }
     }
 
+    /* check if we are in smart mode. */
+    if(map->smart_mode == TRUE)
+    {
+        /* Inject probes into the kernel. */
+        rtrn = inject_kernel_probes(children[i]->probe_handle);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't init child probes\n");
+            return (-1);
+        }
+    }
+
     /* Increment the running child counter. */
     atomic_fetch_add(&running_children, 1);
 
@@ -447,16 +604,53 @@ static int32_t init_syscall_child(uint32_t i)
     return (0);
 }
 
+static int32_t hold_for_child(uint32_t i)
+{
+    char *msg_buf auto_clean = NULL;
+
+    msg_buf = mem_alloc(2);
+    if(msg_buf == NULL)
+    {
+        output(ERROR, "Can't create message buf: %s\n", strerror(errno));
+        return (-1);
+    }
+
+    /* Wait for the child to be done setting up. */
+    ssize_t ret = read(children[i]->pipe_port[0], msg_buf, 1);
+    if(ret < 1)
+    {
+        output(ERROR, "Problem waiting for child setup: %s\n", strerror(errno));
+        return (-1);
+    }
+
+    return (0);
+}
+
+static void start_child(void)
+{
+    /* If were in dumb mode start the dumb syscall loop. */
+    if(map->smart_mode != TRUE)
+    {
+        start_syscall_child();
+
+        return;
+    }
+
+    start_smart_syscall_child();
+
+    return;
+}
+
 void create_syscall_children(void)
 {
     uint32_t i = 0;
     int32_t rtrn = 0;
 
-    /* Walk the child structure index and find the first empty child slot. */
+    /* Walk the child structure array and find the first empty child slot. */
     for(i = 0; i < number_of_children; i++)
     {
-        /* If the child has a pid of EMPTY let's create a new one. */
-        if(atomic_load(&children[i]->pid) == EMPTY)
+        /* If the child does not have a pid of EMPTY let's create a new one. */
+        if(atomic_load(&children[i]->pid) != EMPTY)
             continue;
 
         pid_t child_pid = 0;
@@ -467,38 +661,23 @@ void create_syscall_children(void)
             /* Initialize the new syscall child. */
             init_syscall_child(i);
 
-            /* If were in dumb mode start the dumb syscall loop. */
-            if(map->smart_mode != TRUE)
-            {
-                start_syscall_child();
+            /* Start the newly created syscall child's main loop. */
+            start_child();
 
-                _exit(0);
-            }
-            else
-            {
-                start_smart_syscall_child();
-
-                _exit(0);
-            }
+            /* Exit and cleanup process. */
+            _exit(0);
         }
         else if(child_pid > 0)
         {
-            char *msg_buf auto_clean = NULL;
-
-            msg_buf = mem_alloc(2);
-            if(msg_buf == NULL)
+            /* Wait for the child process to setup. */
+            rtrn = hold_for_child(i);
+            if(rtrn < 0)
             {
-                output(ERROR, "Can't create message buf: %s\n", strerror(errno));
-                return;
-            }
+                output(ERROR, "Can't wait for child process setup\n");
+                _exit(-1);
 
-            /* Wait for the child to be done setting up. */
-            ssize_t ret = read(children[i]->pipe_port[0], msg_buf, 1);
-            if(ret < 1)
-            {
-                output(ERROR, "Problem waiting for child setup: %s\n", strerror(errno));
-                return;
             }
+            return;
         }
         else
         {
@@ -506,7 +685,6 @@ void create_syscall_children(void)
             return;
         }
     }
-    return;
 }
 
 struct syscall_table_shadow *get_syscall_table(void)
@@ -516,7 +694,7 @@ struct syscall_table_shadow *get_syscall_table(void)
 
     /* Grab a copy of the syscall table in on disk format. */ 
     syscall_table = get_table();
-    if(sys_table == NULL)
+    if(syscall_table == NULL)
     {
         output(STD, "Can't grab syscall table\n");
         return (NULL);
@@ -546,9 +724,6 @@ struct syscall_table_shadow *get_syscall_table(void)
 
     /* This is the entry offset, it one because the entries start at [1] instead of [0]; */
     uint32_t offset = 1;
-
-    /* We use this to track where to put the new entry in the entry index. */
-    uint32_t shadow_entry_offset = 0;
 
     uint32_t loops = shadow_table->number_of_syscalls;
 
@@ -580,11 +755,13 @@ struct syscall_table_shadow *get_syscall_table(void)
  
         memmove(entry, &entry_obj, sizeof(struct syscall_entry_shadow));
  
-        /* Loop for each arg and set the arg index's. */
+        /* Loop for each arg and set the arg array's. */
         for(ii = 0; ii < entry->number_of_args; ii++)
         {
+            /* Set the get argument function pointers. */
             entry->get_arg_index[ii] = syscall_table[i + offset].sys_entry->get_arg_index[ii];
 
+            /* Set argument type context structs. */
             entry->arg_context_index[ii] = get_arg_context((enum arg_type)syscall_table[i + 1].sys_entry->arg_type_index[ii]);
             if(entry->arg_context_index[ii] == NULL)
             {
@@ -597,45 +774,38 @@ struct syscall_table_shadow *get_syscall_table(void)
         atomic_init(&entry->status, ON);
 
         /* Set the newly created entry in the index. */
-        shadow_table->sys_entry[shadow_entry_offset] = entry;
+        shadow_table->sys_entry[i] = entry;
 
-        /* Increment offset. */
-        shadow_entry_offset++;
-    }
+    } /* End of loop. */
 
-    if(shadow_entry_offset == 0)
+    /* Check if we have a empty syscall table. */
+    if(i == 0)
     {
         output(ERROR, "Empty syscall table\n");
         return (NULL);
     }
-
+    
     return (shadow_table);
 }
 
 /* This function is used to randomly pick the syscall to test. */
 int32_t pick_syscall(struct child_ctx *ctx)
 {
-    /* Use rand_range to pick a number between 0 and the number_of_syscalls.  */
-    int32_t rtrn = rand_range(sys_table->number_of_syscalls, &ctx->syscall_number);
+    /* Use rand_range to pick a number between 0 and the number_of_syscalls. The minus one
+    is a hack, get_syscall_table() returns an array - 1 the size of number of syscalls 
+    and should be fixed. */
+    int32_t rtrn = rand_range(sys_table->number_of_syscalls - 1, &ctx->syscall_number);
     if(rtrn < 0)
     {
         output(ERROR, "Can't generate random number\n");
         return (-1);
     }
 
-    /* Copy entry values into the child context. */
-    ctx->number_of_args = sys_table->sys_entry[ctx->syscall_number]->number_of_args;
-
-    /* Set values in ctx so we can get info from ctx instead using all these pointers. */ 
-    ctx->need_alarm = sys_table->sys_entry[ctx->syscall_number]->need_alarm;
-
-    /* Set the syscall symbol. */
+    /* Set syscall value's. */
     ctx->syscall_symbol = sys_table->sys_entry[ctx->syscall_number]->syscall_symbol;
-
-    /* Set syscall name. */
     ctx->name_of_syscall = sys_table->sys_entry[ctx->syscall_number]->name_of_syscall;
-
-    /* Set had error to NO.  */
+    ctx->need_alarm = sys_table->sys_entry[ctx->syscall_number]->need_alarm;
+    ctx->number_of_args = sys_table->sys_entry[ctx->syscall_number]->number_of_args;
     ctx->had_error = NO;
 
     return (0);
@@ -661,7 +831,7 @@ int32_t generate_arguments(struct child_ctx *ctx)
             return (-1);
         }
 
-        /* Copy the argument into the argument copy index. */
+        /* Copy the argument into the argument copy array. */
         memcpy(ctx->arg_copy_index[i], ctx->arg_value_index[i], ctx->arg_size_index[i]);
     }
 
@@ -788,7 +958,7 @@ static struct child_ctx *init_child_context(void)
         return (NULL);
     }
 
-    /* This index tracks the size of of the argument generated.  */
+    /* This index tracks the size of the argument generated.  */
     child->arg_size_index = mem_alloc(ARG_LIMIT * sizeof(uint64_t));
     if(child->arg_size_index == NULL)
     {
@@ -813,13 +983,20 @@ static struct child_ctx *init_child_context(void)
 
     uint32_t i = 0;
 
-    /* Loop and create the various indecies in the child struct. */
+    /* Loop and create the various arrays in the child struct. */
     for(i = 0; i < ARG_LIMIT; i++)
     {
-        child->arg_value_index[i] = mem_alloc(sizeof(uint64_t));
+        child->arg_value_index[i] = mem_alloc(ARG_BUF_LEN);
         if(child->arg_value_index[i] == NULL)
         {
             output(ERROR, "Can't create arg value\n");
+            return (NULL);
+        }
+
+        child->arg_copy_index[i] = mem_alloc(ARG_BUF_LEN);
+        if(child->arg_copy_index[i] == NULL)
+        {
+            output(ERROR, "Can't create arg copy value\n");
             return (NULL);
         }
     }

@@ -21,7 +21,7 @@ struct syscall_entry entry_getfsstat = {
 
     .name_of_syscall = "getfsstat",
     .syscall_symbol = SYS_getfsstat,
-    .number_of_args = 1,
+    .number_of_args = 3,
     .status = ON,
     .requires_root = NO,
     .need_alarm = NO,
@@ -34,5 +34,4 @@ struct syscall_entry entry_getfsstat = {
 
     .arg_type_index[THIRD_ARG] = STAT_FLAG,
     .get_arg_index[THIRD_ARG] = &generate_fs_stat_flag    
-
 };

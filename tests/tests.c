@@ -19,6 +19,7 @@
 #include "../../src/memory.h"
 
 #include <stdio.h>
+#include <signal.h>
 #include <string.h>
 #include <stdint.h>
 #include <errno.h>
@@ -35,18 +36,18 @@ static char *test_paths[] = {
     "tests/crypto/test_crypto",
     "tests/utils/test_utils",
     "tests/parser/test_parser", 
-    "tests/reaper/test_reaper",
     "tests/network/test_network",
+    "tests/generate/test_generate",
     "tests/resource/test_resource",
+    "tests/reaper/test_reaper",
     "tests/syscall/test_syscall",
     "tests/file/test_file",
     "tests/genetic/test_genetic",
-    "tests/generate/test_generate",
     "tests/plugin/test_plugins",
     NULL   
 };
 
-static int exec_test(char *path)
+static int32_t exec_test(char *path)
 {
 	int32_t rtrn = 0;
 	pid_t exec_pid = 0;
@@ -90,7 +91,10 @@ static int exec_test(char *path)
         /* Make sure the process exited normally, if not return an error. */
     	if(WIFEXITED(status) != 0)
     	{
-    		/* Return the exit status from the child process. */
+            if(WEXITSTATUS(status) != 0)
+                kill(exec_pid, SIGKILL);
+
+            /* Return the exit status from the child process. */
             return (WEXITSTATUS(status));
     	}
     	else
@@ -103,6 +107,8 @@ static int exec_test(char *path)
             }
 
             log_test(FAIL, buf);
+
+            kill(exec_pid, SIGKILL);
 
             return (-1);
     	}
@@ -151,7 +157,6 @@ int main(void)
     	if(rtrn < 0)
         {
             output(ERROR, "Can't exec unit test\n");
-
             /* Continue executing the test suite. */
     	    continue;
         }

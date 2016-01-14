@@ -19,7 +19,7 @@
 #include "../../src/resource.c"
 #include "../../src/crypto.h"
 
-static uint32_t iterations = 100;
+static uint32_t iterations = 10000;
 
 static int32_t test_clean_file_pool(void)
 {
@@ -54,7 +54,7 @@ static int32_t test_clean_file_pool(void)
     i = 0;
 
     /* Loop and grab all the file paths in the allocated list. */
-    SLIST_FOREACH(m_blk, &file_pool->allocated_list, list_entry)
+    SLIST_FOREACH(m_blk, &file_pool->allocated_list)
     {
         struct resource_ctx *resource = (struct resource_ctx *)m_blk->ptr;
 
@@ -65,7 +65,7 @@ static int32_t test_clean_file_pool(void)
     }
 
      /* Now check the free list for any resource blocks. */
-    SLIST_FOREACH(m_blk, &file_pool->free_list, list_entry)
+    SLIST_FOREACH(m_blk, &file_pool->free_list)
     {
         struct resource_ctx *resource = (struct resource_ctx *)m_blk->ptr;
 
@@ -83,7 +83,7 @@ static int32_t test_clean_file_pool(void)
     assert_stat(rtrn == 0);
 
     /* Make sure there is no allocated block in the free list. */
-    SLIST_FOREACH(m_blk, &file_pool->free_list, list_entry)
+    SLIST_FOREACH(m_blk, &file_pool->free_list)
     {
         /* The memory block should be NULL. */
         assert_stat(m_blk == NULL);
@@ -96,7 +96,7 @@ static int32_t test_clean_file_pool(void)
     }
 
     /* Now check the allocated list. */
-    SLIST_FOREACH(m_blk, &file_pool->allocated_list, list_entry)
+    SLIST_FOREACH(m_blk, &file_pool->allocated_list)
     {
         /* The memory block should be NULL. */
         assert_stat(m_blk == NULL);
@@ -188,7 +188,6 @@ static int32_t test_get_dirpath(void)
     for(i = 0; i < iterations; i++)
     {
         dirpath = get_dirpath();
-
         assert_stat(dirpath != NULL);
 
         free_dirpath(&dirpath);
@@ -210,7 +209,6 @@ static int32_t test_get_file(void)
     for(i = 0; i < iterations; i++)
     {
         path = get_filepath();
-
         assert_stat(path != NULL);
 
         free_filepath(&path);
@@ -315,5 +313,5 @@ int main(void)
     if(rtrn < 0)
         log_test(FAIL, "clean_file_pool test failed");
 
-	return (0);
+	_exit(0);
 }

@@ -70,7 +70,7 @@ static int32_t get_file(int32_t *file, char **extension)
 	uint32_t offset = 0;
 
     /* Pick a file index offset at random. */
-	rtrn = rand_range(file_count, &offset);
+    rtrn = rand_range(file_count, &offset);
 	if(rtrn < 0)
 	{
 		output(ERROR, "Can't pick random number\n");
@@ -244,7 +244,6 @@ static int32_t test_exec_with_file_in_child(char *file_path, char *file_extensio
     {
         if(atomic_load(&map->stop) == TRUE)
              _exit(0);
-
 
         char * const argv[] = {file_path, NULL};
 

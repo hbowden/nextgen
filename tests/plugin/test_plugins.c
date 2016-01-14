@@ -59,5 +59,5 @@ int main(void)
     if(rtrn)
     	log_test(FAIL, "Setup plugin module test failed");
 
-    return (0);
+    _exit(0);
 }

@@ -28,5 +28,4 @@ struct syscall_entry entry_close = {
 
     .arg_type_index[FIRST_ARG] = FILE_DESC,
     .get_arg_index[FIRST_ARG] = &generate_fd
-
 };

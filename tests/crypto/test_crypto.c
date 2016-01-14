@@ -237,5 +237,5 @@ int main(void)
     if(rtrn < 0)
         log_test(FAIL, "random bytes test failed");
 
-    return (0);
+    _exit(0);
 }

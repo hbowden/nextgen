@@ -378,6 +378,6 @@ int main(void)
     if(rtrn < 0)
         log_test(FAIL, "anonymous shared memory allocator test failed");
 
-    return (0);
+    _exit(0);
 }
 

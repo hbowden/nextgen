@@ -1,7 +1,7 @@
 
 
 /**
- * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
+ * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice 
@@ -18,12 +18,10 @@
 #ifndef SIGNAL_H
 #define SIGNAL_H
 
-#include "private.h"
+extern void setup_signal_handler(void);
 
-private extern void setup_signal_handler(void);
+extern void setup_reaper_signal_handler(void);
 
-private extern void setup_reaper_signal_handler(void);
-
-private extern void setup_syscall_child_signal_handler(void);
+extern void setup_syscall_child_signal_handler(void);
 
 #endif

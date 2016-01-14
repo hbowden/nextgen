@@ -17,6 +17,7 @@
 
 #include <stdint.h>
 #include <unistd.h>
+#include <signal.h>
 #include "test_utils.h"
 #include "resource.h"
 #include "crypto.h"
@@ -25,7 +26,7 @@
 #include "network.h"
 #include "../../src/syscall.c"
 
-static uint32_t iterations = 100;
+static uint32_t iterations = 10000;
 
 static int32_t test_generate_fd(void)
 {
@@ -80,6 +81,8 @@ static int32_t test_generate_socket(void)
 
         /* Make sure we can write to the descriptor. */
         assert_stat(write((*fd), "TEST", 4) == 4);
+
+        free_socket(fd);
     }
 
     log_test(SUCCESS, "Generate socket test passed");
@@ -107,6 +110,8 @@ static int32_t test_generate_unmount_flags(void)
 	    assert_stat(flag != NULL);
 	    assert_stat((*flag) > 0);
 	    assert_stat(child->arg_size_index[0] > 0);
+
+	    mem_free(flag);
     }
 
 	log_test(SUCCESS, "Generate unmount flags test passed");
@@ -134,6 +139,7 @@ static int32_t test_generate_request(void)
 	    assert_stat(request != NULL);
 	    assert_stat((*request) >= 0);
 	    assert_stat(child->arg_size_index[0] > 0);
+	    mem_free(request);
     }
 
 	log_test(SUCCESS, "Generate request test passed");
@@ -213,7 +219,6 @@ static int32_t test_generate_dev(void)
 	    rtrn = generate_dev((uint64_t **)&dev, child);
 	    assert_stat(rtrn == 0);
 	    assert_stat(dev != NULL);
-	    assert_stat((*dev) > 0);
 	    assert_stat(child->arg_size_index[0] > 0);
     }
 
@@ -298,9 +303,10 @@ static int32_t test_generate_path(void)
 	    assert_stat(fd > 0);
 	    assert_stat(child->arg_size_index[0] > 0);
 	    close(fd);
+	    free_filepath(&path);
     }
 
-	log_test(SUCCESS, "Generate length test passed");
+	log_test(SUCCESS, "Generate path test passed");
 
 	return (0);
 }
@@ -350,7 +356,6 @@ static int32_t test_generate_open_flag(void)
 	    rtrn = generate_open_flag((uint64_t **)&flag, child);
 	    assert_stat(rtrn == 0);
 	    assert_stat(flag != NULL);
-	    assert_stat((*flag) > 0);
 	    assert_stat(child->arg_size_index[0] > 0);
     }
 
@@ -431,6 +436,7 @@ static int32_t test_generate_dirpath(void)
 	    assert_stat(rtrn == 0);
 	    assert_stat(dirpath != NULL);
 	    assert_stat(child->arg_size_index[0] > 0);
+	    free_dirpath(&dirpath);
     }
 
 	log_test(SUCCESS, "Generate dirpath test passed");
@@ -609,13 +615,15 @@ static int32_t test_generate_pid(void)
 
 	uint32_t i;
 
-    for(i = 0; i < iterations; i++)
+    /* Only do 100 hundred because creating PID's are expensive. */
+    for(i = 0; i < 100; i++)
     {
 	    rtrn = generate_pid((uint64_t **)&pid, child);
 	    assert_stat(rtrn == 0);
 	    assert_stat(pid != NULL);
 	    assert_stat((*pid) >= 0);
 	    assert_stat(child->arg_size_index[0] > 0);
+	    kill((*pid), SIGKILL);
     }
 
 	log_test(SUCCESS, "Generate PID test passed");
@@ -658,10 +666,6 @@ int main(void)
     	return (-1);
     }
 
-    rtrn = test_generate_unmount_flags();
-    if(rtrn < 0)
-        log_test(FAIL, "Generate unmount flags test failed");
-
     rtrn = test_generate_request();
     if(rtrn < 0)
         log_test(FAIL, "Generate request test failed");
@@ -678,10 +682,6 @@ int main(void)
     if(rtrn < 0)
         log_test(FAIL, "Generate dev_t test failed");
 
-    rtrn = test_generate_fd();
-    if(rtrn < 0)
-    	log_test(FAIL, "Generate desc test failed!");
-
     rtrn = test_generate_socket();
     if(rtrn < 0)
     	log_test(FAIL, "Generate socket test failed!");
@@ -693,10 +693,6 @@ int main(void)
     rtrn = test_generate_dirpath();
     if(rtrn < 0)
     	log_test(FAIL, "Generate dirpath test failed");
-
-    rtrn = test_generate_mount_type();
-    if(rtrn < 0)
-    	log_test(FAIL, "Generate mount type");
 
     rtrn = test_generate_offset();
     if(rtrn < 0)
@@ -746,6 +742,17 @@ int main(void)
     if(rtrn < 0)
     	log_test(FAIL, "Generate length test failed");
 
-    return (0);
+    rtrn = test_generate_fd();
+    if(rtrn < 0)
+    	log_test(FAIL, "Generate desc test failed!");
 
+    rtrn = test_generate_unmount_flags();
+    if(rtrn < 0)
+        log_test(FAIL, "Generate unmount flags test failed");
+
+    rtrn = test_generate_mount_type();
+    if(rtrn < 0)
+    	log_test(FAIL, "Generate mount type");
+
+    _exit(0);
 }

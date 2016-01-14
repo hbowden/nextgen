@@ -6,7 +6,7 @@ SOURCES = $(UNIT_TEST).c ../test_utils.c ../../src/memory.c ../../src/io.c \
 
 all:
 
-	$(CC) $(FLAGS) $(SILENCED_WARNINGS) $(INCLUDES) $(SOURCES) $(LIBS) -o $(UNIT_TEST)
+	$(CC) $(FLAGS) $(SILENCED_WARNINGS) $(INCLUDES) $(SOURCES) $(LIB) -o $(UNIT_TEST)
 
 .PHONY: clean
 clean:

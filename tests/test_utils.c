@@ -20,6 +20,8 @@
 #include "../src/utils.h"
 
 #include <errno.h>
+#include <string.h>
+#include <signal.h>
 #include <sys/mman.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -49,7 +51,6 @@ struct stats *init_stats_obj(void)
     }
 
 #endif
-
 #ifdef FREEBSD
 
     /* Create named shared memory. */
@@ -57,7 +58,7 @@ struct stats *init_stats_obj(void)
     if(fd < 0)
     {
         output(ERROR, "Can't create named shared memory\n");
-        return NULL;
+        return (NULL);
     }
 
 #endif
@@ -66,7 +67,7 @@ struct stats *init_stats_obj(void)
     if(test_stat == MAP_FAILED)
     {
         output(ERROR, "Can't mmap shared object: %s\n", strerror(errno));
-        return NULL;
+        return (NULL);
     }
 
 	return (test_stat);
@@ -79,7 +80,7 @@ struct stats *create_stats_obj(void)
     if(shared_path == NULL)
     {
     	output(ERROR, "Call init_test_framework() first.\n");
-    	return NULL;
+    	return (NULL);
     }
 
     shm_unlink(shared_path);
@@ -89,13 +90,13 @@ struct stats *create_stats_obj(void)
     if(fd < 0)
     {
         output(ERROR, "Can't create named shared memory: %s\n", strerror(errno));
-        return NULL;
+        return (NULL);
     }
 
     if(ftruncate(fd, sizeof(struct stats)) == -1)
     {
     	output(ERROR, "Can't set size: %s\n", strerror(errno));
-    	return NULL;
+    	return (NULL);
     }
 
     /* Map named shared object. */
@@ -103,21 +104,21 @@ struct stats *create_stats_obj(void)
     if(test_stat == MAP_FAILED)
     {
         output(ERROR, "Can't mmap shared object: %s\n", strerror(errno));
-        return NULL;
+        return (NULL);
     }
 
 	return (test_stat);
 }
   
 /* Function for logging test results. */
-void log_test(enum log_type type, const char *input)
+int32_t log_test(enum log_type type, const char *input)
 {
 	switch((int32_t)type)
 	{
 		case DECLARE:
             test_stat->test_ran++;
 		    output(STD, "[%s]\n", input);
-		    break;
+            break;
 
 		case SUCCESS:
 		    test_stat->successes++;
@@ -129,8 +130,7 @@ void log_test(enum log_type type, const char *input)
 		    output(STD, BOLD_RED"%s"RESET"\n", input);
 		    break;
 	}
-    
-	return;
+	return (0);
 }
 
 int32_t init_test_framework(void)

@@ -28,5 +28,4 @@ struct syscall_entry entry_unlink = {
 
     .arg_type_index[FIRST_ARG] = FILE_PATH,
     .get_arg_index[FIRST_ARG] = &generate_path
-
 };

@@ -26,6 +26,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <sys/time.h>
+#include <dtrace.h>
 
 struct child_ctx
 {
@@ -61,6 +62,8 @@ struct child_ctx
     uint32_t number_of_args;
 
     bool need_alarm;
+
+    dtrace_hdl_t *probe_handle;
 
     /* Time that we made the syscall fuzz test. */
     struct timeval time_of_syscall;

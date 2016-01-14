@@ -1,7 +1,7 @@
 
 
 /**
- * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
+ * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice 
@@ -23,14 +23,12 @@
 #include "shim.h"
 
 #include <inttypes.h>
-#include <dtrace.h>
 #include <errno.h>
 #include <string.h>
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <sys/ptrace.h>
 
-/* As the name implies this is a handle used for dtrace. */
 static dtrace_hdl_t *dtrace_handle;
 
 static dtrace_proginfo_t info;
@@ -43,10 +41,16 @@ static char *const args[] = { NULL, NULL };
 
 static pid_t target_pid;
 
-int inject_kernel_probes(void)
+int32_t inject_kernel_probes(dtrace_hdl_t *handle)
 {
+
     
-    return 0;
+    return (0);
+}
+
+int32_t cleanup_kernel_probes(dtrace_hdl_t *handle)
+{
+    return (0);
 }
 
 int inject_fork_server(void)

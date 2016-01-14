@@ -34,5 +34,4 @@ struct syscall_entry entry_open = {
 
     .arg_type_index[THIRD_ARG] = MODE,
     .get_arg_index[THIRD_ARG] = &generate_mode    
-
 };

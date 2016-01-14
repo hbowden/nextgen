@@ -34,5 +34,4 @@ struct syscall_entry entry_read = {
 
     .arg_type_index[THIRD_ARG] = SIZE,
     .get_arg_index[THIRD_ARG] = &generate_length
-
 };

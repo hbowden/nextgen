@@ -34,7 +34,7 @@
 static void check_progess(struct child_ctx *child)
 {
     /* Our variables. */
-    int rtrn;
+    int32_t rtrn = 0;
     struct timeval tv;
     time_t dif, time_of_syscall, time_now;
 
@@ -54,13 +54,9 @@ static void check_progess(struct child_ctx *child)
     time_now = tv.tv_sec;
     
     if(time_of_syscall > time_now)
-    {
         dif = time_of_syscall - time_now;
-    }
     else
-    {
         dif = time_now - time_of_syscall;
-    }
     
     if(dif < 5)
         return;
@@ -110,11 +106,11 @@ processes that are not functioning properly. */
 int32_t setup_reaper_module(pid_t *reaper_pid)
 {
     /* Fork and create a child process. */
-    *reaper_pid = fork();
-    if(*reaper_pid == 0)
+    (*reaper_pid) = fork();
+    if((*reaper_pid) == 0)
     {
         /* Set the pid so the caller can use it. */
-        *reaper_pid = getpid();
+        (*reaper_pid) = getpid();
 
         /* Start the reaper loop. */
     	reaper();

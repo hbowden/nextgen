@@ -92,4 +92,6 @@ int main(void)
         log_test(FAIL, "init world test failed");
         return (-1);
     }
+
+    _exit(0);
 }

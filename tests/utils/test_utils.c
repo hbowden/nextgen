@@ -71,7 +71,7 @@ static int32_t test_get_file_size(void)
         }
 
         rtrn = rand_range(4096, &size);
-        if(rtrn < 0)asdf
+        if(rtrn < 0)
         {
             output(ERROR, "Can't choose randon number\n");
             return -1;
@@ -157,9 +157,9 @@ int main(void)
     if(rtrn)
     	log_test(FAIL, "Check root test failed");
 
-     rtrn = test_get_file_size();
+    rtrn = test_get_file_size();
     if(rtrn)
         log_test(FAIL, "Get file size test failed");
 
-    return (0);
+    _exit(0);
 }

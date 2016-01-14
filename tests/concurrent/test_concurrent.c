@@ -43,9 +43,9 @@ static int32_t child_proc_start(msg_port_t remote_port, void *arg)
 
 static int test_msg_send_recv(void)
 {
-	log_test(DECLARE, "Testing msg send and msg recv");
-
-    int32_t rtrn = 0;
+	int32_t rtrn = log_test(DECLARE, "Testing msg send and msg recv");
+    if(rtrn < 0)
+        return (-1);
 
     /* Declare a message port to send data on. */
     msg_port_t send_port = 0;
@@ -136,6 +136,5 @@ int main(void)
     if(rtrn < 0)
         log_test(FAIL, "Msg send and recv test failed");
 
-
-	return (0);
+	_exit(0);
 }

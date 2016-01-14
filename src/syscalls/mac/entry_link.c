@@ -31,5 +31,4 @@ struct syscall_entry entry_link = {
 
     .arg_type_index[SECOND_ARG] = FILE_PATH,
     .get_arg_index[SECOND_ARG] = &generate_path,
-
 };

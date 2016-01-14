@@ -19,7 +19,6 @@
 #define RESOURCE_H
 
 #include "memory.h"
-
 #include <stdint.h>
 
 //enum resource_type = { desc_r, mount_r, dirpath_r, file_r, socket_r };

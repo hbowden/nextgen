@@ -160,7 +160,7 @@ int32_t log_arguments(struct log_obj *obj)
 
     }
  
-    output(STD, "%s\n", syscall_log_buf);
+    //output(STD, "%s\n", syscall_log_buf);
  
 	return 0;
 }

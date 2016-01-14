@@ -2,7 +2,7 @@ SOURCES = test_memory.c ../test_utils.c ../../src/memory.c ../../src/io.c ../../
           ../../src/nextgen.c
 all:
 
-	$(CC) $(FLAGS) $(SILENCED_WARNINGS) $(INCLUDES) $(SOURCES) $(LIBS) -o test_memory
+	$(CC) $(FLAGS) $(SILENCED_WARNINGS) $(INCLUDES) $(SOURCES) $(LIB) -o test_memory
 
 .PHONY: clean
 clean:

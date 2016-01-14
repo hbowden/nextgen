@@ -51,12 +51,14 @@ int32_t generate_fd(uint64_t **fd, struct child_ctx *ctx)
     }
 
     /* Get a file descriptor from the descriptor pool. */
-    (**fd) = get_desc();
-    if((int32_t)(**fd) < 0)
+    int32_t desc = get_desc();
+    if(desc < 0)
     {
         output(ERROR, "Can't get file descriptor\n");
         return (-1);
     }
+
+    memmove((*fd), &desc, sizeof(int32_t));
 
     /* Set the argument size. */
     ctx->arg_size_index[ctx->current_arg] = sizeof(int32_t);
@@ -65,9 +67,7 @@ int32_t generate_fd(uint64_t **fd, struct child_ctx *ctx)
 }
 
 int32_t generate_socket(uint64_t **sock, struct child_ctx *ctx)
-{
-    int32_t rtrn = 0;
-   
+{  
     (*sock) = mem_alloc(sizeof(int32_t));
     if((*sock) == NULL)
     {
@@ -75,12 +75,16 @@ int32_t generate_socket(uint64_t **sock, struct child_ctx *ctx)
         return (-1);
     }
 
-    (**sock) = get_socket();
-    if((int32_t)(**sock) < 0)
+    int32_t sock_fd = 0;
+
+    sock_fd = get_socket();
+    if(sock_fd < 0)
     {
         output(ERROR, "Can't get socket\n");
         return (-1);
     }
+
+    memmove((*sock), &sock_fd, sizeof(int32_t));
 
     ctx->arg_size_index[ctx->current_arg] = sizeof(int32_t);
     
@@ -93,12 +97,16 @@ int32_t generate_buf(uint64_t **buf, struct child_ctx *ctx)
     uint32_t number = 0;
     uint32_t nbytes = 0;
 
-    rtrn = rand_range(1024, &nbytes);
+    rtrn = rand_range(1023, &nbytes);
     if(rtrn < 0)
     {
         output(ERROR, "Can't pick random size\n");
         return (-1);
     }
+
+    /* Add one to nbytes so that we don't have a zero.
+    Which would cause mmap to fail on some platforms. */
+    nbytes = nbytes + 1;
 
     rtrn = rand_range(2, &number);
     if(rtrn < 0)
@@ -110,7 +118,7 @@ int32_t generate_buf(uint64_t **buf, struct child_ctx *ctx)
     switch(number)
     {
         case 0:
-            *buf = mmap(NULL, nbytes, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
+            (*buf) = mmap(NULL, nbytes, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
             if(*buf == MAP_FAILED)
             {
                 output(ERROR, "mmap: %s\n", strerror(errno));
@@ -119,7 +127,7 @@ int32_t generate_buf(uint64_t **buf, struct child_ctx *ctx)
             break;
 
         case 1:
-            *buf = mmap(NULL, nbytes, PROT_READ, MAP_ANON | MAP_PRIVATE, -1, 0);
+            (*buf) = mmap(NULL, nbytes, PROT_READ, MAP_ANON | MAP_PRIVATE, -1, 0);
             if(*buf == MAP_FAILED)
             {
                 output(ERROR, "mmap: %s\n", strerror(errno));
@@ -128,7 +136,7 @@ int32_t generate_buf(uint64_t **buf, struct child_ctx *ctx)
             break;
 
         case 2:
-            *buf = mmap(NULL, nbytes, PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
+            (*buf) = mmap(NULL, nbytes, PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
             if(*buf == MAP_FAILED)
             {
                 output(ERROR, "mmap: %s\n", strerror(errno));
@@ -182,7 +190,7 @@ int32_t generate_path(uint64_t **path, struct child_ctx *ctx)
     }
 
     ctx->arg_size_index[ctx->current_arg] = strlen((char *)(*path));
-    
+
 	return (0);
 }
 
@@ -317,7 +325,7 @@ int32_t generate_fs_stat(uint64_t **stat, struct child_ctx *ctx)
 
     (*stat) = (uint64_t *)stat_buf;
 
-    ctx->arg_size_index[ctx->current_arg] = sizeof(int64_t);
+    ctx->arg_size_index[ctx->current_arg] = sizeof(struct statfs);
 
 	return (0);
 }
@@ -663,6 +671,7 @@ int32_t generate_unmount_flags(uint64_t **flag, struct child_ctx *ctx)
     uint32_t range = 5;
 
 #endif
+
     (*flag) = mem_alloc(sizeof(uint64_t));
     if((*flag) == NULL)
     {
@@ -678,10 +687,10 @@ int32_t generate_unmount_flags(uint64_t **flag, struct child_ctx *ctx)
     }
 
     /* Copy randomly chosen flag value to flag buffer. */
-    memcpy((*flag), &flags[number], sizeof(int32_t));
+    memcpy((*flag), &flags[number], sizeof(flags[number]));
 
     /* Set arg size. */
-    ctx->arg_size_index[ctx->current_arg] = sizeof(uint32_t);
+    ctx->arg_size_index[ctx->current_arg] = sizeof(flags[number]);
 
     return (0);
 }
@@ -694,8 +703,8 @@ int32_t generate_request(uint64_t **flag, struct child_ctx *ctx)
 #ifdef MAC_OSX
 
     int32_t request[] = { PT_TRACE_ME, PT_DENY_ATTACH, PT_CONTINUE, 
-                        PT_STEP, PT_KILL, PT_ATTACH, PT_ATTACHEXC,
-                        PT_DETACH };
+                          PT_STEP, PT_KILL, PT_ATTACH, PT_ATTACHEXC,
+                          PT_DETACH };
 
     uint32_t range = 7;
 

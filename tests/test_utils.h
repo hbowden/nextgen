@@ -22,6 +22,7 @@
 
 #include <stdint.h>
 #include <assert.h>
+#include <setjmp.h>
 
 enum log_type { DECLARE, SUCCESS, FAIL };
 
@@ -38,10 +39,14 @@ struct stats
 
 extern struct stats *test_stat;
 
+extern jmp_buf return_jump;
+
+extern int32_t skip_test;
+
 /* Assert macro but with a counter. */
 #define assert_stat(arg) test_stat->asserts_ran++; assert(arg)
 
-extern void log_test(enum log_type type, const char *input);
+extern int32_t log_test(enum log_type type, const char *input);
 
 extern struct stats *init_stats_obj(void);
 

@@ -82,7 +82,7 @@ static int32_t rand_range_crypto(uint32_t range, uint32_t *number)
     	return (-1);
     }
 
-    rtrn = BN_set_word(range1, range);
+    rtrn = BN_set_word(range1, (range + 1));
     if(rtrn < 0)
     {
     	output(ERROR, "Can't set range\n");

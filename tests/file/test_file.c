@@ -196,5 +196,5 @@ int main(void)
     if(rtrn < 0)
         log_test(FAIL, "Create file index test failed");
 
-	return (0);
+	_exit(0);
 }

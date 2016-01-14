@@ -18,7 +18,6 @@
 #include "utils.h"
 #include "memory.h"
 #include "crypto.h"
-#include "nextgen.h"
 #include "io.h"
 
 #include <stdio.h>
@@ -113,7 +112,7 @@ int32_t generate_name(char **name, char *extension, enum name_type type)
     random_data = mem_alloc(PATH_MAX + 1);
     if(random_data == NULL)
     {
-        output(STD, "Can't Allocate Space\n");
+        output(ERROR, "Can't Allocate Space\n");
         return (-1);
     }
     
@@ -121,7 +120,7 @@ int32_t generate_name(char **name, char *extension, enum name_type type)
     rtrn = rand_bytes(&random_data, (PATH_MAX));
     if(rtrn < 0)
     {
-        output(STD, "Can't get random bytes\n");
+        output(ERROR, "Can't get random bytes\n");
         return (-1);
     }
 
@@ -132,7 +131,7 @@ int32_t generate_name(char **name, char *extension, enum name_type type)
     rtrn = sha256(random_data, &tmp_buf);
     if(rtrn < 0)
     {
-        output(STD, "Can't Hash Random Data\n");
+        output(ERROR, "Can't Hash Random Data\n");
         return (-1);
     }
     
@@ -143,7 +142,7 @@ int32_t generate_name(char **name, char *extension, enum name_type type)
             rtrn = asprintf(name, "%s", tmp_buf);
             if(rtrn < 0)
             {
-                output(STD, "Can't create dir path: %s\n", strerror(errno));
+                output(ERROR, "Can't create dir path: %s\n", strerror(errno));
                 return (-1);
             }
             
@@ -154,14 +153,14 @@ int32_t generate_name(char **name, char *extension, enum name_type type)
             rtrn = asprintf(name, "%s%s", tmp_buf, extension);
             if(rtrn < 0)
             {
-                output(STD, "Can't create file path: %s\n", strerror(errno));
+                output(ERROR, "Can't create file path: %s\n", strerror(errno));
                 return (-1);
             }
             
             break;
             
         default:
-            output(STD, "Should not get here\n");
+            output(ERROR, "Should not get here\n");
             return (-1);
     }
 

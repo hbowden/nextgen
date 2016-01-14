@@ -37,5 +37,4 @@ struct syscall_entry entry_wait4 = {
 
     .arg_type_index[FOURTH_ARG] = RUSAGE,
     .get_arg_index[FOURTH_ARG] = &generate_rusage
-
 };

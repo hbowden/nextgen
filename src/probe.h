@@ -1,7 +1,7 @@
 
 
 /**
- * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
+ * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice 
@@ -18,20 +18,25 @@
 #ifndef PROBE_H
 #define PROBE_H
 
+#include <stdint.h>
+#include <dtrace.h>
+
 /* These macros are used by shim.c */
 #define REGISTER_IP RIP
 #define TRAP_LEN    1
 #define TRAP_INST   0xCC
 #define TRAP_MASK   0xFFFFFFFFFFFFFF00
 
-extern int inject_probes(void);
+extern int32_t inject_probes(void);
 
-extern int inject_kernel_probes(void);
+extern int32_t inject_kernel_probes(dtrace_hdl_t *handle);
 
-extern int start_and_pause_target(void);
+extern int32_t cleanup_kernel_probes(dtrace_hdl_t *handle);
 
-extern int inject_fork_server(void);
+extern int32_t start_and_pause_target(void);
 
-extern int setup_probe_module(char *exec_path);
+extern int32_t inject_fork_server(void);
+
+extern int32_t setup_probe_module(char *exec_path);
 
 #endif

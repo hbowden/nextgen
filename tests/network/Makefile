@@ -5,7 +5,7 @@ UNIT_TEST = test_network
 
 all:
 
-	$(CC) $(FLAGS) $(SILENCED_WARNINGS) $(INCLUDES) $(SOURCES) $(LIBS) -o $(UNIT_TEST) 
+	$(CC) $(FLAGS) $(SILENCED_WARNINGS) $(INCLUDES) $(SOURCES) $(LIB) -o $(UNIT_TEST) 
 
 .PHONY: clean
 clean:

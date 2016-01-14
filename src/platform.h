@@ -34,9 +34,9 @@ enum local_bool { FALSE, TRUE };
 
 /* EL Capitan has strict limits on how many files one
   can create, so create much less resources on mac osx. */
-#define POOL_SIZE 100
+#define POOL_SIZE 1024
 
-//#define POOL_SIZE 12
+#define ARG_BUF_LEN 4096
 
 #else
 

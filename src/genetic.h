@@ -22,7 +22,7 @@
 
 #include <stdint.h>
 
-enum job_type { GENESIS };
+enum job_type { GENESIS, NEW_GENERATION };
 
 struct job_ctx
 {
