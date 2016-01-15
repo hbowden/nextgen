@@ -626,7 +626,7 @@ static int32_t hold_for_child(uint32_t i)
     return (0);
 }
 
-static void start_child(void)
+static void start_child_loop(void)
 {
     /* If were in dumb mode start the dumb syscall loop. */
     if(map->smart_mode != TRUE)
@@ -637,6 +637,17 @@ static void start_child(void)
     }
 
     start_smart_syscall_child();
+
+    return;
+}
+
+static void start_child(uint32_t i)
+{
+    /* Initialize the new syscall child. */
+    init_syscall_child(i);
+
+    /* Start the newly created syscall child's main loop. */
+    start_child_loop();
 
     return;
 }
@@ -658,12 +669,9 @@ void create_syscall_children(void)
         child_pid = fork();
         if(child_pid == 0)
         {
-            /* Initialize the new syscall child. */
-            init_syscall_child(i);
-
-            /* Start the newly created syscall child's main loop. */
-            start_child();
-
+            /* Start child process. */
+            start_child(i);
+           
             /* Exit and cleanup process. */
             _exit(0);
         }
