@@ -28,7 +28,7 @@ void output(enum out_type type, const char *format, ...)
 
 	va_start(args, format);
 
-	switch((int)type)
+	switch((int32_t)type)
 	{
 		case ERROR:
 		    vfprintf(stderr, format, args);

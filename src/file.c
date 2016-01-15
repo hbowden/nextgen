@@ -375,18 +375,6 @@ void start_main_file_loop(void)
            return;
         }
 
-        /* Check if smart mode is on. */
-        if(map->smart_mode == TRUE)
-        {
-            /* Randomly join this file we mutated with a file from the old generation. */
-            rtrn = create_new_generation(&file_buffer, &file_size, file_extension);
-            if(rtrn < 0)
-            {
-                output(ERROR, "Can't create a new generation\n");
-                return;
-            }
-        }
-
         /* Generate random file name. */
         rtrn = generate_name(&file_name, file_extension, FILE_NAME);
         if(rtrn < 0)

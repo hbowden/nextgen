@@ -26,6 +26,30 @@
 #include <sys/stat.h>
 
 static uint32_t loops;
+static uint32_t iterations = 10000;
+
+static int32_t test_get_file(void)
+{
+    log_test(DECLARE, "Testing get file");
+
+    uint32_t i;
+    int32_t rtrn = 0;
+    int32_t file = 0;
+    char *extension = NULL;
+
+    for(i = 0; i < iterations; i++)
+    {
+        rtrn = get_file(&file, &extension);
+        assert_stat(rtrn == 0);
+        assert_stat(file > 0);
+        assert_stat(write(file, "123456789", 9) == 9);
+        assert_stat(extension != NULL);
+    }
+
+    log_test(SUCCESS, "Get file test passed");
+
+    return (0);
+}
 
 static int32_t test_count_files_directory(void)
 {
@@ -134,22 +158,6 @@ static int32_t test_setup_file_module(void)
       and the directory of input files. */
     rtrn = setup_file_module("/bin/ls", tmp_dir);
 
-    /* rtrn should equal file module. */
-    assert_stat(rtrn == 0);
-
-    log_test(SUCCESS, "Setup file module test passed");
-
-	return (0);
-}
-
-static int32_t test_create_file_index(void)
-{
-    log_test(DECLARE, "Testing create file index");
-
-    /* Just check the file array because create_file_index() gets called in
-    setup_file_module(). */
-    uint32_t i;
-
     for(i = 0; i < file_count; i++)
     {
         int32_t fd = 0;
@@ -159,10 +167,13 @@ static int32_t test_create_file_index(void)
         assert_stat(fd > 0);
         assert_stat(close(fd) == 0);
     }
-    
-    log_test(SUCCESS, "Create file index test passed");
 
-    return (0);
+    /* rtrn should equal file module. */
+    assert_stat(rtrn == 0);
+
+    log_test(SUCCESS, "Setup file module test passed");
+
+	return (0);
 }
 
 int main(void)
@@ -192,9 +203,9 @@ int main(void)
     if(rtrn < 0)
         log_test(FAIL, "Count files directory test failed");
 
-    rtrn = test_create_file_index();
+    rtrn = test_get_file();
     if(rtrn < 0)
-        log_test(FAIL, "Create file index test failed");
+        log_test(FAIL, "Get file test failed");
 
 	_exit(0);
 }

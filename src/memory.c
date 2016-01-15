@@ -146,6 +146,16 @@ struct mem_pool_shared *mem_create_shared_pool(uint32_t block_size, uint32_t blo
         return NULL;
     }
 
+    struct mem_pool_shared *pool = NULL;
+
+    /* Allocate the pool structure as shared memory. */
+    pool = mem_alloc_shared(sizeof(struct mem_pool_shared));
+    if(pool == NULL)
+    {
+        output(ERROR, "Can't allocate shared memory\n");
+        return (NULL);
+    }
+
     /* Initialize the memory pool. */
 	struct mem_pool_shared s_pool = {
 
@@ -156,16 +166,6 @@ struct mem_pool_shared *mem_create_shared_pool(uint32_t block_size, uint32_t blo
         .allocated_list = SLIST_HEAD_INITIALIZER(s_pool->allocated_list)
 
     };
-
-    struct mem_pool_shared *pool = NULL;
-
-    /* Allocate the pool structure as shared memory. */
-	pool = mem_alloc_shared(sizeof(struct mem_pool_shared));
-	if(pool == NULL)
-	{
-		output(ERROR, "Can't allocate shared memory\n");
-		return (NULL);
-	}
 
     memmove(pool, &s_pool, sizeof(struct mem_pool_shared));
 
@@ -214,7 +214,7 @@ struct memory_block *mem_get_shared_block(struct mem_pool_shared *pool)
     /* Declare a memory block pointer. */
     struct memory_block *block = NULL;
 
-    /* Lock the spinlock for mutual access. */
+    /* Lock the spinlock for exclusive access. */
     spinlock_lock(&pool->lock);
    
     /* Loop for each node in the list. */

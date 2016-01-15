@@ -80,7 +80,6 @@ int32_t free_desc(int32_t *fd)
         /* If the descriptors match, free the memory block.*/
         if((*fd) == (*desc))
         {
-            output(ERROR, "Freed desc\n");
             mem_free_shared_block(m_blk, desc_pool);
             break;
         }
@@ -127,7 +126,10 @@ int32_t free_socket(int32_t *sock_fd)
 
         /* If the descriptors match, free the memory block.*/
         if((*sock) == (*sock_fd))
+        {
             mem_free_shared_block(m_blk, socket_pool);
+            break;
+        }
     }
 
     return (0);
@@ -170,7 +172,10 @@ int32_t free_mountpath(char **path)
 
         /* If the dirpaths match, free the memory block.*/
         if(strcmp((*path), dirpath) == 0)
+        {
             mem_free_shared_block(m_blk, mount_pool);
+            break;
+        }
     }
 
 	return (0);
@@ -259,13 +264,9 @@ int32_t free_filepath(char **path)
         /* Get the filepath pointer. */
         char *filepath = (char *)resource->ptr;
 
-        output(ERROR, "filepath: %s\n", filepath);
-        output(ERROR, "path: %s\n", path);
-
         /* If the filepaths match, free the memory block.*/
         if(strncmp((*path), filepath, strlen(filepath)) == 0)
         {
-            output(ERROR, "Freed filepath\n");
             mem_free_shared_block(m_blk, file_pool);
             break;
         }
