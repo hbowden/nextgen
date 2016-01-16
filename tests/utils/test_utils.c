@@ -1,3 +1,5 @@
+
+
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
@@ -21,6 +23,16 @@
 
 #include <stdint.h>
 #include <unistd.h>
+
+/* The number of ascii to binary comparison test. */
+static uint32_t binary_test = 6;
+
+/* Array of strings to covert to binary. */
+static char *string_array[] = { "a", "b", "c", "d", "e", "f", NULL };
+
+/* Array of binary strings to compare against. */
+static char *binary_array[] = { "01100001", "01100010", "01100011", "01100100",
+                                "01100101", "01100110", NULL };
 
 static int32_t test_check_root(void)
 {
@@ -126,6 +138,40 @@ static int32_t test_get_file_size(void)
     return (0);
 }
 
+static int32_t test_ascii_to_binary(void)
+{
+    log_test(DECLARE, "Testing ascii to binary");
+
+    uint32_t i;
+    int32_t rtrn = 0;
+
+    char *string = "dn39r93ho*(#98893rnf@N(EHM(EI";
+    char *binary_string = NULL;
+
+    rtrn = ascii_to_binary(string, &binary_string, strlen(string));
+    assert_stat(rtrn == 0);
+    assert_stat(binary_string != NULL);
+
+    /* Clean up. */
+    mem_free(binary_string);
+
+    /* Loop and compare ascii to binary conversions
+    to validate ascii_to_binary(); */
+    for(i = 0; i < binary_test; i++)
+    {
+        /* Convert the string in  */
+        rtrn = ascii_to_binary(string_array[i], &binary_string, strlen(string_array[i]));
+        assert_stat(rtrn == 0);
+        assert_stat(binary_string != NULL);
+        assert_stat(strncmp(binary_array[i], binary_string, 1) == 0);
+        mem_free(binary_string);
+    }
+    
+    log_test(SUCCESS, "ascii to binary test passed");
+
+    return (0);
+}
+
 int main(void)
 {
 	int32_t rtrn = 0;
@@ -146,6 +192,8 @@ int main(void)
         return (-1);
     }
 
+    /* The crypto module most be setup first before
+    using the crypto module. */
     rtrn = setup_crypto_module(CRYPTO);
     if(rtrn < 0)
     {
@@ -153,13 +201,18 @@ int main(void)
         return (-1);
     }
 
+    /* Most */
     rtrn = test_check_root();
-    if(rtrn)
+    if(rtrn < 0)
     	log_test(FAIL, "Check root test failed");
 
     rtrn = test_get_file_size();
-    if(rtrn)
+    if(rtrn < 0)
         log_test(FAIL, "Get file size test failed");
+
+    rtrn = test_ascii_to_binary();
+    if(rtrn < 0)
+        log_test(FAIL, "Ascii to binary test failed");
 
     _exit(0);
 }

@@ -194,3 +194,63 @@ int32_t get_home(char **home)
     /* Exit */
     return (0);
 }
+
+int32_t ascii_to_binary(char *input, char **out, uint64_t len)
+{
+    uint32_t i;
+
+    /* Allocate the output buffer and initialize the buffer to zero. */
+    (*out) = mem_calloc((len * 8) + 1);
+    if((*out) == NULL)
+    {
+        output(ERROR, "Can't allocate binary string\n");
+        return (-1);
+    }
+
+    /* Loop for each char and convert to a binary string. */
+    for(i = 0; i < len; i++)
+        itoa((int32_t)input[i], &(*out)[(i * 8)], 2);
+
+    /* Null terminate the binary string. */
+    (*out)[(len * 8)] = '\0';
+
+    /* Return zero. */
+    return (0);
+}
+
+int32_t itoa(int32_t value, char *sp, int32_t radix)
+{
+    char tmp[16];// be careful with the length of the buffer
+    char *tp = tmp;
+    int i;
+    unsigned v;
+
+    int sign = (radix == 10 && value < 0);    
+    if (sign)
+        v = -value;
+    else
+        v = (unsigned)value;
+
+    while (v || tp == tmp)
+    {
+        i = v % radix;
+        v /= radix; // v/=radix uses less CPU clocks than v=v/radix does
+        if (i < 10)
+          *tp++ = (char)i+'0';
+        else
+          *tp++ = (char)i + 'a' - 10;
+    }
+
+    long len = tp - tmp;
+
+    if (sign) 
+    {
+        *sp++ = '-';
+        len++;
+    }
+
+    while (tp > tmp)
+        *sp++ = *--tp;
+
+    return (int32_t)(len);
+}
