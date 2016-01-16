@@ -172,6 +172,30 @@ static int32_t test_ascii_to_binary(void)
     return (0);
 }
 
+static int32_t test_get_core_count(void)
+{
+    log_test(DECLARE, "Testing get core count");
+
+    int32_t rtrn = 0;
+    uint32_t count = 0;
+
+    rtrn = get_core_count(&count);
+    assert_stat(rtrn == 0);
+    assert_stat(count > 0);
+
+    /* A second call should have the same result. */
+    uint32_t second_count = 0;
+
+    rtrn = get_core_count(&second_count);
+    assert_stat(rtrn == 0);
+    assert_stat(second_count > 0);
+    assert_stat(count == second_count);
+
+    log_test(SUCCESS, "Get core count test passed");
+
+    return (0);
+}
+
 int main(void)
 {
 	int32_t rtrn = 0;
@@ -193,7 +217,7 @@ int main(void)
     }
 
     /* The crypto module most be setup first before
-    using the crypto module. */
+    using the utils module. */
     rtrn = setup_crypto_module(CRYPTO);
     if(rtrn < 0)
     {
@@ -201,7 +225,6 @@ int main(void)
         return (-1);
     }
 
-    /* Most */
     rtrn = test_check_root();
     if(rtrn < 0)
     	log_test(FAIL, "Check root test failed");
@@ -209,6 +232,10 @@ int main(void)
     rtrn = test_get_file_size();
     if(rtrn < 0)
         log_test(FAIL, "Get file size test failed");
+
+    rtrn = test_get_core_count();
+    if(rtrn < 0)
+        log_test(FAIL, "Get core count test failed");
 
     rtrn = test_ascii_to_binary();
     if(rtrn < 0)
