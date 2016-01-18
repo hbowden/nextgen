@@ -127,7 +127,7 @@ int32_t generate_name(char **name, char *extension, enum name_type type)
     /* Null terminate the random byte string. */
     random_data[PATH_MAX] = '\0';
     
-    /* SHA 256 hash the random output string. */
+    /* SHA256 hash the random output string. */
     rtrn = sha256(random_data, &tmp_buf);
     if(rtrn < 0)
     {
@@ -138,25 +138,21 @@ int32_t generate_name(char **name, char *extension, enum name_type type)
     switch((int32_t)type)
     {
         case DIR_NAME:
-            
             rtrn = asprintf(name, "%s", tmp_buf);
             if(rtrn < 0)
             {
                 output(ERROR, "Can't create dir path: %s\n", strerror(errno));
                 return (-1);
             }
-            
             break;
             
         case FILE_NAME:
-            
             rtrn = asprintf(name, "%s%s", tmp_buf, extension);
             if(rtrn < 0)
             {
                 output(ERROR, "Can't create file path: %s\n", strerror(errno));
                 return (-1);
             }
-            
             break;
             
         default:
@@ -176,7 +172,7 @@ int32_t get_home(char **home)
     /* Get User UID */
     uid = getuid();
     
-    /* If getuid succedes get user password struct */
+    /* Get user password struct */
     if(!(pwd = getpwuid(uid)))
     {
         output(ERROR, "Can't Get pwd struct: %s\n", strerror(errno));
@@ -191,66 +187,140 @@ int32_t get_home(char **home)
         return (-1);  
     }
     
-    /* Exit */
+    /* Exit function. */
     return (0);
 }
 
-int32_t ascii_to_binary(char *input, char **out, uint64_t len)
+int32_t ascii_to_binary(char *input, char **out, uint64_t input_len, uint64_t *out_len)
 {
     uint32_t i;
 
-    /* Allocate the output buffer and initialize the buffer to zero. */
-    (*out) = mem_calloc((len * 8) + 1);
+    /* Make sure length is not zero. */
+    if(input_len == 0)
+    {
+        output(ERROR, "Length argument is zero\n");
+        return (-1);
+    }
+
+    /* Calculate the output string length. 
+     Should probably be switched to equivalent division. */
+    (*out_len) = input_len * 8;
+
+    /* Allocate the output buffer. */
+    (*out) = mem_calloc((*out_len) + 1);
     if((*out) == NULL)
     {
         output(ERROR, "Can't allocate binary string\n");
         return (-1);
     }
 
-    /* Loop for each char and convert to a binary string. */
-    for(i = 0; i < len; i++)
-        itoa((int32_t)input[i], &(*out)[(i * 8)], 2);
+    /* Loop and convert to a binary string. */
+    for(i = 0; i < input_len; i++)
+    {
+        unsigned char ch = input[i];
+        char *o = &(*out)[8 * i];
+        unsigned char b;
 
-    /* Null terminate the binary string. */
-    (*out)[(len * 8)] = '\0';
+        for (b = 0x80; b; b >>= 1)
+            *o++ = ch & b ? '1' : '0';
+    }
+        
+    /* null terminate the binary string. */
+    (*out)[(*out_len)] = '\0';
 
     /* Return zero. */
     return (0);
 }
 
-int32_t itoa(int32_t value, char *sp, int32_t radix)
+int32_t create_random_file(char *root, char *ext, char **path, uint64_t *size)
 {
-    char tmp[16];// be careful with the length of the buffer
-    char *tp = tmp;
-    int i;
-    unsigned v;
+    int32_t rtrn = 0;
+    int32_t no_period = 0;
+    char *name auto_clean = NULL;
+    char *junk auto_clean = NULL;
+    char *extension auto_clean = NULL;
 
-    int sign = (radix == 10 && value < 0);    
-    if (sign)
-        v = -value;
+    /* Check for a period in the extension string passed by the user. */
+    char *pointer = strrchr(ext, '.');
+    if(pointer == NULL)
+    {
+        /* There's no period so let's create one. */
+        rtrn = asprintf(&extension, ".%s", ext);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't create extension string\n");
+            return (-1);
+        }
+
+        no_period = 1;
+    }
+
+    if(no_period == 1)
+    {
+        /* Generate random file name. */
+        rtrn = generate_name(&name, extension, FILE_NAME);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't generate random file name\n");
+            return (-1);
+        }
+    }
     else
-        v = (unsigned)value;
-
-    while (v || tp == tmp)
     {
-        i = v % radix;
-        v /= radix; // v/=radix uses less CPU clocks than v=v/radix does
-        if (i < 10)
-          *tp++ = (char)i+'0';
-        else
-          *tp++ = (char)i + 'a' - 10;
+        /* Generate random file name. */
+        rtrn = generate_name(&name, ext, FILE_NAME);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't generate random file name\n");
+            return (-1);
+        }
+    }
+   
+    /* Join paths together. */
+    rtrn = asprintf(path, "%s/%s", root, name);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't join paths: %s\n", strerror(errno));
+        return (-1);
     }
 
-    long len = tp - tmp;
-
-    if (sign) 
+    /* Pick a random size between zero and 4 kilobytes. */
+    rtrn = rand_range(4096, (uint32_t *)size);
+    if(rtrn < 0)
     {
-        *sp++ = '-';
-        len++;
+        output(ERROR, "Can't choose random number\n");
+        return (-1);
     }
 
-    while (tp > tmp)
-        *sp++ = *--tp;
+    /* Allocate a buffer to put junk in. */
+    junk = mem_alloc((*size) + 1);
+    if(junk == NULL)
+    {
+        output(ERROR, "Can't alloc junk buf: %s\n", strerror(errno));
+        return (-1);
+    }
 
-    return (int32_t)(len);
+    /* Put some junk in a buffer. */
+    rtrn = rand_bytes(&junk, (uint32_t)(*size));
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't alloc junk buf: %s\n", strerror(errno));
+        return (-1);
+    }
+
+    /* Write that junk to the file so that the file is not just blank. */
+    rtrn = map_file_out((*path), junk, (*size));
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't write junk to disk\n");
+        return (-1);
+    }
+
+    return (0);
+}
+
+int32_t binary_to_ascii(char *input, char **out, uint64_t len, uint64_t *out_len)
+{
+    
+    return (0);
 }

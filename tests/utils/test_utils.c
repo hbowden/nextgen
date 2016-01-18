@@ -24,6 +24,16 @@
 #include <stdint.h>
 #include <unistd.h>
 
+static uint32_t extension_test = 0;
+
+static uint32_t number_of_extensions = 11;
+
+static int32_t size_array[] = { 3, 3, 3, 3, 3, 3, 3, 1, 1, 3, 2};
+
+/* Array of extensions. */
+static char *ext[] = { "txt", "mp3", "mp4", "m4v", "jpg",
+                       "pdf", "dmg", "c", "h", "png", "go" };
+
 /* The number of ascii to binary comparison test. */
 static uint32_t binary_test = 6;
 
@@ -62,75 +72,31 @@ static int32_t test_get_file_size(void)
     log_test(DECLARE, "Testing get file size");
 
     uint32_t i;
+    int32_t fd = 0;
     int32_t rtrn = 0;
+    char *path = NULL;
+    uint64_t size = 0;
+    uint64_t file_size = 0;
 
     for(i = 0; i < 100; i++)
     {
-        char *name = NULL;
-        char *junk = NULL;
-        char *path = NULL;
-        uint32_t size = 0;
-
-        rtrn = generate_name(&name, ".txt", FILE_NAME);
+        rtrn = create_random_file("/tmp", ".txt", &path, &size);
         assert_stat(rtrn == 0);
-        assert_stat(name != NULL);
+        assert_stat(path != NULL);
 
-        rtrn = asprintf(&path, "/tmp/%s", name);
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't join paths: %s\n", strerror(errno));
-            return -1;
-        }
-
-        rtrn = rand_range(4096, &size);
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't choose randon number\n");
-            return -1;
-        }
-
-        /* Allocate a buffer to put junk in. */
-        junk = mem_alloc(size + 1);
-        if(junk == NULL)
-        {
-            output(ERROR, "Can't alloc junk buf: %s\n", strerror(errno));
-            return -1;
-        }
-
-        /* Put some junk in a buffer. */
-        rtrn = rand_bytes(&junk, size);
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't alloc junk buf: %s\n", strerror(errno));
-            return -1;
-        }
-
-        /* Write that junk to the file so that the file is not just blank. */
-        rtrn = map_file_out(path, junk, size);
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't write junk to disk\n");
-            return -1;
-        }
-
-        int32_t fd = open(path, O_RDONLY);
+        fd = open(path, O_RDONLY);
         if(fd < 0)
         {
             output(ERROR, "Can't open file: %s\n", strerror(errno));
             return (-1);
         }
 
-        uint64_t file_size = 0;
-
         rtrn = get_file_size(fd, &file_size);
         assert_stat(rtrn == 0);
-        assert_stat(size == (uint32_t)file_size);
+        assert_stat(size == file_size);
 
         /* Clean up. */
         unlink(path);
-        mem_free(name);
-        mem_free(junk);
-        mem_free(path);
     }
 
     log_test(SUCCESS, "Get file size test passed");
@@ -147,23 +113,33 @@ static int32_t test_ascii_to_binary(void)
 
     char *string = "dn39r93ho*(#98893rnf@N(EHM(EI";
     char *binary_string = NULL;
+    uint64_t size = 0;
 
-    rtrn = ascii_to_binary(string, &binary_string, strlen(string));
+    /* When we pass a zero size, ascii_to_binary should fail. */
+    rtrn = ascii_to_binary(string, &binary_string, 0, &size);
+    assert_stat(rtrn < 0);
+    assert_stat(binary_string == NULL);
+    assert_stat(size == 0);
+
+    /* Should work now that we have a non zero length argument. */
+    rtrn = ascii_to_binary(string, &binary_string, strlen(string), &size);
     assert_stat(rtrn == 0);
     assert_stat(binary_string != NULL);
+    assert_stat(size > 0);
 
     /* Clean up. */
     mem_free(binary_string);
 
-    /* Loop and compare ascii to binary conversions
-    to validate ascii_to_binary(); */
+    /* Loop and compare conversions
+    to known good values to validate ascii_to_binary(); */
     for(i = 0; i < binary_test; i++)
     {
         /* Convert the string in  */
-        rtrn = ascii_to_binary(string_array[i], &binary_string, strlen(string_array[i]));
+        rtrn = ascii_to_binary(string_array[i], &binary_string, strlen(string_array[i]), &size);
         assert_stat(rtrn == 0);
         assert_stat(binary_string != NULL);
-        assert_stat(strncmp(binary_array[i], binary_string, 1) == 0);
+        assert_stat(size > 0);
+        assert_stat(strncmp(binary_array[i], binary_string, 8) == 0);
         mem_free(binary_string);
     }
     
@@ -192,6 +168,37 @@ static int32_t test_get_core_count(void)
     assert_stat(count == second_count);
 
     log_test(SUCCESS, "Get core count test passed");
+
+    return (0);
+}
+
+static int32_t test_get_extension(void)
+{
+    log_test(DECLARE, "Testing get extension");
+
+    uint32_t i;
+    int32_t rtrn = 0;
+    char *path = NULL;
+    uint64_t size = 0;
+    char *extension = NULL;
+
+    for(i = 0; i < number_of_extensions; i++)
+    {
+        /* Create a random file. */
+        rtrn = create_random_file("/tmp", ext[i], &path, &size);
+        assert_stat(rtrn == 0);
+        assert_stat(path != NULL);
+
+        /* Check the extension of the file against the extension it should be. */
+        rtrn = get_extension(path, &extension);
+        assert_stat(rtrn == 0);
+        assert_stat(extension != NULL);
+        assert_stat(strncmp(extension, ext[i], size_array[i]) == 0);
+
+        mem_free(path);   
+    }
+
+    log_test(SUCCESS, "Get extension test passed");
 
     return (0);
 }
@@ -236,6 +243,10 @@ int main(void)
     rtrn = test_get_core_count();
     if(rtrn < 0)
         log_test(FAIL, "Get core count test failed");
+
+    rtrn = test_get_extension();
+    if(rtrn < 0)
+        log_test(FAIL, "Get extension test failed");
 
     rtrn = test_ascii_to_binary();
     if(rtrn < 0)

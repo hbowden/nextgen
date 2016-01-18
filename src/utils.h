@@ -34,25 +34,30 @@ enum name_type { DIR_NAME, FILE_NAME };
 /* This function as the name implies gets the file size. */
 extern int32_t get_file_size(int32_t fd, uint64_t *size);
 
-/* Get the file extension */
+/* Get file extension */
 extern int32_t get_extension(char *path, char **extension);
 
 /* Get the core count of the system we are on. This will include virtual cores on hyperthreaded systems. */
 extern int32_t get_core_count(uint32_t *core_count);
 
-/* Can be used to create random file and directory na mes. */
+/* Can be used to create random file and directory names. */
 extern int32_t generate_name(char **name, char *extension, enum name_type type);
 
 /* Grabs the path to the user's home directory. */
 extern int32_t get_home(char **home);
 
 /* Convert the ascii string to a binary string upto len bytes length. */
-extern int32_t ascii_to_binary(char *input, char **out, uint64_t len);
+extern int32_t ascii_to_binary(char *input, char **out, uint64_t input_len, uint64_t *out_len);
+
+/* Convert binary string to a ascii string. */
+extern int32_t binary_to_ascii(char *input, char **out, uint64_t len, uint64_t *out_len);
 
 /* This function will return zero if the process calling it has root privileges. */
 extern int32_t check_root(void);
 
-/* Implementation of itoa. */
-extern int32_t itoa(int32_t value, char *sp, int32_t radix);
+/* Create a random file at the path root with the extension, ext, the path created
+ will be put in the buffer path. */
+extern int32_t create_random_file(char *root, char *ext, char **path, uint64_t *size);
 
+/* End of header. */
 #endif
