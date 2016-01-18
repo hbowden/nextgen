@@ -1,8 +1,8 @@
 
-Most of the code is licensed under the ISC license below.
+Most of the code is licensed under the ISC license below. However some files are licensed differently, but they are all Permissive licenses. All of the licenses are below.
 
 /**
- * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
+ * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice 
@@ -15,4 +15,3 @@ Most of the code is licensed under the ISC license below.
  * WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
- 
