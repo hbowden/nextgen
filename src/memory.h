@@ -53,7 +53,7 @@ struct mem_pool_shared
 /* General purpose heap memory allocator. */
 extern void *mem_alloc(uint64_t nbytes);
 
-extern void *mem_calloc(uint64_t count, uint64_t nbytes);
+extern void *mem_calloc(uint64_t nbytes);
 
 extern void mem_free(void *ptr);
 

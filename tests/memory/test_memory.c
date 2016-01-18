@@ -255,7 +255,7 @@ static int32_t test_mem_calloc(void)
 
     char *buffer = NULL;
 
-    buffer = mem_calloc(1, 1000);
+    buffer = mem_calloc(1000);
     assert_stat(buffer != NULL);
 
     uint32_t i;

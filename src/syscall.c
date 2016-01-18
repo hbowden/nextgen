@@ -84,11 +84,11 @@ struct syscall_entry_shadow *get_entry(uint32_t syscall_number)
 }
 
 /* Don't use inside of the syscall module. This function is for 
-Other modules like the reaper module to get child processes. */
+Other modules like the reaper or genetic module to get child processes. */
 struct child_ctx *get_child_from_index(uint32_t i)
 {
     if(i > number_of_children)
-        return NULL;
+        return (NULL);
 
     struct child_ctx *child = NULL;
 
@@ -96,7 +96,7 @@ struct child_ctx *get_child_from_index(uint32_t i)
     if(child == NULL)
     {
         output(ERROR, "Can't allocate child context\n");
-        return NULL;
+        return (NULL);
     }
 
     child = children[i];
@@ -188,6 +188,7 @@ static int32_t free_old_arguments(struct child_ctx *ctx)
     uint32_t number_of_args = ctx->number_of_args;
     struct syscall_entry_shadow *entry = NULL;
 
+    /* Grab the syscall entry. */
     entry = get_entry(ctx->syscall_number);
     if(entry == NULL)
     {
@@ -200,9 +201,9 @@ static int32_t free_old_arguments(struct child_ctx *ctx)
         /* Handle args that require special cleanup procedures. */
         switch((int32_t)entry->arg_context_index[i]->type)
         {
-            /* Below is the resource types ie they are from resource.h. They must be freed using special
-            functions and the free must be done on the arg_copy_index so 
-            the free_* functions don't use the mutated value in arg_value_index. */
+            /* Below is the resource types ie they are from the resource module. 
+            They must be freed using special functions and the free must be done on 
+            the arg_copy_index so the free_* functions don't use the mutated value in arg_value_index. */
             case FILE_DESC:
                 rtrn = free_desc((int32_t *)ctx->arg_copy_index[i]);
                 if(rtrn < 0)
@@ -257,6 +258,19 @@ static int32_t free_old_arguments(struct child_ctx *ctx)
     return (0);
 }
 
+static int32_t set_syscall(uint32_t num, struct child_ctx *ctx)
+{
+    /* Set syscall value's. */
+    ctx->syscall_number = num;
+    ctx->syscall_symbol = sys_table->sys_entry[num]->syscall_symbol;
+    ctx->name_of_syscall = sys_table->sys_entry[num]->name_of_syscall;
+    ctx->need_alarm = sys_table->sys_entry[num]->need_alarm;
+    ctx->number_of_args = sys_table->sys_entry[num]->number_of_args;
+    ctx->had_error = NO;
+    
+    return (0); 
+}
+
 static struct job_ctx *get_job(struct child_ctx *ctx)
 {
     struct job_ctx *job = NULL;
@@ -271,6 +285,8 @@ static struct job_ctx *get_job(struct child_ctx *ctx)
 
     return (job);
 }
+
+
 
 static int32_t process_new_generation(struct job_ctx *job)
 {
@@ -299,8 +315,8 @@ static int32_t process_genesis(struct job_ctx *job)
         exit_child();
     }
 
-    /* Randomly pick the syscall to test. */
-    rtrn = pick_syscall(ctx);
+    /* Set the syscall that the genetic algo told us to test. */
+    rtrn = set_syscall(job->syscall_number, ctx);
     if(rtrn < 0)
     {
         output(ERROR, "Can't pick syscall to test\n");
@@ -312,14 +328,6 @@ static int32_t process_genesis(struct job_ctx *job)
     if(rtrn < 0)
     {
         output(ERROR, "Can't generate arguments\n");
-        exit_child();
-    }
-
-    /* Mutate the arguments randomly. */
-    rtrn = mutate_arguments(ctx);
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't mutate arguments\n");
         exit_child();
     }
 

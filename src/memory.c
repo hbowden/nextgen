@@ -44,21 +44,27 @@ void *mem_alloc(uint64_t nbytes)
 	return (ptr);
 }
 
-void *mem_calloc(uint64_t count, uint64_t nbytes)
+void *mem_calloc(uint64_t nbytes)
 {
     void *ptr = NULL;
 
-    if(count == 0 || nbytes == 0)
+    if(nbytes == 0)
     {
-        output(ERROR, "Either count or nbytes is zero\n");
-        return NULL;
+        output(ERROR, "nbytes is zero\n");
+        return (NULL);
     }
 
-    ptr = calloc(count, nbytes);
+    ptr = mem_alloc(nbytes);
     if(ptr == NULL)
     {
-        output(ERROR, "Can't allocate and initialize: %lu bytes: because: %s\n", nbytes, strerror(errno));
-        return NULL;
+        output(ERROR, "Can't allocate buf\n");
+        return (NULL);
+    }
+
+    if(memset(ptr, 0, nbytes) == NULL)
+    {
+        output(ERROR, "Can't initialize memory to zero: %s\n", strerror(errno));
+        return (NULL);
     }
         
     return (ptr);

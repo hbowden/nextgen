@@ -20,6 +20,7 @@
 #include "syscall.h"
 #include "memory.h"
 #include "crypto.h"
+#include "concurrent.h"
 #include "io.h"
 
 #include <dtrace.h>
@@ -41,7 +42,7 @@ struct organism_ctx
 
     struct chromosome_ctx *chromosome;
 
-    CK_SLIST_ENTRY(organism_ctx) list_entry;
+    SLIST_ENTRY(organism_ctx);
 };
 
 struct species_ctx
@@ -52,7 +53,7 @@ struct species_ctx
 
     double average_species_fitness;
 
-    CK_SLIST_HEAD(organism_list, organism_ctx) organism_list;
+    SLIST_HEAD(organism_list, organism_ctx);
 };
 
 struct world_population
