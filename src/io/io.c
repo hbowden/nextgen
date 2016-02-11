@@ -22,32 +22,32 @@
 
 void output(enum out_type type, const char *format, ...)
 {
-	va_list args;
+    va_list args;
 
-	va_start(args, format);
+    va_start(args, format);
 
-	switch((int32_t)type)
-	{
-		case ERROR:
-		    vfprintf(stderr, format, args);
-		    break;
+    switch((int32_t)type)
+    {
+	case ERROR:
+            vfprintf(stderr, format, args);
+	    break;
 
-		case STD:
-		    vfprintf(stdout, format, args);
-		    break;
+	case STD:
+            vfprintf(stdout, format, args);
+            break;
 
         /* We default to stdout when ERROR or STD is not set so that
         we don't have any errors. */
-		default:
-		    vfprintf(stdout, format, args);
-		    break;
-	}
+	default:
+	    vfprintf(stdout, format, args);
+            break;
+    }
 
-	va_end(args);
+    va_end(args);
 
     (void)fflush(stdout);
 
-	return;
+    return;
 }
 
 int32_t get_file_size(int32_t fd, uint64_t *size)
@@ -67,7 +67,7 @@ int32_t get_file_size(int32_t fd, uint64_t *size)
 
 int32_t map_file_in(int32_t fd, char **buf, uint64_t *size, int32_t perm)
 {
-	int32_t rtrn = 0;
+    int32_t rtrn = 0;
 
     /* Get the file's size. */
     rtrn = get_file_size(fd, size);
@@ -85,7 +85,7 @@ int32_t map_file_in(int32_t fd, char **buf, uint64_t *size, int32_t perm)
     	return (-1);
     }
 
-	return (0);
+    return (0);
 }
 
 int32_t map_file_out(char *path, char *buf, uint64_t size)
@@ -130,7 +130,7 @@ int32_t map_file_out(char *path, char *buf, uint64_t size)
         return (-1);
     }
 
-	return (0);
+    return (0);
 }
 
 int32_t copy_file_to(char *src, char *dst)
