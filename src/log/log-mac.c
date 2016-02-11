@@ -44,15 +44,15 @@ int32_t log_arguments(uint32_t number_of_args,
     {
     	switch((int32_t)arg_context_array[i]->log_type)
     	{
-    		/* File and directory paths. */
-    		case PATH:
-    		    sprintf(arg_value, " %s=%s", arg_context_array[i]->name, (char *)arg_value_array[i]);
-    		    break;
+    	    /* File and directory paths. */
+    	    case PATH:
+                sprintf(arg_value, " %s=%s", arg_context_array[i]->name, (char *)arg_value_array[i]);
+    		break;
 
             /* Pointers. */
-    		case POINTER:
-    		    sprintf(arg_value, " %s=%p", arg_context_array[i]->name, (void *)arg_value_array[i]);
-    		    break;
+    	    case POINTER:
+    		sprintf(arg_value, " %s=%p", arg_context_array[i]->name, (void *)arg_value_array[i]);
+    		break;
 
             /* Non pointer values. */
             case NUMBER:
