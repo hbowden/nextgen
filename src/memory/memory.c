@@ -187,16 +187,16 @@ struct mem_pool_shared *mem_create_shared_pool(uint32_t block_size, uint32_t blo
         block = mem_alloc_shared(sizeof(struct memory_block));
         if(block == NULL)
         {
-        	output(ERROR, "Can't alloc mem_block\n");
-        	return (NULL);
+            output(ERROR, "Can't alloc mem_block\n");
+            return (NULL);
         }
 
         /* Allocate enough space for the user to store what they want. */
         block->ptr = mem_alloc_shared(block_size);
         if(block->ptr == NULL)
         {
-        	output(ERROR, "Can't alloc memory block pointer.\n");
-        	return (NULL);
+            output(ERROR, "Can't alloc memory block pointer.\n");
+            return (NULL);
         }
 
 	/* Insert the node in the free list. */
