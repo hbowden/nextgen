@@ -16,7 +16,7 @@
  **/
 
 #include "test_utils.h"
-#include "../../src/syscall.h"
+#include "../../src/syscall/syscall.h"
 #include "../../src/genetic.c"
 
 static int test_init_world(void)

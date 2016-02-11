@@ -16,7 +16,7 @@
  **/
 
 #include "../../src/reaper.h"
-#include "../../src/syscall.h"
+#include "../../src/syscall/syscall.h"
 #include "../../src/nextgen.h"
 #include "../../src/memory.h"
 #include <signal.h>

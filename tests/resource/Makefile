@@ -1,6 +1,6 @@
-SOURCES = test_resource.c ../test_utils.c ../../src/memory.c ../../src/io.c ../../src/nextgen.c ../../src/utils.c ../../src/crypto.c \
-          ../../src/network.c ../../src/concurrent.c
-
+SOURCES = test_resource.c ../test_utils.c ../../src/memory.c ../../src/io.c \
+                          ../../src/nextgen.c ../../src/utils.c ../../src/crypto.c \
+                          ../../src/network.c ../../src/concurrent.c
 all:
 
 	$(CC) $(FLAGS) $(SILENCED_WARNINGS) $(INCLUDES) $(SOURCES) $(LIB) -o test_resource

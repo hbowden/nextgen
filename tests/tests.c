@@ -16,7 +16,7 @@
  **/
 
 #include "test_utils.h"
-#include "../../src/memory.h"
+#include "../src/memory.h"
 
 #include <stdio.h>
 #include <signal.h>
@@ -52,7 +52,7 @@ static int32_t exec_test(char *path)
 	int32_t rtrn = 0;
 	pid_t exec_pid = 0;
     char *buf auto_clean = NULL;
-	char *args[] = {"blah", NULL};
+	char *args[] = { "blah", NULL };
 
     /* Make sure path is not NULL, if it is return an error. */
 	if(path == NULL)
@@ -163,7 +163,7 @@ int main(void)
     }
 
     /* Output results. */
-    output(STD, "[%d] %ld successful assertions, %ld test passed, and %ld test failed.\n", \
+    output(STD, "[%d] %ld successful assertions, %ld tests passed, and %ld tests failed.\n", \
           (100 * test_stat->successes) / test_stat->test_ran, test_stat->asserts_ran, test_stat->successes, test_stat->fails);
 
 	return (0);

@@ -148,6 +148,39 @@ static int32_t test_ascii_to_binary(void)
     return (0);
 }
 
+static int32_t test_binary_to_ascii(void)
+{
+    log_test(DECLARE, "Testing Binary to ascii");
+
+    uint32_t i;
+    int32_t rtrn = 0;
+
+    uint64_t size = 0;
+    char *binary_string = "01100001011000100110010101100010011001100110100101110101";
+    char *ascii_string = NULL;
+
+    /* If we pass a zero for input size, binary_to_ascii()
+    should fail and return -1. */
+    rtrn = binary_to_ascii(binary_string, &ascii_string, 0, &size);
+    assert_stat(rtrn == -1);
+    assert_stat(ascii_string == NULL);
+    assert_stat(size == 0);
+
+    for(i = 0; i < binary_test; i++)
+    {
+        rtrn = ascii_to_binary(binary_array[i], &ascii_string, strlen(ascii_string), &size);
+        assert_stat(rtrn == 0);
+        assert_stat(ascii_string != NULL);
+        assert_stat(binary_array[i] != NULL);
+        assert_stat(size > 0);
+        mem_free(ascii_string);
+    }
+    
+    log_test(SUCCESS, "Binary to ascii test passed");
+
+    return (0);
+}
+
 static int32_t test_get_core_count(void)
 {
     log_test(DECLARE, "Testing get core count");
@@ -251,6 +284,10 @@ int main(void)
     rtrn = test_ascii_to_binary();
     if(rtrn < 0)
         log_test(FAIL, "Ascii to binary test failed");
+
+    rtrn = test_binary_to_ascii();
+    if(rtrn < 0)
+        log_test(FAIL, "Binary to ascii test failed");
 
     _exit(0);
 }

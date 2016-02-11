@@ -24,9 +24,12 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <string.h>
+#include <errno.h>
 
 static uint32_t loops;
 static uint32_t iterations = 10000;
+static char *tmp_dir = NULL;
 
 static int32_t test_get_file(void)
 {
@@ -51,6 +54,52 @@ static int32_t test_get_file(void)
     return (0);
 }
 
+static int32_t test_init_file_array(void)
+{
+    log_test(DECLARE, "Testing init file array");
+
+    uint32_t i;
+    int32_t rtrn = 0;
+    struct file_ctx **array = NULL;
+
+    array = init_file_array(tmp_dir, file_count);
+    assert_stat(array != NULL);
+
+    for(i = 0; i < file_count; i++)
+    {
+        assert_stat(&array[i] != NULL);
+        assert_stat(array[i]->path != NULL);
+        assert_stat(array[i]->type == BINARY || array[i]->type == TEXT);
+        assert_stat(array[i]->extension != NULL);
+    }
+
+    log_test(SUCCESS, "Init file array test passed");
+
+    return (0);
+}
+
+static int32_t test_detect_file_type(void)
+{
+    log_test(DECLARE, "Testing detect file type");
+
+    int32_t rtrn = 0;
+
+    uint32_t i;
+
+    for(i = 0; i < file_count; i++)
+    {
+        enum file_type type;
+
+        rtrn = detect_file_type(file_array[i]->path, &type);
+        assert_stat(rtrn == 0);
+        assert_stat(type == BINARY || type == TEXT);
+    }
+
+    log_test(SUCCESS, "Detect file type test passed");
+
+    return (0);
+}
+
 static int32_t test_count_files_directory(void)
 {
     log_test(DECLARE, "Testing count directory");
@@ -58,7 +107,7 @@ static int32_t test_count_files_directory(void)
     int32_t rtrn = 0;
     uint32_t count = 0;
 
-    rtrn = count_files_directory(&count);
+    rtrn = count_files_directory(&count, tmp_dir);
 
     /* rtrn should equal file module. */
     assert_stat(rtrn == 0);
@@ -75,23 +124,15 @@ static int32_t test_setup_file_module(void)
     log_test(DECLARE, "Testing file module setup");
 
     int32_t rtrn = 0;
-
-    char *tmp_dir = NULL;
-
-    rtrn = setup_crypto_module(CRYPTO);
-    assert_stat(rtrn == 0);
-
     char *dir = NULL;
 
+    /* Create a random directory name. */
     rtrn = generate_name(&dir, NULL, DIR_NAME);
     assert_stat(rtrn == 0);
 
+    /* Create the temp directory path string. */
     rtrn = asprintf(&tmp_dir, "/tmp/%s", dir);
-    if(rtrn < 0)
-    {
-        perror("asprintf");
-        return (-1);
-    }
+    assert_stat(rtrn > 0);
 
     /* Create a temporary directory for testing. */
     rtrn = mkdir(tmp_dir, 0777);
@@ -101,7 +142,6 @@ static int32_t test_setup_file_module(void)
         return (-1);
     }
 
-    /* Loop and create a random amount of tmp files. */
     rtrn = rand_range(100, &loops);
     assert_stat(rtrn == 0);
 
@@ -109,67 +149,30 @@ static int32_t test_setup_file_module(void)
 
     for(i = 0; i < loops; i++)
     {
-        char *name = NULL;
-        char *junk = NULL;
         char *path = NULL;
+        uint64_t size = 0;
 
-        rtrn = generate_name(&name, ".txt", FILE_NAME);
+        rtrn = create_random_file(tmp_dir, ".txt", &path, &size);
         assert_stat(rtrn == 0);
-        assert_stat(name != NULL);
-
-        rtrn = asprintf(&path, "/tmp/%s/%s", dir, name);
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't join paths: %s\n", strerror(errno));
-            return -1;
-        }
-
-        /* Allocate a buffer to put junk in. */
-        junk = mem_alloc(4096);
-        if(junk == NULL)
-        {
-            output(ERROR, "Can't alloc junk buf: %s\n", strerror(errno));
-            return -1;
-        }
-
-        /* Put some junk in a buffer. */
-        rtrn = rand_bytes(&junk, 4095);
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't alloc junk buf: %s\n", strerror(errno));
-            return -1;
-        }
-
-        /* Write that junk to the file so that the file is not just blank. */
-        rtrn = map_file_out(path, junk, 4095);
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't write junk to disk\n");
-            return -1;
-        }
-
-        /* Clean up. */
-        mem_free(name);
-        mem_free(junk);
-        mem_free(path);
+        assert_stat(path != NULL);
+        assert_stat(size > 0);
     }
 
     /* Give the file module the path of the program to test
       and the directory of input files. */
     rtrn = setup_file_module("/bin/ls", tmp_dir);
+    assert_stat(rtrn == 0);
 
     for(i = 0; i < file_count; i++)
     {
         int32_t fd = 0;
 
-        assert_stat(file_index[i] != NULL);
-        fd = open(file_index[i], O_RDONLY);
+        assert_stat(file_array != NULL);
+        assert_stat(file_array[i] != NULL);
+        fd = open(file_array[i]->path, O_RDONLY);
         assert_stat(fd > 0);
         assert_stat(close(fd) == 0);
     }
-
-    /* rtrn should equal file module. */
-    assert_stat(rtrn == 0);
 
     log_test(SUCCESS, "Setup file module test passed");
 
@@ -195,9 +198,24 @@ int main(void)
         return (-1);
     }
 
+    rtrn = setup_crypto_module(CRYPTO);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't setup crypto module\n");
+        return (-1);
+    }
+
     rtrn = test_setup_file_module();
     if(rtrn < 0)
     	log_test(FAIL, "Setup file module test failed");
+
+    rtrn = test_detect_file_type();
+    if(rtrn < 0)
+        log_test(FAIL, "Detect file type test failed");
+
+    rtrn = test_init_file_array();
+    if(rtrn < 0)
+        log_test(FAIL, "Init file array test failed");
 
     rtrn = test_count_files_directory();
     if(rtrn < 0)

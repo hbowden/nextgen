@@ -24,7 +24,8 @@
 #include "generate.h"
 #include "context.h"
 #include "network.h"
-#include "../../src/syscall.c"
+
+#include "../../src/syscall/syscall.c"
 
 static uint32_t iterations = 10000;
 
@@ -615,7 +616,7 @@ static int32_t test_generate_pid(void)
 
 	uint32_t i;
 
-    /* Only do 100 hundred because creating PID's are expensive. */
+    /* Only do 10 because creating PID's are expensive. */
     for(i = 0; i < 100; i++)
     {
 	    rtrn = generate_pid((uint64_t **)&pid, child);

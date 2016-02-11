@@ -14,9 +14,9 @@
  **/
 
 #include "nextgen.h"
-#include "memory.h"
-#include "runtime.h"
-#include "io.h"
+#include "memory/memory.h"
+#include "runtime/runtime.h"
+#include "io/io.h"
 
 /**
  * Main is the entry point to nextgen. In main we check for root, unfortunetly we need root to execute.

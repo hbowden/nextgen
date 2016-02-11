@@ -1,4 +1,3 @@
-
 UNIT_TEST = test_plugins
 
 SOURCES = $(UNIT_TEST).c ../test_utils.c ../../src/memory.c ../../src/io.c \

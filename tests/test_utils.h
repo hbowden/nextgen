@@ -18,7 +18,7 @@
 #ifndef TEST_UTILS_H
 #define TEST_UTILS_H
 
-#include "io.h"
+#include "../src/io.h"
 
 #include <stdint.h>
 #include <assert.h>

@@ -17,7 +17,7 @@
 
 #include "test_utils.h"
 #include "stdatomic.h"
-#include "../../src/syscall.c"
+#include "../../src/syscall/syscall.c"
 #include "../../src/resource.h"
 #include "../../src/crypto.h"
 
