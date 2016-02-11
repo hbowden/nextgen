@@ -19,7 +19,7 @@
 
 int32_t log_arguments(uint32_t number_of_args, 
                       const char *syscall_name,
-	                  uint64_t **arg_value_array, 
+	              uint64_t **arg_value_array, 
                       struct arg_context **arg_context_array)
 {
     char *arg_value auto_clean = mem_alloc(1024);
@@ -69,5 +69,5 @@ int32_t log_arguments(uint32_t number_of_args,
  
     output(STD, "%s\n", syscall_log_buf);
  
-	return (0);
+    return (0);
 }
