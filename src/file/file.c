@@ -81,24 +81,24 @@ static void setup_signal_handler(void)
 
 static int32_t get_file(int32_t *file, char **extension)
 {
-	int32_t rtrn = 0;
-	uint32_t offset = 0;
+    int32_t rtrn = 0;
+    uint32_t offset = 0;
 
     /* Pick a file array offset at random. */
     rtrn = rand_range((file_count - 1), &offset);
-	if(rtrn < 0)
-	{
-		output(ERROR, "Can't pick random number\n");
-		return (-1);
-	}
+    if(rtrn < 0)
+    {
+	output(ERROR, "Can't pick random number\n");
+	return (-1);
+    }
 
     /* Open the file at the random offset. */
-	(*file) = open(file_array[offset]->path, O_RDWR);
-	if((*file) < 0)
-	{
-		output(ERROR, "Can't open file: %s\n", strerror(errno));
-		return (-1);
-	}
+   (*file) = open(file_array[offset]->path, O_RDWR);
+   if((*file) < 0)
+   {
+	output(ERROR, "Can't open file: %s\n", strerror(errno));
+	return (-1);
+   }
 
     rtrn = asprintf(extension, "%s", file_array[offset]->extension);
     if(rtrn < 0)
@@ -277,7 +277,7 @@ static int32_t count_files_directory(uint32_t *count, char *dir)
     int32_t rtrn = 0;
     DIR *directory = NULL;
     char *file_path auto_clean = NULL;
-	struct dirent *entry = NULL;
+    struct dirent *entry = NULL;
 
     /* Open the directory. */
     directory = opendir(dir);
