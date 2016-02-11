@@ -117,5 +117,5 @@ int log_results(struct log_obj *obj)
 
     output(STD, "%s", out_buf);
 
-	return 0;
+    return 0;
 }
