@@ -122,7 +122,7 @@ static int32_t init_world(void)
             .average_species_fitness = 0,
 
             /* Init the organism list. */
-            .organism_list = SLIST_HEAD_INITIALIZER(ctx ->organism_list)
+            .organism_list = NX_SLIST_HEAD_INITIALIZER(ctx ->organism_list)
 
         };
 
@@ -159,7 +159,7 @@ static int32_t init_world(void)
 
             organism->fitness = 0;
 
-            CK_SLIST_INSERT_HEAD(&specie->organism_list, organism, list_entry);
+            NX_SLIST_INSERT_HEAD(&specie->organism_list, organism);
         }
 
         world->species[i] = specie;
