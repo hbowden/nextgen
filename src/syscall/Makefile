@@ -45,9 +45,9 @@ INCLUDES = -I../ -I../../deps/ck-0.5.0/include -Imac
 SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-padded \
                     -Wno-used-but-marked-unused -Wno-cast-align \
                     -Wno-missing-noreturn -Wno-unused-parameter \
-                    -Wno-deprecated-declarations
+                    -Wno-deprecated-declarations -Wno-undef
 
-FLAGS = -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
+FLAGS = -DMAC_OSX -dynamiclib -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
 
 LIB = ../io/libnxio.dylib ../memory/libnxmemory.dylib \
       ../crypto/libnxcrypto.dylib ../concurrent/libnxconcurrent.dylib \
