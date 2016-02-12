@@ -33,7 +33,7 @@ FLAGS = -dynamiclib -DMAC_OSX -Wall -Werror -Weverything -Wpedantic -g -O3 -std=
 LIB = ../io/libnxio.dylib ../memory/libnxmemory.dylib \
       ../file/libnxfile.dylib
 
-LIB_NAME = libnxdisas.dylib ../../deps/capstone-3.0.4/libcapstone.dylib
+LIB_NAME = libnxdisas.dylib ../../deps/capstone-3.0.4/libcapstone.a
 
 SOURCES += disas-mac.c
 
