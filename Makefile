@@ -119,6 +119,9 @@ install:
 
 clean:
 
+	cd deps/$(LIBRESSL) && $(MAKE) clean;
+	cd deps/$(CAPSTONE) && $(MAKE) clean;
+	cd deps/$(CK) && $(MAKE) clean;
 	$(CLEAN_NX_LIBS)
 	rm -rf *dSYM
 	rm -rf nextgen
