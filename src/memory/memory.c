@@ -167,7 +167,7 @@ struct mem_pool_shared *mem_create_shared_pool(uint32_t block_size, uint32_t blo
         .block_count = block_count,
         .free_list = NX_SLIST_HEAD_INITIALIZER(s_pool->free_list),
         .allocated_list = NX_SLIST_HEAD_INITIALIZER(s_pool->allocated_list)
-    }
+    };
 
     memmove(pool, &s_pool, sizeof(struct mem_pool_shared));
 
