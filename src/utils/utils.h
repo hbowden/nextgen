@@ -25,6 +25,12 @@
 
 #include "stdatomic.h"
 
+#ifdef MAC_OSX
+
+#include "utils-mac.h"
+
+#endif
+
 enum yes_no { YES, NO };
 
 enum csp { SET, UNSET };

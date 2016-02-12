@@ -27,9 +27,11 @@ SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-padded
 FLAGS = -dynamiclib -DMAC_OSX -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
 
 LIB = ../io/libnxio.dylib ../memory/libnxmemory.dylib \
-      ../crypto/libnxcrypto.dylib
+      ../crypto/libnxcrypto.dylib -lobjc -framework foundation
 
 LIB_NAME = libnxutils.dylib
+
+SOURCES += utils-mac.m
 
 endif
 
