@@ -43,7 +43,7 @@ LIB = -lobjc ../io/libnxio.dylib ../memory/libnxmemory.dylib \
 
 LIB_NAME = libnxfile.dylib
 
-SOURCES += file-mac.c
+SOURCES += file-mac.m
 
 endif
 
