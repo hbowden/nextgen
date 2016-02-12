@@ -31,7 +31,7 @@ LIB = ../io/libnxio.so ../memory/libnxmemory.so \
 
 LIB_NAME = libnxsyscall.so
 
-SOURCE += syscall-freebsd.c
+SOURCES += syscall-freebsd.c
 
 endif
 
@@ -57,7 +57,7 @@ LIB = ../io/libnxio.dylib ../memory/libnxmemory.dylib \
 
 LIB_NAME = libnxsyscall.dylib
 
-SOURCE += syscall-mac.c
+SOURCES += syscall-mac.c
 
 endif
 
