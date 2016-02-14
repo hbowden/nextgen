@@ -22,16 +22,14 @@ endif
 # Mac OSX build options.
 ifeq ($(OPERATING_SYSTEM), Darwin)
 
-SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-padded
+SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-padded -Wno-import-preprocessor-directive-pedantic
 
 FLAGS = -dynamiclib -DMAC_OSX -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
 
 LIB = ../io/libnxio.dylib ../memory/libnxmemory.dylib \
-      ../crypto/libnxcrypto.dylib -lobjc -framework foundation
+      ../crypto/libnxcrypto.dylib
 
 LIB_NAME = libnxutils.dylib
-
-SOURCES += utils-mac.m
 
 endif
 

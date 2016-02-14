@@ -1,5 +1,3 @@
-
-
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
@@ -24,12 +22,6 @@
 #include <stdlib.h>
 
 #include "stdatomic.h"
-
-#ifdef MAC_OSX
-
-#include "utils-mac.h"
-
-#endif
 
 enum yes_no { YES, NO };
 
