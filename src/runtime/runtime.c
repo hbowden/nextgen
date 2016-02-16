@@ -40,6 +40,12 @@
 #include <errno.h>
 #include <sys/mman.h>
 
+#ifdef MAC_OSX
+
+#include <pthread.h>
+
+#endif
+
 static int32_t start_network_mode_runtime(void)
 {
     return (0);
@@ -89,13 +95,28 @@ static int32_t start_syscall_mode_runtime(void)
     }
 }
 
-static int32_t start_file_mode_runtime(void)
+static void *file_mode_thread_start(void *arg)
 {
     /* Check the mode were running in and start the appropriate loop. */
     if(map->smart_mode == TRUE)
         start_file_smart_loop();
     else
         start_main_file_loop();
+
+    return (NULL);
+}
+
+static int32_t start_file_mode_runtime(void)
+{
+    int32_t rtrn = 0;
+    pthread_t thread;
+
+    rtrn = pthread_create(&thread, NULL, file_mode_thread_start, NULL);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't create file thread\n");
+        return (-1);
+    }
 
     return (0);
 }
