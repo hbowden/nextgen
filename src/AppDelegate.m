@@ -34,15 +34,6 @@
             clean_shared_mapping();
             //return;
         }
-
-        /* Start the main fuzzing loop. */
-        rtrn = start_runtime();
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't start runtime enviroment.\n");
-            clean_shared_mapping();
-            //return;
-        }
     }
     return self;
 }
