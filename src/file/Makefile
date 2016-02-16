@@ -20,7 +20,7 @@ FLAGS = -DFREEBSD -shared -fPIC -Wall -Werror -Weverything -Wpedantic -g -O3
 LIB = ../io/libnxio.so ../memory/libnxmemory.so \
       ../utils/libnxutils.so ../concurrent/libnxconcurrent.so \
       ../mutate/libnxmutate.so ../log/libnxlog.so \
-      ../crypto/libnxcrypto.so
+      ../crypto/libnxcrypto.so 
 
 LIB_NAME = libnxfile.so
 
@@ -39,7 +39,7 @@ FLAGS = -dynamiclib -DMAC_OSX -Wall -Werror -Weverything -Wpedantic -g -O3
 LIB = -lobjc ../io/libnxio.dylib ../memory/libnxmemory.dylib \
       ../utils/libnxutils.dylib ../concurrent/libnxconcurrent.dylib \
       ../mutate/libnxmutate.dylib ../log/libnxlog.dylib \
-      ../crypto/libnxcrypto.dylib
+      ../crypto/libnxcrypto.dylib -framework Foundation -framework AppKit
 
 LIB_NAME = libnxfile.dylib
 

@@ -1,7 +1,5 @@
-
-
 /**
- * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
+ * Copyright (c) 2016, Harrison Bowden, Minneapolis, MN
  * 
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice 
@@ -15,17 +13,11 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#include "syscall_list.h"
+#import <Cocoa/Cocoa.h>
 
-struct syscall_entry entry_chdir = {
+@interface MyApplicationDelegate : NSObject <NSApplicationDelegate, NSWindowDelegate> {
+    NSWindow * window;
+}
 
-    .name_of_syscall = "chdir",
-    .syscall_symbol = SYS_chdir,
-    .number_of_args = 1,
-    .status = ON,
-    .requires_root = NX_NO,
-    .need_alarm = NX_NO,
+@end
 
-    .arg_type_index[FIRST_ARG] = FILE_PATH,
-    .get_arg_index[FIRST_ARG] = &generate_path
-};

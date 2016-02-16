@@ -23,8 +23,8 @@ struct syscall_entry entry_wait4 = {
     .syscall_symbol = SYS_wait4,
     .number_of_args = 4,
     .status = ON,
-    .requires_root = NO,
-    .need_alarm = NO,
+    .requires_root = NX_NO,
+    .need_alarm = NX_NO,
 
     .arg_type_index[FIRST_ARG] = PID,
     .get_arg_index[FIRST_ARG] = &generate_pid,

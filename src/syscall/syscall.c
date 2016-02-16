@@ -1,5 +1,3 @@
-
-
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
@@ -242,7 +240,7 @@ static int32_t set_syscall(uint32_t num, struct child_ctx *ctx)
     ctx->name_of_syscall = sys_table->sys_entry[num]->name_of_syscall;
     ctx->need_alarm = sys_table->sys_entry[num]->need_alarm;
     ctx->number_of_args = sys_table->sys_entry[num]->number_of_args;
-    ctx->had_error = NO;
+    ctx->had_error = NX_NO;
     
     return (0); 
 }
@@ -787,7 +785,7 @@ int32_t pick_syscall(struct child_ctx *ctx)
     ctx->name_of_syscall = sys_table->sys_entry[ctx->syscall_number]->name_of_syscall;
     ctx->need_alarm = sys_table->sys_entry[ctx->syscall_number]->need_alarm;
     ctx->number_of_args = sys_table->sys_entry[ctx->syscall_number]->number_of_args;
-    ctx->had_error = NO;
+    ctx->had_error = NX_NO;
 
     return (0);
 }
@@ -838,7 +836,7 @@ int32_t test_syscall(struct child_ctx *ctx)
     uint64_t *arg6 = ctx->arg_value_index[5];
 
     /* Check if we need to set the alarm for blocking syscalls.  */
-    if(ctx->need_alarm == YES)
+    if(ctx->need_alarm == NX_YES)
         alarm(1);
 
     /* Set the time of the syscall test. */
@@ -858,7 +856,7 @@ int32_t test_syscall(struct child_ctx *ctx)
         ctx->err_value = strerror(errno);
 
         /* Set the error flag so the logging system knows we had an error. */
-        ctx->had_error = YES;
+        ctx->had_error = NX_YES;
     }
     
 #endif
