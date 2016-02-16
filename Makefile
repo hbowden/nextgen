@@ -1,8 +1,6 @@
 # Set the root directory path, ie the path to the nextgen directory.
 ROOT_DIR = $(shell pwd)
 
-SOURCES = src/main.c
-
 CK = ck-0.5.0
 LIBRESSL = libressl-2.3.1
 CAPSTONE = capstone-3.0.4
@@ -17,6 +15,8 @@ OPERATING_SYSTEM = $(shell uname)
 # FreeBSD build options.
 ifeq ($(OPERATING_SYSTEM), FreeBSD)
 
+SOURCES = src/main.c
+
 CC = clang
 
 MAKE = gmake
@@ -30,13 +30,21 @@ endif
 # Mac OSX build options.
 ifeq ($(OPERATING_SYSTEM), Darwin)
 
+SOURCES = src/main.m src/AppDelegate.m
+
 CC = clang
 
 MAKE = make
 
 FLAGS = -DMAC_OSX -Wall -Werror -Weverything -pedantic -g -O3 -std=c99
 
-SILENCED_WARNINGS = -Wno-padded -Wno-reserved-id-macro
+SILENCED_WARNINGS = -Wno-padded -Wno-reserved-id-macro \
+                    -Wno-incompatible-pointer-types-discards-qualifiers \
+                    -Wno-unused-parameter -Wno-objc-interface-ivars \
+                    -Wno-direct-ivar-access
+
+
+LIB += -framework Foundation -framework AppKit
 
 endif
 
