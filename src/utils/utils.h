@@ -23,7 +23,7 @@
 
 #include "stdatomic.h"
 
-enum yes_no { YES, NO };
+enum yes_no { NX_YES, NX_NO };
 
 enum csp { SET, UNSET };
 
