@@ -96,7 +96,7 @@ int log_results(struct log_obj *obj)
     int32_t rtrn = 0;
     char *out_buf auto_clean = NULL;
 
-    if(obj->had_error == YES)
+    if(obj->had_error == NX_YES)
     {
         rtrn = asprintf(&out_buf, "%s= %d (%s) %s\n", BOLD_RED, obj->ret_value, obj->err_value, RESET);
         if(rtrn < 0)
