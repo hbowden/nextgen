@@ -1,5 +1,6 @@
 
-Most of the code is licensed under the ISC license below. However some files are licensed differently, but they are all Permissive licenses. All of the licenses are below.
+Most of the code is licensed under the ISC license below. 
+However some files are licensed differently, but they are all Permissive licenses.
 
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
