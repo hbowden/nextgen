@@ -8,9 +8,11 @@ OPERATING_SYSTEM = $(shell uname)
 # FreeBSD build options.
 ifeq ($(OPERATING_SYSTEM), FreeBSD)
 
+SOURCES += concurrent-freebsd.c
+
 SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-padded \
                     -Wno-format-nonliteral -Wno-gnu-statement-expression \
-                    -Wno-unused-parameter -Wno-undef
+                    -Wno-unused-parameter -Wno-undef -Wno-unused-parameter
 
 FLAGS = -DFREEBSD -shared -fPIC -Wall -Werror -Weverything -g -O3 -std=c99
 
@@ -23,8 +25,11 @@ endif
 # Mac OSX build options.
 ifeq ($(OPERATING_SYSTEM), Darwin)
 
+SOURCES += concurrent-mac.c
+
 SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-padded \
-                    -Wno-format-nonliteral -Wno-gnu-statement-expression
+                    -Wno-format-nonliteral -Wno-gnu-statement-expression \
+                    -Wno-unused-parameter
 
 FLAGS = -dynamiclib -DMAC_OSX -Wall -Werror -Weverything -g -O3 -std=c99
 
