@@ -2,7 +2,7 @@
 ROOT_DIR = $(shell pwd)
 
 CK = ck-0.5.1
-LIBRESSL = libressl-2.3.1
+LIBRESSL = libressl-2.3.2
 CAPSTONE = capstone-3.0.4
 
 export CK LIBRESSL CAPSTONE
