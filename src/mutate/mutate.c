@@ -69,7 +69,7 @@ static int32_t xor_mutator(char **file, uint64_t *file_size)
     return (0);
 }
 
-static int32_t number_of_mutators = 3;
+static uint32_t number_of_mutators = 3;
 
 /* Array of file mutator function pointers. */
 static int32_t (*mutator_array[])(char **file, uint64_t *file_size) = {
