@@ -1,7 +1,8 @@
 
 SOURCES = concurrent.c
 
-INCLUDES = -I../ -I../../deps/ck-0.5.0/include
+INCLUDES = -I../ -I../../deps/$(CK)/include \
+           -isystem ../../deps/$(CK)/include
 
 OPERATING_SYSTEM = $(shell uname)
 

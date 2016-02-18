@@ -1,7 +1,8 @@
 SOURCES = crypto.c
 
 INCLUDES = -I../ -I../../deps/$(LIBRESSL)/include \
-           -I../../deps/$(CK)/include 
+           -I../../deps/$(CK)/include \
+           -isystem ../../deps/$(CK)/include
 
 OPERATING_SYSTEM = $(shell uname)
 
