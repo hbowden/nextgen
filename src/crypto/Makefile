@@ -1,7 +1,7 @@
 SOURCES = crypto.c
 
-INCLUDES = -I../ -I../../deps/libressl-2.3.1/include \
-           -I../../deps/ck-0.5.0/include 
+INCLUDES = -I../ -I../../deps/$(LIBRESSL)/include \
+           -I../../deps/$(CK)/include 
 
 OPERATING_SYSTEM = $(shell uname)
 
@@ -13,7 +13,7 @@ SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-padded
 FLAGS = -DFREEBSD -shared -fPIC -Wall -Werror -Weverything -g -O3 -Wpedantic -std=c99
 
 LIB = ../io/libnxio.so ../memory/libnxmemory.so \
-      ../../deps/libressl-2.3.1/crypto/.libs/libcrypto.so
+      ../../deps/$(LIBRESSL)/crypto/.libs/libcrypto.so
 
 LIB_NAME = libnxcrypto.so
 
@@ -27,7 +27,7 @@ SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-padded
 FLAGS = -dynamiclib -DMAC_OSX -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
 
 LIB = ../io/libnxio.dylib ../memory/libnxmemory.dylib \
-      ../../deps/libressl-2.3.1/crypto/.libs/libcrypto.a
+      ../../deps/$(LIBRESSL)/crypto/.libs/libcrypto.a
 
 LIB_NAME = libnxcrypto.dylib
 
