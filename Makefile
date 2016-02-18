@@ -108,6 +108,7 @@ install:
 
 	cp src/runtime/libnxruntime.dylib /usr/local/lib
 	cp src/io/libnxio.dylib /usr/local/lib
+	cp src/objc/libnxobjcutils.dylib /usr/local/lib
 	cp src/memory/libnxmemory.dylib /usr/local/lib
 	cp src/concurrent/libnxconcurrent.dylib /usr/local/lib
 	cp src/crypto/libnxcrypto.dylib /usr/local/lib 
@@ -123,8 +124,8 @@ install:
 	cp src/reaper/libnxreaper.dylib /usr/local/lib 
 	cp src/file/libnxfile.dylib /usr/local/lib 
 	cp src/disas/libnxdisas.dylib /usr/local/lib 
-	cp deps/capstone-3.0.4/libcapstone.dylib /usr/local/lib
-	cd deps/ck-0.5.0 && $(MAKE) install
+	cp deps/$(CAPSTONE)/libcapstone.dylib /usr/local/lib
+	cd deps/$(CK) && $(MAKE) install
 	cp nextgen /usr/local/bin
 
 clean:
