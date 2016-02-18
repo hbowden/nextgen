@@ -19,5 +19,10 @@
     NSWindow * window;
 }
 
+- (void)setStart:(int32_t(*)(void))app_start;
+
+- (void)setSetup:(int32_t(*)(void))app_setup;
+
+
 @end
 

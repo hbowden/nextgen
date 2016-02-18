@@ -20,24 +20,27 @@
 #include "memory/memory.h"
 #include "io/io.h"
 
-static int32_t app_start(void);
+static int32_t (*start)(void);
+static int32_t (*setup)(void);
 
 @implementation MyApplicationDelegate : NSObject
 - (id)init {
     if ((self = [super init]))
     {
-        int32_t rtrn = 0;
-
-        /* Setup the fuzzer running enviroment. */
-        rtrn = setup_runtime();
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't setup runtime enviroment.\n");
-            clean_shared_mapping();
-            //return;
-        }
+        /* Setup the application. */
+        setup();
     }
     return self;
+}
+
+- (void)setStart:(int32_t(*)(void))app_start {
+
+    start = app_start;
+}
+
+- (void)setSetup:(int32_t(*)(void))app_setup {
+
+    setup = app_setup;
 }
 
 - (void)applicationWillFinishLaunching:(NSNotification *)notification {
@@ -46,16 +49,8 @@ static int32_t app_start(void);
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
 
-    /* Start the main fuzzing loop. */
-    int32_t rtrn = 0;
-
-    rtrn = start_runtime();
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't start runtime enviroment.\n");
-        clean_shared_mapping();
-        return;
-    }
+    /* Start the application loop. */
+    start();
 }
 
 - (void)dealloc {

@@ -20,6 +20,7 @@
 
 extern NSString *cstring_to_nsstring(char *string);
 
-extern int32_t setup_objc_runtime(void);
+extern int32_t setup_objc_runtime(int32_t (*app_setup)(void), 
+	                              int32_t (*app_start)(void));
 
 #endif
