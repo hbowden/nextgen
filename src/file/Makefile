@@ -39,7 +39,8 @@ FLAGS = -dynamiclib -DMAC_OSX -Wall -Werror -Weverything -Wpedantic -g -O3
 LIB = -lobjc ../io/libnxio.dylib ../memory/libnxmemory.dylib \
       ../utils/libnxutils.dylib ../concurrent/libnxconcurrent.dylib \
       ../mutate/libnxmutate.dylib ../log/libnxlog.dylib \
-      ../crypto/libnxcrypto.dylib -framework Foundation -framework AppKit
+      ../crypto/libnxcrypto.dylib ../objc/libnxobjcutils.dylib \
+      -framework Foundation -framework AppKit
 
 LIB_NAME = libnxfile.dylib
 

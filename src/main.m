@@ -17,8 +17,6 @@
 #include "memory/memory.h"
 #include "io/io.h"
 
-#import "AppDelegate.h"
-
 /**
  * Main is the entry point to nextgen. In main we check for root, unfortunetly we need root to execute.
  * This is because we have to use dtrace, as well as bypass sandboxes, inject code into processes and 
@@ -34,45 +32,68 @@ int main(int argc, const char * argv[])
 
     /* Create a shared memory map so that we can share state with other threads and procceses. */
     map = mem_alloc_shared(sizeof(struct shared_map));
-        if(map == NULL)
-        {
-            output(ERROR, "Can't create shared object.\n");
-            return (-1);
-        }
+    if(map == NULL)
+    {
+        output(ERROR, "Can't create shared object.\n");
+        return (-1);
+    }
 
-        /* Parse the command line for user input. parse_cmd_line() will set variables
-        in map, the shared memory mapping. This will tell the fuzzer how to run. */
-        ctx = parse_cmd_line(argc, argv);
-        if(ctx == NULL)
-        {
-            output(ERROR, "Can't parse command line.\n");
-            return (-1);
-        }
+    /* Parse the command line for user input. parse_cmd_line() will set variables
+    in map, the shared memory mapping. This will tell the fuzzer how to run. */
+    ctx = parse_cmd_line(argc, argv);
+    if(ctx == NULL)
+    {
+        output(ERROR, "Can't parse command line.\n");
+        return (-1);
+    }
 
-        rtrn = check_root();
-        if(rtrn != 0)
-        {
-            output(STD, "Run nextgen as root\n");
-            return (-1);
-        }
+    rtrn = check_root();
+    if(rtrn != 0)
+    {
+        output(STD, "Run nextgen as root\n");
+        return (-1);
+    }
 
-        /* Setup the shared map now that we got our options from the command line. */
-        rtrn = init_shared_mapping(&map, ctx);
+    /* Setup the shared map now that we got our options from the command line. */
+    rtrn = init_shared_mapping(&map, ctx);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't initialize.\n");
+        return (-1);
+    }
+
+    if(map->mode == MODE_FILE)
+    {
+        rtrn = setup_objc_runtime();
         if(rtrn < 0)
         {
-            output(ERROR, "Can't initialize.\n");
+           output(ERROR, "Can't setup objective-c runtime\n");
+           return (-1);
+        }
+    }
+    else
+    {
+        /* Setup the fuzzer running enviroment. */
+        rtrn = setup_runtime();
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't setup runtime enviroment.\n");
+            clean_shared_mapping();
             return (-1);
         }
 
-        NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
-        NSApplication * application = [NSApplication sharedApplication];
+        /* Start the main fuzzing loop. */
+        rtrn = start_runtime();
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't start runtime enviroment.\n");
+            clean_shared_mapping();
+            return (-1);
+        }
+    }
 
-    MyApplicationDelegate * appDelegate = [[[MyApplicationDelegate alloc] init] autorelease];
+    /* We should only reach here on ctrl-c. */
+    clean_shared_mapping();
 
-        [application setDelegate:appDelegate];
-        [application run];
-
-        [pool drain];
-
-        return (0);
+    return (0);
 }

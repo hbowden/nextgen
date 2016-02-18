@@ -97,6 +97,12 @@ static int32_t start_syscall_mode_runtime(void)
 
 static void *file_mode_thread_start(void *arg)
 {
+    #ifdef MAC_OSX
+
+    sleep(3);
+
+    #endif
+
     /* Check the mode were running in and start the appropriate loop. */
     if(map->smart_mode == TRUE)
         start_file_smart_loop();

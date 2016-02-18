@@ -20,6 +20,8 @@
 #include "memory/memory.h"
 #include "io/io.h"
 
+static int32_t app_start(void);
+
 @implementation MyApplicationDelegate : NSObject
 - (id)init {
     if ((self = [super init]))
@@ -40,6 +42,20 @@
 
 - (void)applicationWillFinishLaunching:(NSNotification *)notification {
     [window makeKeyAndOrderFront:self];
+}
+
+- (void)applicationDidFinishLaunching:(NSNotification *)notification {
+
+    /* Start the main fuzzing loop. */
+    int32_t rtrn = 0;
+
+    rtrn = start_runtime();
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't start runtime enviroment.\n");
+        clean_shared_mapping();
+        return;
+    }
 }
 
 - (void)dealloc {

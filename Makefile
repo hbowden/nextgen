@@ -30,7 +30,7 @@ endif
 # Mac OSX build options.
 ifeq ($(OPERATING_SYSTEM), Darwin)
 
-SOURCES = src/main.m src/AppDelegate.m
+SOURCES = src/main.m
 
 CC = clang
 
@@ -39,52 +39,51 @@ MAKE = make
 FLAGS = -DMAC_OSX -Wall -Werror -Weverything -pedantic -g -O3 -std=c99
 
 SILENCED_WARNINGS = -Wno-padded -Wno-reserved-id-macro \
-                    -Wno-incompatible-pointer-types-discards-qualifiers \
-                    -Wno-unused-parameter -Wno-objc-interface-ivars \
-                    -Wno-direct-ivar-access
 
+BUILD_NX_LIBS = cd $(ROOT_DIR)/src/objc && $(MAKE) &&
+CLEAN_NX_LIBS = cd $(ROOT_DIR)/src/objc && $(MAKE) clean &&
 
-LIB += -framework Foundation -framework AppKit
+LIB += src/objc/libnxobjcutils.dylib
 
 endif
 
 PROG = nextgen
 
-BUILD_NX_LIBS = cd $(ROOT_DIR)/src/io && $(MAKE) && \
-                cd $(ROOT_DIR)/src/memory && $(MAKE) && \
-                cd $(ROOT_DIR)/src/concurrent && $(MAKE) && \
-                cd $(ROOT_DIR)/src/crypto && $(MAKE) && \
-                cd $(ROOT_DIR)/src/utils && $(MAKE) && \
-                cd $(ROOT_DIR)/src/probe && $(MAKE) && \
-                cd $(ROOT_DIR)/src/network && $(MAKE) && \
-                cd $(ROOT_DIR)/src/plugins && $(MAKE) && \
-                cd $(ROOT_DIR)/src/mutate && $(MAKE) && \
-                cd $(ROOT_DIR)/src/resource && $(MAKE) && \
-                cd $(ROOT_DIR)/src/log && $(MAKE) && \
-                cd $(ROOT_DIR)/src/syscall && $(MAKE) && \
-                cd $(ROOT_DIR)/src/genetic && $(MAKE) && \
-                cd $(ROOT_DIR)/src/reaper && $(MAKE) && \
-                cd $(ROOT_DIR)/src/file && $(MAKE) && \
-                cd $(ROOT_DIR)/src/disas && $(MAKE) && \
-                cd $(ROOT_DIR)/src/runtime && $(MAKE)
+BUILD_NX_LIBS += cd $(ROOT_DIR)/src/io && $(MAKE) && \
+                 cd $(ROOT_DIR)/src/memory && $(MAKE) && \
+                 cd $(ROOT_DIR)/src/concurrent && $(MAKE) && \
+                 cd $(ROOT_DIR)/src/crypto && $(MAKE) && \
+                 cd $(ROOT_DIR)/src/utils && $(MAKE) && \
+                 cd $(ROOT_DIR)/src/probe && $(MAKE) && \
+                 cd $(ROOT_DIR)/src/network && $(MAKE) && \
+                 cd $(ROOT_DIR)/src/plugins && $(MAKE) && \
+                 cd $(ROOT_DIR)/src/mutate && $(MAKE) && \
+                 cd $(ROOT_DIR)/src/resource && $(MAKE) && \
+                 cd $(ROOT_DIR)/src/log && $(MAKE) && \
+                 cd $(ROOT_DIR)/src/syscall && $(MAKE) && \
+                 cd $(ROOT_DIR)/src/genetic && $(MAKE) && \
+                 cd $(ROOT_DIR)/src/reaper && $(MAKE) && \
+                 cd $(ROOT_DIR)/src/file && $(MAKE) && \
+                 cd $(ROOT_DIR)/src/disas && $(MAKE) && \
+                 cd $(ROOT_DIR)/src/runtime && $(MAKE)
 
-CLEAN_NX_LIBS = cd $(ROOT_DIR)/src/io && $(MAKE) clean && \
-                cd $(ROOT_DIR)/src/memory && $(MAKE) clean && \
-                cd $(ROOT_DIR)/src/concurrent && $(MAKE) clean && \
-                cd $(ROOT_DIR)/src/crypto && $(MAKE) clean && \
-                cd $(ROOT_DIR)/src/utils && $(MAKE) clean && \
-                cd $(ROOT_DIR)/src/probe && $(MAKE) clean && \
-                cd $(ROOT_DIR)/src/network && $(MAKE) clean && \
-                cd $(ROOT_DIR)/src/plugins && $(MAKE) clean && \
-                cd $(ROOT_DIR)/src/mutate && $(MAKE) clean && \
-                cd $(ROOT_DIR)/src/resource && $(MAKE) clean && \
-                cd $(ROOT_DIR)/src/log && $(MAKE) clean && \
-                cd $(ROOT_DIR)/src/syscall && $(MAKE) clean && \
-                cd $(ROOT_DIR)/src/genetic && $(MAKE) clean && \
-                cd $(ROOT_DIR)/src/reaper && $(MAKE) clean && \
-                cd $(ROOT_DIR)/src/file && $(MAKE) clean && \
-                cd $(ROOT_DIR)/src/disas && $(MAKE) clean && \
-                cd $(ROOT_DIR)/src/runtime && $(MAKE) clean
+CLEAN_NX_LIBS += cd $(ROOT_DIR)/src/io && $(MAKE) clean && \
+                 cd $(ROOT_DIR)/src/memory && $(MAKE) clean && \
+                 cd $(ROOT_DIR)/src/concurrent && $(MAKE) clean && \
+                 cd $(ROOT_DIR)/src/crypto && $(MAKE) clean && \
+                 cd $(ROOT_DIR)/src/utils && $(MAKE) clean && \
+                 cd $(ROOT_DIR)/src/probe && $(MAKE) clean && \
+                 cd $(ROOT_DIR)/src/network && $(MAKE) clean && \
+                 cd $(ROOT_DIR)/src/plugins && $(MAKE) clean && \
+                 cd $(ROOT_DIR)/src/mutate && $(MAKE) clean && \
+                 cd $(ROOT_DIR)/src/resource && $(MAKE) clean && \
+                 cd $(ROOT_DIR)/src/log && $(MAKE) clean && \
+                 cd $(ROOT_DIR)/src/syscall && $(MAKE) clean && \
+                 cd $(ROOT_DIR)/src/genetic && $(MAKE) clean && \
+                 cd $(ROOT_DIR)/src/reaper && $(MAKE) clean && \
+                 cd $(ROOT_DIR)/src/file && $(MAKE) clean && \
+                 cd $(ROOT_DIR)/src/disas && $(MAKE) clean && \
+                 cd $(ROOT_DIR)/src/runtime && $(MAKE) clean
 
 all:
 

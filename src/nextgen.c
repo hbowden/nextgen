@@ -1,5 +1,3 @@
-
-
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
@@ -16,8 +14,8 @@
  **/
 
 #include "nextgen.h"
-#include "crypto/crypto.h"
 #include "io/io.h"
+#include "crypto/crypto.h"
 #include "memory/memory.h"
 #include "file/file.h"
 #include "reaper/reaper.h"
