@@ -5,6 +5,8 @@ CK = ck-0.5.1
 LIBRESSL = libressl-2.3.1
 CAPSTONE = capstone-3.0.4
 
+export CK LIBRESSL CAPSTONE
+
 LIB = src/runtime/libnxruntime.dylib src/memory/libnxmemory.dylib \
       src/utils/libnxutils.dylib src/io/libnxio.dylib
 

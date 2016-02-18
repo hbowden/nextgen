@@ -16,7 +16,7 @@ SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-padded \
 
 FLAGS = -DFREEBSD -shared -fPIC -Wall -Werror -Weverything -g -O3 -std=c99
 
-LIB = ../../deps/ck-0.5.0/src/libck.so ../io/libnxio.so
+LIB = ../../deps/$(CK)/src/libck.so ../io/libnxio.so
 
 LIB_NAME = libnxconcurrent.so
 
@@ -33,7 +33,7 @@ SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-padded \
 
 FLAGS = -dynamiclib -DMAC_OSX -Wall -Werror -Weverything -g -O3 -std=c99
 
-LIB = ../../deps/ck-0.5.0/src/libck.so ../io/libnxio.dylib
+LIB = ../../deps/$(CK)/src/libck.so ../io/libnxio.dylib
 
 LIB_NAME = libnxconcurrent.dylib
 
