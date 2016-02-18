@@ -14,7 +14,9 @@
  **/
 
 #include "nextgen.h"
+#include "runtime/runtime.h"
 #include "memory/memory.h"
+#include "objc/objc-utils.h"
 #include "io/io.h"
 
 /**
@@ -64,7 +66,7 @@ int main(int argc, const char * argv[])
 
     if(map->mode == MODE_FILE)
     {
-        rtrn = setup_objc_runtime();
+        rtrn = setup_objc_runtime(&setup_runtime, &start_runtime);
         if(rtrn < 0)
         {
            output(ERROR, "Can't setup objective-c runtime\n");

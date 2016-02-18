@@ -41,6 +41,7 @@ MAKE = make
 FLAGS = -DMAC_OSX -Wall -Werror -Weverything -pedantic -g -O3 -std=c99
 
 SILENCED_WARNINGS = -Wno-padded -Wno-reserved-id-macro \
+                    -Wno-incompatible-pointer-types-discards-qualifiers
 
 BUILD_NX_LIBS = cd $(ROOT_DIR)/src/objc && $(MAKE) &&
 CLEAN_NX_LIBS = cd $(ROOT_DIR)/src/objc && $(MAKE) clean &&
