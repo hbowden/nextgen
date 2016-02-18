@@ -27,8 +27,6 @@ static int32_t (*setup)(void);
 - (id)init {
     if ((self = [super init]))
     {
-        /* Setup the application. */
-        setup();
     }
     return self;
 }
@@ -45,6 +43,9 @@ static int32_t (*setup)(void);
 
 - (void)applicationWillFinishLaunching:(NSNotification *)notification {
     [window makeKeyAndOrderFront:self];
+
+    /* Setup the application. */
+    setup();
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
