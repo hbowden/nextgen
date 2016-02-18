@@ -1,5 +1,3 @@
-
-
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
@@ -34,7 +32,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
-static int32_t port;
+static uint32_t port;
 
 static atomic_int_fast32_t stop_socket_server;
 
