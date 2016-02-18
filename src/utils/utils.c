@@ -249,7 +249,7 @@ int32_t ascii_to_binary(char *input, char **out, uint64_t input_len, uint64_t *o
     /* Loop and convert to a binary string. */
     for(i = 0; i < input_len; i++)
     {
-        unsigned char ch = input[i];
+        char ch = input[i];
         char *o = &(*out)[8 * i];
         unsigned char b;
 
