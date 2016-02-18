@@ -38,7 +38,7 @@ CC = clang
 
 MAKE = make
 
-FLAGS = -DMAC_OSX -Wall -Werror -Weverything -pedantic -g -O3 -std=c99
+FLAGS = -DMAC_OSX -fsanitize=address -Wall -Werror -Weverything -pedantic -g -O3 -std=c99
 
 SILENCED_WARNINGS = -Wno-padded -Wno-reserved-id-macro \
                     -Wno-incompatible-pointer-types-discards-qualifiers
@@ -106,6 +106,25 @@ quick:
 
 install:
 
+	cp -ipr src/runtime/libnxruntime.dylib.dSYM /usr/local/lib
+	cp -ipr src/io/libnxio.dylib.dSYM /usr/local/lib
+	cp -ipr src/objc/libnxobjcutils.dylib.dSYM /usr/local/lib
+	cp -ipr src/memory/libnxmemory.dylib.dSYM /usr/local/lib
+	cp -ipr src/concurrent/libnxconcurrent.dylib.dSYM /usr/local/lib
+	cp -ipr src/crypto/libnxcrypto.dylib.dSYM /usr/local/lib 
+	cp -ipr src/utils/libnxutils.dylib.dSYM /usr/local/lib
+	cp -ipr src/probe/libnxprobe.dylib.dSYM /usr/local/lib 
+	cp -ipr src/network/libnxnetwork.dylib.dSYM /usr/local/lib 
+	cp -ipr src/plugins/libnxplugin.dylib.dSYM /usr/local/lib 
+	cp -ipr src/mutate/libnxmutate.dylib.dSYM /usr/local/lib 
+	cp -ipr src/resource/libnxresource.dylib.dSYM /usr/local/lib 
+	cp -ipr src/log/libnxlog.dylib.dSYM /usr/local/lib 
+	cp -ipr src/syscall/libnxsyscall.dylib.dSYM /usr/local/lib 
+	cp -ipr src/genetic/libnxgenetic.dylib.dSYM /usr/local/lib 
+	cp -ipr src/reaper/libnxreaper.dylib.dSYM /usr/local/lib 
+	cp -ipr src/file/libnxfile.dylib.dSYM /usr/local/lib 
+	cp -ipr src/disas/libnxdisas.dylib.dSYM /usr/local/lib 
+
 	cp src/runtime/libnxruntime.dylib /usr/local/lib
 	cp src/io/libnxio.dylib /usr/local/lib
 	cp src/objc/libnxobjcutils.dylib /usr/local/lib
@@ -125,6 +144,7 @@ install:
 	cp src/file/libnxfile.dylib /usr/local/lib 
 	cp src/disas/libnxdisas.dylib /usr/local/lib 
 	cp deps/$(CAPSTONE)/libcapstone.dylib /usr/local/lib
+
 	cd deps/$(CK) && $(MAKE) install
 	cp nextgen /usr/local/bin
 
