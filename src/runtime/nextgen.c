@@ -1,5 +1,3 @@
-
-
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
@@ -286,6 +284,9 @@ static int init_syscall_mapping(struct shared_map **mapping, struct parser_ctx *
     /* Intialize socket server values.*/
     (*mapping)->socket_server_port = 0;
     atomic_init(&(*mapping)->socket_server_pid, 0);
+
+     /* Set this counter to zero. */
+    atomic_init(&(*mapping)->test_counter, 0);
 
     return 0;
 }

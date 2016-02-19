@@ -993,9 +993,6 @@ int32_t setup_syscall_module(atomic_int_fast32_t *stop_ptr,
     /* Set running children to zero. */
     atomic_init(&running_children, 0);
 
-    /* Set this counter to zero. */
-    atomic_init(test_counter, 0);
-
     /* Grab the core count of the machine we are on and set the number
     of syscall children to the core count. */
     rtrn = get_core_count(&number_of_children);
