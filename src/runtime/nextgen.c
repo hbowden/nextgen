@@ -161,13 +161,10 @@ struct parser_ctx *parse_cmd_line(int argc, char *argv[])
                 /* This option allows users to specify the method in which they want to derive
                 the random numbers that will be used in fuzzing the application. */
                 ctx->method = NO_CRYPTO;
-
                 break;
 
             case 'd':
-
                 ctx->smart_mode = FALSE;
-
                 break;
 
             case 'x':
@@ -286,7 +283,7 @@ static int32_t init_syscall_mapping(struct shared_map **mapping, struct parser_c
     (*mapping)->socket_server_port = 0;
     atomic_init(&(*mapping)->socket_server_pid, 0);
 
-     /* Set this counter to zero. */
+    /* Set this counter to zero. */
     atomic_init(&(*mapping)->test_counter, 0);
 
     return 0;
