@@ -26,6 +26,7 @@
 #include <sys/param.h>
 #include <sys/mount.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <string.h>
 #include <errno.h>
 #include <getopt.h>
@@ -37,7 +38,6 @@ struct shared_map *map;
 static const char *optstring = "p:e:";
 
 static struct option longopts[] = {
-
     { "in", required_argument, NULL, 'i' },
     { "out", required_argument, NULL, 'o' },
     { "exec", required_argument, NULL, 'e'},
@@ -70,8 +70,9 @@ static void display_help_banner(void)
 
 struct parser_ctx *parse_cmd_line(int argc, char *argv[])
 {
-    int ch, rtrn;
-    int iFlag = FALSE, oFlag = FALSE, fFlag = FALSE, nFlag = FALSE, 
+    int32_t ch = 0;
+    int32_t rtrn = 0;
+    int32_t iFlag = FALSE, oFlag = FALSE, fFlag = FALSE, nFlag = FALSE, 
     sFlag = FALSE, eFlag = FALSE, pFlag = FALSE, aFlag = FALSE, tFlag = FALSE;
 
     /* Allocate the parser context. */
@@ -232,7 +233,7 @@ static void clean_syscall_mapping(void)
 void clean_shared_mapping(void)
 {
     /* Do mode specific shared mapping cleanup. */
-    switch((int)map->mode)
+    switch((int32_t)map->mode)
     {
         case MODE_SYSCALL:
             clean_syscall_mapping();
@@ -253,7 +254,7 @@ void clean_shared_mapping(void)
     return;
 }
 
-static int init_file_mapping(struct shared_map **mapping, struct parser_ctx *ctx)
+static int32_t init_file_mapping(struct shared_map **mapping, struct parser_ctx *ctx)
 {
     /* Set the input and output directories. */
     (*mapping)->path_to_out_dir = ctx->path_to_out_dir;
@@ -266,13 +267,13 @@ static int init_file_mapping(struct shared_map **mapping, struct parser_ctx *ctx
     return 0;
 }
 
-static int init_network_mapping(struct shared_map **mapping, struct parser_ctx *ctx)
+static int32_t init_network_mapping(struct shared_map **mapping, struct parser_ctx *ctx)
 {
 
     return 0;
 }
 
-static int init_syscall_mapping(struct shared_map **mapping, struct parser_ctx *ctx)
+static int32_t init_syscall_mapping(struct shared_map **mapping, struct parser_ctx *ctx)
 {
     /* Set the outpath directory. */
     (*mapping)->path_to_out_dir = ctx->path_to_out_dir;
@@ -351,4 +352,3 @@ int32_t init_shared_mapping(struct shared_map **mapping, struct parser_ctx *ctx)
     return (0);
 
 }
-
