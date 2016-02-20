@@ -1,5 +1,3 @@
-
-
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
@@ -31,14 +29,14 @@ struct memory_block
 /* Memory pool data structure. */
 struct mem_pool_shared
 {
-	/* Spin lock used to protect underlying data structures in the pool. */
-	ck_spinlock_t lock;
+    /* Spin lock used to protect underlying data structures in the pool. */
+    ck_spinlock_t lock;
 
-	/* The size of the memory block that ptr points at. */
-	uint32_t block_size;
+    /* The size of the memory block that ptr points at. */
+    uint32_t block_size;
 
     /* The number of blocks in the memory pool. */
-	uint32_t block_count;
+    uint32_t block_count;
 
     /* Shared memory list that represents the memory pool. */
     NX_SLIST_HEAD(free_list, memory_block);
