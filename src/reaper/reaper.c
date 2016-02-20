@@ -1,5 +1,3 @@
-
-
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
@@ -137,33 +135,38 @@ static void reaper(void)
     return;
 }
 
+static int32_t start_reaper_loop(msg_port_t port, void *arg)
+{
+    /* Grab PID pointer. */
+    pid_t *reaper_pid = (pid_t *)arg;
+
+    /* Set the PID so the caller can use it. */
+    (*reaper_pid) = getpid();
+
+    /* Start the reaper loop. */
+    reaper();
+
+    /* Exit and clean up the child process. */
+    _exit(0);
+}
+
 /* This function sets up and run's the reaper process. The reaper kills and replaces child
 processes that are not functioning properly. */
 int32_t setup_reaper_module(pid_t *reaper_pid, atomic_int_fast32_t *stop_ptr)
 {
+    /* Set stop pointer. */
     stop = stop_ptr;
 
+    int32_t rtrn = 0;
+    msg_port_t port = 0;
+
     /* Fork and create a child process. */
-    (*reaper_pid) = fork();
-    if((*reaper_pid) == 0)
+    rtrn = fork_pass_port(&port, start_reaper_loop, (void *)reaper_pid);
+    if(rtrn < 0)
     {
-        /* Set the pid so the caller can use it. */
-        (*reaper_pid) = getpid();
+        output(ERROR, "Can't create reaper process\n");
+        return (-1);
+    }
 
-        /* Start the reaper loop. */
-    	reaper();
-
-        /* Exit and clean up the child process. */
-        _exit(0);
-    }
-    else if(*reaper_pid > 0)
-    {
-        /* Just return right away in the parent process. */
-    	return (0);
-    }
-    else
-    {
-    	output(ERROR, "Failed to fork reaper process: %s\n", strerror(errno));
-    	return (-1);
-    }
+    return (0);
 }
