@@ -5,10 +5,12 @@ CK = ck-0.5.1
 LIBRESSL = libressl-2.3.2
 CAPSTONE = capstone-3.0.4
 
-export CK LIBRESSL CAPSTONE
-
 LIB = src/runtime/libnxruntime.dylib src/memory/libnxmemory.dylib \
       src/utils/libnxutils.dylib src/io/libnxio.dylib
+
+TEST_LIB = $(ROOT_DIR)/src/io/libnxio.dylib \
+           $(ROOT_DIR)/src/memory/libnxmemory.dylib \
+           $(ROOT_DIR)/src/utils/libnxutils.dylib
 
 INCLUDE = -Ideps/ck-0.5.0/include -Isrc
 
@@ -18,6 +20,8 @@ OPERATING_SYSTEM = $(shell uname)
 ifeq ($(OPERATING_SYSTEM), FreeBSD)
 
 SOURCES = src/main.c
+
+PLATFORM = -DFREEBSD
 
 CC = clang
 
@@ -33,6 +37,8 @@ endif
 ifeq ($(OPERATING_SYSTEM), Darwin)
 
 SOURCES = src/main.m
+
+PLATFORM = -DMAC_OSX
 
 CC = clang
 
@@ -87,6 +93,36 @@ CLEAN_NX_LIBS += cd $(ROOT_DIR)/src/io && $(MAKE) clean && \
                  cd $(ROOT_DIR)/src/file && $(MAKE) clean && \
                  cd $(ROOT_DIR)/src/disas && $(MAKE) clean && \
                  cd $(ROOT_DIR)/src/runtime && $(MAKE) clean
+
+TEST_SUITE = cd $(ROOT_DIR)/tests/crypto && $(MAKE) && \
+             cd $(ROOT_DIR)/tests/plugin && $(MAKE) && \
+             cd $(ROOT_DIR)/tests/utils && $(MAKE) && \
+	         cd $(ROOT_DIR)/tests/memory && $(MAKE) $(TEST_FLAGS) && \
+	         cd $(ROOT_DIR)/tests/parser && $(MAKE) $(TEST_FLAGS) && \
+	         cd $(ROOT_DIR)/tests/genetic && $(MAKE) $(TEST_FLAGS) && \
+	         cd $(ROOT_DIR)/tests/reaper && $(MAKE) $(TEST_FLAGS) && \
+	         cd $(ROOT_DIR)/tests/resource && $(MAKE) $(TEST_FLAGS) && \
+	         cd $(ROOT_DIR)/tests/syscall && $(MAKE) $(TEST_FLAGS) && \
+	         cd $(ROOT_DIR)/tests/concurrent && $(MAKE) $(TEST_FLAGS) && \
+	         cd $(ROOT_DIR)/tests/file && $(MAKE) $(TEST_FLAGS) && \
+	         cd $(ROOT_DIR)/tests/network && $(MAKE) $(TEST_FLAGS) && \
+	         cd $(ROOT_DIR)/tests/generate && $(MAKE) $(TEST_FLAGS);
+
+CLEAN_SUITE = cd $(ROOT_DIR)/tests/crypto && $(MAKE) clean && \
+              cd $(ROOT_DIR)/tests/plugin && $(MAKE) clean && \
+              cd $(ROOT_DIR)/tests/utils && $(MAKE) clean && \
+	          cd $(ROOT_DIR)/tests/memory && $(MAKE) clean && \
+	          cd $(ROOT_DIR)/tests/parser && $(MAKE) clean && \
+	          cd $(ROOT_DIR)/tests/genetic && $(MAKE) clean && \
+	          cd $(ROOT_DIR)/tests/reaper && $(MAKE) clean && \
+	          cd $(ROOT_DIR)/tests/resource && $(MAKE) clean && \
+	          cd $(ROOT_DIR)/tests/syscall && $(MAKE) clean && \
+	          cd $(ROOT_DIR)/tests/concurrent && $(MAKE) clean && \
+	          cd $(ROOT_DIR)/tests/file && $(MAKE) clean && \
+	          cd $(ROOT_DIR)/tests/network && $(MAKE) clean && \
+	          cd $(ROOT_DIR)/tests/generate && $(MAKE) clean;
+
+export CK LIBRESSL CAPSTONE ROOT_DIR PLATFORM
 
 all:
 
@@ -147,6 +183,11 @@ install:
 
 	cd deps/$(CK) && $(MAKE) install
 	cp nextgen /usr/local/bin
+
+build-test:
+
+	$(TEST_SUITE)
+	$(CC) $(FLAGS) $(TEST_LIB) tests/tests.c tests/test_utils.c $(INCLUDE) $(SILENCED_WARNINGS) -o test_suite
 
 clean:
 
