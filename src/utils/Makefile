@@ -22,7 +22,9 @@ endif
 # Mac OSX build options.
 ifeq ($(OPERATING_SYSTEM), Darwin)
 
-SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-padded -Wno-import-preprocessor-directive-pedantic
+SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-padded \
+                    -Wno-import-preprocessor-directive-pedantic \
+                    -Wno-unused-parameter
 
 FLAGS = -dynamiclib -DMAC_OSX -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
 
