@@ -41,7 +41,7 @@ static void setup_reaper_signal_handler(void)
 {
     struct sigaction sa;
     sigset_t ss;
-    unsigned int i;
+    uint32_t i;
     
     for (i = 1; i < 512; i++)
     {
@@ -107,7 +107,7 @@ static void check_progess(struct child_ctx *child)
 
 static void reaper(msg_port_t port)
 {
-    /* Create a message port so we can be sent messages. */
+    int32_t rtrn = 0;
     msg_port_t recv_port = 0;
 
     /* Initialize the message port. */
@@ -115,15 +115,15 @@ static void reaper(msg_port_t port)
     if(rtrn < 0)
     {
         output(ERROR, "Can't init recv port\n");
-        return (-1);
+        return;
     }
 
     /* Send the main process the port we can be reached on. */
-    rtrn = msg_send(recv_port, port, (void *)recv_port);
+    rtrn = msg_send(recv_port, port, (void *)&recv_port);
     if(rtrn < 0)
     {
         output(ERROR, "Can't send port\n");
-        return (-1);
+        return;
     }
 
     /* Setup the signal handler. */
