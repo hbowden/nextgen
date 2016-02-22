@@ -57,7 +57,7 @@ static int32_t start_syscall_runtime(msg_port_t port, void *arg)
 
     /* Start the main loop for the syscall fuzzer. This function should not 
     return except when the user set's ctrl-c or there is an unrecoverable error. */
-    start_main_syscall_loop();
+    start_main_syscall_loop(port);
 
     /* Clean up this process and exit. */
     _exit(0);

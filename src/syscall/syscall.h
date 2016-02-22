@@ -1,5 +1,3 @@
-
-
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
@@ -21,6 +19,7 @@
 #include <stdint.h>
 #include "stdatomic.h"
 #include "context.h"
+#include "concurrent/concurrent.h"
 
 #ifdef FREEBSD
 
@@ -60,6 +59,6 @@ extern int32_t setup_syscall_module(atomic_int_fast32_t *stop_ptr,
 	                                atomic_uint_fast64_t *counter,
 	                                int32_t run_mode);
 
-extern void start_main_syscall_loop(void);
+extern void start_main_syscall_loop(msg_port_t port);
 
 #endif

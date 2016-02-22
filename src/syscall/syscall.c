@@ -882,7 +882,7 @@ void kill_all_children(void)
     return;
 }
 
-void start_main_syscall_loop(void)
+void start_main_syscall_loop(msg_port_t port)
 {
     output(STD, "Starting fuzzer\n");
 

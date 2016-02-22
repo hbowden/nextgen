@@ -47,8 +47,8 @@ extern int32_t get_home(char **home);
 /* Convert the ascii string to a binary string upto len bytes length. */
 extern int32_t ascii_to_binary(char *input, char **out, uint64_t input_len, uint64_t *out_len);
 
-/* Convert binary string to a ascii string.
-extern int32_t binary_to_ascii(char *input, char **out, uint64_t input_len, uint64_t *out_len); */
+/* Convert binary string to a ascii string. */
+extern int32_t binary_to_ascii(char *input, char **out, uint64_t input_len, uint64_t *out_len);
 
 /* This function will return zero if the process calling it has root privileges. */
 extern int32_t check_root(void);

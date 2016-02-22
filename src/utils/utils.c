@@ -1,5 +1,3 @@
-
-
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
@@ -351,7 +349,7 @@ int32_t create_random_file(char *root, char *ext, char **path, uint64_t *size)
     return (0);
 }
 
-/*int32_t binary_to_ascii(char *input, char **out, uint64_t input_len, uint64_t *out_len)
+int32_t binary_to_ascii(char *input, char **out, uint64_t input_len, uint64_t *out_len)
 {
     if(input_len == 0)
     {
@@ -371,4 +369,4 @@ int32_t create_random_file(char *root, char *ext, char **path, uint64_t *size)
     (*out)[(*out_len)] = '\0';
 
     return (0);
-} */
+}

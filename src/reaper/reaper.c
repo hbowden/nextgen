@@ -105,10 +105,31 @@ static void check_progess(struct child_ctx *child)
 	return;
 }
 
-static void reaper(void)
+static void reaper(msg_port_t port)
 {
+    /* Create a message port so we can be sent messages. */
+    msg_port_t recv_port = 0;
+
+    /* Initialize the message port. */
+    rtrn = init_msg_port(&recv_port);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't init recv port\n");
+        return (-1);
+    }
+
+    /* Send the main process the port we can be reached on. */
+    rtrn = msg_send(recv_port, port, (void *)recv_port);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't send port\n");
+        return (-1);
+    }
+
+    /* Setup the signal handler. */
     setup_reaper_signal_handler();
 
+    /* Start the main reaper loop. */
     while(atomic_load(stop) != TRUE)
     {
         uint32_t i = 0;
@@ -144,7 +165,7 @@ static int32_t start_reaper_loop(msg_port_t port, void *arg)
     (*reaper_pid) = getpid();
 
     /* Start the reaper loop. */
-    reaper();
+    reaper(port);
 
     /* Exit and clean up the child process. */
     _exit(0);
