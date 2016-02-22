@@ -1,8 +1,16 @@
-SOURCES = test_crypto.c ../test_utils.c ../../src/memory.c ../../src/io.c ../../src/utils.c
+SOURCES = test_crypto.c ../test_utils.c
+
+INCLUDES = -I../ -I$(ROOT_DIR)/src \
+           -I$(ROOT_DIR)/deps/$(LIBRESSL)/include
+
+LIB = $(ROOT_DIR)/src/io/libnxio.dylib \
+      $(ROOT_DIR)/src/memory/libnxmemory.dylib \
+      $(ROOT_DIR)/src/utils/libnxutils.dylib \
+      $(ROOT_DIR)/deps/$(LIBRESSL)/crypto/.libs/libcrypto.a
 
 all:
 
-	$(CC) $(FLAGS) $(SILENCED_WARNINGS) $(INCLUDES) $(SOURCES) $(LIB) -o test_crypto
+	$(CC) $(FLAGS) $(PLATFORM) $(SILENCED_WARNINGS) $(INCLUDES) $(SOURCES) $(LIB) -o test_crypto
 
 .PHONY: clean
 clean:

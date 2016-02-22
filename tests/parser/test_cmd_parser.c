@@ -1,5 +1,3 @@
-
-
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
@@ -15,16 +13,17 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#include "../src/utils.h"
+#include "utils/utils.h"
 #include "nextgen.h"
-#include "memory.h"
+#include "memory/memory.h"
 #include "test_utils.h"
-#include "io.h"
+#include "io/io.h"
 
 #include <stdio.h>
+#include <stdint.h>
 #include <assert.h>
 
-static int test_cmd_parser(void)
+static int32_t test_cmd_parser(void)
 {
 	log_test(DECLARE, "Testing command line parser");
 

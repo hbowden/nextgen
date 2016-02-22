@@ -1,5 +1,3 @@
-
-
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
@@ -16,8 +14,8 @@
  **/
 
 #include "test_utils.h"
-#include "../../src/concurrent.h"
-#include "../../src/memory.h"
+#include "concurrent/concurrent.h"
+#include "memory/memory.h"
 
 #include <string.h>
 #include <errno.h>
@@ -38,14 +36,14 @@ static int32_t child_proc_start(msg_port_t remote_port, void *arg)
     assert_stat(strncmp(recv_buffer, "123456789", 9) == 0);
         
     /* Exit and clean up the child process. */
-     _exit(0);
+    _exit(0);
 }
 
-static int test_msg_send_recv(void)
+static int32_t test_msg_send_recv(void)
 {
-	int32_t rtrn = log_test(DECLARE, "Testing msg send and msg recv");
-    if(rtrn < 0)
-        return (-1);
+	log_test(DECLARE, "Testing msg send and msg recv");
+
+    int32_t rtrn = 0;
 
     /* Declare a message port to send data on. */
     msg_port_t send_port = 0;
@@ -54,10 +52,8 @@ static int test_msg_send_recv(void)
     msg_port_t remote_port = 0;
 
     /* Initialize the send port. */
-    send_port = init_msg_port();
-
-    /* Initialize the remote port */
-    remote_port = init_msg_port();
+    rtrn = init_msg_port(&send_port);
+    assert_stat(rtrn == 0);
 
     /* Send port should be greater than zero. */
     assert_stat(send_port > 0);
@@ -77,20 +73,15 @@ static int test_msg_send_recv(void)
     /* Give the buffer a value. */
     memmove(buffer, "123456789", 9);
 
-	pid_t pid = 0;
-
 	/* Fork and pass the child the remote port. */
-    pid = fork_pass_port(remote_port, child_proc_start, NULL);
-    assert_stat(pid > 0);
+    rtrn = fork_pass_port(&remote_port, child_proc_start, NULL);
+    assert_stat(rtrn == 0);
    
     /* Send a message to the child process. */
     rtrn = msg_send(send_port, remote_port, buffer);
 	assert_stat(rtrn == 0);
 
     int32_t status = 0;
-
-    /* Wait for the child process. */
-    wait4(pid, &status, 0, NULL);
 
     /* Make sure the process exited normally, if not return an error. */
     if(WIFEXITED(status) != 0)

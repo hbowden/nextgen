@@ -1,5 +1,3 @@
-
-
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
@@ -16,18 +14,18 @@
  **/
 
 #include "test_utils.h"
-#include "../../src/syscall/syscall.h"
-#include "../../src/genetic.c"
+#include "syscall/syscall.h"
+#include "genetic/genetic.c"
 
-static int test_init_world(void)
+#include "stdatomic.h"
+
+#include <stdint.h>
+
+static int32_t test_init_world(void)
 {
 	log_test(DECLARE, "Testing init world");
 
-    int rtrn = 0;
-
-    /* Initialize the syscall module before using the genetic module. */
-    rtrn = setup_syscall_module();
-    assert_stat(rtrn == 0);
+    int32_t rtrn = 0;
 
     /* Initialize all the data structures. */
     rtrn = init_world();   
@@ -41,7 +39,7 @@ static int test_init_world(void)
     assert_stat(world->current_generation == 0);
     assert_stat(world->species != NULL);
 
-    unsigned int i;
+    uint32_t i;
 
     for(i = 0; i < world->number_of_species; i++)
     {
@@ -85,6 +83,16 @@ int main(void)
         output(ERROR, "Can't init the stats object\n");
         return (-1);
     }
+
+    atomic_int_fast32_t stop;
+    atomic_uint_fast64_t counter;
+
+    atomic_init(&stop, FALSE);
+    atomic_init(&counter, 0);
+
+    /* Initialize the syscall module before using the genetic module. */
+    rtrn = setup_syscall_module(&stop, &counter, TRUE);
+    assert_stat(rtrn == 0);
 
     rtrn = test_init_world();
     if(rtrn < 0)

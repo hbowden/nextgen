@@ -1,12 +1,18 @@
-SOURCES = test_reaper.c ../test_utils.c ../../src/memory.c ../../src/io.c ../../src/reaper.c ../../src/syscall/syscall.c \
-          ../../src/arg_types.c ../../src/utils.c ../../src/nextgen.c ../../src/crypto.c \
-          ../../src/signals.c ../../src/log.c ../../src/concurrent.c ../../src/mutate.c ../../src/plugin.c \
-          ../../src/genetic.c ../../src/generate.c ../../src/network.c ../../src/resource.c ../../src/file.c \
-          ../../src/probe/probe.c
+SOURCES = test_reaper.c ../test_utils.c
+
+INCLUDES = -I../ -I$(ROOT_DIR)/src
+
+LIB = $(ROOT_DIR)/src/io/libnxio.dylib \
+      $(ROOT_DIR)/src/memory/libnxmemory.dylib \
+      $(ROOT_DIR)/src/utils/libnxutils.dylib \
+      $(ROOT_DIR)/src/concurrent/libnxconcurrent.dylib \
+      $(ROOT_DIR)/src/crypto/libnxcrypto.dylib \
+      $(ROOT_DIR)/src/syscall/libnxsyscall.dylib \
+      $(ROOT_DIR)/src/reaper/libnxreaper.dylib
 
 all:
 
-	$(CC) $(FLAGS) $(SILENCED_WARNINGS) $(ENTRY_SOURCES) $(INCLUDES) $(SOURCES) $(OS_SOURCES) $(LIB) -o test_reaper
+	$(CC) $(FLAGS) $(SILENCED_WARNINGS) $(INCLUDES) $(SOURCES) $(PLATFORM) $(LIB) -o test_reaper
 
 .PHONY: clean
 clean:

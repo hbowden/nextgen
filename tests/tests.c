@@ -16,7 +16,7 @@
  **/
 
 #include "test_utils.h"
-#include "../src/memory.h"
+#include "memory/memory.h"
 
 #include <stdio.h>
 #include <signal.h>

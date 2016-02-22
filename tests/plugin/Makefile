@@ -1,7 +1,12 @@
 UNIT_TEST = test_plugins
 
-SOURCES = $(UNIT_TEST).c ../test_utils.c ../../src/memory.c ../../src/io.c \
-                         ../../src/crypto.c ../../src/utils.c
+SOURCES = $(UNIT_TEST).c ../test_utils.c
+
+INCLUDES = -I../ -I$(ROOT_DIR)/src
+
+LIB = $(ROOT_DIR)/src/io/libnxio.dylib \
+      $(ROOT_DIR)/src/memory/libnxmemory.dylib \
+      $(ROOT_DIR)/src/utils/libnxutils.dylib
 
 all:
 

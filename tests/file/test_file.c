@@ -1,5 +1,3 @@
-
-
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
@@ -16,10 +14,11 @@
  **/
 
 #include "test_utils.h"
-#include "../../src/file.c"
-#include "../../src/memory.h"
-#include "../../src/crypto.h"
-#include "../../src/utils.h"
+#include "file/file.c"
+#include "memory/memory.h"
+#include "crypto/crypto.h"
+#include "utils/utils.h"
+#include "stdatomic.h"
 
 #include <fcntl.h>
 #include <unistd.h>
@@ -78,7 +77,7 @@ static int32_t test_init_file_array(void)
     return (0);
 }
 
-static int32_t test_detect_file_type(void)
+/*static int32_t test_detect_file_type(void)
 {
     log_test(DECLARE, "Testing detect file type");
 
@@ -98,7 +97,7 @@ static int32_t test_detect_file_type(void)
     log_test(SUCCESS, "Detect file type test passed");
 
     return (0);
-}
+} */
 
 static int32_t test_count_files_directory(void)
 {
@@ -158,9 +157,13 @@ static int32_t test_setup_file_module(void)
         assert_stat(size > 0);
     }
 
+    atomic_int_fast32_t stop;
+
+    atomic_init(&stop, FALSE);
+
     /* Give the file module the path of the program to test
       and the directory of input files. */
-    rtrn = setup_file_module("/bin/ls", tmp_dir);
+    rtrn = setup_file_module(&stop, "/bin/ls", tmp_dir);
     assert_stat(rtrn == 0);
 
     for(i = 0; i < file_count; i++)
@@ -209,9 +212,9 @@ int main(void)
     if(rtrn < 0)
     	log_test(FAIL, "Setup file module test failed");
 
-    rtrn = test_detect_file_type();
+  /*  rtrn = test_detect_file_type();
     if(rtrn < 0)
-        log_test(FAIL, "Detect file type test failed");
+        log_test(FAIL, "Detect file type test failed"); */
 
     rtrn = test_init_file_array();
     if(rtrn < 0)

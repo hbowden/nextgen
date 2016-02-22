@@ -1,5 +1,3 @@
-
-
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
@@ -16,7 +14,7 @@
  **/
 
 #include "test_utils.h"
-#include "memory.h"
+#include "memory/memory.h"
 
 #include <errno.h>
 #include <unistd.h>

@@ -19,11 +19,12 @@
 #include <unistd.h>
 #include <signal.h>
 #include "test_utils.h"
-#include "resource.h"
-#include "crypto.h"
-#include "generate.h"
-#include "context.h"
-#include "network.h"
+#include "platform.h"
+#include "resource/resource.h"
+#include "crypto/crypto.h"
+#include "syscall/generate.h"
+#include "syscall/context.h"
+#include "network/network.h"
 
 #include "../../src/syscall/syscall.c"
 

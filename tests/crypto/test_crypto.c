@@ -1,5 +1,3 @@
-
-
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
@@ -16,9 +14,9 @@
  **/
 
 #include "test_utils.h"
-#include "../../src/crypto.c"
-#include "memory.h"
-#include "io.h"
+#include "../../src/crypto/crypto.c"
+#include "memory/memory.h"
+#include "io/io.h"
 
 //static unsigned int range = 1000;
 static uint32_t iterations = 1000;

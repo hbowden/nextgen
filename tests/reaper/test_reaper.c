@@ -1,5 +1,3 @@
-
-
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
@@ -15,11 +13,12 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#include "../../src/reaper.h"
-#include "../../src/syscall/syscall.h"
-#include "../../src/nextgen.h"
-#include "../../src/memory.h"
+#include "reaper/reaper.h"
+#include "syscall/syscall.h"
+#include "memory/memory.h"
+
 #include <signal.h>
+#include "stdatomic.h"
 #include "test_utils.h"
 
 static pid_t reaper_pid;
@@ -30,7 +29,12 @@ static int32_t test_reaper(void)
 
     int32_t rtrn = 0;
 
-    rtrn = setup_reaper_module(&reaper_pid);
+    atomic_int_fast32_t stop;
+    
+    /* Init the stop atomic variable. */
+    atomic_init(&stop, FALSE);
+
+    rtrn = setup_reaper_module(&reaper_pid, &stop);
     assert_stat(rtrn == 0);
     assert_stat(reaper_pid > 0);
 
@@ -67,17 +71,6 @@ int main(void)
         output(ERROR, "Can't init the stats object\n");
         return (-1);
     }
-
-    /* The map must be alloced as shared memory for reaper to work. */
-    map = mem_alloc_shared(sizeof(struct shared_map));
-    if(map == NULL)
-    {
-        output(ERROR, "Can't create shared object.\n");
-        return (-1);
-    }
-    
-    /* Init the stop atomic variable. */
-    atomic_init(&map->stop, FALSE);
 
     rtrn = test_reaper();
     if(rtrn < 0)

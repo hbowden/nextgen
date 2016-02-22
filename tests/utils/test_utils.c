@@ -1,5 +1,3 @@
-
-
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
@@ -16,10 +14,10 @@
  **/
 
 #include "test_utils.h"
-#include "../../src/io.h"
-#include "../../src/utils.c"
-#include "../../src/crypto.h"
-#include "../../src/memory.h"
+#include "io/io.h"
+#include "../../src/utils/utils.c"
+#include "crypto/crypto.h"
+#include "memory/memory.h"
 
 #include <stdint.h>
 #include <unistd.h>

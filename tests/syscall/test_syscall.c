@@ -1,5 +1,3 @@
-
-
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
@@ -17,9 +15,10 @@
 
 #include "test_utils.h"
 #include "stdatomic.h"
-#include "../../src/syscall/syscall.c"
-#include "../../src/resource.h"
-#include "../../src/crypto.h"
+#include "utils/utils.h"
+#include "syscall/syscall.c"
+#include "resource/resource.h"
+#include "crypto/crypto.h"
 
 static uint32_t iterations = 1000;
 
@@ -27,17 +26,23 @@ static int32_t test_syscall_setup(void)
 {
     log_test(DECLARE, "Testing syscall module setup");
 
+    atomic_int_fast32_t stop;
+    atomic_uint_fast64_t counter;
+
+    atomic_init(&stop, FALSE);
+    atomic_init(&counter, 0);
+
     int32_t rtrn = 0;
 
     /* Call the setup function. */
-    rtrn = setup_syscall_module();
+    rtrn = setup_syscall_module(&stop, &counter, TRUE);
 
     /* Make sure setup_syscall_module() returns zero. */
     assert_stat(rtrn == 0);
 
     /* Make sure both atomic values are zero. */
     assert_stat(atomic_load(&running_children) == 0);
-    assert_stat(atomic_load(&test_counter) == 0);
+    assert_stat(atomic_load(&counter) == 0);
 
     /* Make sure number of children is greater than zero. */
     assert_stat(number_of_children > 0);
@@ -127,10 +132,10 @@ static int32_t test_get_table(void)
         assert_stat(table[i].sys_entry->status == ON || table[i].sys_entry->status == OFF);
 
         /* Requires root has to be either YES or NO. */
-        assert_stat(table[i].sys_entry->requires_root == YES || table[i].sys_entry->requires_root == NO);
+        assert_stat(table[i].sys_entry->requires_root == NX_YES || table[i].sys_entry->requires_root == NX_NO);
 
         /* Need alarm has to be either YES or NO. */
-        assert_stat(table[i].sys_entry->need_alarm == NO || table[i].sys_entry->need_alarm == YES);
+        assert_stat(table[i].sys_entry->need_alarm == NX_NO || table[i].sys_entry->need_alarm == NX_YES);
 
         /* Loop for each argument in the syscall entry and verify that they are correct. */
         for(ii = 0; ii < table[i].sys_entry->number_of_args; ii++)
@@ -188,9 +193,9 @@ static int32_t test_get_syscall_table(void)
 
         assert_stat(atomic_load(&table->sys_entry[i]->status) == ON || atomic_load(&table->sys_entry[i]->status) == OFF);
 
-        assert_stat(table->sys_entry[i]->requires_root == YES || table->sys_entry[i]->requires_root == NO);
+        assert_stat(table->sys_entry[i]->requires_root == NX_YES || table->sys_entry[i]->requires_root == NX_NO);
 
-        assert_stat(table->sys_entry[i]->need_alarm == NO || table->sys_entry[i]->need_alarm == YES);
+        assert_stat(table->sys_entry[i]->need_alarm == NX_NO || table->sys_entry[i]->need_alarm == NX_YES);
 
         for(ii = 0; ii < table->sys_entry[i]->number_of_args; ii++)
         {
@@ -241,9 +246,9 @@ static int32_t test_get_entry(void)
 
         assert_stat(atomic_load(&entry->status) == ON || atomic_load(&entry->status) == OFF);
 
-        assert_stat(entry->requires_root == YES || entry->requires_root == NO);
+        assert_stat(entry->requires_root == NX_YES || entry->requires_root == NX_NO);
 
-        assert_stat(entry->need_alarm == NO || entry->need_alarm == YES);
+        assert_stat(entry->need_alarm == NX_NO || entry->need_alarm == NX_YES);
 
         for(ii = 0; ii < entry->number_of_args; ii++)
         {
@@ -321,8 +326,8 @@ static int32_t test_pick_syscall(void)
         rtrn = pick_syscall(child);
         assert_stat(rtrn == 0);
         assert_stat(child->number_of_args > 0 && child->number_of_args <= 7);
-        assert_stat(child->need_alarm == YES || child->need_alarm == NO);
-        assert_stat(child->had_error == NO);
+        assert_stat(child->need_alarm == NX_YES || child->need_alarm == NX_NO);
+        assert_stat(child->had_error == NX_NO);
     }
 
     log_test(SUCCESS, "Pick syscall test passed");
@@ -358,9 +363,9 @@ static int32_t test_set_syscall(void)
         /* Make sure the proper fields were set in the child context object. */
         //assert_stat(ctx->syscall_symbol > 0);
         assert_stat(ctx->name_of_syscall != NULL);
-        assert_stat(ctx->need_alarm == YES || ctx->need_alarm == NO);
+        assert_stat(ctx->need_alarm == NX_YES || ctx->need_alarm == NX_NO);
         assert_stat(ctx->number_of_args > 0);
-        assert_stat(ctx->had_error == NO);
+        assert_stat(ctx->had_error == NX_NO);
     }
 
     log_test(SUCCESS, "Set syscall test passed");

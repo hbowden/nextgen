@@ -1,6 +1,3 @@
-
-
-
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
@@ -17,7 +14,8 @@
  **/
 
 #include "test_utils.h"
-#include "../../src/network.c"
+#include "platform.h"
+#include "network/network.c"
 
 static int32_t test_setup_network_module(void)
 {

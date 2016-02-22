@@ -1,5 +1,3 @@
-
-
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
@@ -16,8 +14,8 @@
  **/
 
 #include "test_utils.h"
-#include "../../src/io.h"
-#include "../../src/plugin.c"
+#include "io/io.h"
+#include "../../src/plugins/plugin.c"
 
 #include <stdint.h>
 

@@ -1,12 +1,17 @@
-SOURCES = test_genetic.c ../test_utils.c ../../src/memory.c ../../src/io.c  \
-          ../../src/arg_types.c ../../src/utils.c ../../src/nextgen.c ../../src/crypto.c \
-          ../../src/signals.c ../../src/log.c ../../src/concurrent.c ../../src/mutate.c ../../src/plugin.c \
-          ../../src/syscall/syscall.c ../../src/generate.c ../../src/network.c ../../src/resource.c ../../src/file.c \
-          ../../src/probe/probe.c
+SOURCES = test_genetic.c ../test_utils.c
+
+INCLUDES = -I../ -I$(ROOT_DIR)/src
+
+LIB = $(ROOT_DIR)/src/io/libnxio.dylib \
+      $(ROOT_DIR)/src/memory/libnxmemory.dylib \
+      $(ROOT_DIR)/src/utils/libnxutils.dylib \
+      $(ROOT_DIR)/src/concurrent/libnxconcurrent.dylib \
+      $(ROOT_DIR)/src/crypto/libnxcrypto.dylib \
+      $(ROOT_DIR)/src/syscall/libnxsyscall.dylib
 
 all:
 
-	$(CC) $(FLAGS) $(SILENCED_WARNINGS) $(INCLUDES) $(SOURCES) $(ENTRY_SOURCES) $(OS_SOURCES) $(LIB) -o test_genetic
+	$(CC) $(FLAGS) $(SILENCED_WARNINGS) $(INCLUDES) $(PLATFORM) $(SOURCES) $(LIB) -o test_genetic
 
 .PHONY: clean
 clean:
