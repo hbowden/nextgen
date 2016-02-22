@@ -134,6 +134,10 @@ all:
 
 	$(CC) $(FLAGS) $(SOURCES) $(LIB) $(INCLUDE) $(SILENCED_WARNINGS) -o $(PROG)
 
+test:
+
+	./test_suite
+
 quick:
 
 	$(BUILD_NX_LIBS)
