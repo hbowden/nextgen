@@ -14,8 +14,8 @@
  **/
 
 #include "test_utils.h"
-#include "../src/memory/memory.h"
-#include "../src/utils/utils.h"
+#include "memory/memory.h"
+#include "utils/utils.h"
 
 #include <errno.h>
 #include <string.h>
@@ -35,7 +35,7 @@ struct stats *init_stats_obj(void)
     if(shared_path == NULL)
     {
     	output(ERROR, "Call init_test_framework() first.\n");
-    	return NULL;
+    	return (NULL);
     }
 
 #ifdef MAC_OSX
@@ -45,7 +45,7 @@ struct stats *init_stats_obj(void)
     if(fd < 0)
     {
         output(ERROR, "Can't create named shared memory\n");
-        return NULL;
+        return (NULL);
     }
 
 #endif
@@ -134,7 +134,7 @@ int32_t log_test(enum log_type type, const char *input)
 int32_t init_test_framework(void)
 {
 	int32_t rtrn = 0;
-    char *home = NULL;
+    char *home auto_clean = NULL;
 
     rtrn = get_home(&home);
     if(rtrn < 0)
@@ -147,11 +147,8 @@ int32_t init_test_framework(void)
     if(rtrn < 0)
     {
     	output(ERROR, "Can't create shared map path\n");
-    	free(home);
     	return (-1);
     }
-
-    mem_free(home);
 
 	return (0);
 }
