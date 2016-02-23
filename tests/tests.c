@@ -15,6 +15,7 @@
 
 #include "test_utils.h"
 #include "memory/memory.h"
+#include "utils/utils.h"
 
 #include <stdio.h>
 #include <signal.h>
@@ -124,17 +125,17 @@ int main(void)
 
     uint32_t i = 0;
     int32_t rtrn = 0;
+    char *home auto_clean = NULL;
 
-    /* Init the test framework. */
-    rtrn = init_test_framework();
+    rtrn = get_home(&home);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't initialize the test framework\n");
+        output(ERROR, "Can't get user's home path\n");
         return (-1);
     }
 
     /* Create the stats object. */
-    test_stat = create_stats_obj();
+    test_stat = create_stats_obj(home);
     if(test_stat == NULL)
     {
         output(ERROR, "Can't create stats object\n");

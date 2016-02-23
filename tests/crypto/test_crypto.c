@@ -201,20 +201,13 @@ int main(void)
 {
     int32_t rtrn = 0;
 
-    rtrn = init_test_framework();
-    if(rtrn < 0)
+    test_stat = init_test_framework();
+    if(test_stat == NULL)
     {
         output(ERROR, "Can't init test framework");
         return (-1);
     }
-
-    test_stat = init_stats_obj();
-    if(test_stat == NULL)
-    {
-        output(ERROR, "Can't init the stats object\n");
-        return (-1);
-    }
-
+    
     rtrn = test_setup_crypto();
     if(rtrn < 0)
         log_test(FAIL, "setup crypto test failed");

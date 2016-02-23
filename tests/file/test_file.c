@@ -186,18 +186,10 @@ int main(void)
 {
 	int32_t rtrn = 0;
 
-    rtrn = init_test_framework();
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't init test framework");
-        return (-1);
-    }
-
-    /* Initialize the stats object. */
-    test_stat = init_stats_obj();
+    test_stat = init_test_framework();
     if(test_stat == NULL)
     {
-        output(ERROR, "Can't init the stats object\n");
+        output(ERROR, "Can't init test framework");
         return (-1);
     }
 

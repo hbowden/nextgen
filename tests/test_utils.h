@@ -18,7 +18,7 @@
 #ifndef TEST_UTILS_H
 #define TEST_UTILS_H
 
-#include "../src/io/io.h"
+#include "io/io.h"
 
 #include <stdint.h>
 #include <assert.h>
@@ -48,11 +48,9 @@ extern int32_t skip_test;
 
 extern int32_t log_test(enum log_type type, const char *input);
 
-extern struct stats *init_stats_obj(void);
-
-extern struct stats *create_stats_obj(void);
+extern struct stats *create_stats_obj(char *home);
 
 /* Call once at the begining to setup the framework. */
-extern int32_t init_test_framework(void);
+extern struct stats *init_test_framework(void);
 
 #endif

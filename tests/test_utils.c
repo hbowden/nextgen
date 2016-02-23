@@ -28,7 +28,7 @@ struct stats *test_stat = NULL;
 
 static char *shared_path = NULL;
 
-struct stats *init_stats_obj(void)
+static struct stats *init_stats_obj(void)
 {
 	int32_t fd = 0;
 
@@ -71,20 +71,30 @@ struct stats *init_stats_obj(void)
 	return (test_stat);
 }
 
-struct stats *create_stats_obj(void)
+struct stats *create_stats_obj(char *home)
 {
 	int32_t fd = 0;
+    int32_t rtrn = 0;
+    char *path auto_clean = NULL;
 
-    if(shared_path == NULL)
+    if(home == NULL)
     {
-    	output(ERROR, "Call init_test_framework() first.\n");
+    	output(ERROR, "Home path is NULL.\n");
     	return (NULL);
     }
 
-    shm_unlink(shared_path);
+    rtrn = asprintf(&path, "%s/shared_mapping", home);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't create shared map path\n");
+        return (NULL);
+    }
+
+    /* Delete the old shared memory object.  */
+    shm_unlink(path);
 
     /* Create named shared memory. */
-    fd = shm_open(shared_path, O_CREAT | O_RDWR, 0666);
+    fd = shm_open(path, O_CREAT | O_RDWR, 0666);
     if(fd < 0)
     {
         output(ERROR, "Can't create named shared memory: %s\n", strerror(errno));
@@ -131,7 +141,7 @@ int32_t log_test(enum log_type type, const char *input)
 	return (0);
 }
 
-int32_t init_test_framework(void)
+struct stats *init_test_framework(void)
 {
 	int32_t rtrn = 0;
     char *home auto_clean = NULL;
@@ -140,15 +150,16 @@ int32_t init_test_framework(void)
     if(rtrn < 0)
     {
     	output(ERROR, "Can't get user's home path\n");
-    	return (-1);
+    	return (NULL);
     }
 
     rtrn = asprintf(&shared_path, "%s/shared_mapping", home);
     if(rtrn < 0)
     {
     	output(ERROR, "Can't create shared map path\n");
-    	return (-1);
+    	return (NULL);
     }
 
-	return (0);
+    /* Return a stats object.  */
+	return (init_stats_obj());
 }
