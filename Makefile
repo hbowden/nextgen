@@ -192,6 +192,10 @@ build-test:
 	$(TEST_SUITE)
 	$(CC) $(FLAGS) $(TEST_LIB) tests/tests.c tests/test_utils.c $(INCLUDE) $(SILENCED_WARNINGS) -o test_suite
 
+clean-test:
+
+	$(CLEAN_SUITE)
+
 clean:
 
 	cd deps/$(LIBRESSL) && $(MAKE) clean;
