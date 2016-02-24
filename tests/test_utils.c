@@ -26,40 +26,20 @@
 
 struct stats *test_stat = NULL;
 
-static char *shared_path = NULL;
+static const char *name = "/shared_memory";
 
 static struct stats *init_stats_obj(void)
 {
 	int32_t fd = 0;
 
-    if(shared_path == NULL)
-    {
-    	output(ERROR, "Call init_test_framework() first.\n");
-    	return (NULL);
-    }
-
-#ifdef MAC_OSX
-
     /* Create named shared memory. */
-    fd = shm_open(shared_path, O_RDWR);
+    fd = shm_open(name, O_RDWR, 0666);
     if(fd < 0)
     {
         output(ERROR, "Can't create named shared memory\n");
         return (NULL);
     }
 
-#endif
-#ifdef FREEBSD
-
-    /* Create named shared memory. */
-    fd = shm_open(shared_path, O_RDWR, 0666);
-    if(fd < 0)
-    {
-        output(ERROR, "Can't create named shared memory\n");
-        return (NULL);
-    }
-
-#endif
     /* Map named shared object. */
     test_stat = mmap(NULL, sizeof(struct stats), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if(test_stat == MAP_FAILED)
@@ -71,30 +51,15 @@ static struct stats *init_stats_obj(void)
 	return (test_stat);
 }
 
-struct stats *create_stats_obj(char *home)
+struct stats *create_stats_obj(void)
 {
 	int32_t fd = 0;
-    int32_t rtrn = 0;
-    char *path auto_clean = NULL;
-
-    if(home == NULL)
-    {
-    	output(ERROR, "Home path is NULL.\n");
-    	return (NULL);
-    }
-
-    rtrn = asprintf(&path, "%s/shared_mapping", home);
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't create shared map path\n");
-        return (NULL);
-    }
 
     /* Delete the old shared memory object.  */
-    shm_unlink(path);
+    shm_unlink(name);
 
     /* Create named shared memory. */
-    fd = shm_open(path, O_CREAT | O_RDWR, 0666);
+    fd = shm_open(name, O_CREAT | O_RDWR, 0666);
     if(fd < 0)
     {
         output(ERROR, "Can't create named shared memory: %s\n", strerror(errno));
@@ -143,23 +108,6 @@ int32_t log_test(enum log_type type, const char *input)
 
 struct stats *init_test_framework(void)
 {
-	int32_t rtrn = 0;
-    char *home auto_clean = NULL;
-
-    rtrn = get_home(&home);
-    if(rtrn < 0)
-    {
-    	output(ERROR, "Can't get user's home path\n");
-    	return (NULL);
-    }
-
-    rtrn = asprintf(&shared_path, "%s/shared_mapping", home);
-    if(rtrn < 0)
-    {
-    	output(ERROR, "Can't create shared map path\n");
-    	return (NULL);
-    }
-
     /* Return a stats object.  */
 	return (init_stats_obj());
 }

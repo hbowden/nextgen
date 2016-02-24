@@ -125,17 +125,9 @@ int main(void)
 
     uint32_t i = 0;
     int32_t rtrn = 0;
-    char *home auto_clean = NULL;
-
-    rtrn = get_home(&home);
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't get user's home path\n");
-        return (-1);
-    }
 
     /* Create the stats object. */
-    test_stat = create_stats_obj(home);
+    test_stat = create_stats_obj();
     if(test_stat == NULL)
     {
         output(ERROR, "Can't create stats object\n");

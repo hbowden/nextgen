@@ -48,7 +48,7 @@ extern int32_t skip_test;
 
 extern int32_t log_test(enum log_type type, const char *input);
 
-extern struct stats *create_stats_obj(char *home);
+extern struct stats *create_stats_obj(void);
 
 /* Call once at the begining to setup the framework. */
 extern struct stats *init_test_framework(void);
