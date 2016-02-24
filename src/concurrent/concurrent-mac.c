@@ -218,7 +218,7 @@ fork_pass_port(mach_port_t *pass_port,
             return (-1);
         }
         
-        return (0);
+        return (pid);
     }
     else
     {
@@ -238,6 +238,14 @@ fork_pass_port(mach_port_t *pass_port,
 
 int32_t msg_send(msg_port_t send_port, msg_port_t remote_port, void *msg_data)
 {
+    if(msg_data == NULL)
+    {
+        output(ERROR, "Msg buf is NULL\n");
+        return (-1);
+    }
+
+
+
 	return (0);
 }
 
