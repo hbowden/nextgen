@@ -14,7 +14,7 @@
  **/
 
 #include "generate.h"
-#include "nextgen.h"
+#include "runtime/nextgen.h"
 #include "network/network.h"
 #include "resource/resource.h"
 #include "memory/memory.h"
