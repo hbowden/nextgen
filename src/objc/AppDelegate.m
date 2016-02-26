@@ -15,7 +15,7 @@
 
 #import "AppDelegate.h"
 
-#include "nextgen.h"
+#include "runtime/nextgen.h"
 #include "runtime/runtime.h"
 #include "memory/memory.h"
 #include "io/io.h"
