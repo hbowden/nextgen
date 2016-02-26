@@ -13,7 +13,7 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#include "nextgen.h"
+#include "runtime/nextgen.h"
 #include "runtime/runtime.h"
 #include "memory/memory.h"
 #include "objc/objc-utils.h"
