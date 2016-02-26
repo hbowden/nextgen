@@ -14,7 +14,7 @@
  **/
 
 #include "utils/utils.h"
-#include "nextgen.h"
+#include "runtime/nextgen.h"
 #include "memory/memory.h"
 #include "test_utils.h"
 #include "io/io.h"
