@@ -49,6 +49,7 @@ int main(int argc, const char * argv[])
         return (-1);
     }
 
+    /* Make sure we have root. */
     rtrn = check_root();
     if(rtrn != 0)
     {
@@ -64,8 +65,11 @@ int main(int argc, const char * argv[])
         return (-1);
     }
 
+    /* If we are file fuzzing on OSX we need to use objective c
+    and as a consequence we need to setup the objc run loop. */
     if(map->mode == MODE_FILE)
     {
+        /* Pass the objective c runtime our setup and start functions. */
         rtrn = setup_objc_runtime(&setup_runtime, &start_runtime);
         if(rtrn < 0)
         {
