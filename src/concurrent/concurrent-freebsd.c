@@ -14,6 +14,7 @@
  **/
 
 #include "concurrent-freebsd.h"
+#include <stdio.h>
 
 msg_port_t init_msg_port(void)
 {
