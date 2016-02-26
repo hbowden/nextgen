@@ -20,6 +20,7 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/wait.h>
+#include <pthread.h>
 
 static int32_t child_proc_start(msg_port_t remote_port, void *arg)
 {
@@ -39,66 +40,42 @@ static int32_t child_proc_start(msg_port_t remote_port, void *arg)
     _exit(0);
 }
 
+static void *thread_start(void *arg)
+{
+    return (NULL);
+}
+
 static int32_t test_msg_send_recv(void)
 {
-	log_test(DECLARE, "Testing msg send and msg recv");
+    log_test(DECLARE, "Testing msg send and msg recv");
 
     int32_t rtrn = 0;
+    pthread_t thread = 0;
 
-    /* Declare a message port to send data on. */
-    msg_port_t send_port = 0;
-    
-    /* Declare the message port to send data to. */
-    msg_port_t remote_port = 0;
+    msg_port_t port = 0;
 
-    /* Initialize the send port. */
-    rtrn = init_msg_port(&send_port);
-    assert_stat(rtrn == 0);
+    rtrn = init_msg_port(&port);
+    assert_stat(port != 0);
 
-    /* Send port should be greater than zero. */
-    assert_stat(send_port > 0);
-
-    /* Declare a buffer to send via msg_send() */
-    char *buffer = NULL;
-
-    /* msg_send() should fail with a NULL buffer. */
-	rtrn = msg_send(send_port, remote_port, buffer);
-	assert_stat(rtrn == -1);
-
-    /* Allocate the buffer. */
-	buffer = mem_alloc(10);
-    if(buffer == NULL)
-    	return (-1);
-
-    /* Give the buffer a value. */
-    memmove(buffer, "123456789", 9);
-
-	/* Fork and pass the child the remote port. */
-    rtrn = fork_pass_port(&remote_port, child_proc_start, NULL);
-    assert_stat(rtrn == 0);
-   
-    /* Send a message to the child process. */
-    rtrn = msg_send(send_port, remote_port, buffer);
-	assert_stat(rtrn == 0);
-
-    int32_t status = 0;
-
-    /* Make sure the process exited normally, if not return an error. */
-    if(WIFEXITED(status) != 0)
+    rtrn = pthread_create(&thread, NULL, thread_start, &port);
+    if(rtrn < 0)
     {
-        output(ERROR, "Bad return value\n");
-
-        return (-1);
-            
-    }
-    else if(WIFSIGNALED(status) != 0)
-    {
-        output(ERROR, "Signal recieved\n");
-
-        return (-1);
+        output(ERROR, "Can't create thread\n");
+        return (0);
     }
 
-    log_test(SUCCESS, "msg send and recv test passed");
+    log_test(SUCCESS, "Msg send recv test passed");
+
+    return (0);
+}
+
+static int32_t test_fork_pass_port(void)
+{
+	log_test(DECLARE, "Testing fork pass port");
+
+  
+
+    log_test(SUCCESS, "Fork pass port test passed");
 
 	return (0);
 }
@@ -118,6 +95,10 @@ int main(void)
     rtrn = test_msg_send_recv();
     if(rtrn < 0)
         log_test(FAIL, "Msg send and recv test failed");
+
+    rtrn = test_fork_pass_port();
+    if(rtrn < 0)
+        log_test(FAIL, "Fork pass port test failed");
 
 	_exit(0);
 }
