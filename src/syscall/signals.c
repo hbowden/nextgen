@@ -16,9 +16,9 @@
 #include "signals.h"
 #include "syscall/context.h"
 #include "syscall/syscall.h"
-#include "io/io.h"
 #include "runtime/nextgen.h"
 #include "runtime/runtime.h"
+#include "io/io.h"
 
 #include <signal.h>
 
