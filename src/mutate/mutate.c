@@ -14,7 +14,7 @@
  **/
 
 #include "mutate.h"
-#include "nextgen.h"
+#include "runtime/nextgen.h"
 #include "platform.h"
 #include "crypto/crypto.h"
 #include "plugins/plugin.h"
