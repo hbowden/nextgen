@@ -23,8 +23,8 @@ struct syscall_entry entry_recvmsg = {
     .syscall_symbol = SYS_recvmsg,
     .number_of_args = 4,
     .status = ON,
-    .requires_root = NO,
-    .need_alarm = YES,
+    .requires_root = NX_NO,
+    .need_alarm = NX_YES,
 
     .arg_type_index[FIRST_ARG] = SOCKET,
     .get_arg_index[FIRST_ARG] = &generate_socket,

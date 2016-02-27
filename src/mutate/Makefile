@@ -1,7 +1,8 @@
 
 SOURCES = mutate.c
 
-INCLUDES = -I../ -I../../deps/ck-0.5.0/include
+INCLUDES = -I../ -I../../deps/$(CK)/include \
+           -isystem ../../deps/$(CK)/include
 
 OPERATING_SYSTEM = $(shell uname)
 
@@ -10,7 +11,8 @@ ifeq ($(OPERATING_SYSTEM), FreeBSD)
 
 SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-padded \
                     -Wno-unused-parameter -Wno-unused-parameter \
-                    -Wno-unused-variable -Wno-pedantic -Wno-unknown-pragmas
+                    -Wno-unused-variable -Wno-pedantic \
+                    -Wno-unknown-pragmas -Wno-sign-conversion
 
 FLAGS = -DFREEBSD -shared -fPIC -Wall -Werror -Weverything -g -O3 -std=c99
 

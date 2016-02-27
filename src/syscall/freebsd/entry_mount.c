@@ -23,8 +23,8 @@ struct syscall_entry entry_mount = {
     .syscall_symbol = SYS_mount,
     .number_of_args = 4,
     .status = ON,
-    .requires_root = YES,
-    .need_alarm = NO,
+    .requires_root = NX_YES,
+    .need_alarm = NX_NO,
 
     .arg_type_index[FIRST_ARG] = MOUNT_TYPE,
     .get_arg_index[FIRST_ARG] = &generate_mount_type,
