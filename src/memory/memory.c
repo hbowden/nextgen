@@ -29,14 +29,14 @@ void *mem_alloc(uint64_t nbytes)
     if(nbytes == 0)
     {
         output(ERROR, "Can't allocate zero bytes\n");
-        return NULL;
+        return (NULL);
     }
 
     ptr = malloc(nbytes);
     if(ptr == NULL)
     {
         output(ERROR, "Can't allocate: %lu bytes, because: %s\n", nbytes, strerror(errno));
-        return NULL;
+        return (NULL);
     }
 
     return (ptr);
@@ -73,7 +73,7 @@ void mem_free(void **ptr)
     /* Return early if the pointer
     is already NULL. */
     if((*ptr) == NULL)
-    	return;
+        return;
 
     /* Free buffer. */
     free((*ptr));
