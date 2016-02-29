@@ -22,11 +22,9 @@
 #include <stdint.h>
 #include <unistd.h>
 
-static uint32_t extension_test = 0;
-
 static uint32_t number_of_extensions = 11;
 
-static int32_t size_array[] = { 3, 3, 3, 3, 3, 3, 3, 1, 1, 3, 2};
+static uint32_t size_array[] = { 3, 3, 3, 3, 3, 3, 3, 1, 1, 3, 2};
 
 /* Array of extensions. */
 static char *ext[] = { "txt", "mp3", "mp4", "m4v", "jpg",
@@ -126,7 +124,7 @@ static int32_t test_ascii_to_binary(void)
     assert_stat(size > 0);
 
     /* Clean up. */
-    mem_free(binary_string);
+    mem_free((void **)&binary_string);
 
     /* Loop and compare conversions
     to known good values to validate ascii_to_binary(); */
@@ -138,7 +136,7 @@ static int32_t test_ascii_to_binary(void)
         assert_stat(binary_string != NULL);
         assert_stat(size > 0);
         assert_stat(strncmp(binary_array[i], binary_string, 8) == 0);
-        mem_free(binary_string);
+        mem_free((void **)&binary_string);
     }
     
     log_test(SUCCESS, "ascii to binary test passed");
@@ -171,7 +169,7 @@ static int32_t test_binary_to_ascii(void)
         assert_stat(ascii_string != NULL);
         assert_stat(binary_array[i] != NULL);
         assert_stat(size > 0);
-        mem_free(ascii_string);
+        mem_free((void **)&ascii_string);
     }
     
     log_test(SUCCESS, "Binary to ascii test passed");
@@ -226,7 +224,7 @@ static int32_t test_get_extension(void)
         assert_stat(extension != NULL);
         assert_stat(strncmp(extension, ext[i], size_array[i]) == 0);
 
-        mem_free(path);   
+        mem_free((void **)&path);   
     }
 
     log_test(SUCCESS, "Get extension test passed");
