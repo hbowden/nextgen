@@ -23,7 +23,7 @@
 typedef mach_port_t msg_port_t;
 
 /* Message IPC sending function. */
-extern int32_t msg_send(msg_port_t send_port, msg_port_t remote_port, void *msg_data);
+extern int32_t msg_send(msg_port_t remote_port, void *data, uint32_t size);
 
 /* This function forks() and passes a message port to the child process.
 Then finally the function pointed to by proc_start is executed in the child process,
