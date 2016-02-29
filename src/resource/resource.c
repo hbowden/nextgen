@@ -289,9 +289,9 @@ static int32_t create_fd_pool(char *path)
     {
     	/* Temp variables that we define with auto_clean so that we 
         don't have to worry about calling free. */
-        char *file_name auto_clean = NULL;
-        char *junk auto_clean = NULL;
-        char *file_path auto_clean = NULL;
+        char *file_name auto_free = NULL;
+        char *junk auto_free = NULL;
+        char *file_path auto_free = NULL;
 
         /* Don't free that will be taken cared off later. */
         struct resource_ctx *resource = NULL;
@@ -384,8 +384,8 @@ static int32_t create_file_pool(char *path)
     {
     	/* Temp variables that we define with auto_clean so that we 
         don't have to worry about calling free. */
-        char *file_name auto_clean = NULL;
-        char *junk auto_clean = NULL;
+        char *file_name auto_free = NULL;
+        char *junk auto_free = NULL;
       
         /* Don't free, that will be taken cared off later. */
         char *file_path = NULL;
@@ -519,7 +519,7 @@ static int32_t create_dirpath_pool(char *path)
     {
         /* Temp variable that we define with auto_clean so that we 
         don't have to worry about calling free. */
-        char *dir_name auto_clean = NULL;
+        char *dir_name auto_free = NULL;
         
         /* Don't free, that will be taken cared of later. */
         char *dir_path = NULL;
