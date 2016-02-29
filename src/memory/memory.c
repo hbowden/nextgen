@@ -68,12 +68,18 @@ void *mem_calloc(uint64_t nbytes)
     return (ptr);
 }
 
-void mem_free(void *ptr)
+void mem_free(void **ptr)
 {
-    if(ptr == NULL)
+    /* Return early if the pointer
+    is already NULL. */
+    if((*ptr) == NULL)
     	return;
 
-    free(ptr);
+    /* Free buffer. */
+    free((*ptr));
+
+    /* Set pointer to NULL. */
+    (*ptr) = NULL;
 }
 
 void *mem_alloc_shared(uint64_t nbytes)

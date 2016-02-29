@@ -53,7 +53,7 @@ extern void *mem_alloc(uint64_t nbytes);
 
 extern void *mem_calloc(uint64_t nbytes);
 
-extern void mem_free(void *ptr);
+extern void mem_free(void **ptr);
 
 extern void *mem_alloc_shared(uint64_t nbytes);
 
@@ -71,7 +71,7 @@ extern void mem_free_shared_block(struct memory_block *block, struct mem_pool_sh
 
 static inline void cleanup_buf(char **buf)
 {
-    mem_free(*buf);
+    mem_free((void **)buf);
 }
 
 /* Use this attribute for variables that we want to automatically cleanup. */
