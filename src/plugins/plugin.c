@@ -1,5 +1,3 @@
-
-
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
@@ -17,8 +15,8 @@
 
 #include "plugin.h"
 #include "memory/memory.h"
-#include "io/io.h"
 #include "utils/utils.h"
+#include "io/io.h"
 
 #include <dirent.h>
 #include <dlfcn.h>
@@ -43,7 +41,7 @@ static int32_t count_plugins(uint32_t *count)
 	int32_t rtrn = 0;
 	struct dirent *entry = NULL;
 	DIR *dir auto_close_dir = NULL;
-	char *file_extension auto_clean = NULL;
+	char *file_extension auto_free = NULL;
     const char *dir_path = "src/plugins";
 
     /* Open the plugin directory. */
@@ -100,7 +98,7 @@ static int32_t load_all_plugins(void)
     int32_t rtrn = 0;
 	struct dirent *entry = NULL;
 	DIR *dir auto_close_dir = NULL;
-	char *file_extension auto_clean = NULL;
+	char *file_extension auto_free = NULL;
     const char *dir_path = "src/plugins";
 
     /* Open the plugin directory. */
@@ -126,8 +124,8 @@ static int32_t load_all_plugins(void)
         /* It's a shared library so it's probally a plugin. */
         if(strncmp(file_extension, ".so", 3) == 0)
         {
-        	char *plugin_path auto_clean = NULL;
-        	char *current_dir auto_clean = NULL;
+        	char *plugin_path auto_free = NULL;
+        	char *current_dir auto_free = NULL;
 
         	current_dir = malloc(1024);
         	if(current_dir == NULL)
