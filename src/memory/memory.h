@@ -69,12 +69,14 @@ extern struct memory_block *mem_get_shared_block(struct mem_pool_shared *pool);
 
 extern void mem_free_shared_block(struct memory_block *block, struct mem_pool_shared *pool);
 
+/* The auto free function called by auto_free. */
 static inline void cleanup_buf(char **buf)
 {
     mem_free((void **)buf);
 }
 
-/* Use this attribute for variables that we want to automatically cleanup. */
-#define auto_clean __attribute__((cleanup (cleanup_buf)))
+/* Use this attribute for variables that we want to automatically free
+when they go out of scope. */
+#define auto_free __attribute__((cleanup (cleanup_buf)))
 
 #endif
