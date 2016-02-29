@@ -211,7 +211,7 @@ static int32_t submit_job(struct job_ctx *job)
     }
 
     /* Send the job to the child's message port for processing. */
-    msg_send(msg_port, child->msg_port, job);
+    msg_send(child->msg_port, job, sizeof(struct job_ctx));
 
     return (0);
 }

@@ -224,7 +224,7 @@ static int32_t free_old_arguments(struct child_ctx *ctx)
 
             default:
                 /* Free value if non NULL. */
-                mem_free(ctx->arg_value_index[i]);
+                mem_free((void **)&ctx->arg_value_index[i]);
                 break;
         }
     }
@@ -259,8 +259,6 @@ static struct job_ctx *get_job(struct child_ctx *ctx)
 
     return (job);
 }
-
-
 
 static int32_t process_new_generation(struct job_ctx *job)
 {
@@ -575,28 +573,6 @@ static int32_t init_syscall_child(uint32_t i)
     return (0);
 }
 
-static int32_t hold_for_child(uint32_t i)
-{
-    char *msg_buf auto_clean = NULL;
-
-    msg_buf = mem_alloc(2);
-    if(msg_buf == NULL)
-    {
-        output(ERROR, "Can't create message buf: %s\n", strerror(errno));
-        return (-1);
-    }
-
-    /* Wait for the child to be done setting up. */
-    ssize_t ret = read(children[i]->pipe_port[0], msg_buf, 1);
-    if(ret < 1)
-    {
-        output(ERROR, "Problem waiting for child setup: %s\n", strerror(errno));
-        return (-1);
-    }
-
-    return (0);
-}
-
 static void start_child_loop(void)
 {
     /* If were in dumb mode start the dumb syscall loop. */
@@ -623,6 +599,36 @@ static void start_child(uint32_t i)
     return;
 }
 
+static int32_t create_syscall_child_proc(msg_port_t port, void *arg)
+{
+    int32_t rtrn = 0;
+    msg_port_t local_port = 0;
+    uint32_t *i = (uint32_t *)arg;
+
+    /* Create message port. */
+    rtrn = init_msg_port(&port);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't init msg port\n");
+        return (-1);
+    }
+
+    /* Send message port we just created to the runtime process
+    so that we can be messaged. */
+    rtrn = msg_send(port, (void *)&local_port, sizeof(msg_port_t));
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't send message port\n");
+        return (-1);
+    }
+
+    /* Start child process. */
+    start_child((*i));
+           
+    /* Exit and cleanup process. */
+    _exit(0);
+}
+
 void create_syscall_children(void)
 {
     uint32_t i = 0;
@@ -635,34 +641,26 @@ void create_syscall_children(void)
         if(atomic_load(&children[i]->pid) != EMPTY)
             continue;
 
-        pid_t child_pid = 0;
+        msg_port_t port = 0;
+        msg_port_t *child_port = 0;
 
-        child_pid = fork();
-        if(child_pid == 0)
+        /* Create child process and pass it a message port. */
+        rtrn = fork_pass_port(&port, create_syscall_child_proc, &i);
+        if(rtrn == 0)
         {
-            /* Start child process. */
-            start_child(i);
-           
-            /* Exit and cleanup process. */
-            _exit(0);
-        }
-        else if(child_pid > 0)
-        {
-            /* Wait for the child process to setup. */
-            rtrn = hold_for_child(i);
-            if(rtrn < 0)
-            {
-                output(ERROR, "Can't wait for child process setup\n");
-                _exit(-1);
-
-            }
+            output(ERROR, "Can't create child process\n");
             return;
         }
-        else
+
+        /* Wait for the child to send us it's message port. */
+        child_port = (msg_port_t *) msg_recv(port);
+        if(rtrn < 0)
         {
-            output(ERROR, "Can't create child process: %s\n", strerror(errno));
+            output(ERROR, "Can't recieve message\n");
             return;
         }
+
+        return;
     }
 }
 

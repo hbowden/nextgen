@@ -119,7 +119,7 @@ static void reaper(msg_port_t port)
     }
 
     /* Send the main process the port we can be reached on. */
-    rtrn = msg_send(recv_port, port, (void *)&recv_port);
+    rtrn = msg_send(port, (void *)&recv_port, sizeof(msg_port_t));
     if(rtrn < 0)
     {
         output(ERROR, "Can't send port\n");
