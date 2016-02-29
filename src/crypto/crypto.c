@@ -262,10 +262,10 @@ int32_t seed_prng(void)
     /* The variables used in seed_prng(). */
     int32_t rtrn = 0;
     ssize_t ret;
-    char *hash auto_clean = NULL;
+    char *hash auto_free = NULL;
     int32_t random_fd auto_close = 0;
     uint32_t i, loops, buf_len;
-    char *random_buffer auto_clean = NULL;
+    char *random_buffer auto_free = NULL;
     
     /* Allocate a buffer thats 6000 bytes long, this is
       where we will put random stuff from /dev/urandom. */
