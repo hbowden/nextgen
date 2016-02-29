@@ -308,7 +308,6 @@ static void god_loop(void)
 
 int32_t setup_genetic_module(enum genetic_mode mode, pid_t *pid, atomic_int_fast32_t *stop_ptr)
 {
-    int32_t rtrn = 0;
     pid_t god_pid = 0;
 
     run_mode = mode;
