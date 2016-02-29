@@ -8,6 +8,8 @@ LIB = $(ROOT_DIR)/src/io/libnxio.dylib \
       $(ROOT_DIR)/src/memory/libnxmemory.dylib \
       $(ROOT_DIR)/src/crypto/libnxcrypto.dylib
 
+SILENCED_WARNINGS += -Wno-unused-parameter
+
 all:
 
 	$(CC) $(FLAGS) $(SILENCED_WARNINGS) $(INCLUDES) $(SOURCES) $(LIB) -o $(UNIT_TEST)
