@@ -76,14 +76,14 @@ int main(void)
         return (-1);
     }
 
-    atomic_int_fast32_t stop;
+    atomic_int_fast32_t stop_flag;
     atomic_uint_fast64_t counter;
 
-    atomic_init(&stop, FALSE);
+    atomic_init(&stop_flag, FALSE);
     atomic_init(&counter, 0);
 
     /* Initialize the syscall module before using the genetic module. */
-    rtrn = setup_syscall_module(&stop, &counter, TRUE);
+    rtrn = setup_syscall_module(&stop_flag, &counter, TRUE);
     assert_stat(rtrn == 0);
 
     rtrn = test_init_world();
