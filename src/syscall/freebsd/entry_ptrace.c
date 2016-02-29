@@ -23,8 +23,8 @@ struct syscall_entry entry_ptrace = {
     .syscall_symbol = SYS_ptrace,
     .number_of_args = 4,
     .status = ON,
-    .requires_root = YES,
-    .need_alarm = NO,
+    .requires_root = NX_YES,
+    .need_alarm = NX_NO,
 
     .arg_type_index[FIRST_ARG] = REQUEST,
     .get_arg_index[FIRST_ARG] = &generate_request,

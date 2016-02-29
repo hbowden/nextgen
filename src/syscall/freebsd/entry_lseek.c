@@ -23,8 +23,8 @@ struct syscall_entry entry_lseek = {
     .syscall_symbol = SYS_lseek,
     .number_of_args = 3,
     .status = ON,
-    .requires_root = NO,
-    .need_alarm = NO,
+    .requires_root = NX_NO,
+    .need_alarm = NX_NO,
 
     .arg_type_index[FIRST_ARG] = FILE_DESC,
     .get_arg_index[FIRST_ARG] = &generate_fd,

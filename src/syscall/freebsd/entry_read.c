@@ -22,9 +22,9 @@ struct syscall_entry entry_read = {
     .name_of_syscall = "read",
     .syscall_symbol = SYS_read,
     .number_of_args = 3,
-    .status = YES,
-    .requires_root = NO,
-    .need_alarm = YES,
+    .status = ON,
+    .requires_root = NX_NO,
+    .need_alarm = NX_YES,
 
     .arg_type_index[FIRST_ARG] = FILE_DESC,
     .get_arg_index[FIRST_ARG] = &generate_fd,

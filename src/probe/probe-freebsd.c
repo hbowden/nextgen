@@ -116,15 +116,15 @@ int32_t inject_fork_server(uint64_t main_address)
     /* Lets save the code at main in the target process. */
     orig = ptrace(PT_READ_I, pid, (caddr_t)&start_offset, 0);
 
-    start_offset = get_start_addr();
+   /* start_offset = get_start_addr();
 
-    /* Let's set a breakpoint on main. */
+     Let's set a breakpoint on main. 
     ptrace(PT_WRITE_I, pid, (caddr_t)&start_offset, (orig & TRAP_MASK) | TRAP_INST);
 
-    /* Now we continue until the breakpoint. */
-    ptrace(PT_CONTINUE, pid, (caddr_t)1, 0);
+    Now we continue until the breakpoint. 
+    ptrace(PT_CONTINUE, pid, (caddr_t)1, 0); 
 
-    /* Wait until the breakpoint is hit. */
+     Wait until the breakpoint is hit.  */
     waitpid(pid, &status, 0);
 
     if(WIFCONTINUED(status) != 0)

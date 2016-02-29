@@ -14,12 +14,12 @@
  **/
 
 #include "concurrent-freebsd.h"
+#include <stdio.h>
 
-msg_port_t init_msg_port(void)
+int32_t init_msg_port(msg_port_t *port)
 {
-    msg_port_t port = 0;
 
-    return (port);
+    return (0);
 }
 
 int32_t msg_send(msg_port_t send_port, msg_port_t remote_port, void *msg_data)
@@ -36,7 +36,7 @@ void *msg_recv(msg_port_t recv_port)
     return (message);
 }
 
-int32_t fork_pass_port(msg_port_t pass_port, int32_t (*proc_start)(msg_port_t port, void *arg), void *arg)
+int32_t fork_pass_port(msg_port_t *pass_port, int32_t (*proc_start)(msg_port_t port, void *arg), void *arg)
 {
 
     return (0);

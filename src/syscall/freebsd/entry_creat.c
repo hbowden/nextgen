@@ -23,8 +23,8 @@ struct syscall_entry entry_creat = {
     .syscall_symbol = SYS_creat,
     .number_of_args = 2,
     .status = ON,
-    .requires_root = NO,
-    .need_alarm = NO,
+    .requires_root = NX_NO,
+    .need_alarm = NX_NO,
 
     .arg_type_index[FIRST_ARG] = FILE_PATH,
     .get_arg_index[FIRST_ARG] = &generate_path,

@@ -8,13 +8,14 @@ ifeq ($(OPERATING_SYSTEM), FreeBSD)
 
 ENTRY_SOURCES := $(wildcard freebsd/*.c)
 
-INCLUDES = -I../ -I../../deps/ck-0.5.0/include -Ifreebsd
+INCLUDES = -I../ -I../../deps/$(CK)/include \
+           -isystem ../../deps/$(CK)/include -Ifreebsd
            
 SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-padded \
                     -Wno-used-but-marked-unused -Wno-cast-align \
                     -Wno-missing-noreturn -Wno-unused-parameter \
                     -Wno-deprecated-declarations -Wno-pedantic \
-                    -Wno-unknown-pragmas
+                    -Wno-unknown-pragmas -Wno-sign-conversion
 
 INCLUDES += -I/usr/src/cddl/compat/opensolaris/include \
             -I/usr/src/cddl/contrib/opensolaris/lib/libdtrace/common \

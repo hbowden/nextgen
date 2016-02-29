@@ -1,6 +1,7 @@
 SOURCES = file.c
 
-INCLUDES = -I../ -I../../deps/ck-0.5.0/include
+INCLUDES = -I../ -I../../deps/$(CK)/include \
+           -isystem ../../deps/$(CK)/include
 
 OPERATING_SYSTEM = $(shell uname)
 
@@ -8,7 +9,8 @@ OPERATING_SYSTEM = $(shell uname)
 ifeq ($(OPERATING_SYSTEM), FreeBSD)
 
 SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-padded -Wno-cast-qual \
-                    -Wno-unused-parameter -Wno-unknown-pragmas -Wno-pedantic
+                    -Wno-unused-parameter -Wno-unknown-pragmas \
+                    -Wno-pedantic -Wno-sign-conversion
 
 INCLUDES += -I/usr/src/cddl/compat/opensolaris/include \
             -I/usr/src/cddl/contrib/opensolaris/lib/libdtrace/common \

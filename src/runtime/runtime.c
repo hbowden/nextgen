@@ -37,12 +37,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <sys/mman.h>
-
-#ifdef MAC_OSX
-
 #include <pthread.h>
-
-#endif
 
 static int32_t start_network_mode_runtime(void)
 {
