@@ -122,10 +122,10 @@ static int32_t test_clean_file_pool(void)
     /* Now let's clean up our mess. */
     for(i = 0; i < POOL_SIZE; i++)
     {
-        mem_free(paths[i]);
+        mem_free((void **)&paths[i]);
     }
 
-    mem_free(paths);
+    mem_free((void **)&paths);
 
     log_test(SUCCESS, "clean_file_pool test passed");
 
