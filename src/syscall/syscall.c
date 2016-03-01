@@ -124,7 +124,7 @@ static int32_t get_child_index_number(uint32_t *index_num)
     return (-1);
 }
 
-static void exit_child(void)
+NX_NO_RETURN static void exit_child(void)
 {
     int32_t rtrn = 0;
     struct child_ctx *ctx = NULL;
@@ -363,7 +363,7 @@ static int32_t do_job(struct job_ctx *job)
     }
 }
 
-static void start_smart_syscall_child(void)
+NX_NO_RETURN static void start_smart_syscall_child(void)
 {
     int32_t rtrn = 0;
     struct child_ctx *ctx = NULL;
@@ -444,7 +444,7 @@ struct child_ctx *get_child_ctx(void)
 /**
  * This is the fuzzing loop for syscall fuzzing in dumb mode.
  */
-static void start_syscall_child(void)
+NX_NO_RETURN static void start_syscall_child(void)
 {
     int32_t rtrn = 0;
     struct syscall_entry_shadow *entry = NULL;
@@ -573,30 +573,24 @@ static int32_t init_syscall_child(uint32_t i)
     return (0);
 }
 
-static void start_child_loop(void)
+NX_NO_RETURN static void start_child_loop(void)
 {
     /* If were in dumb mode start the dumb syscall loop. */
     if(mode != TRUE)
     {
         start_syscall_child();
-
-        return;
     }
 
     start_smart_syscall_child();
-
-    return;
 }
 
-static void start_child(uint32_t i)
+NX_NO_RETURN static void start_child(uint32_t i)
 {
     /* Initialize the new syscall child. */
     init_syscall_child(i);
 
     /* Start the newly created syscall child's main loop. */
     start_child_loop();
-
-    return;
 }
 
 static int32_t create_syscall_child_proc(msg_port_t port, void *arg)
@@ -899,8 +893,6 @@ void start_main_syscall_loop(msg_port_t port)
     }
 
     output(STD, "Exiting main loop\n");
-
-    return;
 }
 
 static struct child_ctx *init_child_context(void)
