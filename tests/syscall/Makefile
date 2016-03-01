@@ -13,6 +13,8 @@ LIB = $(ROOT_DIR)/src/io/libnxio.dylib \
       $(ROOT_DIR)/src/probe/libnxprobe.dylib \
       $(ROOT_DIR)/src/mutate/libnxmutate.dylib
 
+SILENCED_WARNINGS += -Wno-unused-parameter
+
 all:
 
 	$(CC) $(FLAGS) $(SILENCED_WARNINGS) $(PLATFORM) $(INCLUDES) $(SOURCES) $(LIB) -o test_syscall
