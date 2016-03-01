@@ -29,6 +29,8 @@ enum csp { SET, UNSET };
 
 enum name_type { DIR_NAME, FILE_NAME };
 
+#define NX_NO_RETURN __attribute__((noreturn))
+
 /* This function as the name implies gets the file size. */
 extern int32_t get_file_size(int32_t fd, uint64_t *size);
 
