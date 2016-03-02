@@ -22,14 +22,14 @@ int32_t log_arguments(uint32_t number_of_args,
 	              uint64_t **arg_value_array, 
                       struct arg_context **arg_context_array)
 {
-    char *arg_value auto_clean = mem_alloc(1024);
+    char *arg_value auto_free = mem_alloc(1024);
     if(arg_value == NULL)
     {
        output(ERROR, "Can't create arg_value buffer\n");
        return (-1);
     }
 
-    char *syscall_log_buf auto_clean = mem_alloc(4096);
+    char *syscall_log_buf auto_free = mem_alloc(4096);
     if(syscall_log_buf == NULL)
     {
        output(ERROR, "Can't create syscall_log_buf buffer\n");

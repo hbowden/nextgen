@@ -31,7 +31,7 @@ static char *out_dir_path;
 int32_t log_file(char *file_path, char *file_extension)
 {
     int32_t rtrn = 0;
-    char *out_path auto_clean = NULL;
+    char *out_path auto_free = NULL;
 
     /* Create out file path. */
     rtrn = asprintf(&out_path, "%s/last_file_run.%s", out_dir_path, file_extension);
@@ -94,7 +94,7 @@ int32_t create_out_directory(char *path)
 int log_results(struct log_obj *obj)
 {
     int32_t rtrn = 0;
-    char *out_buf auto_clean = NULL;
+    char *out_buf auto_free = NULL;
 
     if(obj->had_error == NX_YES)
     {
