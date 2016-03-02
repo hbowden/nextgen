@@ -280,7 +280,7 @@ static int32_t count_files_directory(uint32_t *count, char *dir)
     struct stat buf;
     int32_t rtrn = 0;
     DIR *directory = NULL;
-    char *file_path auto_clean = NULL;
+    char *file_path auto_free = NULL;
     struct dirent *entry = NULL;
 
     /* Open the directory. */
@@ -372,9 +372,9 @@ void start_main_file_loop(void)
         uint64_t file_size = 0;
         char *file_buffer = NULL;
         int32_t file auto_close = 0;
-        char *file_name auto_clean = NULL;
-        char *file_path auto_clean = NULL;
-        char *file_extension auto_clean = NULL;
+        char *file_name auto_free = NULL;
+        char *file_path auto_free = NULL;
+        char *file_extension auto_free = NULL;
 
         /* Open file from in directory. */
         rtrn = get_file(&file, &file_extension);
