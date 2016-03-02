@@ -618,9 +618,6 @@ static int32_t create_syscall_child_proc(msg_port_t port, void *arg)
 
     /* Start child process. */
     start_child((*i));
-           
-    /* Exit and cleanup process. */
-    _exit(0);
 }
 
 void create_syscall_children(void)
