@@ -45,7 +45,7 @@ static int32_t test_mem_free(void)
     mem_free((void **)&buffer);
     assert_stat(buffer == NULL);
 
-    log_test(SUCCESS, "Testing memory free");
+    log_test(SUCCESS, "Memory free test passed");
 
     return (0);
 }
