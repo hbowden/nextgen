@@ -58,7 +58,6 @@ static int32_t test_init_file_array(void)
     log_test(DECLARE, "Testing init file array");
 
     uint32_t i;
-    int32_t rtrn = 0;
     struct file_ctx **array = NULL;
 
     array = init_file_array(tmp_dir, file_count);
