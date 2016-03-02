@@ -109,8 +109,8 @@ int32_t generate_name(char **name, char *extension, enum name_type type)
 {
     /* Declare some variables. */
     int32_t rtrn = 0;
-    char *random_data auto_clean = NULL;
-    char *tmp_buf auto_clean = NULL;
+    char *random_data auto_free = NULL;
+    char *tmp_buf auto_free = NULL;
     
     /* Create some space in memory. */
     random_data = mem_alloc(PATH_MAX + 1);
@@ -157,7 +157,7 @@ int32_t generate_name(char **name, char *extension, enum name_type type)
             /* Check for a period in the extension string passed by the user. */
             if(pointer == NULL)
             {
-                char *ext auto_clean = NULL;
+                char *ext auto_free = NULL;
 
                 /* There's no period so let's create one. */
                 rtrn = asprintf(&ext, ".%s", extension);
@@ -266,9 +266,9 @@ int32_t create_random_file(char *root, char *ext, char **path, uint64_t *size)
 {
     int32_t rtrn = 0;
     int32_t no_period = 0;
-    char *name auto_clean = NULL;
-    char *junk auto_clean = NULL;
-    char *extension auto_clean = NULL;
+    char *name auto_free = NULL;
+    char *junk auto_free = NULL;
+    char *extension auto_free = NULL;
 
     /* Check for a period in the extension string passed by the user. */
     char *pointer = strrchr(ext, '.');
