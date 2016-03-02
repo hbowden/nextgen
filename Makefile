@@ -12,7 +12,9 @@ TEST_LIB = $(ROOT_DIR)/src/io/libnxio.dylib \
            $(ROOT_DIR)/src/memory/libnxmemory.dylib \
            $(ROOT_DIR)/src/utils/libnxutils.dylib
 
-INCLUDE = -Ideps/$(CK)/include -Isrc
+INCLUDE = -isystem ../../deps/$(CAPSTONE)/include \
+          -isystem ../../deps/$(CK)/include \
+          -Isrc
 
 OPERATING_SYSTEM = $(shell uname)
 
