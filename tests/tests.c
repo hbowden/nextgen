@@ -50,7 +50,7 @@ static int32_t exec_test(char *path)
 {
 	int32_t rtrn = 0;
 	pid_t exec_pid = 0;
-    char *buf auto_clean = NULL;
+    char *buf auto_free = NULL;
 	char *args[] = { "blah", NULL };
 
     /* Make sure path is not NULL, if it is return an error. */
