@@ -26,16 +26,16 @@ static int32_t test_syscall_setup(void)
 {
     log_test(DECLARE, "Testing syscall module setup");
 
-    atomic_int_fast32_t stop;
+    atomic_int_fast32_t stop_ptr;
     atomic_uint_fast64_t counter;
 
-    atomic_init(&stop, FALSE);
+    atomic_init(&stop_ptr, FALSE);
     atomic_init(&counter, 0);
 
     int32_t rtrn = 0;
 
     /* Call the setup function. */
-    rtrn = setup_syscall_module(&stop, &counter, TRUE);
+    rtrn = setup_syscall_module(&stop_ptr, &counter, TRUE);
 
     /* Make sure setup_syscall_module() returns zero. */
     assert_stat(rtrn == 0);
@@ -302,7 +302,7 @@ static int32_t test_child_from_index(void)
 
         assert_stat(child != NULL);
 
-        mem_free(child);
+        mem_free((void **)&child);
     }
 
     log_test(SUCCESS, "get_child_from_index test passed");
@@ -378,7 +378,7 @@ static int32_t test_generate_arguments(void)
     log_test(DECLARE, "Testing generate arguments");
     
     int32_t rtrn = 0;
-    uint32_t i, iii;
+    uint32_t i;
     struct child_ctx *child = NULL;
     child = init_child_context();
     assert_stat(child != NULL);
