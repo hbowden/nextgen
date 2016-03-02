@@ -35,6 +35,8 @@ struct test_obj
 
 static int32_t test_mem_free(void)
 {
+    log_test(DECLARE, "Testing memory free");
+
     char *buffer = NULL;
 
     buffer = mem_alloc(100);
@@ -42,6 +44,8 @@ static int32_t test_mem_free(void)
 
     mem_free((void **)&buffer);
     assert_stat(buffer == NULL);
+
+    log_test(SUCCESS, "Testing memory free");
 
     return (0);
 }
