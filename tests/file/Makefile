@@ -11,6 +11,8 @@ LIB = $(ROOT_DIR)/src/io/libnxio.dylib \
       $(ROOT_DIR)/src/log/libnxlog.dylib \
       $(ROOT_DIR)/src/mutate/libnxmutate.dylib
 
+SILENCED_WARNINGS += -Wno-cast-qual -Wno-unused-parameter
+
 all:
 
 	$(CC) $(FLAGS) $(SILENCED_WARNINGS) $(INCLUDES) $(SOURCES) $(PLATFORM) $(LIB) -o test_file
