@@ -65,8 +65,8 @@ static int test_sha256(void)
         assert_stat(strlen(hash) == 64);
 
         /* Clean up the buffers. */
-        mem_free(hash);
-        mem_free(buf);
+        mem_free((void **)&hash);
+        mem_free((void **)&buf);
 	}
 
 	log_test(SUCCESS, "sha256 test passed");
@@ -118,8 +118,8 @@ static int32_t test_sha512(void)
         assert_stat(strlen(hash) == 128);
 
         /* Clean up the buffers. */
-        mem_free(hash);
-        mem_free(buf);
+        mem_free((void **)&hash);
+        mem_free((void **)&buf);
 	}
 
 	log_test(SUCCESS, "sha512 test passed");
@@ -189,7 +189,7 @@ static int32_t test_rand_bytes(void)
 
         assert_stat(strlen(buf) <= 1000);
 
-        mem_free(buf);
+        mem_free((void **)&buf);
     }
 
     log_test(SUCCESS, "random bytes test passed");

@@ -33,6 +33,19 @@ struct test_obj
     char *ptr;
 };
 
+static int32_t test_mem_free(void)
+{
+    char *buffer = NULL;
+
+    buffer = mem_alloc(100);
+    assert_stat(buffer != NULL);
+
+    mem_free((void **)&buffer);
+    assert_stat(buffer == NULL);
+
+    return (0);
+}
+
 static int32_t test_mem_alloc(void)
 {
     log_test(DECLARE, "Testing heap memory allocator");
@@ -46,7 +59,7 @@ static int32_t test_mem_alloc(void)
     buf = mem_alloc(10);
     assert_stat(buf != NULL);
 
-    mem_free(buf);
+    mem_free((void **)&buf);
 
     log_test(SUCCESS, "Passed heap alloc test");
 
@@ -99,11 +112,11 @@ static int32_t test_mem_alloc_shared(void)
         ssize_t ret = read(port[0], buf2, 1);
         if(ret < 1)
         {
-            mem_free(buf2);
+            mem_free((void **)&buf2);
             return -1;
         }
 
-        mem_free(buf2);
+        mem_free((void **)&buf2);
     }
     else
     {
@@ -317,11 +330,11 @@ static int32_t test_mem_calloc_shared(void)
         ssize_t ret = read(port[0], buf2, 1);
         if(ret < 1)
         {
-            mem_free(buf2);
+            mem_free((void **)&buf2);
             return -1;
         }
 
-        mem_free(buf2);
+        mem_free((void **)&buf2);
     }
     else
     {
@@ -355,6 +368,10 @@ int main(void)
     rtrn = test_mem_alloc();
     if(rtrn < 0)
         log_test(FAIL, "memory allocator test failed");
+
+    rtrn = test_mem_free();
+    if(rtrn < 0)
+        log_test(FAIL, "Mem free test failed");
 
     rtrn = test_mem_calloc();
     if(rtrn < 0)
