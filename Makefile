@@ -47,7 +47,8 @@ MAKE = make
 FLAGS = -DMAC_OSX -fsanitize=address -Wall -Werror -Weverything -pedantic -g -O3 -std=c99
 
 SILENCED_WARNINGS = -Wno-padded -Wno-reserved-id-macro \
-                    -Wno-incompatible-pointer-types-discards-qualifiers
+                    -Wno-incompatible-pointer-types-discards-qualifiers \
+                    -Wno-used-but-marked-unused
 
 BUILD_NX_LIBS = cd $(ROOT_DIR)/src/objc && $(MAKE) &&
 CLEAN_NX_LIBS = cd $(ROOT_DIR)/src/objc && $(MAKE) clean &&
@@ -94,10 +95,10 @@ CLEAN_NX_LIBS += cd $(ROOT_DIR)/src/io && $(MAKE) clean && \
                  cd $(ROOT_DIR)/src/disas && $(MAKE) clean && \
                  cd $(ROOT_DIR)/src/runtime && $(MAKE) clean
 
-TEST_SUITE = cd $(ROOT_DIR)/tests/crypto && $(MAKE) && \
+TEST_SUITE = cd $(ROOT_DIR)/tests/memory && $(MAKE) $(TEST_FLAGS) && \
+             cd $(ROOT_DIR)/tests/crypto && $(MAKE) && \
              cd $(ROOT_DIR)/tests/plugin && $(MAKE) && \
              cd $(ROOT_DIR)/tests/utils && $(MAKE) && \
-	         cd $(ROOT_DIR)/tests/memory && $(MAKE) $(TEST_FLAGS) && \
 	         cd $(ROOT_DIR)/tests/parser && $(MAKE) $(TEST_FLAGS) && \
 	         cd $(ROOT_DIR)/tests/genetic && $(MAKE) $(TEST_FLAGS) && \
 	         cd $(ROOT_DIR)/tests/reaper && $(MAKE) $(TEST_FLAGS) && \
@@ -122,7 +123,7 @@ CLEAN_SUITE = cd $(ROOT_DIR)/tests/crypto && $(MAKE) clean && \
 	          cd $(ROOT_DIR)/tests/network && $(MAKE) clean && \
 	          cd $(ROOT_DIR)/tests/generate && $(MAKE) clean;
 
-export CK LIBRESSL CAPSTONE ROOT_DIR PLATFORM
+export CK LIBRESSL CAPSTONE ROOT_DIR PLATFORM FLAGS SILENCED_WARNINGS
 
 all:
 
@@ -197,7 +198,7 @@ install:
 build-test:
 
 	$(TEST_SUITE)
-	$(CC) $(FLAGS) $(TEST_LIB) tests/tests.c tests/test_utils.c $(INCLUDE) $(SILENCED_WARNINGS) -o test_suite
+	$(CC) $(FLAGS) $(TEST_LIB) -Wno-sign-conversion tests/tests.c tests/test_utils.c $(INCLUDE) $(SILENCED_WARNINGS) -o test_suite
 
 clean-test:
 
