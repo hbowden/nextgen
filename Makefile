@@ -109,7 +109,8 @@ TEST_SUITE = cd $(ROOT_DIR)/tests/memory && $(MAKE) $(TEST_FLAGS) && \
 	         cd $(ROOT_DIR)/tests/concurrent && $(MAKE) $(TEST_FLAGS) && \
 	         cd $(ROOT_DIR)/tests/file && $(MAKE) $(TEST_FLAGS) && \
 	         cd $(ROOT_DIR)/tests/network && $(MAKE) $(TEST_FLAGS) && \
-	         cd $(ROOT_DIR)/tests/generate && $(MAKE) $(TEST_FLAGS);
+	         cd $(ROOT_DIR)/tests/generate && $(MAKE) $(TEST_FLAGS) && \
+	         cd $(ROOT_DIR)/tests/runtime && $(MAKE) 
 
 CLEAN_SUITE = cd $(ROOT_DIR)/tests/crypto && $(MAKE) clean && \
               cd $(ROOT_DIR)/tests/plugin && $(MAKE) clean && \
@@ -123,7 +124,8 @@ CLEAN_SUITE = cd $(ROOT_DIR)/tests/crypto && $(MAKE) clean && \
 	          cd $(ROOT_DIR)/tests/concurrent && $(MAKE) clean && \
 	          cd $(ROOT_DIR)/tests/file && $(MAKE) clean && \
 	          cd $(ROOT_DIR)/tests/network && $(MAKE) clean && \
-	          cd $(ROOT_DIR)/tests/generate && $(MAKE) clean;
+	          cd $(ROOT_DIR)/tests/generate && $(MAKE) clean && \
+	          cd $(ROOT_DIR)/tests/runtime && $(MAKE) clean
 
 export CK LIBRESSL CAPSTONE ROOT_DIR PLATFORM FLAGS SILENCED_WARNINGS
 
