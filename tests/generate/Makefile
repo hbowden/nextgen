@@ -15,6 +15,8 @@ LIB = $(ROOT_DIR)/src/io/libnxio.dylib \
 
 UNIT_TEST = test_generate
 
+SILENCED_WARNINGS += -Wno-unused-parameter
+
 all:
 
 	$(CC) $(FLAGS) $(SILENCED_WARNINGS) $(INCLUDES) $(PLATFORM) $(SOURCES) $(LIB) -o $(UNIT_TEST) 
