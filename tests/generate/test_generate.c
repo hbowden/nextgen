@@ -111,7 +111,7 @@ static int32_t test_generate_unmount_flags(void)
 	    assert_stat((*flag) > 0);
 	    assert_stat(child->arg_size_index[0] > 0);
 
-	    mem_free(flag);
+	    mem_free((void **)&flag);
     }
 
 	log_test(SUCCESS, "Generate unmount flags test passed");
@@ -139,7 +139,7 @@ static int32_t test_generate_request(void)
 	    assert_stat(request != NULL);
 	    assert_stat((*request) >= 0);
 	    assert_stat(child->arg_size_index[0] > 0);
-	    mem_free(request);
+	    mem_free((void **)&request);
     }
 
 	log_test(SUCCESS, "Generate request test passed");
@@ -316,7 +316,7 @@ static int32_t test_generate_mode(void)
 	log_test(DECLARE, "Testing generate mode");
 
     int32_t rtrn = 0;
-	int32_t *mode = NULL;
+	int32_t *mode_ptr = NULL;
 	struct child_ctx *child = NULL;
 
 	child = init_child_context();
@@ -326,10 +326,10 @@ static int32_t test_generate_mode(void)
 
     for(i = 0; i < iterations; i++)
     {
-	    rtrn = generate_mode((uint64_t **)&mode, child);
+	    rtrn = generate_mode((uint64_t **)&mode_ptr, child);
 	    assert_stat(rtrn == 0);
-	    assert_stat(mode != NULL);
-	    assert_stat((*mode) > 0);
+	    assert_stat(mode_ptr != NULL);
+	    assert_stat((*mode_ptr) > 0);
 	    assert_stat(child->arg_size_index[0] > 0);
     }
 
