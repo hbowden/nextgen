@@ -22,7 +22,7 @@
 #include <sys/wait.h>
 #include <pthread.h>
 
-static int32_t child_proc_start(msg_port_t remote_port, void *arg)
+/*static int32_t child_proc_start(msg_port_t remote_port, void *arg)
 {
     char *recv_buffer = NULL;
 
@@ -33,12 +33,10 @@ static int32_t child_proc_start(msg_port_t remote_port, void *arg)
     recv_buffer = (char *) msg_recv(remote_port);
     assert_stat(recv_buffer != NULL);
 
-    /* Make sure we got the message. */
     assert_stat(strncmp(recv_buffer, "123456789", 9) == 0);
         
-    /* Exit and clean up the child process. */
     _exit(0);
-}
+} */
 
 static void *thread_start(void *arg)
 {
@@ -54,15 +52,23 @@ static int32_t test_msg_send_recv(void)
 
     msg_port_t port = 0;
 
+    /* Initialize the message port. */
     rtrn = init_msg_port(&port);
     assert_stat(port != 0);
 
+    /* Create a thread for us to communicate with. */
     rtrn = pthread_create(&thread, NULL, thread_start, &port);
     if(rtrn < 0)
     {
         output(ERROR, "Can't create thread\n");
         return (0);
     }
+
+    char *buffer = NULL;
+
+    /* Wait for a message from the test thread. */
+    buffer = (char *) msg_recv(port);
+    assert_stat(buffer != NULL);
 
     log_test(SUCCESS, "Msg send recv test passed");
 
