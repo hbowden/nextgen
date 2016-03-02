@@ -9,6 +9,8 @@ LIB = $(ROOT_DIR)/src/memory/libnxmemory.dylib \
 
 UNIT_TEST = test_concurrent
 
+SILENCED_WARNINGS += -Wno-unused-parameter
+
 all:
 
 	$(CC) $(FLAGS) $(SILENCED_WARNINGS) $(PLATFORM) $(INCLUDES) $(SOURCES) $(LIB) -o $(UNIT_TEST) 
