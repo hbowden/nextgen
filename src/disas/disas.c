@@ -35,7 +35,7 @@ int32_t disas_executable_and_examine(void)
     uint32_t count = 0;
     int32_t file auto_close = 0;
     char *file_buffer = NULL;
-    char *exec_path auto_clean = NULL;
+    char *exec_path auto_free = NULL;
 
     /* Ask the file module for the path of the binary to test. */
     rtrn = get_exec_path(&exec_path);
