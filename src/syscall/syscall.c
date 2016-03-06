@@ -209,7 +209,7 @@ static int32_t free_old_arguments(struct child_ctx *ctx)
 
             /* Clean this with mem_free_shared(). */
             case VOID_BUF:
-                mem_free_shared(ctx->arg_value_index[i], ctx->arg_size_index[i]);
+                mem_free_shared((void **)&ctx->arg_value_index[i], ctx->arg_size_index[i]);
                 break;
 
             /* Kill the temp process using the copy value
