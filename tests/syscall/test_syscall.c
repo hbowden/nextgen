@@ -478,6 +478,5 @@ int main(void)
     if(rtrn < 0)
         log_test(FAIL, "Generate arguments test failed");
 
-
 	_exit(0);
 }
