@@ -591,9 +591,9 @@ static int32_t clean_file_pool(void)
             return (-1);
         }
 
-        mem_free_shared(resource->ptr, PATH_MAX + 1);
-        mem_free_shared(m_blk->ptr, sizeof(struct resource_ctx));
-        mem_free_shared(m_blk, sizeof(struct memory_block));
+        mem_free_shared((void **)&resource->ptr, PATH_MAX + 1);
+        mem_free_shared((void **)&m_blk->ptr, sizeof(struct resource_ctx));
+        mem_free_shared((void **)&m_blk, sizeof(struct memory_block));
     }
 
     /* Now check the free list for any resource blocks. */
@@ -608,9 +608,9 @@ static int32_t clean_file_pool(void)
             return (-1);
         }
 
-        mem_free_shared(resource->ptr, PATH_MAX + 1);
-        mem_free_shared(m_blk->ptr, sizeof(struct resource_ctx));
-        mem_free_shared(m_blk, sizeof(struct memory_block));
+        mem_free_shared((void **)&resource->ptr, PATH_MAX + 1);
+        mem_free_shared((void **)&m_blk->ptr, sizeof(struct resource_ctx));
+        mem_free_shared((void **)&m_blk, sizeof(struct memory_block));
     }
 
     nx_spinlock_unlock(&file_pool->lock);
