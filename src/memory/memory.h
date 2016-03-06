@@ -59,7 +59,7 @@ extern void *mem_alloc_shared(uint64_t nbytes);
 
 extern void *mem_calloc_shared(uint64_t nbytes);
 
-extern void mem_free_shared(void *ptr, uint64_t nbytes);
+extern void mem_free_shared(void **ptr, uint64_t nbytes);
 
 extern struct mem_pool_shared *mem_create_shared_pool(uint32_t block_size, uint32_t block_count);
 

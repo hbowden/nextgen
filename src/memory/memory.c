@@ -122,12 +122,14 @@ void *mem_calloc_shared(uint64_t nbytes)
     return (pointer);
 }
 
-void mem_free_shared(void *ptr, uint64_t nbytes)
+void mem_free_shared(void **ptr, uint64_t nbytes)
 {
-    if(ptr == NULL)
+    if((*ptr) == NULL)
         return;
 
-    munmap(ptr, nbytes);
+    munmap((*ptr), nbytes);
+
+    (*ptr) = NULL;
 
     return;
 }
