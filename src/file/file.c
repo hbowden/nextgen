@@ -444,7 +444,7 @@ void start_main_file_loop(void)
         }
 
         /* Clean up our mess. */
-        mem_free_shared(file_buffer, (size_t)file_size);
+        mem_free_shared((void **)&file_buffer, (size_t)file_size);
 
         rtrn = unlink(file_path);
         if(rtrn < 0)
