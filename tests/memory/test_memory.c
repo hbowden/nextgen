@@ -33,6 +33,23 @@ struct test_obj
     char *ptr;
 };
 
+static int32_t test_mem_free_shared(void)
+{
+    log_test(DECLARE, "Testing memory free shared");
+
+    char *buffer = NULL;
+
+    buffer = mem_alloc_shared(100);
+    assert_stat(buffer != NULL);
+
+    mem_free_shared((void **)&buffer, 100);
+    assert_stat(buffer == NULL);
+
+    log_test(SUCCESS, "Memory free shared test passed");
+
+    return (0);
+} 
+
 static int32_t test_mem_free(void)
 {
     log_test(DECLARE, "Testing memory free");
@@ -376,6 +393,10 @@ int main(void)
     rtrn = test_mem_free();
     if(rtrn < 0)
         log_test(FAIL, "Mem free test failed");
+
+    rtrn = test_mem_free_shared();
+    if(rtrn < 0)
+        log_test(FAIL, "Mem free shared test failed");
 
     rtrn = test_mem_calloc();
     if(rtrn < 0)
