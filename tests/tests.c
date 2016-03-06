@@ -92,7 +92,14 @@ static int32_t exec_test(char *path)
     	if(WIFEXITED(status) != 0)
     	{
             if(WEXITSTATUS(status) != 0)
-                kill(exec_pid, SIGKILL);
+            {
+                rtrn = kill(exec_pid, SIGKILL);
+                if(rtrn < 0)
+                {
+                    output(ERROR, "Can't kill target process\n");
+                    return (-1);
+                }
+            }
 
             /* Return the exit status from the child process. */
             return (WEXITSTATUS(status));
@@ -108,7 +115,12 @@ static int32_t exec_test(char *path)
 
             log_test(FAIL, buf);
 
-            kill(exec_pid, SIGKILL);
+            rtrn = kill(exec_pid, SIGKILL);
+            if(rtrn < 0)
+            {
+                output(ERROR, "Can't kill target process\n");
+                return (-1);
+            }
 
             return (-1);
     	}
