@@ -187,6 +187,33 @@ static int32_t test_set_fuzz_mode(void)
     return (0);
 }
 
+static int32_t test_set_crypto_method(void)
+{
+    log_test(DECLARE, "Testing set crypto method");
+
+    int32_t rtrn = 0;
+    struct parser_ctx *ctx = NULL;
+    enum crypto_method method = CRYPTO;
+
+    rtrn = init_parser_ctx(&ctx);
+    assert_stat(rtrn == 0);
+    assert_stat(ctx != NULL);
+
+    int32_t bad_method = 33;
+
+    rtrn = set_crypto_method(ctx, (enum crypto_method)bad_method);    
+    assert_stat(rtrn == -1);
+
+    rtrn = set_crypto_method(ctx, method);    
+    assert_stat(rtrn == 0);
+    assert_stat(ctx != NULL);
+    assert_stat(ctx->method == method);
+
+    log_test(SUCCESS, "Set crypto method test passed");
+
+    return (0);
+}
+
 int main(void)
 {
     test_stat = init_test_framework();
@@ -209,6 +236,10 @@ int main(void)
     rtrn = test_set_fuzz_mode();
     if(rtrn < 0)
         log_test(FAIL, "Set fuzz mode test failed");
+
+    rtrn = test_set_crypto_method();
+    if(rtrn < 0)
+        log_test(FAIL, "Set crypto method test failed");
 
     rtrn = test_init_file_mapping();
     if(rtrn < 0)
