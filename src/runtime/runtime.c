@@ -303,7 +303,7 @@ static int32_t setup_syscall_mode_runtime(void)
     return (0);
 }
 
-int32_t setup_runtime(void)
+int32_t setup_runtime(struct shared_map *mapping)
 {
     output(STD, "Setting up fuzzer\n");
 
