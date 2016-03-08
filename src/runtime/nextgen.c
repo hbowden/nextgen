@@ -118,6 +118,24 @@ int32_t set_fuzz_mode(struct parser_ctx *ctx, enum fuzz_mode mode)
     return (0);
 }
 
+int32_t set_crypto_method(struct parser_ctx *ctx, enum crypto_method method)
+{
+    switch((int32_t)method)
+    {
+        case CRYPTO:
+        case NO_CRYPTO:
+            break;
+
+        default:
+            output(ERROR, "Unknown crypto method\n");
+            return (-1);
+    }
+
+    ctx->method = method;
+
+    return (0);
+}
+
 struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
 {
     int32_t ch = 0;

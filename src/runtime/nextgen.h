@@ -80,6 +80,8 @@ extern int32_t init_parser_ctx(struct parser_ctx **ctx);
 
 extern int32_t set_fuzz_mode(struct parser_ctx *ctx, enum fuzz_mode mode);
 
+extern int32_t set_crypto_method(struct parser_ctx *ctx, enum crypto_method method);
+
 extern int32_t init_shared_mapping(struct shared_map **mapping, struct parser_ctx *ctx);
 
 extern void clean_shared_mapping(void);
