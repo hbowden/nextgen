@@ -26,7 +26,7 @@
 #include <sys/wait.h>
 
 /* The number of test to run, keep in sync with test_paths  */
-static uint32_t number_of_test = 14;
+static uint32_t number_of_test = 13;
 
 /* Array of unit test file paths. */
 static char *test_paths[] = {
@@ -34,7 +34,6 @@ static char *test_paths[] = {
     "tests/concurrent/test_concurrent",
     "tests/crypto/test_crypto",
     "tests/utils/test_utils",
-    "tests/parser/test_parser", 
     "tests/network/test_network",
     "tests/generate/test_generate",
     "tests/resource/test_resource",
@@ -62,6 +61,9 @@ static int32_t exec_test(char *path)
 	exec_pid = fork();
     if(exec_pid == 0)
     {
+        /* Set the PID of the currently running test. */
+        test_stat->running_test = getpid();
+
     	/* Execute the test passed, with no arguments. */
         rtrn = execv(path, args);
         if(rtrn < 0)
@@ -93,10 +95,10 @@ static int32_t exec_test(char *path)
     	{
             if(WEXITSTATUS(status) != 0)
             {
-                rtrn = kill(exec_pid, SIGKILL);
+                rtrn = kill(test_stat->running_test, SIGKILL);
                 if(rtrn < 0)
                 {
-                    output(ERROR, "Can't kill target process\n");
+                    output(ERROR, "Can't kill target process: %s\n", strerror(errno));
                     return (-1);
                 }
             }
@@ -115,10 +117,10 @@ static int32_t exec_test(char *path)
 
             log_test(FAIL, buf);
 
-            rtrn = kill(exec_pid, SIGKILL);
+            rtrn = kill(test_stat->running_test, SIGKILL);
             if(rtrn < 0)
             {
-                output(ERROR, "Can't kill target process\n");
+                output(ERROR, "Can't kill target process: %s\n", strerror(errno));
                 return (-1);
             }
 
