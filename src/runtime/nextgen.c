@@ -35,6 +35,17 @@
 
 struct shared_map *map;
 
+struct parser_ctx
+{
+    enum fuzz_mode mode;
+    char *path_to_exec;
+    char *path_to_in_dir;
+    char *path_to_out_dir;
+    enum crypto_method method;
+    char *args;
+    int32_t smart_mode;
+};
+
 static const char *optstring = "p:e:";
 
 static struct option longopts[] = {
@@ -68,7 +79,46 @@ static void display_help_banner(void)
     return;
 }
 
-struct parser_ctx *parse_cmd_line(int argc, char *argv[])
+int32_t init_parser_ctx(struct parser_ctx **ctx)
+{
+    if((*ctx) != NULL)
+    {
+        output(ERROR, "Non NULL parser context pointer passed\n");
+        return (-1);
+    }
+
+    (*ctx) = mem_alloc(sizeof(struct parser_ctx));
+    if((*ctx) == NULL)
+    {
+        output(ERROR, "Can't allocate parser context\n");
+        return (-1);
+    }
+
+    return (0);
+}
+
+int32_t set_fuzz_mode(struct parser_ctx *ctx, enum fuzz_mode mode)
+{
+    /* Make sure the mode passed is legit. */
+    switch((int32_t)mode)
+    {
+        case MODE_FILE:
+        case MODE_SYSCALL:
+        case MODE_NETWORK:
+            break;
+
+        default:
+            output(ERROR, "Unknown fuzz mode\n");
+            return (-1);
+    }
+
+    /* Set fuzz mode to mode passed by user. */
+    ctx->mode = mode;
+
+    return (0);
+}
+
+struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
 {
     int32_t ch = 0;
     int32_t rtrn = 0;
@@ -292,7 +342,8 @@ static int32_t init_syscall_mapping(struct shared_map **mapping, struct parser_c
 /**
  * We use this function to initialize all the shared maps member values.
  **/
-int32_t init_shared_mapping(struct shared_map **mapping, struct parser_ctx *ctx)
+int32_t init_shared_mapping(struct shared_map **mapping, 
+                            struct parser_ctx *ctx)
 {
     int32_t rtrn = 0;
 
