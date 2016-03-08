@@ -154,7 +154,12 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
 
     /* Default to smart_mode and crypto numbers. */
     ctx->smart_mode = TRUE;
-    ctx->method = CRYPTO;
+    rtrn = set_crypto_method(ctx, CRYPTO);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't set crypto method\n");
+        return (NULL);
+    }
 
     /* Parse the command line. */
     while((ch = getopt_long(argc, argv, optstring, longopts, NULL)) != -1)
@@ -244,7 +249,12 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
             case 'c':
                 /* This option allows users to specify the method in which they want to derive
                 the random numbers that will be used in fuzzing the application. */
-                ctx->method = NO_CRYPTO;
+                rtrn = set_crypto_method(ctx, NO_CRYPTO);
+                if(rtrn < 0)
+                {
+                    output(ERROR, "Can't set crypto method\n");
+                    return (NULL);
+                }
                 break;
 
             case 'd':
