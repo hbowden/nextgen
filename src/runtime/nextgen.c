@@ -122,14 +122,15 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
 {
     int32_t ch = 0;
     int32_t rtrn = 0;
+    struct parser_ctx *ctx = NULL;
     int32_t iFlag = FALSE, oFlag = FALSE, fFlag = FALSE, nFlag = FALSE, 
     sFlag = FALSE, eFlag = FALSE, pFlag = FALSE, aFlag = FALSE, tFlag = FALSE;
 
     /* Allocate the parser context. */
-    struct parser_ctx *ctx = mem_alloc(sizeof(struct parser_ctx));
-    if(ctx == NULL)
+    rtrn = init_parser_ctx(&ctx);
+    if(rtrn < 0)
     {
-        output(ERROR, "Can't allocate parser context\n");
+        output(ERROR, "Can't init parser context\n");
         return (NULL);
     }
 
