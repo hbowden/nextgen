@@ -97,26 +97,24 @@ CLEAN_NX_LIBS += cd $(ROOT_DIR)/src/io && $(MAKE) clean && \
                  cd $(ROOT_DIR)/src/disas && $(MAKE) clean && \
                  cd $(ROOT_DIR)/src/runtime && $(MAKE) clean
 
-TEST_SUITE = cd $(ROOT_DIR)/tests/memory && $(MAKE) $(TEST_FLAGS) && \
+TEST_SUITE = cd $(ROOT_DIR)/tests/memory && $(MAKE) && \
              cd $(ROOT_DIR)/tests/crypto && $(MAKE) && \
              cd $(ROOT_DIR)/tests/plugin && $(MAKE) && \
              cd $(ROOT_DIR)/tests/utils && $(MAKE) && \
-	         cd $(ROOT_DIR)/tests/parser && $(MAKE) $(TEST_FLAGS) && \
-	         cd $(ROOT_DIR)/tests/genetic && $(MAKE) $(TEST_FLAGS) && \
-	         cd $(ROOT_DIR)/tests/reaper && $(MAKE) $(TEST_FLAGS) && \
-	         cd $(ROOT_DIR)/tests/resource && $(MAKE) $(TEST_FLAGS) && \
-	         cd $(ROOT_DIR)/tests/syscall && $(MAKE) $(TEST_FLAGS) && \
-	         cd $(ROOT_DIR)/tests/concurrent && $(MAKE) $(TEST_FLAGS) && \
-	         cd $(ROOT_DIR)/tests/file && $(MAKE) $(TEST_FLAGS) && \
-	         cd $(ROOT_DIR)/tests/network && $(MAKE) $(TEST_FLAGS) && \
-	         cd $(ROOT_DIR)/tests/generate && $(MAKE) $(TEST_FLAGS) && \
+	         cd $(ROOT_DIR)/tests/genetic && $(MAKE) && \
+	         cd $(ROOT_DIR)/tests/reaper && $(MAKE) && \
+	         cd $(ROOT_DIR)/tests/resource && $(MAKE) && \
+	         cd $(ROOT_DIR)/tests/syscall && $(MAKE) && \
+	         cd $(ROOT_DIR)/tests/concurrent && $(MAKE) && \
+	         cd $(ROOT_DIR)/tests/file && $(MAKE) && \
+	         cd $(ROOT_DIR)/tests/network && $(MAKE) && \
+	         cd $(ROOT_DIR)/tests/generate && $(MAKE) && \
 	         cd $(ROOT_DIR)/tests/runtime && $(MAKE) 
 
 CLEAN_SUITE = cd $(ROOT_DIR)/tests/crypto && $(MAKE) clean && \
               cd $(ROOT_DIR)/tests/plugin && $(MAKE) clean && \
               cd $(ROOT_DIR)/tests/utils && $(MAKE) clean && \
 	          cd $(ROOT_DIR)/tests/memory && $(MAKE) clean && \
-	          cd $(ROOT_DIR)/tests/parser && $(MAKE) clean && \
 	          cd $(ROOT_DIR)/tests/genetic && $(MAKE) clean && \
 	          cd $(ROOT_DIR)/tests/reaper && $(MAKE) clean && \
 	          cd $(ROOT_DIR)/tests/resource && $(MAKE) clean && \
