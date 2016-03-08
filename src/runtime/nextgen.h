@@ -30,18 +30,9 @@
 
 #include "stdatomic.h"
 
-enum fuzz_mode { MODE_FILE, MODE_SYSCALL, MODE_NETWORK };
+struct parser_ctx;
 
-struct parser_ctx
-{
-    enum fuzz_mode mode;
-    char *path_to_exec;
-    char *path_to_in_dir;
-    char *path_to_out_dir;
-    enum crypto_method method;
-    char *args;
-    int32_t smart_mode;
-};
+enum fuzz_mode { MODE_FILE, MODE_SYSCALL, MODE_NETWORK };
 
 /* This struct is mapped as shared anonymous memory and is used to communicate between
 the various process and threads created by nextgen. */
@@ -85,10 +76,14 @@ struct shared_map
 
 extern struct shared_map *map;
 
+extern int32_t init_parser_ctx(struct parser_ctx **ctx);
+
+extern int32_t set_fuzz_mode(struct parser_ctx *ctx, enum fuzz_mode mode);
+
 extern int32_t init_shared_mapping(struct shared_map **mapping, struct parser_ctx *ctx);
 
 extern void clean_shared_mapping(void);
 
-extern struct parser_ctx *parse_cmd_line(int argc, char *argv[]);
+extern struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[]);
 
 #endif
