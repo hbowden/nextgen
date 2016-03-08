@@ -195,17 +195,32 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
 
             case 'f':
                 fFlag = TRUE;
-                ctx->mode = MODE_FILE;
+                rtrn = set_fuzz_mode(ctx, MODE_FILE);
+                if(rtrn < 0)
+                {
+                    output(ERROR, "Can't set fuzz mode\n");
+                    return (NULL);
+                }
                 break;
 
             case 'n':
                 nFlag = TRUE;
-                ctx->mode = MODE_NETWORK;
+                rtrn = set_fuzz_mode(ctx, MODE_NETWORK);
+                if(rtrn < 0)
+                {
+                    output(ERROR, "Can't set fuzz mode\n");
+                    return (NULL);
+                }
                 break;
 
             case 's':
                 sFlag = TRUE;
-                ctx->mode = MODE_SYSCALL;
+                rtrn = set_fuzz_mode(ctx, MODE_SYSCALL);
+                if(rtrn < 0)
+                {
+                    output(ERROR, "Can't set fuzz mode\n");
+                    return (NULL);
+                }
                 break;
 
             case 'c':
