@@ -21,8 +21,7 @@
 
 - (void)setStart:(int32_t(*)(void))app_start;
 
-- (void)setSetup:(int32_t(*)(void))app_setup;
-
+- (void)setSetup:(int32_t(*)(void *))app_setup argument:(void *)argument;
 
 @end
 

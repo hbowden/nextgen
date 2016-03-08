@@ -17,14 +17,14 @@
 #import "AppDelegate.h"
 
 /* Setup the Objective-c runtime. */
-int32_t setup_objc_runtime(int32_t (*app_setup)(void), int32_t (*app_start)(void))
+int32_t setup_objc_runtime(int32_t (*app_setup)(void *), int32_t (*app_start)(void), void *arg)
 {
     NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
     NSApplication * application = [NSApplication sharedApplication];
 
     MyApplicationDelegate * appDelegate = [[[MyApplicationDelegate alloc] init] autorelease];
 
-    [appDelegate setSetup:app_setup];
+    [appDelegate setSetup:app_setup argument:arg];
     [appDelegate setStart:app_start];
 
     [application setDelegate:appDelegate];

@@ -14,14 +14,13 @@
  **/
 
 #import "AppDelegate.h"
-
-#include "runtime/nextgen.h"
-#include "runtime/runtime.h"
+ 
 #include "memory/memory.h"
 #include "io/io.h"
 
 static int32_t (*start)(void);
-static int32_t (*setup)(void);
+static int32_t (*setup)(void *);
+static void *arg;
 
 @implementation MyApplicationDelegate : NSObject
 - (id)init {
@@ -36,8 +35,9 @@ static int32_t (*setup)(void);
     start = app_start;
 }
 
-- (void)setSetup:(int32_t(*)(void))app_setup {
+- (void)setSetup:(int32_t(*)(void *))app_setup argument:(void *)argument {
 
+    arg = argument;
     setup = app_setup;
 }
 
@@ -45,7 +45,7 @@ static int32_t (*setup)(void);
     [window makeKeyAndOrderFront:self];
 
     /* Setup the application. */
-    setup();
+    setup(arg);
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {

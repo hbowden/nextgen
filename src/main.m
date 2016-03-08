@@ -32,7 +32,7 @@ int main(int argc, const char * argv[])
     int32_t rtrn = 0;
     struct parser_ctx *ctx = NULL;
 
-    /* Create a shared memory map so that we can share state with other threads and procceses. */
+    /* Create a shared memory map so that we can share state with other threads and processes. */
     map = mem_alloc_shared(sizeof(struct shared_map));
     if(map == NULL)
     {
@@ -70,7 +70,8 @@ int main(int argc, const char * argv[])
     if(map->mode == MODE_FILE)
     {
         /* Pass the objective c runtime our setup and start functions. */
-        rtrn = setup_objc_runtime(&setup_runtime, &start_runtime);
+        rtrn = setup_objc_runtime((int32_t (*)(void *))&setup_runtime, 
+                                  &start_runtime, map);
         if(rtrn < 0)
         {
            output(ERROR, "Can't setup objective-c runtime\n");
@@ -80,7 +81,7 @@ int main(int argc, const char * argv[])
     else
     {
         /* Setup the fuzzer running enviroment. */
-        rtrn = setup_runtime();
+        rtrn = setup_runtime(map);
         if(rtrn < 0)
         {
             output(ERROR, "Can't setup runtime enviroment.\n");
