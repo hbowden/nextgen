@@ -26,11 +26,17 @@
 
 #ifdef FREEBSD
 
-#include "concurrent-freebsd.h"
+#include <mqueue.h>
+
+typedef mqd_t msg_port_t;
 
 #elif MAC_OSX
 
-#include "concurrent-mac.h"
+#include <mach/port.h>
+#include <mach/mach.h>
+
+/* Message ports are really mach ports on Mac OSX systems. */
+typedef mach_port_t msg_port_t;
 
 #endif
 
@@ -66,5 +72,22 @@ extern void cas_loop_uint32(atomic_uint_fast32_t *target, uint32_t value);
 
 /* Simple wrapper function so we can wait on atomic pid values.  */
 extern int32_t wait_on(atomic_int_fast32_t *pid, int32_t *status);
+
+/* Message IPC sending function. */
+extern int32_t msg_send(msg_port_t remote_port, void *data, uint32_t size);
+
+/* This function forks() and passes a message port to the child process.
+Then finally the function pointed to by proc_start is executed in the child process,
+with the argument arg. This function is necessary to support message ports on Mac OSX,
+which are implemented with mach ports. Because mach ports are not passed on fork()
+calls, we have to do a little dance to pass mach ports via special ports. On 
+systems besides Mac OSX, fork_pass_port() is just a simple wrapper around fork(). */
+int32_t fork_pass_port(msg_port_t *pass_port, int32_t (*proc_start)(msg_port_t port, void *arg), void *arg);
+
+/* Recieve Message from message queue. */
+extern void *msg_recv(msg_port_t recv_port);
+
+/* Initialize a message port. */
+extern int32_t init_msg_port(msg_port_t *msg_port);
 
 #endif

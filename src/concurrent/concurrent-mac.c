@@ -13,7 +13,7 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#include "concurrent-mac.h"
+#include "concurrent.h"
 #include "io/io.h"
 
 #include <stdlib.h>

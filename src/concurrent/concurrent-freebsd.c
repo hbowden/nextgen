@@ -13,7 +13,7 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#include "concurrent-freebsd.h"
+#include "concurrent.h"
 #include <stdio.h>
 
 int32_t init_msg_port(msg_port_t *port)
