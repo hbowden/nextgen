@@ -48,7 +48,7 @@ int32_t init_msg_port(msg_port_t *msg_port)
     return (0);
 }
 
-static int32_t
+int32_t
 send_port(mach_port_t remote_port, mach_port_t port)
 {
     kern_return_t err;
