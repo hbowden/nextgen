@@ -125,13 +125,15 @@ CLEAN_SUITE = cd $(ROOT_DIR)/tests/crypto && $(MAKE) clean && \
 	          cd $(ROOT_DIR)/tests/generate && $(MAKE) clean && \
 	          cd $(ROOT_DIR)/tests/runtime && $(MAKE) clean
 
+BUILD_DEPS = cd deps/$(CK) && ./configure && $(MAKE) && \
+	         cd deps/$(CAPSTONE) && $(MAKE) && \
+	         cd deps/$(LIBRESSL) && ./configure && $(MAKE);
+
 export CK LIBRESSL CAPSTONE ROOT_DIR PLATFORM FLAGS SILENCED_WARNINGS
 
 all:
 
-	cd deps/$(CK) && ./configure && $(MAKE);
-	cd deps/$(CAPSTONE) && $(MAKE);
-	cd deps/$(LIBRESSL) && ./configure && $(MAKE);
+	$(BUILD_DEPS)
 
 	$(BUILD_NX_LIBS)
 
