@@ -1,0 +1,40 @@
+
+UseTab: Never
+
+IndentWidth: 4
+
+Language: Cpp
+
+SpacesInCStyleCastParentheses: true
+
+AllowShortIfStatementsOnASingleLine: false
+
+AllowShortBlocksOnASingleLine: false
+
+AllowShortLoopsOnASingleLine: false
+
+IndentCaseLabels: true
+
+BinPackArguments: true
+
+BinPackParameters: true
+
+BreakBeforeBraces: Allman
+
+PointerAlignment: Right
+
+SortIncludes: true
+
+ReflowComments: false
+
+SpaceAfterCStyleCast: false
+
+SpaceBeforeParens: Never
+
+SpacesInCStyleCastParentheses: false
+
+SpacesInParentheses: false
+
+KeepEmptyLinesAtTheStartOfBlocks: true
+
+MaxEmptyLinesToKeep: 1
