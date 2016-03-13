@@ -22,11 +22,11 @@ To run nextgen use the binary in the nextgen directory, if you run nextgen outsi
 
 Below is an example of running nextgen as a syscall fuzzer.
 
-sudo ./nextgen --syscall --out /file/path/to/create/output/directory.
+`sudo ./nextgen --syscall --out /file/path/to/create/output/directory`
 
 To use the syscall fuzzer without probes and the genetic algo pass --dumb.
 
-sudo ./nextgen --syscall --dumb --out /file/path/to/create/output/directory.
+`sudo ./nextgen --syscall --dumb --out /file/path/to/create/output/directory`
 
 Nextgen will be ported to other operating systems besides `FreeBSD` and `OSX` and will be implemented in this order `illumos`, `Linux`, `OpenBSD`, and finally `NetBSD`. Porting Nextgen is mainly a matter of on having a working libdtrace available on your platform. 
 
