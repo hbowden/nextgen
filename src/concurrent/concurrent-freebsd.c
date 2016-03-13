@@ -22,7 +22,7 @@ int32_t init_msg_port(msg_port_t *port)
     return (0);
 }
 
-int32_t msg_send(msg_port_t send_port, msg_port_t remote_port, void *msg_data)
+int32_t msg_send(msg_port_t remote_port, void *data, uint32_t size)
 {
 
 
