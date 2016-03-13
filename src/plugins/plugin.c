@@ -14,15 +14,15 @@
  **/
 
 #include "plugin.h"
+#include "io/io.h"
 #include "memory/memory.h"
 #include "utils/utils.h"
-#include "io/io.h"
 
 #include <dirent.h>
 #include <dlfcn.h>
 #include <errno.h>
-#include <string.h>
 #include <libgen.h>
+#include <string.h>
 
 /* Number of plugins in plugin index. */
 uint32_t plugin_count;
@@ -33,86 +33,88 @@ static struct plugin_ctx **plugins;
 int32_t supported_file(const char *file_extension, unsigned int *plugin_offset)
 {
 
-	return (0);
+    return (0);
 }
 
 static int32_t count_plugins(uint32_t *count)
 {
-	int32_t rtrn = 0;
-	struct dirent *entry = NULL;
-	DIR *dir auto_close_dir = NULL;
-	char *file_extension auto_free = NULL;
+    int32_t rtrn = 0;
+    struct dirent *entry = NULL;
+    DIR *dir auto_close_dir = NULL;
+    char *file_extension auto_free = NULL;
     const char *dir_path = "src/plugins";
 
     /* Open the plugin directory. */
     dir = opendir(dir_path);
     if(dir == NULL)
     {
-    	output(ERROR, "Can't open dir: %s\n", strerror(errno));
-    	return -1;
+        output(ERROR, "Can't open dir: %s\n", strerror(errno));
+        return -1;
     }
 
-     /* Walk the directory. */
+    /* Walk the directory. */
     while((entry = readdir(dir)) != NULL)
     {
-    	/* Skip hidden files. */
+        /* Skip hidden files. */
         if(entry->d_name[0] == '.')
             continue;
 
         /* Get file extension. */
         rtrn = get_extension(entry->d_name, &file_extension);
         if(rtrn < 0)
-        	continue;
-        
+            continue;
+
         /* Increment the plugin count if the file is a shared object. */
         if(strncmp(file_extension, ".so", 3) == 0)
-        	(*count)++;
+            (*count)++;
     }
 
     return 0;
 }
 
- int32_t features_supported(unsigned int offset, unsigned int *number_of_features)
- {
- 	return 0;
- }
+int32_t features_supported(unsigned int offset,
+                           unsigned int *number_of_features)
+{
+    return 0;
+}
 
- int32_t feature_constraints(unsigned int offset, struct feature_constraints *constraints)
- {
+int32_t feature_constraints(unsigned int offset,
+                            struct feature_constraints *constraints)
+{
 
- 	return 0;
- }
+    return 0;
+}
 
 static int32_t load_all_plugins(void)
 {
     /* Tell user our course of action. */
     if(plugin_count == 0)
     {
-    	output(STD, "No plugins to load\n");
-    	return 0;
+        output(STD, "No plugins to load\n");
+        return 0;
     }
-    
+
     output(STD, "Loading all plugins\n");
 
     uint32_t i = 0;
     int32_t rtrn = 0;
-	struct dirent *entry = NULL;
-	DIR *dir auto_close_dir = NULL;
-	char *file_extension auto_free = NULL;
+    struct dirent *entry = NULL;
+    DIR *dir auto_close_dir = NULL;
+    char *file_extension auto_free = NULL;
     const char *dir_path = "src/plugins";
 
     /* Open the plugin directory. */
     dir = opendir(dir_path);
     if(dir == NULL)
     {
-    	output(ERROR, "Can't open dir: %s\n", strerror(errno));
-    	return -1;
+        output(ERROR, "Can't open dir: %s\n", strerror(errno));
+        return -1;
     }
 
     /* Walk the directory. */
     while((entry = readdir(dir)) != NULL)
     {
-    	/* Skip hidden files. */
+        /* Skip hidden files. */
         if(entry->d_name[0] == '.')
             continue;
 
@@ -124,61 +126,69 @@ static int32_t load_all_plugins(void)
         /* It's a shared library so it's probally a plugin. */
         if(strncmp(file_extension, ".so", 3) == 0)
         {
-        	char *plugin_path auto_free = NULL;
-        	char *current_dir auto_free = NULL;
+            char *plugin_path auto_free = NULL;
+            char *current_dir auto_free = NULL;
 
-        	current_dir = malloc(1024);
-        	if(current_dir == NULL)
-        	{
-        		output(ERROR, "Can't malloc current_dir buf: %s\n", strerror(errno));
-        		return -1;
-        	}
+            current_dir = malloc(1024);
+            if(current_dir == NULL)
+            {
+                output(ERROR, "Can't malloc current_dir buf: %s\n",
+                       strerror(errno));
+                return -1;
+            }
 
-        	/* Get the current directory path. */
-        	current_dir = getcwd(current_dir, 1023);
-        	if(current_dir == NULL)
-        	{
+            /* Get the current directory path. */
+            current_dir = getcwd(current_dir, 1023);
+            if(current_dir == NULL)
+            {
                 output(ERROR, "Can't get current directory: %s\n");
                 return -1;
-        	}
+            }
 
             /* Create plugin path string. */
-        	rtrn = asprintf(&plugin_path, "%s/src/plugins/%s", current_dir, entry->d_name);
-        	if(rtrn < 0)
-        	{
-        		output(ERROR, "Can't create plugin path string: %s\n", strerror(errno));
-        		return -1;
-        	}
-
-        	/* Set the plugin path in the plugin context.. */
-        	rtrn = asprintf((char **)&plugins[i]->plugin_path, "%s", plugin_path);
+            rtrn = asprintf(&plugin_path, "%s/src/plugins/%s", current_dir,
+                            entry->d_name);
             if(rtrn < 0)
-        	{
-        		output(ERROR, "Can't set plugin path string: %s\n", strerror(errno));
-        		return -1;
-        	}
+            {
+                output(ERROR, "Can't create plugin path string: %s\n",
+                       strerror(errno));
+                return -1;
+            }
 
-        	/* Set the plugin name in the plugin context.. */
-        	rtrn = asprintf((char **)&plugins[i]->plugin_name, "%s", basename(plugin_path));
+            /* Set the plugin path in the plugin context.. */
+            rtrn =
+                asprintf((char **)&plugins[i]->plugin_path, "%s", plugin_path);
             if(rtrn < 0)
-        	{
-        		output(ERROR, "Can't set plugin name string: %s\n", strerror(errno));
-        		return -1;
-        	}
+            {
+                output(ERROR, "Can't set plugin path string: %s\n",
+                       strerror(errno));
+                return -1;
+            }
 
-        	/* Actually load the plugin. */
-        	plugins[i]->plugin_handle = dlopen(plugin_path, RTLD_NOW);
-        	if(plugins[i]->plugin_handle == NULL)
-        	{
-        		output(ERROR, "Can't load plugin: %s beacause: %s\n", basename(plugin_path), strerror(errno));
-        		return -1;
-        	}
+            /* Set the plugin name in the plugin context.. */
+            rtrn = asprintf((char **)&plugins[i]->plugin_name, "%s",
+                            basename(plugin_path));
+            if(rtrn < 0)
+            {
+                output(ERROR, "Can't set plugin name string: %s\n",
+                       strerror(errno));
+                return -1;
+            }
 
-        	i++;
+            /* Actually load the plugin. */
+            plugins[i]->plugin_handle = dlopen(plugin_path, RTLD_NOW);
+            if(plugins[i]->plugin_handle == NULL)
+            {
+                output(ERROR, "Can't load plugin: %s beacause: %s\n",
+                       basename(plugin_path), strerror(errno));
+                return -1;
+            }
+
+            i++;
         }
     }
 
-	return 0;
+    return 0;
 }
 
 int32_t setup_plugin_module(void)
@@ -191,7 +201,7 @@ int32_t setup_plugin_module(void)
         output(ERROR, "Can't count plugins\n");
         return -1;
     }
-    
+
     /* Load all the plugins in the nextgen/src/plugins/ directory.*/
     rtrn = load_all_plugins();
     if(rtrn < 0)

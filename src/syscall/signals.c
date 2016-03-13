@@ -12,13 +12,13 @@
  * WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
- 
+
 #include "signals.h"
-#include "syscall/context.h"
-#include "syscall/syscall.h"
+#include "io/io.h"
 #include "runtime/nextgen.h"
 #include "runtime/runtime.h"
-#include "io/io.h"
+#include "syscall/context.h"
+#include "syscall/syscall.h"
 
 #include <signal.h>
 
@@ -31,9 +31,9 @@ static void ctrlc_handler(int sig)
 
 void setup_signal_handler(void)
 {
-	(void) signal(SIGFPE, SIG_DFL);
-    (void) signal(SIGCHLD, SIG_DFL);
-    (void) signal(SIGINT, ctrlc_handler);
+    (void)signal(SIGFPE, SIG_DFL);
+    (void)signal(SIGCHLD, SIG_DFL);
+    (void)signal(SIGINT, ctrlc_handler);
 
     return;
 }
@@ -49,18 +49,17 @@ static void syscall_child_signal_handler(int sig)
 
     switch(sig)
     {
-    	case SIGALRM:
+        case SIGALRM:
 
-            (void) signal(sig, syscall_child_signal_handler);
+            (void)signal(sig, syscall_child_signal_handler);
 
             longjmp(child->return_jump, 1);
 
-            /* No break needed, as we are jumping back to the child syscall fuzzing loop. */
+        /* No break needed, as we are jumping back to the child syscall fuzzing loop. */
 
+        default:
 
-    	default:
-
-          longjmp(child->return_jump, 1);
+            longjmp(child->return_jump, 1);
     }
 }
 
@@ -69,28 +68,28 @@ void setup_syscall_child_signal_handler(void)
     struct sigaction sa;
     sigset_t ss;
     unsigned int i;
-    
-    for (i = 1; i < 512; i++)
+
+    for(i = 1; i < 512; i++)
     {
-        (void) sigfillset(&ss);
+        (void)sigfillset(&ss);
         sa.sa_flags = SA_RESTART;
         sa.sa_handler = syscall_child_signal_handler;
         sa.sa_mask = ss;
-        (void) sigaction((int)i, &sa, NULL);
+        (void)sigaction((int)i, &sa, NULL);
     }
     /* we want default behaviour for child process signals */
-    (void) signal(SIGCHLD, SIG_DFL);
-    
-    /* ignore signals we don't care about */
-    (void) signal(SIGFPE, SIG_IGN);
-    (void) signal(SIGXCPU, SIG_IGN);
-    (void) signal(SIGTSTP, SIG_IGN);
-    (void) signal(SIGWINCH, SIG_IGN);
-    (void) signal(SIGIO, SIG_IGN);
-    (void) signal(SIGPIPE, SIG_IGN);
-    
-    /* trap ctrl-c */
-    (void) signal(SIGINT, ctrlc_handler);
+    (void)signal(SIGCHLD, SIG_DFL);
 
-	return;
+    /* ignore signals we don't care about */
+    (void)signal(SIGFPE, SIG_IGN);
+    (void)signal(SIGXCPU, SIG_IGN);
+    (void)signal(SIGTSTP, SIG_IGN);
+    (void)signal(SIGWINCH, SIG_IGN);
+    (void)signal(SIGIO, SIG_IGN);
+    (void)signal(SIGPIPE, SIG_IGN);
+
+    /* trap ctrl-c */
+    (void)signal(SIGINT, ctrlc_handler);
+
+    return;
 }

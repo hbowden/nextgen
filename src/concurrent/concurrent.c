@@ -14,18 +14,18 @@
  **/
 
 #include "concurrent.h"
-#include "platform.h"
-#include "memory.h"
 #include "io/io.h"
+#include "memory.h"
+#include "platform.h"
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <errno.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 
-/* Compare and swap loop for swapping atomic int32 values. */ 
+/* Compare and swap loop for swapping atomic int32 values. */
 void cas_loop_int32(atomic_int_fast32_t *target, int32_t value)
 {
     /* Loop until we can succesfully update the the value. */
@@ -40,7 +40,7 @@ void cas_loop_int32(atomic_int_fast32_t *target, int32_t value)
     }
 }
 
-/* CAS loop for swapping atomic uint32 values. */ 
+/* CAS loop for swapping atomic uint32 values. */
 void cas_loop_uint32(atomic_uint_fast32_t *target, uint32_t value)
 {
     /* Loop until we can succesfully update the the value. */

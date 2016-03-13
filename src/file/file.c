@@ -14,20 +14,20 @@
  **/
 
 #include "file.h"
-#include "mutate/mutate.h"
-#include "memory/memory.h"
-#include "genetic/genetic.h"
 #include "crypto/crypto.h"
-#include "platform.h"
-#include "utils/utils.h"
+#include "genetic/genetic.h"
 #include "io/io.h"
 #include "log/log.h"
+#include "memory/memory.h"
+#include "mutate/mutate.h"
+#include "platform.h"
+#include "utils/utils.h"
 
+#include <dirent.h>
 #include <errno.h>
 #include <signal.h>
-#include <sys/stat.h>
 #include <string.h>
-#include <dirent.h>
+#include <sys/stat.h>
 
 #ifdef FREEBSD
 
@@ -77,9 +77,9 @@ static void ctrlc_handler(int sig)
 
 static void setup_signal_handler(void)
 {
-    (void) signal(SIGFPE, SIG_DFL);
-    (void) signal(SIGCHLD, SIG_DFL);
-    (void) signal(SIGINT, ctrlc_handler);
+    (void)signal(SIGFPE, SIG_DFL);
+    (void)signal(SIGCHLD, SIG_DFL);
+    (void)signal(SIGINT, ctrlc_handler);
     return;
 }
 
@@ -92,32 +92,29 @@ static int32_t get_file(int32_t *file, char **extension)
     rtrn = rand_range((file_count - 1), &offset);
     if(rtrn < 0)
     {
-	output(ERROR, "Can't pick random number\n");
-	return (-1);
+        output(ERROR, "Can't pick random number\n");
+        return (-1);
     }
 
     /* Open the file at the random offset. */
-   (*file) = open(file_array[offset]->path, O_RDWR);
-   if((*file) < 0)
-   {
-	output(ERROR, "Can't open file: %s\n", strerror(errno));
-	return (-1);
-   }
+    (*file) = open(file_array[offset]->path, O_RDWR);
+    if((*file) < 0)
+    {
+        output(ERROR, "Can't open file: %s\n", strerror(errno));
+        return (-1);
+    }
 
     rtrn = asprintf(extension, "%s", file_array[offset]->extension);
     if(rtrn < 0)
     {
         output(ERROR, "Can't create extension string: %s\n", strerror(errno));
-        return (-1); 
+        return (-1);
     }
-	
+
     return (0);
 }
 
-void start_file_smart_loop(void)
-{
-    return;
-}
+void start_file_smart_loop(void) { return; }
 
 int32_t get_exec_path(char **exec_path)
 {
@@ -139,10 +136,7 @@ void set_start_addr(uint64_t addr)
     return;
 }
 
-uint64_t get_start_addr(void)
-{
-    return (start_offset);
-}
+uint64_t get_start_addr(void) { return (start_offset); }
 
 static struct file_ctx *init_file_ctx(char *path)
 {
@@ -221,7 +215,7 @@ static struct file_ctx **init_file_array(char *dir, uint32_t size)
         output(ERROR, "Can't open dir: %s\n", strerror(errno));
         return (NULL);
     }
-    
+
     /* Walk the directory structure. */
     while((entry = readdir(directory)) != NULL)
     {
@@ -290,11 +284,11 @@ static int32_t count_files_directory(uint32_t *count, char *dir)
         output(ERROR, "Can't open dir: %s\n", strerror(errno));
         return (-1);
     }
-    
+
     /* Walk the directory. */
     while((entry = readdir(directory)) != NULL)
     {
-    	/* Skip hidden files. */
+        /* Skip hidden files. */
         if(entry->d_name[0] == '.')
             continue;
 
@@ -307,7 +301,7 @@ static int32_t count_files_directory(uint32_t *count, char *dir)
             return (-1);
         }
 
-         /* Grab file stats. */
+        /* Grab file stats. */
         rtrn = stat(file_path, &buf);
         if(rtrn < 0)
         {
@@ -322,7 +316,7 @@ static int32_t count_files_directory(uint32_t *count, char *dir)
             (*count)++;
         }
     }
-    
+
     /* Close the directory. */
     rtrn = closedir(directory);
     if(rtrn < 0)
@@ -331,7 +325,7 @@ static int32_t count_files_directory(uint32_t *count, char *dir)
         return (-1);
     }
 
-	return (0);
+    return (0);
 }
 
 int32_t initial_fuzz_run(void)
@@ -340,10 +334,9 @@ int32_t initial_fuzz_run(void)
 
     for(i = 0; i < file_count; i++)
     {
-        
     }
 
-	return (0);
+    return (0);
 }
 
 /*int32_t detect_file_type(const char *path, enum file_type *type)
@@ -352,10 +345,7 @@ int32_t initial_fuzz_run(void)
 }
 
 */
-int32_t set_end_offset(uint64_t offset)
-{
-    return (0);
-}
+int32_t set_end_offset(uint64_t offset) { return (0); }
 
 void start_main_file_loop(void)
 {
@@ -397,16 +387,16 @@ void start_main_file_loop(void)
         rtrn = mutate_file(&file_buffer, file_extension, &file_size);
         if(rtrn < 0)
         {
-           output(ERROR, "Can't mutate file\n");
-           return;
+            output(ERROR, "Can't mutate file\n");
+            return;
         }
 
         /* Generate random file name. */
         rtrn = generate_name(&file_name, file_extension, FILE_NAME);
         if(rtrn < 0)
         {
-           output(ERROR, "Can't generate random file name\n");
-           return;
+            output(ERROR, "Can't generate random file name\n");
+            return;
         }
 
         /* Create out path. */
@@ -459,7 +449,8 @@ void start_main_file_loop(void)
     return;
 }
 
-int32_t setup_file_module(atomic_int_fast32_t *stop, char *exec_path, char *input)
+int32_t setup_file_module(atomic_int_fast32_t *stop, char *exec_path,
+                          char *input)
 {
     int32_t rtrn = 0;
 
@@ -488,6 +479,6 @@ int32_t setup_file_module(atomic_int_fast32_t *stop, char *exec_path, char *inpu
     stop_ptr = stop;
 
     setup = 1;
-    
+
     return (0);
 }

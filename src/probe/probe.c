@@ -14,38 +14,30 @@
  **/
 
 #include "probe.h"
-#include "disas/disas.h"
 #include "concurrent/concurrent.h"
+#include "disas/disas.h"
 #include "io/io.h"
 
-#include <inttypes.h>
 #include <errno.h>
+#include <inttypes.h>
 #include <string.h>
-#include <sys/wait.h>
-#include <sys/types.h>
 #include <sys/ptrace.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 static dtrace_hdl_t *dtrace_handle;
 
 static dtrace_proginfo_t info;
 
-static dtrace_prog_t* prog;
+static dtrace_prog_t *prog;
 
 static const char *target_path;
 
 static pid_t target_pid;
 
-int32_t inject_kernel_probes(dtrace_hdl_t *handle)
-{
+int32_t inject_kernel_probes(dtrace_hdl_t *handle) { return (0); }
 
-    
-    return (0);
-}
-
-int32_t cleanup_kernel_probes(dtrace_hdl_t *handle)
-{
-    return (0);
-}
+int32_t cleanup_kernel_probes(dtrace_hdl_t *handle) { return (0); }
 
 int32_t inject_probes(pid_t pid)
 {
@@ -58,36 +50,38 @@ int32_t inject_probes(pid_t pid)
     rtrn = asprintf(&dtrace_prog, "pid%d:::", pid);
     if(rtrn < 0)
     {
-       output(ERROR, "Can't create probe program string\n");
-       return (-1);
+        output(ERROR, "Can't create probe program string\n");
+        return (-1);
     }
 
     /* Create a dtrace handle. */
     dtrace_handle = dtrace_open(DTRACE_VERSION, 0, &rtrn);
     if(dtrace_handle == NULL)
     {
-       fprintf(stderr, "failed to initialize dtrace: %s\n", dtrace_errmsg(NULL, rtrn));
-       return (-1);
+        fprintf(stderr, "failed to initialize dtrace: %s\n",
+                dtrace_errmsg(NULL, rtrn));
+        return (-1);
     }
 
     /* Set dtrace options. */
-    (void) dtrace_setopt(dtrace_handle, "bufsize", "4m");
-    (void) dtrace_setopt(dtrace_handle, "aggsize", "4m");
+    (void)dtrace_setopt(dtrace_handle, "bufsize", "4m");
+    (void)dtrace_setopt(dtrace_handle, "aggsize", "4m");
 
     /* Compile the dtrace program. */
-    prog = dtrace_program_strcompile(dtrace_handle, dtrace_prog, DTRACE_PROBESPEC_NAME, 0, 0, NULL);
+    prog = dtrace_program_strcompile(dtrace_handle, dtrace_prog,
+                                     DTRACE_PROBESPEC_NAME, 0, 0, NULL);
     if(prog == NULL)
     {
-       output(ERROR, "Failed to compile dtrace program\n");
-       return (-1);
+        output(ERROR, "Failed to compile dtrace program\n");
+        return (-1);
     }
 
     /* Send the dtrace program to the kernel and execute it. */
     rtrn = dtrace_program_exec(dtrace_handle, prog, &info);
     if(rtrn < 0)
     {
-       output(ERROR, "Failed to enable dtrace probes\n");
-       return (-1);
+        output(ERROR, "Failed to enable dtrace probes\n");
+        return (-1);
     }
 
     /* Inject and start the probes. */

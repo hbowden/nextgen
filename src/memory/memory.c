@@ -14,12 +14,12 @@
  **/
 
 #include "memory.h"
-#include "platform.h"
 #include "io/io.h"
+#include "platform.h"
 
+#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
 #include <sys/mman.h>
 
 void *mem_alloc(uint64_t nbytes)
@@ -35,7 +35,8 @@ void *mem_alloc(uint64_t nbytes)
     ptr = malloc(nbytes);
     if(ptr == NULL)
     {
-        output(ERROR, "Can't allocate: %lu bytes, because: %s\n", nbytes, strerror(errno));
+        output(ERROR, "Can't allocate: %lu bytes, because: %s\n", nbytes,
+               strerror(errno));
         return (NULL);
     }
 
@@ -64,7 +65,7 @@ void *mem_calloc(uint64_t nbytes)
         output(ERROR, "Can't initialize memory to zero: %s\n", strerror(errno));
         return (NULL);
     }
-        
+
     return (ptr);
 }
 
@@ -84,9 +85,10 @@ void mem_free(void **ptr)
 
 void *mem_alloc_shared(uint64_t nbytes)
 {
-   void *pointer = NULL;
+    void *pointer = NULL;
 
-    pointer = mmap(NULL, nbytes, PROT_READ | PROT_WRITE, MAP_ANON | MAP_SHARED, -1, 0);
+    pointer = mmap(NULL, nbytes, PROT_READ | PROT_WRITE, MAP_ANON | MAP_SHARED,
+                   -1, 0);
     if(pointer == MAP_FAILED)
     {
         output(ERROR, "mmap: %s\n", strerror(errno));
@@ -106,7 +108,8 @@ void *mem_calloc_shared(uint64_t nbytes)
 
     void *pointer = NULL;
 
-    pointer = mmap(NULL, nbytes, PROT_READ | PROT_WRITE, MAP_ANON | MAP_SHARED, -1, 0);
+    pointer = mmap(NULL, nbytes, PROT_READ | PROT_WRITE, MAP_ANON | MAP_SHARED,
+                   -1, 0);
     if(pointer == MAP_FAILED)
     {
         output(ERROR, "mmap: %s\n", strerror(errno));
@@ -142,7 +145,8 @@ void mem_clean_shared_pool(struct mem_pool_shared *pool)
     return;
 }
 
-struct mem_pool_shared *mem_create_shared_pool(uint32_t block_size, uint32_t block_count)
+struct mem_pool_shared *mem_create_shared_pool(uint32_t block_size,
+                                               uint32_t block_count)
 {
     /* If the block_size is zero return NULL. */
     if(block_size == 0)
@@ -174,8 +178,7 @@ struct mem_pool_shared *mem_create_shared_pool(uint32_t block_size, uint32_t blo
         .block_size = block_size,
         .block_count = block_count,
         .free_list = NX_SLIST_HEAD_INITIALIZER(s_pool->free_list),
-        .allocated_list = NX_SLIST_HEAD_INITIALIZER(s_pool->allocated_list)
-    };
+        .allocated_list = NX_SLIST_HEAD_INITIALIZER(s_pool->allocated_list)};
 
     memmove(pool, &s_pool, sizeof(struct mem_pool_shared));
 
@@ -207,7 +210,7 @@ struct mem_pool_shared *mem_create_shared_pool(uint32_t block_size, uint32_t blo
             return (NULL);
         }
 
-	/* Insert the node in the free list. */
+        /* Insert the node in the free list. */
         NX_SLIST_INSERT_HEAD(&pool->free_list, block);
     }
 
@@ -226,14 +229,14 @@ struct memory_block *mem_get_shared_block(struct mem_pool_shared *pool)
 
     /* Lock the spinlock for exclusive access. */
     nx_spinlock_lock(&pool->lock);
-   
+
     /* Loop for each node in the list. */
     NX_SLIST_FOREACH(block, &pool->free_list)
     {
-    	/* Remove the block from the free_list. */
-    	NX_SLIST_REMOVE(&pool->free_list, block, memory_block);
+        /* Remove the block from the free_list. */
+        NX_SLIST_REMOVE(&pool->free_list, block, memory_block);
 
-    	/* Add the block to the allocated block list. */
+        /* Add the block to the allocated block list. */
         NX_SLIST_INSERT_HEAD(&pool->allocated_list, block);
 
         /* Break out of loop. */
@@ -247,7 +250,8 @@ struct memory_block *mem_get_shared_block(struct mem_pool_shared *pool)
     return (block);
 }
 
-void mem_free_shared_block(struct memory_block *block, struct mem_pool_shared *pool)
+void mem_free_shared_block(struct memory_block *block,
+                           struct mem_pool_shared *pool)
 {
     /* Lock the spinlock. */
     nx_spinlock_lock(&pool->lock);

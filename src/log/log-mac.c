@@ -17,23 +17,22 @@
 #include "io/io.h"
 #include "memory/memory.h"
 
-int32_t log_arguments(uint32_t number_of_args, 
-                      const char *syscall_name,
-	              uint64_t **arg_value_array, 
+int32_t log_arguments(uint32_t number_of_args, const char *syscall_name,
+                      uint64_t **arg_value_array,
                       struct arg_context **arg_context_array)
 {
     char *arg_value auto_free = mem_alloc(1024);
     if(arg_value == NULL)
     {
-       output(ERROR, "Can't create arg_value buffer\n");
-       return (-1);
+        output(ERROR, "Can't create arg_value buffer\n");
+        return (-1);
     }
 
     char *syscall_log_buf auto_free = mem_alloc(4096);
     if(syscall_log_buf == NULL)
     {
-       output(ERROR, "Can't create syscall_log_buf buffer\n");
-       return (-1);
+        output(ERROR, "Can't create syscall_log_buf buffer\n");
+        return (-1);
     }
 
     sprintf(syscall_log_buf, "%s:", syscall_name);
@@ -42,32 +41,35 @@ int32_t log_arguments(uint32_t number_of_args,
 
     for(i = 0; i < number_of_args; i++)
     {
-    	switch((int32_t)arg_context_array[i]->log_type)
-    	{
-    	    /* File and directory paths. */
-    	    case PATH:
-                sprintf(arg_value, " %s=%s", arg_context_array[i]->name, (char *)arg_value_array[i]);
-    		break;
+        switch((int32_t)arg_context_array[i]->log_type)
+        {
+            /* File and directory paths. */
+            case PATH:
+                sprintf(arg_value, " %s=%s", arg_context_array[i]->name,
+                        (char *)arg_value_array[i]);
+                break;
 
             /* Pointers. */
-    	    case POINTER:
-    		sprintf(arg_value, " %s=%p", arg_context_array[i]->name, (void *)arg_value_array[i]);
-    		break;
+            case POINTER:
+                sprintf(arg_value, " %s=%p", arg_context_array[i]->name,
+                        (void *)arg_value_array[i]);
+                break;
 
             /* Non pointer values. */
             case NUMBER:
-                sprintf(arg_value, " %s=%llu", arg_context_array[i]->name, *(arg_value_array[i]));
+                sprintf(arg_value, " %s=%llu", arg_context_array[i]->name,
+                        *(arg_value_array[i]));
                 break;
 
             default:
                 output(ERROR, "Unknown log type\n");
                 return (-1);
-    	}
+        }
 
-    	strncat(syscall_log_buf, arg_value, strlen(arg_value));
+        strncat(syscall_log_buf, arg_value, strlen(arg_value));
     }
- 
+
     output(STD, "%s\n", syscall_log_buf);
- 
+
     return (0);
 }

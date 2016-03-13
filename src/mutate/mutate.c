@@ -14,11 +14,11 @@
  **/
 
 #include "mutate.h"
-#include "runtime/nextgen.h"
-#include "platform.h"
 #include "crypto/crypto.h"
-#include "plugins/plugin.h"
 #include "io/io.h"
+#include "platform.h"
+#include "plugins/plugin.h"
+#include "runtime/nextgen.h"
 
 static int32_t flip_byte_mutator(char **file, uint64_t *file_size)
 {
@@ -64,19 +64,13 @@ static int32_t flip_bit_mutator(char **file, uint64_t *file_size)
     return (0);
 }
 
-static int32_t xor_mutator(char **file, uint64_t *file_size)
-{
-    return (0);
-}
+static int32_t xor_mutator(char **file, uint64_t *file_size) { return (0); }
 
 static uint32_t number_of_mutators = 3;
 
 /* Array of file mutator function pointers. */
 static int32_t (*mutator_array[])(char **file, uint64_t *file_size) = {
-    flip_byte_mutator,
-    flip_bit_mutator,
-    xor_mutator
-};
+    flip_byte_mutator, flip_bit_mutator, xor_mutator};
 
 static int32_t mutate_file_randomly(char **file, uint64_t *file_size)
 {
@@ -95,7 +89,8 @@ static int32_t mutate_file_randomly(char **file, uint64_t *file_size)
     return (mutator_array[offset](file, file_size));
 }
 
-int32_t mutate_file(char **file, const char *file_extension,  uint64_t *file_size)
+int32_t mutate_file(char **file, const char *file_extension,
+                    uint64_t *file_size)
 {
     int32_t rtrn = 0;
     bool understand_file_format = FALSE;
@@ -167,8 +162,4 @@ int32_t mutate_file(char **file, const char *file_extension,  uint64_t *file_siz
     return (0);
 }
 
-int32_t mutate_arguments(struct child_ctx *ctx)
-{
-
-	return (0);
-}
+int32_t mutate_arguments(struct child_ctx *ctx) { return (0); }

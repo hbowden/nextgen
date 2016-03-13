@@ -15,23 +15,23 @@
 
 #include "nextgen.h"
 #include "crypto/crypto.h"
+#include "file/file.h"
 #include "io/io.h"
 #include "memory/memory.h"
-#include "file/file.h"
-#include "reaper/reaper.h"
 #include "plugins/plugin.h"
+#include "reaper/reaper.h"
 #include "resource/resource.h"
 #include "runtime/runtime.h"
 
-#include <sys/param.h>
-#include <sys/mount.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <string.h>
+#include <dtrace.h>
 #include <errno.h>
 #include <getopt.h>
-#include <dtrace.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
 #include <sys/mman.h>
+#include <sys/mount.h>
+#include <sys/param.h>
 
 struct shared_map *map;
 
@@ -48,33 +48,35 @@ struct parser_ctx
 
 static const char *optstring = "p:e:";
 
-static struct option longopts[] = {
-    { "in", required_argument, NULL, 'i' },
-    { "out", required_argument, NULL, 'o' },
-    { "exec", required_argument, NULL, 'e'},
-    { "crypto", required_argument, NULL, 'c' },
-    { "port", required_argument, NULL, 'p'},
-    { "address", required_argument, NULL, 'a'},
-    { "protocol", required_argument, NULL, 'c'},
-    { "args", required_argument, NULL, 'x'},
-    { "file", 0, NULL, 'f'},
-    { "network", 0, NULL, 'n'},
-    { "syscall", 0, NULL, 's'},
-    { "help", 0, NULL, 'h'},
-    { "dumb", 0, NULL, 'd'},
-    { NULL, 0, NULL, 0 }
-};
+static struct option longopts[] = {{"in", required_argument, NULL, 'i'},
+                                   {"out", required_argument, NULL, 'o'},
+                                   {"exec", required_argument, NULL, 'e'},
+                                   {"crypto", required_argument, NULL, 'c'},
+                                   {"port", required_argument, NULL, 'p'},
+                                   {"address", required_argument, NULL, 'a'},
+                                   {"protocol", required_argument, NULL, 'c'},
+                                   {"args", required_argument, NULL, 'x'},
+                                   {"file", 0, NULL, 'f'},
+                                   {"network", 0, NULL, 'n'},
+                                   {"syscall", 0, NULL, 's'},
+                                   {"help", 0, NULL, 'h'},
+                                   {"dumb", 0, NULL, 'd'},
+                                   {NULL, 0, NULL, 0}};
 
 static void display_help_banner(void)
 {
     output(STD, "Nextgen is a Genetic File, Syscall, and Network Fuzzer.\n");
-    output(STD, "To use the file fuzzer in smart mode run the command below.\n");
-    output(STD, "sudo ./nextgen --file --in /path/to/in/directory --out /path/to/out/directory --exec /path/to/target/exec .\n");
+    output(STD,
+           "To use the file fuzzer in smart mode run the command below.\n");
+    output(STD, "sudo ./nextgen --file --in /path/to/in/directory --out "
+                "/path/to/out/directory --exec /path/to/target/exec .\n");
 
     output(STD, "To use the syscall fuzzer in smart mode run.\n");
     output(STD, "sudo ./nextgen --syscall --out /path/to/out/directory\n");
 
-    output(STD, "To use dumb mode just pass --dumb with any of the above commands.\n");
+    output(
+        STD,
+        "To use dumb mode just pass --dumb with any of the above commands.\n");
 
     return;
 }
@@ -141,8 +143,9 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
     int32_t ch = 0;
     int32_t rtrn = 0;
     struct parser_ctx *ctx = NULL;
-    int32_t iFlag = FALSE, oFlag = FALSE, fFlag = FALSE, nFlag = FALSE, 
-    sFlag = FALSE, eFlag = FALSE, pFlag = FALSE, aFlag = FALSE, tFlag = FALSE;
+    int32_t iFlag = FALSE, oFlag = FALSE, fFlag = FALSE, nFlag = FALSE,
+            eFlag = FALSE, pFlag = FALSE, aFlag = FALSE, tFlag = FALSE,
+            sFlag = FALSE;
 
     /* Allocate the parser context. */
     rtrn = init_parser_ctx(&ctx);
@@ -271,8 +274,8 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
                 break;
 
             default:
-              output(ERROR, "Unknown option\n");
-              return (NULL);
+                output(ERROR, "Unknown option\n");
+                return (NULL);
         }
     }
 
@@ -297,7 +300,8 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
     {
         if(aFlag == FALSE || tFlag == FALSE || oFlag == FALSE)
         {
-            output(STD, "Pass --address , --port, --protocol, and --out for network mode\n");
+            output(STD, "Pass --address , --port, --protocol, and --out for "
+                        "network mode\n");
             return NULL;
         }
     }
@@ -316,10 +320,7 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
     return ctx;
 }
 
-static void clean_syscall_mapping(void)
-{
-    return;
-}
+static void clean_syscall_mapping(void) { return; }
 
 void clean_shared_mapping(void)
 {
@@ -331,11 +332,11 @@ void clean_shared_mapping(void)
             break;
 
         case MODE_FILE:
-           
+
             break;
 
         case MODE_NETWORK:
-           
+
             break;
 
         default:
@@ -345,7 +346,8 @@ void clean_shared_mapping(void)
     return;
 }
 
-static int32_t init_file_mapping(struct shared_map **mapping, struct parser_ctx *ctx)
+static int32_t init_file_mapping(struct shared_map **mapping,
+                                 struct parser_ctx *ctx)
 {
     /* Set the input and output directories. */
     (*mapping)->path_to_out_dir = ctx->path_to_out_dir;
@@ -358,13 +360,15 @@ static int32_t init_file_mapping(struct shared_map **mapping, struct parser_ctx 
     return 0;
 }
 
-static int32_t init_network_mapping(struct shared_map **mapping, struct parser_ctx *ctx)
+static int32_t init_network_mapping(struct shared_map **mapping,
+                                    struct parser_ctx *ctx)
 {
 
     return 0;
 }
 
-static int32_t init_syscall_mapping(struct shared_map **mapping, struct parser_ctx *ctx)
+static int32_t init_syscall_mapping(struct shared_map **mapping,
+                                    struct parser_ctx *ctx)
 {
     /* Set the outpath directory. */
     (*mapping)->path_to_out_dir = ctx->path_to_out_dir;
@@ -386,8 +390,7 @@ static int32_t init_syscall_mapping(struct shared_map **mapping, struct parser_c
 /**
  * We use this function to initialize all the shared maps member values.
  **/
-int32_t init_shared_mapping(struct shared_map **mapping, 
-                            struct parser_ctx *ctx)
+int32_t init_shared_mapping(struct shared_map **mapping, struct parser_ctx *ctx)
 {
     int32_t rtrn = 0;
 
@@ -440,7 +443,6 @@ int32_t init_shared_mapping(struct shared_map **mapping,
             output(ERROR, "Unknown fuzzing mode\n");
             return (-1);
     }
-    
-    return (0);
 
+    return (0);
 }

@@ -14,8 +14,8 @@
  **/
 
 #include "arg_types.h"
-#include "log/log.h"
 #include "io/io.h"
+#include "log/log.h"
 
 struct arg_context file_desc_ctx = {
 
@@ -28,7 +28,7 @@ struct arg_context file_desc_ctx = {
 
 struct arg_context void_buf_ctx = {
 
-	.name = "VOID_BUF",
+    .name = "VOID_BUF",
     .type = VOID_BUF,
     .should_free = NX_YES,
     .log_type = POINTER
@@ -37,16 +37,13 @@ struct arg_context void_buf_ctx = {
 
 struct arg_context size_ctx = {
 
-	.name = "SIZE",
-    .type = SIZE,
-    .should_free = NX_YES,
-    .log_type = NUMBER
+    .name = "SIZE", .type = SIZE, .should_free = NX_YES, .log_type = NUMBER
 
 };
 
 struct arg_context file_path_ctx = {
 
-	.name = "FILE_PATH",
+    .name = "FILE_PATH",
     .type = FILE_PATH,
     .should_free = NX_NO,
     .log_type = PATH
@@ -55,7 +52,7 @@ struct arg_context file_path_ctx = {
 
 struct arg_context open_flag_ctx = {
 
-	.name = "OPEN_FLAG",
+    .name = "OPEN_FLAG",
     .type = OPEN_FLAG,
     .should_free = NX_YES,
     .log_type = NUMBER
@@ -64,16 +61,13 @@ struct arg_context open_flag_ctx = {
 
 struct arg_context mode_ctx = {
 
-	.name = "MODE",
-    .type = MODE,
-    .should_free = NX_YES,
-    .log_type = NUMBER
+    .name = "MODE", .type = MODE, .should_free = NX_YES, .log_type = NUMBER
 
 };
 
 struct arg_context stat_fs_ctx = {
 
-	.name = "STAT_FS",
+    .name = "STAT_FS",
     .type = STAT_FS,
     .should_free = NX_YES,
     .log_type = POINTER
@@ -82,43 +76,34 @@ struct arg_context stat_fs_ctx = {
 
 struct arg_context stat_flag_ctx = {
 
-	.name = "STAT_FLAG",
+    .name = "STAT_FLAG",
     .type = STAT_FLAG,
     .should_free = NX_YES,
     .log_type = NUMBER
 
-}; 
+};
 
 struct arg_context int_ctx = {
 
-	.name = "INT",
-    .type = INT,
-    .should_free = NX_YES,
-    .log_type = NUMBER
+    .name = "INT", .type = INT, .should_free = NX_YES, .log_type = NUMBER
 
 };
 
 struct arg_context rusage_ctx = {
 
-	.name = "RUSAGE",
-    .type = RUSAGE,
-    .should_free = NX_YES,
-    .log_type = POINTER
+    .name = "RUSAGE", .type = RUSAGE, .should_free = NX_YES, .log_type = POINTER
 
 };
 
 struct arg_context pid_ctx = {
 
-	.name = "PID",
-    .type = PID,
-    .should_free = NX_YES,
-    .log_type = POINTER
+    .name = "PID", .type = PID, .should_free = NX_YES, .log_type = POINTER
 
 };
 
 struct arg_context wait_option_ctx = {
 
-	.name = "WAIT_OPTION",
+    .name = "WAIT_OPTION",
     .type = WAIT_OPTION,
     .should_free = NX_YES,
     .log_type = NUMBER
@@ -127,34 +112,25 @@ struct arg_context wait_option_ctx = {
 
 struct arg_context socket_ctx = {
 
-	.name = "SOCKET",
-    .type = SOCKET,
-    .should_free = NX_YES,
-    .log_type = NUMBER
+    .name = "SOCKET", .type = SOCKET, .should_free = NX_YES, .log_type = NUMBER
 
 };
 
 struct arg_context whence_ctx = {
 
-	.name = "WHENCE",
-    .type = WHENCE,
-    .should_free = NX_YES,
-    .log_type = NUMBER
+    .name = "WHENCE", .type = WHENCE, .should_free = NX_YES, .log_type = NUMBER
 
 };
 
 struct arg_context offset_ctx = {
 
-	.name = "OFFSET",
-    .type = OFFSET,
-    .should_free = NX_YES,
-    .log_type = NUMBER
+    .name = "OFFSET", .type = OFFSET, .should_free = NX_YES, .log_type = NUMBER
 
 };
 
 struct arg_context mount_type_ctx = {
 
-	.name = "MOUNT_TYPE",
+    .name = "MOUNT_TYPE",
     .type = MOUNT_TYPE,
     .should_free = NX_YES,
     .log_type = POINTER
@@ -163,7 +139,7 @@ struct arg_context mount_type_ctx = {
 
 struct arg_context dir_path_ctx = {
 
-	.name = "DIR_PATH",
+    .name = "DIR_PATH",
     .type = DIR_PATH,
     .should_free = NX_NO,
     .log_type = POINTER
@@ -172,7 +148,7 @@ struct arg_context dir_path_ctx = {
 
 struct arg_context mount_flag_ctx = {
 
-	.name = "MOUNT_FLAG",
+    .name = "MOUNT_FLAG",
     .type = MOUNT_FLAG,
     .should_free = NX_YES,
     .log_type = NUMBER
@@ -181,7 +157,7 @@ struct arg_context mount_flag_ctx = {
 
 struct arg_context unmount_flag_ctx = {
 
-	.name = "UNMOUNT_FLAG",
+    .name = "UNMOUNT_FLAG",
     .type = UNMOUNT_FLAG,
     .should_free = NX_YES,
     .log_type = NUMBER
@@ -190,16 +166,16 @@ struct arg_context unmount_flag_ctx = {
 
 struct arg_context recv_flag_ctx = {
 
-	.name = "RECV_FLAG",
+    .name = "RECV_FLAG",
     .type = RECV_FLAG,
     .should_free = NX_YES,
     .log_type = NUMBER
 
 };
-    
+
 struct arg_context request_ctx = {
 
-	.name = "REQUEST",
+    .name = "REQUEST",
     .type = REQUEST,
     .should_free = NX_YES,
     .log_type = NUMBER
@@ -208,7 +184,7 @@ struct arg_context request_ctx = {
 
 struct arg_context mount_path_ctx = {
 
-	.name = "MOUNT_PATH",
+    .name = "MOUNT_PATH",
     .type = MOUNT_PATH,
     .should_free = NX_NO,
     .log_type = PATH
@@ -217,10 +193,7 @@ struct arg_context mount_path_ctx = {
 
 struct arg_context dev_ctx = {
 
-    .name = "dev",
-    .type = DEV,
-    .should_free = NX_YES,
-    .log_type = NUMBER
+    .name = "dev", .type = DEV, .should_free = NX_YES, .log_type = NUMBER
 
 };
 
@@ -228,56 +201,77 @@ struct arg_context *get_arg_context(enum arg_type type)
 {
     switch((int)type)
     {
-        case FILE_DESC: return &file_desc_ctx;
+        case FILE_DESC:
+            return &file_desc_ctx;
 
-        case VOID_BUF: return &void_buf_ctx;
-            
-        case SIZE: return &size_ctx;
+        case VOID_BUF:
+            return &void_buf_ctx;
 
-        case FILE_PATH: return &file_path_ctx;
+        case SIZE:
+            return &size_ctx;
 
-        case OPEN_FLAG: return &open_flag_ctx;
-           
-        case MODE: return &mode_ctx;
+        case FILE_PATH:
+            return &file_path_ctx;
 
-        case STAT_FS: return &stat_fs_ctx;
+        case OPEN_FLAG:
+            return &open_flag_ctx;
 
-        case STAT_FLAG: return &stat_flag_ctx;
+        case MODE:
+            return &mode_ctx;
 
-        case INT: return &int_ctx;
-       
-        case RUSAGE: return &rusage_ctx;
-         
-        case PID: return &pid_ctx;
-          
-        case WAIT_OPTION: return &wait_option_ctx;
-         
-        case SOCKET: return &socket_ctx;
-           
-        case WHENCE: return &whence_ctx;
-           
-        case OFFSET: return &offset_ctx;
-        
-        case MOUNT_TYPE: return &mount_type_ctx;
-         
-        case DIR_PATH: return &dir_path_ctx;
-          
-        case MOUNT_FLAG: return &mount_flag_ctx;
+        case STAT_FS:
+            return &stat_fs_ctx;
 
-        case UNMOUNT_FLAG: return &unmount_flag_ctx;
+        case STAT_FLAG:
+            return &stat_flag_ctx;
 
-        case RECV_FLAG: return &recv_flag_ctx;
-         
-        case REQUEST: return &request_ctx;
+        case INT:
+            return &int_ctx;
 
-        case MOUNT_PATH: return &mount_path_ctx;
+        case RUSAGE:
+            return &rusage_ctx;
 
-        case DEV: return &dev_ctx;
+        case PID:
+            return &pid_ctx;
+
+        case WAIT_OPTION:
+            return &wait_option_ctx;
+
+        case SOCKET:
+            return &socket_ctx;
+
+        case WHENCE:
+            return &whence_ctx;
+
+        case OFFSET:
+            return &offset_ctx;
+
+        case MOUNT_TYPE:
+            return &mount_type_ctx;
+
+        case DIR_PATH:
+            return &dir_path_ctx;
+
+        case MOUNT_FLAG:
+            return &mount_flag_ctx;
+
+        case UNMOUNT_FLAG:
+            return &unmount_flag_ctx;
+
+        case RECV_FLAG:
+            return &recv_flag_ctx;
+
+        case REQUEST:
+            return &request_ctx;
+
+        case MOUNT_PATH:
+            return &mount_path_ctx;
+
+        case DEV:
+            return &dev_ctx;
 
         default:
             output(ERROR, "Unlisted arg type\n");
             return NULL;
     }
 }
-
-

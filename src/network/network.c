@@ -15,22 +15,22 @@
 
 #include "network.h"
 #include "concurrent/concurrent.h"
-#include "stdatomic.h"
-#include "platform.h"
 #include "crypto/crypto.h"
 #include "io/io.h"
+#include "platform.h"
+#include "stdatomic.h"
 
-#include <stdio.h>
-#include <netdb.h>
+#include <arpa/inet.h>
 #include <errno.h>
-#include <unistd.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <pthread.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <pthread.h>
-#include <sys/types.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
 #include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 static uint32_t port;
 
@@ -39,64 +39,62 @@ static atomic_int_fast32_t stop_socket_server;
 int32_t connect_ipv4(int32_t *sockFd)
 {
     int32_t rtrn = 0;
-    
-    union
-    {
+
+    union {
         struct sockaddr_in in;
         struct sockaddr_in6 in6;
-        
-    }addr;
-    
+
+    } addr;
+
     addr.in.sin_family = AF_INET;
     addr.in.sin_port = htons(port);
     inet_pton(AF_INET, "127.0.0.1", &addr.in.sin_addr);
-    
+
     *sockFd = socket(AF_INET, SOCK_STREAM, 0);
     if(*sockFd < 0)
     {
         output(ERROR, "socket: %s\n", strerror(errno));
         return (-1);
     }
-    
+
     rtrn = connect(*sockFd, (struct sockaddr *)&addr.in, sizeof(addr.in));
     if(rtrn < 0)
     {
         output(ERROR, "connect: %s\n", strerror(errno));
         return (-1);
     }
-    
+
     return (0);
 }
 
 int32_t connect_ipv6(int *sockFd)
 {
     int32_t rtrn = 0;
-    
-    union
-    {
+
+    union {
         struct sockaddr_in in;
         struct sockaddr_in6 in6;
-        
-    }addr;
-    
+
+    } addr;
+
     addr.in6.sin6_family = AF_INET6;
     addr.in6.sin6_port = htons(port + 1);
     inet_pton(AF_INET6, "::1", &addr.in6.sin6_addr);
-    
+
     *sockFd = socket(AF_INET6, SOCK_STREAM, 0);
     if(*sockFd < 0)
     {
         output(ERROR, "socket: %s\n", strerror(errno));
         return (-1);
     }
-    
+
     rtrn = connect(*sockFd, (struct sockaddr *)&addr.in6, sizeof(addr.in6));
     if(rtrn < 0)
     {
         output(ERROR, "connect: %s\n", strerror(errno));
         return (-1);
     }
-    
+
     return (0);
 }
 
@@ -104,27 +102,26 @@ static int32_t setup_ipv4_tcp_server(int32_t *sockFd)
 {
     /* Declarations */
     int32_t rtrn = 0;
-    
-    union
-    {
+
+    union {
         struct sockaddr sa;
         struct sockaddr_in in;
-        
-    }address;
-    
+
+    } address;
+
     *sockFd = socket(AF_INET, SOCK_STREAM, 0);
     if(*sockFd < 0)
     {
         output(ERROR, "Socket: %s\n", strerror(errno));
         return (-1);
     }
-    
+
     address.in.sin_len = sizeof(address.in);
     address.in.sin_family = AF_INET;
     address.in.sin_port = htons(port);
     address.in.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
     memset(address.in.sin_zero, 0, sizeof(address.in.sin_zero));
-    
+
     /* Bind socket to port */
     rtrn = bind(*sockFd, &address.sa, address.sa.sa_len);
     if(rtrn < 0)
@@ -132,7 +129,7 @@ static int32_t setup_ipv4_tcp_server(int32_t *sockFd)
         output(ERROR, "Bind: %s\n", strerror(errno));
         return (-1);
     }
-    
+
     return (0);
 }
 
@@ -140,30 +137,29 @@ static int32_t setup_ipv6_tcp_server(int32_t *sockFd)
 {
     /* Declarations */
     int32_t rtrn = 0;
-    
+
     /* Create union so we can avoid casting
      and we glom together ipv4 and ipv6. */
-    union
-    {
+    union {
         struct sockaddr sa;
         struct sockaddr_in6 in6;
-        
-    }address;
-    
+
+    } address;
+
     *sockFd = socket(AF_INET6, SOCK_STREAM, 0);
     if(*sockFd < 0)
     {
         output(ERROR, "Socket ipv6: %s\n", strerror(errno));
         return (-1);
     }
-    
+
     address.in6.sin6_len = sizeof(address.in6);
     address.in6.sin6_family = AF_INET6;
     address.in6.sin6_port = htons(port + 1);
     address.in6.sin6_flowinfo = 0;
     address.in6.sin6_addr = in6addr_loopback;
     address.in6.sin6_scope_id = 0;
-    
+
     /* Bind socket to port */
     rtrn = bind(*sockFd, (struct sockaddr *)&address.in6, address.in6.sin6_len);
     if(rtrn < 0)
@@ -171,7 +167,7 @@ static int32_t setup_ipv6_tcp_server(int32_t *sockFd)
         output(ERROR, "bind 6: %s\n", strerror(errno));
         return (-1);
     }
-    
+
     return (0);
 }
 
@@ -179,21 +175,21 @@ static int32_t setup_socket_server(int32_t *sockFd4, int *sockFd6)
 {
     output(STD, "Setting Up Socket Server\n");
     int rtrn;
-    
+
     rtrn = setup_ipv4_tcp_server(sockFd4);
     if(rtrn < 0)
     {
         output(ERROR, "Can't set up ipv4 socket server\n");
         return -1;
     }
-    
+
     rtrn = setup_ipv6_tcp_server(sockFd6);
     if(rtrn < 0)
     {
         output(ERROR, "Can't set up ipv6 socket server\n");
         return -1;
     }
-    
+
     return 0;
 }
 
@@ -202,14 +198,14 @@ static int accept_client(int listenFd)
     struct sockaddr_storage addr;
     socklen_t addr_len = sizeof(addr);
     int clientFd;
-    
+
     clientFd = accept(listenFd, (struct sockaddr *)&addr, &addr_len);
     if(clientFd < 0)
     {
         output(ERROR, "accept: %s\n", strerror(errno));
         return -1;
     }
-    
+
     return 0;
 }
 
@@ -217,7 +213,7 @@ static void *thread_start(void *obj)
 {
     int rtrn;
     int *sockFd = (int *)obj;
-    
+
     while(atomic_load(&stop_socket_server) != TRUE)
     {
         rtrn = listen(*sockFd, 1024);
@@ -226,7 +222,7 @@ static void *thread_start(void *obj)
             output(ERROR, "listen: %s\n", strerror(errno));
             return NULL;
         }
-        
+
         rtrn = accept_client(*sockFd);
         if(rtrn < 0)
         {
@@ -234,19 +230,19 @@ static void *thread_start(void *obj)
             return NULL;
         }
     }
-    
+
     return NULL;
 }
 
 static int _start_socket_server(int listenFd4, int listenFd6)
 {
     output(STD, "Starting Socket Server\n");
-    
+
     int rtrn;
     pthread_t ipv6AcceptThread;
-    
+
     pthread_create(&ipv6AcceptThread, NULL, thread_start, &listenFd6);
-    
+
     while(atomic_load(&stop_socket_server) != TRUE)
     {
         rtrn = listen(listenFd4, 1024);
@@ -255,7 +251,7 @@ static int _start_socket_server(int listenFd4, int listenFd6)
             output(ERROR, "listen: %s\n", strerror(errno));
             return -1;
         }
-        
+
         rtrn = accept_client(listenFd4);
         if(rtrn < 0)
         {
@@ -263,44 +259,43 @@ static int _start_socket_server(int listenFd4, int listenFd6)
             return -1;
         }
     }
-    
+
     pthread_join(ipv6AcceptThread, NULL);
 
     return 0;
-
 }
 
 static int32_t select_port_number(void)
 {
     int32_t rtrn = 0;
     uint32_t offset = 0;
-    
+
     rtrn = rand_range(10000, &offset);
     if(rtrn < 0)
     {
         output(ERROR, "Can't generate random number\n");
         return (-1);
     }
-    
+
     port = (1200 + offset);
-    
+
     return (0);
 }
 
 static int32_t start_socket_server(void)
 {
     int32_t rtrn = 0;
-	int32_t sockFd4 = 0;
+    int32_t sockFd4 = 0;
     int32_t sockFd6 = 0;
     pid_t socket_server_pid;
 
     /* Pick a random port above 1200. */
-	rtrn = select_port_number();
-	if(rtrn < 0)
-	{
+    rtrn = select_port_number();
+    if(rtrn < 0)
+    {
         output(ERROR, "Can't select port number\n");
         return -1;
-	}
+    }
 
     socket_server_pid = fork();
     if(socket_server_pid == 0)
@@ -312,21 +307,19 @@ static int32_t start_socket_server(void)
             output(ERROR, "Can't set up socket server\n");
             return -1;
         }
-        
+
         rtrn = _start_socket_server(sockFd4, sockFd6);
         if(rtrn < 0)
         {
             output(ERROR, "Can't start socket server\n");
             return -1;
         }
-        
     }
     else if(socket_server_pid > 0)
     {
         // Parent process
-        
+
         return 0;
-        
     }
     else
     {
@@ -335,7 +328,7 @@ static int32_t start_socket_server(void)
         return -1;
     }
 
-	return 0;
+    return 0;
 }
 
 int32_t setup_network_module(enum network_mode mode)

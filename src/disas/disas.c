@@ -14,19 +14,19 @@
  **/
 
 #include "disas.h"
-#include "utils/utils.h"
-#include "file/file.h"
-#include "memory/memory.h"
-#include "io/io.h"
 #include "capstone.h"
+#include "file/file.h"
+#include "io/io.h"
+#include "memory/memory.h"
+#include "utils/utils.h"
 
-#include <stdio.h>
+#include <errno.h>
 #include <fcntl.h>
-#include <unistd.h>
+#include <inttypes.h>
+#include <stdio.h>
 #include <string.h>
 #include <sys/mman.h>
-#include <errno.h>
-#include <inttypes.h>
+#include <unistd.h>
 
 int32_t disas_executable_and_examine(void)
 {
@@ -49,33 +49,34 @@ int32_t disas_executable_and_examine(void)
     file = open(exec_path, O_RDONLY);
     if(file < 0)
     {
-    	output(ERROR, "open: %s\n", strerror(errno));
-    	return (-1);
+        output(ERROR, "open: %s\n", strerror(errno));
+        return (-1);
     }
 
     /* Read file in to memory. */
     rtrn = map_file_in(file, &file_buffer, &file_size, READ);
     if(rtrn < 0)
     {
-    	output(ERROR, "Can't memory map file\n");
-    	return (-1);
+        output(ERROR, "Can't memory map file\n");
+        return (-1);
     }
 
     /* Create a const pointer to the file buffer so we can avoid
     a warning when using cs_disasm_iter(). */
     const uint8_t *file_buffer_copy = (uint8_t *)file_buffer;
-    
+
     /* Create capstone handle.*/
     csh handle;
     cs_open(CS_ARCH_X86, CS_MODE_32, &handle);
- 
+
     /* Allocate memory cache for 1 instruction, to be used by cs_disasm_iter later. */
     cs_insn *insn = cs_malloc(handle);
 
     uint64_t address = 0;
 
     /* Disassemble one instruction at a time & store the result into the insn variable above */
-    while(cs_disasm_iter(handle, (const uint8_t **)&file_buffer_copy, (unsigned long *)&file_size, &address, insn))
+    while(cs_disasm_iter(handle, (const uint8_t **)&file_buffer_copy,
+                         (unsigned long *)&file_size, &address, insn))
     {
         /* Check for branchs in the disasembly, maybe switch to a hash map in the future. */
         if(strncmp(insn->mnemonic, "jne", 3) == 0)
@@ -229,7 +230,7 @@ int32_t disas_executable_and_examine(void)
         } */
 
         count++;
-        
+
         continue;
     }
 

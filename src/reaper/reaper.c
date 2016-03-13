@@ -14,18 +14,18 @@
  **/
 
 #include "reaper.h"
-#include "syscall/syscall.h"
-#include "memory/memory.h"
 #include "concurrent/concurrent.h"
-#include "platform.h"
 #include "io/io.h"
+#include "memory/memory.h"
+#include "platform.h"
+#include "syscall/syscall.h"
 
+#include <errno.h>
 #include <signal.h>
-#include <sys/time.h>
-#include <sys/types.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
+#include <sys/time.h>
+#include <sys/types.h>
 
 static atomic_int_fast32_t *stop;
 
@@ -42,25 +42,25 @@ static void setup_reaper_signal_handler(void)
     struct sigaction sa;
     sigset_t ss;
     uint32_t i;
-    
-    for (i = 1; i < 512; i++)
+
+    for(i = 1; i < 512; i++)
     {
-        (void) sigfillset(&ss);
+        (void)sigfillset(&ss);
         sa.sa_flags = SA_RESTART;
         sa.sa_handler = reaper_signal_handler;
         sa.sa_mask = ss;
-        (void) sigaction((int)i, &sa, NULL);
+        (void)sigaction((int)i, &sa, NULL);
     }
     /* we want default behaviour for child process signals */
-    (void) signal(SIGCHLD, SIG_DFL);
-    
+    (void)signal(SIGCHLD, SIG_DFL);
+
     /* ignore signals we don't care about */
-    (void) signal(SIGFPE, SIG_IGN);
-    (void) signal(SIGXCPU, SIG_IGN);
-    (void) signal(SIGTSTP, SIG_IGN);
-    (void) signal(SIGWINCH, SIG_IGN);
-    (void) signal(SIGIO, SIG_IGN);
-    (void) signal(SIGPIPE, SIG_IGN);
+    (void)signal(SIGFPE, SIG_IGN);
+    (void)signal(SIGXCPU, SIG_IGN);
+    (void)signal(SIGTSTP, SIG_IGN);
+    (void)signal(SIGWINCH, SIG_IGN);
+    (void)signal(SIGIO, SIG_IGN);
+    (void)signal(SIGPIPE, SIG_IGN);
 
     return;
 }
@@ -78,7 +78,7 @@ static void check_progess(struct child_ctx *child)
 
     /* Grab the time the syscall was done. */
     time_of_syscall = child->time_of_syscall.tv_sec;
-    
+
     /* Return early. */
     if(time_of_syscall == 0)
         return;
@@ -86,12 +86,12 @@ static void check_progess(struct child_ctx *child)
     gettimeofday(&tv, NULL);
 
     time_now = tv.tv_sec;
-    
+
     if(time_of_syscall > time_now)
         dif = time_of_syscall - time_now;
     else
         dif = time_now - time_of_syscall;
-    
+
     if(dif < 5)
         return;
 
@@ -102,7 +102,7 @@ static void check_progess(struct child_ctx *child)
         return;
     }
 
-	return;
+    return;
 }
 
 static void reaper(msg_port_t port)
@@ -136,8 +136,8 @@ static void reaper(msg_port_t port)
         struct child_ctx *child = NULL;
 
         /* Loop for each child processe. */
-    	for(i = 0; i < number_of_children; i++)
-    	{
+        for(i = 0; i < number_of_children; i++)
+        {
             child = get_child_from_index(i);
             if(child == NULL)
             {
@@ -146,13 +146,13 @@ static void reaper(msg_port_t port)
             }
 
             /* Make sure the child is not hung up, if it is check_progress() kills it. */
-    		check_progess(child);
-    	}
+            check_progess(child);
+        }
     }
 
     /* We are exiting either due to error or the user wants us to. So lets kill all child processes. */
     kill_all_children();
-	
+
     return;
 }
 

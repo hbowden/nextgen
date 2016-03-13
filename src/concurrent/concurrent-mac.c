@@ -20,23 +20,26 @@
 
 #define SPECIAL_PORT TASK_BOOTSTRAP_PORT
 
-int32_t init_msg_port(msg_port_t *msg_port)                      
+struct ool_msg_ctx
+{
+    mach_msg_header_t h;
+    void *data;
+};
+
+int32_t init_msg_port(msg_port_t *msg_port)
 {
     kern_return_t err;
     mach_port_t port = MACH_PORT_NULL;
 
-    err = mach_port_allocate(mach_task_self (),
-                              MACH_PORT_RIGHT_RECEIVE, &port);
+    err = mach_port_allocate(mach_task_self(), MACH_PORT_RIGHT_RECEIVE, &port);
     if(err != KERN_SUCCESS)
     {
         mach_error("Can't allocate mach port\n", err);
         return (-1);
     }
 
-    err = mach_port_insert_right(mach_task_self (),
-                                  port,
-                                  port,
-                                  MACH_MSG_TYPE_MAKE_SEND);
+    err = mach_port_insert_right(mach_task_self(), port, port,
+                                 MACH_MSG_TYPE_MAKE_SEND);
     if(err != KERN_SUCCESS)
     {
         mach_error("Can't insert port right\n", err);
@@ -44,26 +47,25 @@ int32_t init_msg_port(msg_port_t *msg_port)
     }
 
     (*msg_port) = port;
-    
+
     return (0);
 }
 
-int32_t
-send_port(mach_port_t remote_port, mach_port_t port)
+int32_t send_port(mach_port_t remote_port, mach_port_t port)
 {
     kern_return_t err;
 
     struct
     {
-        mach_msg_header_t          header;
-        mach_msg_body_t            body;
+        mach_msg_header_t header;
+        mach_msg_body_t body;
         mach_msg_port_descriptor_t task_port;
     } msg;
 
     msg.header.msgh_remote_port = remote_port;
     msg.header.msgh_local_port = MACH_PORT_NULL;
-    msg.header.msgh_bits = MACH_MSGH_BITS (MACH_MSG_TYPE_COPY_SEND, 0) |
-        MACH_MSGH_BITS_COMPLEX;
+    msg.header.msgh_bits =
+        MACH_MSGH_BITS(MACH_MSG_TYPE_COPY_SEND, 0) | MACH_MSGH_BITS_COMPLEX;
     msg.header.msgh_size = sizeof msg;
 
     msg.body.msgh_descriptor_count = 1;
@@ -81,21 +83,19 @@ send_port(mach_port_t remote_port, mach_port_t port)
     return (0);
 }
 
-static int32_t
-recv_port(mach_port_t recv_port, mach_port_t *port)
+int32_t recv_port(mach_port_t recv_port, mach_port_t *port)
 {
     kern_return_t err;
     struct
     {
-        mach_msg_header_t          header;
-        mach_msg_body_t            body;
+        mach_msg_header_t header;
+        mach_msg_body_t body;
         mach_msg_port_descriptor_t task_port;
-        mach_msg_trailer_t         trailer;
+        mach_msg_trailer_t trailer;
     } msg;
 
-    err = mach_msg(&msg.header, MACH_RCV_MSG,
-                    0, sizeof msg, recv_port,
-                    MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
+    err = mach_msg(&msg.header, MACH_RCV_MSG, 0, sizeof msg, recv_port,
+                   MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
     if(err != KERN_SUCCESS)
     {
         mach_error("Can't recieve mach message\n", err);
@@ -106,10 +106,9 @@ recv_port(mach_port_t recv_port, mach_port_t *port)
     return 0;
 }
 
-pid_t
-fork_pass_port(mach_port_t *pass_port,
-               int32_t (*child_start)(mach_port_t port, void *arg),
-               void *arg)
+pid_t fork_pass_port(mach_port_t *pass_port,
+                     int32_t (*child_start)(mach_port_t port, void *arg),
+                     void *arg)
 {
     pid_t pid = 0;
     int32_t rtrn = 0;
@@ -159,7 +158,7 @@ fork_pass_port(mach_port_t *pass_port,
             output(ERROR, "Can't setup mach port\n");
             return (-1);
         }
-        
+
         /* Send port to parent. */
         rtrn = send_port((*pass_port), port);
         if(rtrn < 0)
@@ -167,7 +166,7 @@ fork_pass_port(mach_port_t *pass_port,
             output(ERROR, "Can't send port\n");
             return (-1);
         }
-        
+
         /* Receive the real bootstrap port from the parent. */
         rtrn = recv_port(port, &original_bootstrap_port);
         if(rtrn < 0)
@@ -175,9 +174,10 @@ fork_pass_port(mach_port_t *pass_port,
             output(ERROR, "Can't receive bootstrap port\n");
             return (-1);
         }
-        
+
         /* Set the bootstrap port back to normal. */
-        err = task_set_special_port(mach_task_self(), SPECIAL_PORT, original_bootstrap_port);
+        err = task_set_special_port(mach_task_self(), SPECIAL_PORT,
+                                    original_bootstrap_port);
         if(err != KERN_SUCCESS)
         {
             mach_error("Can't set special port:\n", err);
@@ -186,7 +186,7 @@ fork_pass_port(mach_port_t *pass_port,
 
         /* Now that were done with the port dance, start the function passed by the caller. */
         child_start((*pass_port), arg);
-        
+
         /* Exit and clean up the child process. */
         _exit(0);
     }
@@ -201,7 +201,7 @@ fork_pass_port(mach_port_t *pass_port,
             output(ERROR, "Can't recv port\n");
             return (-1);
         }
-        
+
         /* Send the child the original bootstrap port. */
         rtrn = send_port(child_port, special_port);
         if(rtrn < 0)
@@ -211,13 +211,14 @@ fork_pass_port(mach_port_t *pass_port,
         }
 
         /* Reset parents special port. */
-        err = task_set_special_port(mach_task_self(), SPECIAL_PORT, special_port);
+        err =
+            task_set_special_port(mach_task_self(), SPECIAL_PORT, special_port);
         if(err != KERN_SUCCESS)
         {
             mach_error("Can't set special port:\n", err);
             return (-1);
         }
-        
+
         return (pid);
     }
     else
@@ -229,7 +230,7 @@ fork_pass_port(mach_port_t *pass_port,
             mach_error("Can't deallocate mach port\n", err);
             return (-1);
         }
-    
+
         perror("fork");
 
         return (-1);
@@ -244,14 +245,27 @@ int32_t msg_send(msg_port_t remote_port, void *data, uint32_t size)
         return (-1);
     }
 
+    struct ool_msg_ctx *msg;
 
+    msg->h.msg_local_port = MACH_PORT_NULL;
+    msg->h.msg_remote_port = remote_port;
+    msg->h.msgh_size = sizeof(struct ool_msg_ctx);
+    msg->h.msg_simple = FALSE;
 
-	return (0);
+    msg->t.msg_type_size = size;
+    msg->t.msg_type_number = MAXDATA;
+    msg->t.msg_type_inline = FALSE;
+    msg->t.msg_type_longform = FALSE;
+    msg->t.msg_type_deallocate = FALSE;
+
+    msg->data = data;
+
+    return (0);
 }
 
 void *msg_recv(msg_port_t recv_port)
 {
-	void *data = NULL;
+    void *data = NULL;
 
-	return (data);
+    return (data);
 }

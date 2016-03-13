@@ -14,35 +14,32 @@
  **/
 
 #include "runtime.h"
-#include "network/network.h"
-#include "genetic/genetic.h"
-#include "resource/resource.h"
 #include "concurrent/concurrent.h"
-#include "syscall/syscall.h"
-#include "syscall/signals.h"
-#include "utils/utils.h"
-#include "plugins/plugin.h"
 #include "crypto/crypto.h"
 #include "disas/disas.h"
-#include "probe/probe.h"
-#include "reaper/reaper.h"
-#include "mutate/mutate.h"
-#include "nextgen.h"
-#include "platform.h"
 #include "file/file.h"
+#include "genetic/genetic.h"
 #include "io/io.h"
 #include "log/log.h"
+#include "mutate/mutate.h"
+#include "network/network.h"
+#include "nextgen.h"
+#include "platform.h"
+#include "plugins/plugin.h"
+#include "probe/probe.h"
+#include "reaper/reaper.h"
+#include "resource/resource.h"
+#include "syscall/signals.h"
+#include "syscall/syscall.h"
+#include "utils/utils.h"
 
-#include <string.h>
-#include <stdio.h>
 #include <errno.h>
-#include <sys/mman.h>
 #include <pthread.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/mman.h>
 
-static int32_t start_network_mode_runtime(void)
-{
-    return (0);
-}
+static int32_t start_network_mode_runtime(void) { return (0); }
 
 static int32_t start_syscall_runtime(msg_port_t port, void *arg)
 {
@@ -83,18 +80,19 @@ static int32_t start_syscall_mode_runtime(void)
         wait_on(&map->god_pid, &status);
 
     /* Display stats for the user. */
-    output(STD, "Sycall test completed: %ld\n", atomic_load(&map->test_counter));
+    output(STD, "Sycall test completed: %ld\n",
+           atomic_load(&map->test_counter));
 
     return (0);
 }
 
 static void *file_mode_thread_start(void *arg)
 {
-    #ifdef MAC_OSX
+#ifdef MAC_OSX
 
     sleep(3);
 
-    #endif
+#endif
 
     /* Check the mode were running in and start the appropriate loop. */
     if(map->smart_mode == TRUE)
@@ -132,7 +130,8 @@ static int32_t setup_file_mode_runtime(void)
     rtrn = create_out_directory(map->path_to_out_dir);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't create output directory: %s\n", map->path_to_out_dir);
+        output(ERROR, "Can't create output directory: %s\n",
+               map->path_to_out_dir);
         return (-1);
     }
 
@@ -161,7 +160,7 @@ static int32_t setup_file_mode_runtime(void)
         {
             output(ERROR, "Can't setup probe module\n");
             return (-1);
-        } 
+        }
 
         /* Lets parse the binary and figure out the virtual memory address it's going to be loaded at. */
         rtrn = get_load_address(&main_addr);
@@ -196,7 +195,7 @@ static int32_t setup_file_mode_runtime(void)
             output(ERROR, "Can't inject instrumentation probes\n");
             return (-1);
         }
-    
+
         /* Inject the fork server. One can learn more about the fork server idea at:
         http://lcamtuf.blogspot.com/2014/10/fuzzing-binaries-without-execve.html .
         We use the fork server so that we can avoid the cost of probe injection and execv
@@ -205,8 +204,8 @@ static int32_t setup_file_mode_runtime(void)
         rtrn = inject_fork_server(main_addr);
         if(rtrn < 0)
         {
-           output(ERROR, "Can't inject fork server\n");
-           return (-1);
+            output(ERROR, "Can't inject fork server\n");
+            return (-1);
         }
 
         /* Run through the input files so we can prime the genetic algorithm. */
@@ -217,17 +216,14 @@ static int32_t setup_file_mode_runtime(void)
             return (-1);
         }
     }
-  
+
     /* Lets set up the signal handler for the main process. */
     setup_signal_handler();
 
     return (0);
 }
 
-static int32_t setup_network_mode_runtime(void)
-{
-    return (0);
-}
+static int32_t setup_network_mode_runtime(void) { return (0); }
 
 /* Set up the various modules we need for syscall fuzzing and then
    create the output directory. If were running in smart mode start the
@@ -257,7 +253,8 @@ static int32_t setup_syscall_mode_runtime(void)
     }
 
     /* Setup the syscall module. */
-    rtrn = setup_syscall_module(&map->stop, &map->test_counter, map->smart_mode);
+    rtrn =
+        setup_syscall_module(&map->stop, &map->test_counter, map->smart_mode);
     if(rtrn < 0)
     {
         output(ERROR, "Can't create syscall module\n");
@@ -269,7 +266,8 @@ static int32_t setup_syscall_mode_runtime(void)
     rtrn = create_out_directory(map->path_to_out_dir);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't create output directory: %s\n", map->path_to_out_dir);
+        output(ERROR, "Can't create output directory: %s\n",
+               map->path_to_out_dir);
         return (-1);
     }
 
@@ -319,7 +317,7 @@ int32_t setup_runtime(struct shared_map *mapping)
         return (-1);
     }
 
-    /* We are done doing common init work now we call the specific init routines. */ 
+    /* We are done doing common init work now we call the specific init routines. */
     switch((int32_t)map->mode)
     {
         case MODE_FILE:
@@ -359,7 +357,7 @@ int32_t setup_runtime(struct shared_map *mapping)
 
 int32_t start_runtime(void)
 {
-    /* Start the selected fuzzer runtime. */ 
+    /* Start the selected fuzzer runtime. */
     switch((int32_t)map->mode)
     {
         case MODE_FILE:

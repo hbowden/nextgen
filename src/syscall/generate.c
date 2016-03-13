@@ -14,29 +14,29 @@
  **/
 
 #include "generate.h"
-#include "runtime/nextgen.h"
-#include "network/network.h"
-#include "resource/resource.h"
-#include "memory/memory.h"
 #include "crypto/crypto.h"
-#include "reaper/reaper.h"
-#include "utils/utils.h"
 #include "io/io.h"
+#include "memory/memory.h"
+#include "network/network.h"
+#include "reaper/reaper.h"
+#include "resource/resource.h"
+#include "runtime/nextgen.h"
+#include "utils/utils.h"
 
-#include <stdio.h>
+#include <errno.h>
 #include <fcntl.h>
-#include <sys/types.h>
-#include <sys/ptrace.h>
-#include <sys/socket.h>
-#include <sys/param.h>
-#include <sys/wait.h>
-#include <sys/resource.h>
-#include <sys/mount.h>
-#include <sys/mman.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/mman.h>
+#include <sys/mount.h>
+#include <sys/param.h>
+#include <sys/ptrace.h>
+#include <sys/resource.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
-#include <errno.h>
 
 int32_t generate_fd(uint64_t **fd, struct child_ctx *ctx)
 {
@@ -61,11 +61,11 @@ int32_t generate_fd(uint64_t **fd, struct child_ctx *ctx)
     /* Set the argument size. */
     ctx->arg_size_index[ctx->current_arg] = sizeof(int32_t);
 
-	return (0);
+    return (0);
 }
 
 int32_t generate_socket(uint64_t **sock, struct child_ctx *ctx)
-{  
+{
     (*sock) = mem_alloc(sizeof(int32_t));
     if((*sock) == NULL)
     {
@@ -85,7 +85,7 @@ int32_t generate_socket(uint64_t **sock, struct child_ctx *ctx)
     memmove((*sock), &sock_fd, sizeof(int32_t));
 
     ctx->arg_size_index[ctx->current_arg] = sizeof(int32_t);
-    
+
     return (0);
 }
 
@@ -116,7 +116,8 @@ int32_t generate_buf(uint64_t **buf, struct child_ctx *ctx)
     switch(number)
     {
         case 0:
-            (*buf) = mmap(NULL, nbytes, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
+            (*buf) = mmap(NULL, nbytes, PROT_READ | PROT_WRITE,
+                          MAP_ANON | MAP_PRIVATE, -1, 0);
             if(*buf == MAP_FAILED)
             {
                 output(ERROR, "mmap: %s\n", strerror(errno));
@@ -125,7 +126,8 @@ int32_t generate_buf(uint64_t **buf, struct child_ctx *ctx)
             break;
 
         case 1:
-            (*buf) = mmap(NULL, nbytes, PROT_READ, MAP_ANON | MAP_PRIVATE, -1, 0);
+            (*buf) =
+                mmap(NULL, nbytes, PROT_READ, MAP_ANON | MAP_PRIVATE, -1, 0);
             if(*buf == MAP_FAILED)
             {
                 output(ERROR, "mmap: %s\n", strerror(errno));
@@ -134,7 +136,8 @@ int32_t generate_buf(uint64_t **buf, struct child_ctx *ctx)
             break;
 
         case 2:
-            (*buf) = mmap(NULL, nbytes, PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
+            (*buf) =
+                mmap(NULL, nbytes, PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
             if(*buf == MAP_FAILED)
             {
                 output(ERROR, "mmap: %s\n", strerror(errno));
@@ -149,7 +152,7 @@ int32_t generate_buf(uint64_t **buf, struct child_ctx *ctx)
 
     ctx->arg_size_index[ctx->current_arg] = nbytes;
 
-	return (0);
+    return (0);
 }
 
 int32_t generate_length(uint64_t **length, struct child_ctx *ctx)
@@ -162,8 +165,8 @@ int32_t generate_length(uint64_t **length, struct child_ctx *ctx)
         last_arg = ctx->current_arg - 1;
 
     /* Allocate the length buffer */
-	(*length) = mem_alloc(sizeof(uint64_t));
-	if((*length) == NULL)
+    (*length) = mem_alloc(sizeof(uint64_t));
+    if((*length) == NULL)
     {
         output(ERROR, "Can't alloc length\n");
         return (-1);
@@ -175,12 +178,12 @@ int32_t generate_length(uint64_t **length, struct child_ctx *ctx)
     /* Set this argument's length. */
     ctx->arg_size_index[ctx->current_arg] = sizeof(uint64_t);
 
-	return (0);
+    return (0);
 }
 
 int32_t generate_path(uint64_t **path, struct child_ctx *ctx)
 {
-    (*path) = (uint64_t *) get_filepath();
+    (*path) = (uint64_t *)get_filepath();
     if((*path) == NULL)
     {
         output(ERROR, "Can't get file path\n");
@@ -189,14 +192,14 @@ int32_t generate_path(uint64_t **path, struct child_ctx *ctx)
 
     ctx->arg_size_index[ctx->current_arg] = strlen((char *)(*path));
 
-	return (0);
+    return (0);
 }
 
 int32_t generate_open_flag(uint64_t **flag, struct child_ctx *ctx)
 {
     int32_t rtrn = 0;
     uint32_t number = 0;
-    
+
     rtrn = rand_range(7, &number);
     if(rtrn < 0)
     {
@@ -207,27 +210,43 @@ int32_t generate_open_flag(uint64_t **flag, struct child_ctx *ctx)
     (*flag) = mem_alloc(12);
     if((*flag) == NULL)
     {
-    	output(ERROR, "Can't alloc flag\n");
+        output(ERROR, "Can't alloc flag\n");
         return (-1);
     }
-    
+
     switch(number)
     {
-        case 0: (**flag) |= (uint64_t) O_RDONLY; break;
-            
-        case 1: (**flag) |= (uint64_t) O_WRONLY; break;
-      
-        case 2: (**flag) |= (uint64_t) O_RDWR; break;
+        case 0:
+            (**flag) |= (uint64_t)O_RDONLY;
+            break;
 
-        case 3: (**flag) |= (uint64_t) O_NONBLOCK; break;
-            
-        case 4: (**flag) |= (uint64_t) O_APPEND; break;
-            
-        case 5: (**flag) |= (uint64_t) O_CREAT; break;
-            
-        case 6: (**flag) |= (uint64_t) O_TRUNC; break;
+        case 1:
+            (**flag) |= (uint64_t)O_WRONLY;
+            break;
 
-        case 7: (**flag) |= (uint64_t) O_EXCL; break;
+        case 2:
+            (**flag) |= (uint64_t)O_RDWR;
+            break;
+
+        case 3:
+            (**flag) |= (uint64_t)O_NONBLOCK;
+            break;
+
+        case 4:
+            (**flag) |= (uint64_t)O_APPEND;
+            break;
+
+        case 5:
+            (**flag) |= (uint64_t)O_CREAT;
+            break;
+
+        case 6:
+            (**flag) |= (uint64_t)O_TRUNC;
+            break;
+
+        case 7:
+            (**flag) |= (uint64_t)O_EXCL;
+            break;
 
         default:
             output(ERROR, "Should not get here\n");
@@ -235,7 +254,7 @@ int32_t generate_open_flag(uint64_t **flag, struct child_ctx *ctx)
     }
 
     ctx->arg_size_index[ctx->current_arg] = sizeof(int64_t);
-    
+
     return (0);
 }
 
@@ -254,54 +273,96 @@ int32_t generate_mode(uint64_t **mode, struct child_ctx *ctx)
     *mode = mem_alloc(12);
     if(*mode == NULL)
     {
-    	output(ERROR, "Can't alloc mode\n");
+        output(ERROR, "Can't alloc mode\n");
         return (-1);
     }
-    
+
     switch(number)
     {
-        case 0: **mode = 001; break;
-            
-        case 1: **mode = 002; break;
-            
-        case 2: **mode = 003; break;
-            
-        case 3: **mode = 004; break;
-            
-        case 4: **mode = 005; break;
-            
-        case 5: **mode = 006; break;
-            
-        case 6: **mode = 007; break;
-            
-        case 7: **mode = 010; break;
-            
-        case 8: **mode = 020; break;
-            
-        case 9: **mode = 030; break;
-            
-        case 10: **mode = 040; break;
-            
-        case 11: **mode = 050; break;
-            
-        case 12: **mode = 060; break;
-            
-        case 13: **mode = 070; break;
-            
-        case 14: **mode = 100; break;
-            
-        case 15: **mode = 200; break;
-            
-        case 16: **mode = 300; break;
-            
-        case 17: **mode = 400; break;
-            
-        case 18: **mode = 500; break;
-            
-        case 19: **mode = 600; break;
-            
-        case 20: **mode = 700; break;
-            
+        case 0:
+            **mode = 001;
+            break;
+
+        case 1:
+            **mode = 002;
+            break;
+
+        case 2:
+            **mode = 003;
+            break;
+
+        case 3:
+            **mode = 004;
+            break;
+
+        case 4:
+            **mode = 005;
+            break;
+
+        case 5:
+            **mode = 006;
+            break;
+
+        case 6:
+            **mode = 007;
+            break;
+
+        case 7:
+            **mode = 010;
+            break;
+
+        case 8:
+            **mode = 020;
+            break;
+
+        case 9:
+            **mode = 030;
+            break;
+
+        case 10:
+            **mode = 040;
+            break;
+
+        case 11:
+            **mode = 050;
+            break;
+
+        case 12:
+            **mode = 060;
+            break;
+
+        case 13:
+            **mode = 070;
+            break;
+
+        case 14:
+            **mode = 100;
+            break;
+
+        case 15:
+            **mode = 200;
+            break;
+
+        case 16:
+            **mode = 300;
+            break;
+
+        case 17:
+            **mode = 400;
+            break;
+
+        case 18:
+            **mode = 500;
+            break;
+
+        case 19:
+            **mode = 600;
+            break;
+
+        case 20:
+            **mode = 700;
+            break;
+
         default:
             output(ERROR, "Can't get mode\n");
             return (-1);
@@ -309,23 +370,23 @@ int32_t generate_mode(uint64_t **mode, struct child_ctx *ctx)
 
     ctx->arg_size_index[ctx->current_arg] = sizeof(int64_t);
 
-	return (0);
+    return (0);
 }
 
 int32_t generate_fs_stat(uint64_t **stat, struct child_ctx *ctx)
 {
-	struct statfs *stat_buf = mem_alloc(sizeof(struct statfs));
+    struct statfs *stat_buf = mem_alloc(sizeof(struct statfs));
     if(stat_buf == NULL)
     {
-    	output(ERROR, "Can't alloc stat\n");
-    	return (-1);
+        output(ERROR, "Can't alloc stat\n");
+        return (-1);
     }
 
     (*stat) = (uint64_t *)stat_buf;
 
     ctx->arg_size_index[ctx->current_arg] = sizeof(struct statfs);
 
-	return (0);
+    return (0);
 }
 
 int32_t generate_fs_stat_flag(uint64_t **flag, struct child_ctx *ctx)
@@ -336,22 +397,26 @@ int32_t generate_fs_stat_flag(uint64_t **flag, struct child_ctx *ctx)
     *flag = mem_alloc(12);
     if(*flag == NULL)
     {
-    	output(ERROR, "Can't alloc flag\n");
+        output(ERROR, "Can't alloc flag\n");
         return (-1);
     }
-    
+
     rtrn = rand_range(1, &number);
     if(rtrn < 0)
     {
         output(ERROR, "Can't generate random number\n");
         return (-1);
     }
-    
+
     switch(number)
     {
-        case 0: **flag = MNT_NOWAIT; break;
+        case 0:
+            **flag = MNT_NOWAIT;
+            break;
 
-        case 1: **flag = MNT_WAIT; break;
+        case 1:
+            **flag = MNT_WAIT;
+            break;
 
         default:
             output(ERROR, "Can't pick stat flag\n");
@@ -360,19 +425,19 @@ int32_t generate_fs_stat_flag(uint64_t **flag, struct child_ctx *ctx)
 
     ctx->arg_size_index[ctx->current_arg] = sizeof(int64_t);
 
-	return (0);
+    return (0);
 }
 
 int32_t generate_pid(uint64_t **pid, struct child_ctx *ctx)
 {
-	pid_t local_pid = 0;
+    pid_t local_pid = 0;
 
-	*pid = mem_alloc(sizeof(unsigned long));
-	if(*pid == NULL)
-	{
-		output(STD, "Can't alloc pid\n");
-		return (-1);
-	}
+    *pid = mem_alloc(sizeof(unsigned long));
+    if(*pid == NULL)
+    {
+        output(STD, "Can't alloc pid\n");
+        return (-1);
+    }
 
     local_pid = fork();
     if(local_pid == 0)
@@ -380,12 +445,11 @@ int32_t generate_pid(uint64_t **pid, struct child_ctx *ctx)
         /* Loop sleep until we our killed after we are used for a syscall argument. */
         while(1)
         {
-        	sleep(30);
+            sleep(30);
         }
     }
     else if(local_pid > 0)
     {
-        
     }
     else
     {
@@ -396,21 +460,21 @@ int32_t generate_pid(uint64_t **pid, struct child_ctx *ctx)
     (**pid) = (uint64_t)local_pid;
 
     ctx->arg_size_index[ctx->current_arg] = sizeof(int64_t);
-    
-	return (0);
+
+    return (0);
 }
 
 int32_t generate_int(uint64_t **integer, struct child_ctx *ctx)
 {
-	uint32_t number; 
+    uint32_t number;
     int32_t rtrn = 0;
 
-	*integer = mem_alloc(sizeof(uint64_t));
-	if(*integer == NULL)
-	{
-		output(ERROR, "Can't alloc int\n");
+    *integer = mem_alloc(sizeof(uint64_t));
+    if(*integer == NULL)
+    {
+        output(ERROR, "Can't alloc int\n");
         return (-1);
-	}
+    }
 
     rtrn = rand_range(INT_MAX, &number);
     if(rtrn < 0)
@@ -419,11 +483,11 @@ int32_t generate_int(uint64_t **integer, struct child_ctx *ctx)
         return (-1);
     }
 
-	(**integer) = (uint64_t)number;
+    (**integer) = (uint64_t)number;
 
     ctx->arg_size_index[ctx->current_arg] = sizeof(int64_t);
 
-	return (0);
+    return (0);
 }
 
 int32_t generate_rusage(uint64_t **usage, struct child_ctx *ctx)
@@ -433,46 +497,46 @@ int32_t generate_rusage(uint64_t **usage, struct child_ctx *ctx)
     buf = mem_alloc(sizeof(struct rusage));
     if(buf == NULL)
     {
-    	output(ERROR, "Can't alloc rusage\n");
-    	return (-1);
+        output(ERROR, "Can't alloc rusage\n");
+        return (-1);
     }
 
     (*usage) = (uint64_t *)buf;
 
     ctx->arg_size_index[ctx->current_arg] = sizeof(struct rusage);
 
-	return (0);
+    return (0);
 }
 
 int32_t generate_wait_option(uint64_t **option, struct child_ctx *ctx)
 {
-	int32_t rtrn = 0;
+    int32_t rtrn = 0;
     uint32_t number = 0;
 
     (*option) = mem_alloc(sizeof(unsigned long));
     if((*option) == NULL)
     {
-    	output(ERROR, "Can't alloc option\n");
+        output(ERROR, "Can't alloc option\n");
         return (-1);
     }
-    
+
     rtrn = rand_range(1, &number);
     if(rtrn < 0)
     {
         output(ERROR, "Can't generate random number\n");
         return (-1);
     }
-    
+
     switch(number)
     {
         case 0:
             **option = WUNTRACED;
             break;
-            
+
         case 1:
             **option = WNOHANG;
             break;
-            
+
         default:
             output(ERROR, "Should not get here\n");
             return (-1);
@@ -480,7 +544,7 @@ int32_t generate_wait_option(uint64_t **option, struct child_ctx *ctx)
 
     ctx->arg_size_index[ctx->current_arg] = sizeof(int64_t);
 
-	return (0);
+    return (0);
 }
 
 int32_t generate_whence(uint64_t **whence, struct child_ctx *ctx)
@@ -514,13 +578,13 @@ int32_t generate_whence(uint64_t **whence, struct child_ctx *ctx)
     }
 
 #endif
-    
+
     switch(number)
     {
         case 0:
             (**whence) = SEEK_SET;
             break;
-            
+
         case 1:
             **whence = SEEK_CUR;
             break;
@@ -529,7 +593,7 @@ int32_t generate_whence(uint64_t **whence, struct child_ctx *ctx)
             **whence = SEEK_END;
             break;
 
-    #ifdef FREEBSD
+#ifdef FREEBSD
 
         case 3:
             **whence = SEEK_HOLE;
@@ -539,10 +603,10 @@ int32_t generate_whence(uint64_t **whence, struct child_ctx *ctx)
             **whence = SEEK_DATA;
             break;
 
-    #else
-        /* Nothing */
-    #endif 
-            
+#else
+/* Nothing */
+#endif
+
         default:
             output(ERROR, "Should not get here\n");
             return (-1);
@@ -563,7 +627,7 @@ int32_t generate_offset(uint64_t **offset, struct child_ctx *ctx)
         output(ERROR, "mem_alloc\n");
         return (-1);
     }
-    
+
     rtrn = rand_range(INT_MAX, (uint32_t *)(*offset));
     if(rtrn < 0)
     {
@@ -583,14 +647,13 @@ int32_t generate_mountpath(uint64_t **path, struct child_ctx *ctx)
 
 int32_t generate_mount_type(uint64_t **type, struct child_ctx *ctx)
 {
-    
 
     return (0);
 }
 
 int32_t generate_dirpath(uint64_t **dirpath, struct child_ctx *ctx)
 {
-    (*dirpath) = (uint64_t *) get_dirpath();
+    (*dirpath) = (uint64_t *)get_dirpath();
     if((*dirpath) == NULL)
     {
         output(ERROR, "Can't get directory path\n");
@@ -606,20 +669,19 @@ int32_t generate_mount_flags(uint64_t **flag, struct child_ctx *ctx)
 {
     int32_t rtrn = 0;
     uint32_t number = 0;
-    
+
 #ifdef MAC_OSX
 
-    int32_t flags[] = { MNT_RDONLY, MNT_NOEXEC, MNT_NOSUID,
-                        MNT_NODEV, MNT_UNION, MNT_SYNCHRONOUS,
-                        MNT_CPROTECT };
+    int32_t flags[] = {MNT_RDONLY, MNT_NOEXEC,      MNT_NOSUID,  MNT_NODEV,
+                       MNT_UNION,  MNT_SYNCHRONOUS, MNT_CPROTECT};
 
     uint32_t range = 7;
 
 #endif
 #ifdef FREEBSD
 
-    int32_t flags[] = { MNT_RDONLY, MNT_NOEXEC, MNT_NOSUID,
-                        MNT_UNION, MNT_SYNCHRONOUS };
+    int32_t flags[] = {MNT_RDONLY, MNT_NOEXEC, MNT_NOSUID, MNT_UNION,
+                       MNT_SYNCHRONOUS};
 
     uint32_t range = 5;
 
@@ -630,7 +692,7 @@ int32_t generate_mount_flags(uint64_t **flag, struct child_ctx *ctx)
         output(ERROR, "Can't alloc mount flags\n");
         return (-1);
     }
-    
+
     rtrn = rand_range(range, &number);
     if(rtrn < 0)
     {
@@ -651,20 +713,19 @@ int32_t generate_unmount_flags(uint64_t **flag, struct child_ctx *ctx)
 {
     int32_t rtrn = 0;
     uint32_t number = 0;
-    
+
 #ifdef MAC_OSX
 
-    int32_t flags[] = { MNT_RDONLY, MNT_NOEXEC, MNT_NOSUID,
-                        MNT_NODEV, MNT_UNION, MNT_SYNCHRONOUS,
-                        MNT_CPROTECT };
+    int32_t flags[] = {MNT_RDONLY, MNT_NOEXEC,      MNT_NOSUID,  MNT_NODEV,
+                       MNT_UNION,  MNT_SYNCHRONOUS, MNT_CPROTECT};
 
     uint32_t range = 7;
 
 #endif
 #ifdef FREEBSD
 
-    int32_t flags[] = { MNT_RDONLY, MNT_NOEXEC, MNT_NOSUID,
-                        MNT_UNION, MNT_SYNCHRONOUS };
+    int32_t flags[] = {MNT_RDONLY, MNT_NOEXEC, MNT_NOSUID, MNT_UNION,
+                       MNT_SYNCHRONOUS};
 
     uint32_t range = 5;
 
@@ -676,7 +737,7 @@ int32_t generate_unmount_flags(uint64_t **flag, struct child_ctx *ctx)
         output(ERROR, "Can't alloc mount flags\n");
         return (-1);
     }
-    
+
     rtrn = rand_range(range, &number);
     if(rtrn < 0)
     {
@@ -700,29 +761,26 @@ int32_t generate_request(uint64_t **flag, struct child_ctx *ctx)
 
 #ifdef MAC_OSX
 
-    int32_t request[] = { PT_TRACE_ME, PT_DENY_ATTACH, PT_CONTINUE, 
-                          PT_STEP, PT_KILL, PT_ATTACH, PT_ATTACHEXC,
-                          PT_DETACH };
+    int32_t request[] = {PT_TRACE_ME, PT_DENY_ATTACH, PT_CONTINUE,  PT_STEP,
+                         PT_KILL,     PT_ATTACH,      PT_ATTACHEXC, PT_DETACH};
 
     uint32_t range = 7;
 
 #endif
 #ifdef FREEBSD
 
-    int32_t request[] = { PT_TRACE_ME, PT_READ_I, PT_WRITE_I,
-                          PT_IO, PT_CONTINUE, PT_STEP, PT_KILL,
-                          PT_ATTACH, PT_DETACH, PT_GETREGS, 
-                          PT_SETREGS, PT_GETFPREGS, PT_SETFPREGS,
-                          PT_GETDBREGS, PT_SETDBREGS, PT_LWPINFO,
-                          PT_GETNUMLWPS, PT_GETLWPLIST, PT_SETSTEP,
-                          PT_CLEARSTEP, PT_SUSPEND, PT_RESUME,
-                          PT_TO_SCE, PT_TO_SCX, PT_SYSCALL,
-                          PT_FOLLOW_FORK, PT_VM_TIMESTAMP,
-                          PT_VM_ENTRY };
+    int32_t request[] = {
+        PT_TRACE_ME,   PT_READ_I,      PT_WRITE_I,      PT_IO,
+        PT_CONTINUE,   PT_STEP,        PT_KILL,         PT_ATTACH,
+        PT_DETACH,     PT_GETREGS,     PT_SETREGS,      PT_GETFPREGS,
+        PT_SETFPREGS,  PT_GETDBREGS,   PT_SETDBREGS,    PT_LWPINFO,
+        PT_GETNUMLWPS, PT_GETLWPLIST,  PT_SETSTEP,      PT_CLEARSTEP,
+        PT_SUSPEND,    PT_RESUME,      PT_TO_SCE,       PT_TO_SCX,
+        PT_SYSCALL,    PT_FOLLOW_FORK, PT_VM_TIMESTAMP, PT_VM_ENTRY};
 
     uint32_t range = 28;
 
-#endif                        
+#endif
 
     (*flag) = mem_alloc(sizeof(uint64_t));
     if((*flag) == NULL)
@@ -730,7 +788,7 @@ int32_t generate_request(uint64_t **flag, struct child_ctx *ctx)
         output(ERROR, "Can't alloc mount flags\n");
         return (-1);
     }
-    
+
     rtrn = rand_range(range, &number);
     if(rtrn < 0)
     {
@@ -756,20 +814,20 @@ int32_t generate_recv_flags(uint64_t **flag, struct child_ctx *ctx)
         output(ERROR, "Can't alloc mount flags\n");
         return (-1);
     }
-    
+
     rtrn = rand_range(2, &number);
     if(rtrn < 0)
     {
         output(ERROR, "Can't generate random number\n");
         return (-1);
     }
-    
+
     switch(number)
     {
         case 0:
             (**flag) = MSG_OOB;
             break;
-            
+
         case 1:
             (**flag) = MSG_PEEK;
             break;
@@ -777,7 +835,7 @@ int32_t generate_recv_flags(uint64_t **flag, struct child_ctx *ctx)
         case 2:
             (**flag) = MSG_WAITALL;
             break;
-            
+
         default:
             output(ERROR, "Should not get here\n");
             return (-1);

@@ -14,11 +14,11 @@
  **/
 
 #include "genetic.h"
-#include "syscall/syscall.h"
-#include "memory/memory.h"
 #include "crypto/crypto.h"
-#include "job.h"
 #include "io/io.h"
+#include "job.h"
+#include "memory/memory.h"
+#include "syscall/syscall.h"
 
 #include <dtrace.h>
 #include <errno.h>
@@ -99,7 +99,8 @@ static int32_t init_world(void)
     world->current_generation = 0;
 
     /* Allocate index of species context pointers. */
-    world->species = mem_alloc((world->number_of_species) * sizeof(struct species_ctx *));
+    world->species =
+        mem_alloc((world->number_of_species) * sizeof(struct species_ctx *));
     if(world->species == NULL)
     {
         output(ERROR, "Can't create species index\n");
@@ -122,7 +123,7 @@ static int32_t init_world(void)
             .average_species_fitness = 0,
 
             /* Init the organism list. */
-            .organism_list = NX_SLIST_HEAD_INITIALIZER(ctx ->organism_list)
+            .organism_list = NX_SLIST_HEAD_INITIALIZER(ctx->organism_list)
 
         };
 
@@ -216,7 +217,6 @@ static int32_t submit_job(struct job_ctx *job)
     return (0);
 }
 
-
 static int32_t create_first_generation(void)
 {
     output(STD, "Creating first generation\n");
@@ -300,13 +300,13 @@ static void god_loop(void)
     Each loop creates a new generation. */
     while(atomic_load(stop) != TRUE)
     {
-        
     }
-    
+
     return;
 }
 
-int32_t setup_genetic_module(enum genetic_mode mode, pid_t *pid, atomic_int_fast32_t *stop_ptr)
+int32_t setup_genetic_module(enum genetic_mode mode, pid_t *pid,
+                             atomic_int_fast32_t *stop_ptr)
 {
     pid_t god_pid = 0;
 
@@ -320,18 +320,18 @@ int32_t setup_genetic_module(enum genetic_mode mode, pid_t *pid, atomic_int_fast
         (*pid) = getpid();
 
         /* Start main genetic algo loop. */
-    	god_loop();
+        god_loop();
 
         /* Exit and cleanup. */
         _exit(0);
     }
     else if(god_pid > 0)
     {
-    	return (0);
+        return (0);
     }
     else
     {
-    	output(ERROR, "Failed to fork god process: %s\n", strerror(errno));
-    	return (-1);
+        output(ERROR, "Failed to fork god process: %s\n", strerror(errno));
+        return (-1);
     }
 }

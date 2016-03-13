@@ -17,9 +17,4 @@
 
 #include "disas-mac.h"
 
-int32_t get_load_address(uint64_t *main_addr)
-{
-   
-
-    return (0);
-}
+int32_t get_load_address(uint64_t *main_addr) { return (0); }

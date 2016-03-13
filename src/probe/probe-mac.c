@@ -14,20 +14,20 @@
  **/
 
 #include "probe-mac.h"
-#include "utils/utils.h"
 #include "io/io.h"
+#include "utils/utils.h"
 
+#include <errno.h>
 #include <mach/mach.h>
 #include <mach/mach_types.h>
-#include <errno.h>
 
 static pid_t pid;
 
-static char *const args[] = { NULL, NULL };
+static char *const args[] = {NULL, NULL};
 
 static int32_t start_target(char *path)
 {
-	int32_t rtrn = 0;
+    int32_t rtrn = 0;
 
     /* Get our PID. */
     pid = getpid();
@@ -48,58 +48,58 @@ static int32_t start_target(char *path)
         return (-1);
     }
 
-	return (0);
+    return (0);
 }
 
 static int32_t pause_target(pid_t target_pid)
 {
-	task_t target_task;
-	kern_return_t kr = 0;
+    task_t target_task;
+    kern_return_t kr = 0;
 
     /* Grab target process's task port. */
-	kr = task_for_pid(mach_task_self(), target_pid, &target_task);
-	if(kr != KERN_SUCCESS)
-	{
-		mach_error("Can't get target task port\n", kr);
-		return (-1);
-	}
+    kr = task_for_pid(mach_task_self(), target_pid, &target_task);
+    if(kr != KERN_SUCCESS)
+    {
+        mach_error("Can't get target task port\n", kr);
+        return (-1);
+    }
 
     /* Pause the target process. */
-	kr = task_suspend(target_task);
-	if(kr != KERN_SUCCESS)
-	{
-		mach_error("Can't suspend target process\n", kr);
-		return (-1);
-	}
+    kr = task_suspend(target_task);
+    if(kr != KERN_SUCCESS)
+    {
+        mach_error("Can't suspend target process\n", kr);
+        return (-1);
+    }
 
-	return (0);
+    return (0);
 }
 
 int32_t start_and_pause_target(char *path, pid_t *target_pid)
 {
-	int32_t rtrn = 0;
+    int32_t rtrn = 0;
 
-	pid = fork();
+    pid = fork();
     if(pid == 0)
     {
-    	rtrn = start_target(path);
-    	if(rtrn < 0)
-    	{
-    		output(ERROR, "Can't start target process\n");
-    		return (-1);
-    	}
-       
+        rtrn = start_target(path);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't start target process\n");
+            return (-1);
+        }
+
         /* Exit child process and cleanup. */
         _exit(0);
     }
     else if(pid > 0)
     {
-    	rtrn = pause_target(pid);
-    	if(rtrn < 0)
-    	{
-    		output(ERROR, "Can't pause target process\n");
-    		return (-1);
-    	}
+        rtrn = pause_target(pid);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't pause target process\n");
+            return (-1);
+        }
 
         (*target_pid) = pid;
 
@@ -107,24 +107,24 @@ int32_t start_and_pause_target(char *path, pid_t *target_pid)
     }
     else
     {
-    	output(ERROR, "Can't start and pause target process\n");
-    	return (-1);
+        output(ERROR, "Can't start and pause target process\n");
+        return (-1);
     }
 }
 
 int32_t inject_fork_server(uint64_t main_address)
 {
-	task_t target_task;
-	kern_return_t kr = 0;
-	pointer_t op;
+    task_t target_task;
+    kern_return_t kr = 0;
+    pointer_t op;
 
     /* Grab target process's task port. */
-	kr = task_for_pid(mach_task_self(), pid, &target_task);
-	if(kr != KERN_SUCCESS)
-	{
-		mach_error("Can't get target task port\n", kr);
-		return (-1);
-	}
+    kr = task_for_pid(mach_task_self(), pid, &target_task);
+    if(kr != KERN_SUCCESS)
+    {
+        mach_error("Can't get target task port\n", kr);
+        return (-1);
+    }
 
     //mach_vm_read(target_task, ,op)
 

@@ -15,16 +15,16 @@
 
 #include "log.h"
 #include "io/io.h"
-#include "platform.h"
 #include "memory/memory.h"
+#include "platform.h"
 #include "syscall/arg_types.h"
 #include "utils/utils.h"
 
-#include <stdio.h>
+#include <assert.h>
 #include <errno.h>
+#include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
-#include <assert.h>
 
 static char *out_dir_path;
 
@@ -34,7 +34,8 @@ int32_t log_file(char *file_path, char *file_extension)
     char *out_path auto_free = NULL;
 
     /* Create out file path. */
-    rtrn = asprintf(&out_path, "%s/last_file_run.%s", out_dir_path, file_extension);
+    rtrn = asprintf(&out_path, "%s/last_file_run.%s", out_dir_path,
+                    file_extension);
     if(rtrn < 0)
     {
         output(ERROR, "Can't create out path: %s\n", strerror(errno));
@@ -48,7 +49,7 @@ int32_t log_file(char *file_path, char *file_extension)
         output(ERROR, "Can't copy file to the out directory\n");
         return (-1);
     }
-    
+
     return (0);
 }
 
@@ -88,7 +89,7 @@ int32_t create_out_directory(char *path)
 
     out_dir_path = crash_dir;
 
-	return (0);
+    return (0);
 }
 
 int log_results(struct log_obj *obj)
@@ -98,7 +99,8 @@ int log_results(struct log_obj *obj)
 
     if(obj->had_error == NX_YES)
     {
-        rtrn = asprintf(&out_buf, "%s= %d (%s) %s\n", BOLD_RED, obj->ret_value, obj->err_value, RESET);
+        rtrn = asprintf(&out_buf, "%s= %d (%s) %s\n", BOLD_RED, obj->ret_value,
+                        obj->err_value, RESET);
         if(rtrn < 0)
         {
             output(ERROR, "Can't create out message\n");
@@ -107,7 +109,8 @@ int log_results(struct log_obj *obj)
     }
     else
     {
-        rtrn = asprintf(&out_buf, "%s= %d %s\n", BOLD_GREEN, obj->ret_value, RESET);
+        rtrn = asprintf(&out_buf, "%s= %d %s\n", BOLD_GREEN, obj->ret_value,
+                        RESET);
         if(rtrn < 0)
         {
             output(ERROR, "Can't create out message\n");

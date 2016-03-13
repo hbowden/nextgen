@@ -16,8 +16,8 @@
 #include "io.h"
 #include "utils/utils.h"
 
-#include <string.h>
 #include <errno.h>
+#include <string.h>
 #include <sys/stat.h>
 
 void output(enum out_type type, const char *format, ...)
@@ -28,18 +28,18 @@ void output(enum out_type type, const char *format, ...)
 
     switch((int32_t)type)
     {
-	case ERROR:
+        case ERROR:
             vfprintf(stderr, format, args);
-	    break;
+            break;
 
-	case STD:
+        case STD:
             vfprintf(stdout, format, args);
             break;
 
         /* We default to stdout when ERROR or STD is not set so that
         we don't have any errors. */
-	default:
-	    vfprintf(stdout, format, args);
+        default:
+            vfprintf(stdout, format, args);
             break;
     }
 
@@ -60,7 +60,7 @@ int32_t get_file_size(int32_t fd, uint64_t *size)
         return (-1);
     }
 
-    (*size) = (uint64_t) stbuf.st_size;
+    (*size) = (uint64_t)stbuf.st_size;
 
     return (0);
 }
@@ -73,16 +73,16 @@ int32_t map_file_in(int32_t fd, char **buf, uint64_t *size, int32_t perm)
     rtrn = get_file_size(fd, size);
     if(rtrn < 0)
     {
-    	output(ERROR, "Can't get file size\n");
-    	return (-1);
+        output(ERROR, "Can't get file size\n");
+        return (-1);
     }
 
     /* Use MAP_SHARED otherwise the file won't change when we write it to disk. */
-    (*buf) = mmap(0, (unsigned long) (*size), perm, MAP_SHARED, fd, 0);
+    (*buf) = mmap(0, (unsigned long)(*size), perm, MAP_SHARED, fd, 0);
     if((*buf) == MAP_FAILED)
     {
-    	output(ERROR, "mmap: %s\n", strerror(errno));
-    	return (-1);
+        output(ERROR, "mmap: %s\n", strerror(errno));
+        return (-1);
     }
 
     return (0);
@@ -95,28 +95,29 @@ int32_t map_file_out(char *path, char *buf, uint64_t size)
     fd = open(path, O_RDWR | O_CREAT | O_TRUNC, 0777);
     if(fd < 0)
     {
-    	output(ERROR, "open: %s\n", strerror(errno));
-    	return (-1);
+        output(ERROR, "open: %s\n", strerror(errno));
+        return (-1);
     }
 
     if(lseek(fd, (int64_t)size - 1, SEEK_SET) == -1)
     {
-    	output(ERROR, "lseek: %s\n", strerror(errno));
-    	return (-1);
+        output(ERROR, "lseek: %s\n", strerror(errno));
+        return (-1);
     }
 
     ssize_t ret = write(fd, "", 1);
     if(ret != 1)
     {
-    	output(ERROR, "write: %s\n", strerror(errno));
-    	return (-1);
+        output(ERROR, "write: %s\n", strerror(errno));
+        return (-1);
     }
 
-    char *dst = mmap(0, (unsigned long) size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    char *dst =
+        mmap(0, (unsigned long)size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if(dst == MAP_FAILED)
     {
-    	output(ERROR, "mmap: %s\n", strerror(errno));
-    	return (-1);
+        output(ERROR, "mmap: %s\n", strerror(errno));
+        return (-1);
     }
 
     memcpy(dst, buf, (unsigned long)size);

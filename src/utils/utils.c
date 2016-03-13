@@ -14,20 +14,20 @@
  **/
 
 #include "utils.h"
-#include "memory/memory.h"
 #include "crypto/crypto.h"
 #include "io/io.h"
+#include "memory/memory.h"
 
-#include <stdio.h>
-#include <stdint.h>
-#include <fcntl.h>
-#include <string.h>
-#include <sys/wait.h>
-#include <sys/sysctl.h>
-#include <sys/mman.h>
-#include <sys/syslimits.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <pwd.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/mman.h>
+#include <sys/sysctl.h>
+#include <sys/syslimits.h>
+#include <sys/wait.h>
 
 int32_t check_root(void)
 {
@@ -100,9 +100,9 @@ int32_t get_core_count(uint32_t *core_count)
     }
 
     if((*core_count) < 1)
-    	(*core_count) = (uint32_t) 1;
+        (*core_count) = (uint32_t)1;
 
-	return (0);
+    return (0);
 }
 
 int32_t generate_name(char **name, char *extension, enum name_type type)
@@ -111,7 +111,7 @@ int32_t generate_name(char **name, char *extension, enum name_type type)
     int32_t rtrn = 0;
     char *random_data auto_free = NULL;
     char *tmp_buf auto_free = NULL;
-    
+
     /* Create some space in memory. */
     random_data = mem_alloc(PATH_MAX + 1);
     if(random_data == NULL)
@@ -119,7 +119,7 @@ int32_t generate_name(char **name, char *extension, enum name_type type)
         output(ERROR, "Can't Allocate Space\n");
         return (-1);
     }
-    
+
     /* Grab some random bytes. */
     rtrn = rand_bytes(&random_data, (PATH_MAX));
     if(rtrn < 0)
@@ -130,7 +130,7 @@ int32_t generate_name(char **name, char *extension, enum name_type type)
 
     /* Null terminate the random byte string. */
     random_data[PATH_MAX] = '\0';
-    
+
     /* SHA256 hash the random output string. */
     rtrn = sha256(random_data, &tmp_buf);
     if(rtrn < 0)
@@ -140,7 +140,7 @@ int32_t generate_name(char **name, char *extension, enum name_type type)
     }
 
     char *pointer = strrchr(extension, '.');
-    
+
     switch((int32_t)type)
     {
         case DIR_NAME:
@@ -151,7 +151,7 @@ int32_t generate_name(char **name, char *extension, enum name_type type)
                 return (-1);
             }
             break;
-            
+
         case FILE_NAME:
 
             /* Check for a period in the extension string passed by the user. */
@@ -166,11 +166,12 @@ int32_t generate_name(char **name, char *extension, enum name_type type)
                     output(ERROR, "Can't create extension string\n");
                     return (-1);
                 }
-                
+
                 rtrn = asprintf(name, "%s%s", tmp_buf, ext);
                 if(rtrn < 0)
                 {
-                    output(ERROR, "Can't create file path: %s\n", strerror(errno));
+                    output(ERROR, "Can't create file path: %s\n",
+                           strerror(errno));
                     return (-1);
                 }
 
@@ -184,7 +185,7 @@ int32_t generate_name(char **name, char *extension, enum name_type type)
                 return (-1);
             }
             break;
-            
+
         default:
             output(ERROR, "Should not get here\n");
             return (-1);
@@ -198,30 +199,31 @@ int32_t get_home(char **home)
     uid_t uid = 0;
     struct passwd *pwd = NULL;
     int32_t rtrn = 0;
-    
+
     /* Get User UID */
     uid = getuid();
-    
+
     /* Get user password struct */
     if(!(pwd = getpwuid(uid)))
     {
         output(ERROR, "Can't Get pwd struct: %s\n", strerror(errno));
         return (-1);
     }
-    
+
     /* Copy User Home Directory to buffer supplied to function */
     rtrn = asprintf(home, "%s", pwd->pw_dir);
     if(rtrn < 0)
     {
         output(ERROR, "Can't Create home string: %s\n", strerror(errno));
-        return (-1);  
+        return (-1);
     }
-    
+
     /* Exit function. */
     return (0);
 }
 
-int32_t ascii_to_binary(char *input, char **out, uint64_t input_len, uint64_t *out_len)
+int32_t ascii_to_binary(char *input, char **out, uint64_t input_len,
+                        uint64_t *out_len)
 {
     uint32_t i;
 
@@ -251,10 +253,10 @@ int32_t ascii_to_binary(char *input, char **out, uint64_t input_len, uint64_t *o
         char *o = &(*out)[8 * i];
         unsigned char b;
 
-        for (b = 0x80; b; b >>= 1)
+        for(b = 0x80; b; b >>= 1)
             *o++ = ch & b ? '1' : '0';
     }
-        
+
     /* null terminate the binary string. */
     (*out)[(*out_len)] = '\0';
 
@@ -305,7 +307,7 @@ int32_t create_random_file(char *root, char *ext, char **path, uint64_t *size)
             return (-1);
         }
     }
-   
+
     /* Join paths together. */
     rtrn = asprintf(path, "%s/%s", root, name);
     if(rtrn < 0)
@@ -349,7 +351,8 @@ int32_t create_random_file(char *root, char *ext, char **path, uint64_t *size)
     return (0);
 }
 
-int32_t binary_to_ascii(char *input, char **out, uint64_t input_len, uint64_t *out_len)
+int32_t binary_to_ascii(char *input, char **out, uint64_t input_len,
+                        uint64_t *out_len)
 {
     if(input_len == 0)
     {
@@ -365,7 +368,7 @@ int32_t binary_to_ascii(char *input, char **out, uint64_t input_len, uint64_t *o
         output(ERROR, "Can't allocate binary string\n");
         return (-1);
     }
-  
+
     (*out)[(*out_len)] = '\0';
 
     return (0);
