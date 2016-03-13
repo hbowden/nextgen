@@ -1,4 +1,4 @@
-SOURCES = log.c
+SOURCES = $(ROOT_DIR)/src/log/log.c
 
 INCLUDES = -I../ -I../../deps/$(CK)/include \
            -isystem ../../deps/$(CK)/include
@@ -16,7 +16,7 @@ FLAGS = -DFREEBSD -shared -fPIC -Wall -Werror -Weverything -Wpedantic -g -O3 -st
 
 LIB = ../io/libnxio.so ../memory/libnxmemory.so
       
-SOURCES += log-freebsd.c
+SOURCES += $(ROOT_DIR)/src/log/log-freebsd.c
 
 LIB_NAME = libnxlog.so
 
@@ -33,7 +33,7 @@ FLAGS = -dynamiclib -DMAC_OSX -Wall -Werror -Weverything -Wpedantic -g -O3 -std=
 
 LIB = ../io/libnxio.dylib ../memory/libnxmemory.dylib
 
-SOURCES += log-mac.c
+SOURCES += $(ROOT_DIR)/src/log/log-mac.c
       
 LIB_NAME = libnxlog.dylib
 
@@ -48,3 +48,8 @@ clean:
 
 	rm -rf $(LIB_NAME)
 	rm -rf *.dSYM
+
+.PHONY: format
+format:
+
+	cd $(ROOT_DIR) && clang-format -i -style=file $(SOURCES)

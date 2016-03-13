@@ -1,4 +1,4 @@
-SOURCES = probe.c 
+SOURCES = $(ROOT_DIR)/src/probe/probe.c 
 
 INCLUDES = -I../ -I../../deps/$(CK)/include -I../../deps/$(CK)/include \
            -isystem ../../deps/$(CK)/include
@@ -23,7 +23,7 @@ FLAGS = -DFREEBSD -shared -fPIC -Wall -Werror -Weverything -Wpedantic -g -O3 -st
 LIB = ../io/libnxio.so ../memory/libnxmemory.so \
       -ldtrace ../utils/libnxutils.so 
 
-SOURCES += probe-freebsd.c
+SOURCES += $(ROOT_DIR)/src/probe/probe-freebsd.c
 
 LIB_NAME = libnxprobe.so
 
@@ -40,7 +40,7 @@ FLAGS = -dynamiclib -DMAC_OSX  -Wall -Werror -Weverything -Wpedantic -g -O3 -std
 LIB = ../io/libnxio.dylib ../memory/libnxmemory.dylib \
       -ldtrace ../utils/libnxutils.dylib
 
-SOURCES += probe-mac.c
+SOURCES += $(ROOT_DIR)/src/probe/probe-mac.c
 
 LIB_NAME = libnxprobe.dylib
 
@@ -55,3 +55,8 @@ clean:
 
 	rm -rf $(LIB_NAME)
 	rm -rf *.dSYM
+
+.PHONY: format
+format:
+
+	cd $(ROOT_DIR) && clang-format -i -style=file $(SOURCES)

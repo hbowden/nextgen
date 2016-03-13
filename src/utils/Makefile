@@ -1,4 +1,4 @@
-SOURCES = utils.c
+SOURCES = $(ROOT_DIR)/src/utils/utils.c
 
 INCLUDES = -I../ -I../../deps/$(LIBRESSL)/include \
            -I../../deps/$(CK)/include \
@@ -46,3 +46,8 @@ clean:
 
 	rm -rf $(LIB_NAME)
 	rm -rf *.dSYM
+
+.PHONY: format
+format:
+
+	cd $(ROOT_DIR) && clang-format -i -style=file $(SOURCES)

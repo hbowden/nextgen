@@ -1,4 +1,4 @@
-SOURCES = disas.c
+SOURCES = $(ROOT_DIR)/src/disas/disas.c
 
 INCLUDES = -I../ -I../../deps/$(CK)/include \
            -I../../deps/$(CAPSTONE)/include \
@@ -20,7 +20,7 @@ LIB = ../io/libnxio.so ../memory/libnxmemory.so \
 
 LIB_NAME = libnxdisas.so
 
-SOURCES += disas-freebsd.c
+SOURCES += $(ROOT_DIR)/src/disas/disas-freebsd.c
 
 endif
 
@@ -37,7 +37,7 @@ LIB = ../io/libnxio.dylib ../memory/libnxmemory.dylib \
 
 LIB_NAME = libnxdisas.dylib ../../deps/capstone-3.0.4/libcapstone.a
 
-SOURCES += disas-mac.c
+SOURCES += $(ROOT_DIR)/src/disas/disas-mac.c
 
 endif
 
@@ -50,3 +50,8 @@ clean:
 
 	rm -rf $(LIB_NAME)
 	rm -rf *.dSYM
+
+.PHONY: format
+format:
+
+	cd $(ROOT_DIR) && clang-format -i -style=file $(SOURCES)

@@ -1,5 +1,7 @@
-SOURCES = syscall.c arg_types.c generate.c \
-          signals.c
+SOURCES = $(ROOT_DIR)/src/syscall/syscall.c \
+          $(ROOT_DIR)/src/syscall/arg_types.c \
+          $(ROOT_DIR)/src/syscall/generate.c \
+          $(ROOT_DIR)/src/syscall/signals.c
 
 OPERATING_SYSTEM = $(shell uname)
 
@@ -32,7 +34,7 @@ LIB = ../io/libnxio.so ../memory/libnxmemory.so \
 
 LIB_NAME = libnxsyscall.so
 
-SOURCES += syscall-freebsd.c
+SOURCES += $(ROOT_DIR)/src/syscall/syscall-freebsd.c
 
 endif
 
@@ -58,7 +60,7 @@ LIB = ../io/libnxio.dylib ../memory/libnxmemory.dylib \
 
 LIB_NAME = libnxsyscall.dylib
 
-SOURCES += syscall-mac.c
+SOURCES += $(ROOT_DIR)/src/syscall/syscall-mac.c
 
 endif
 
@@ -71,3 +73,8 @@ clean:
 
 	rm -rf $(LIB_NAME)
 	rm -rf *.dSYM
+
+.PHONY: format
+format:
+
+	cd $(ROOT_DIR) && clang-format -i -style=file $(SOURCES)

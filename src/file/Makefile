@@ -1,4 +1,4 @@
-SOURCES = file.c
+SOURCES = $(ROOT_DIR)/src/file/file.c
 
 INCLUDES = -I../ -I../../deps/$(CK)/include \
            -isystem ../../deps/$(CK)/include
@@ -46,7 +46,7 @@ LIB = -lobjc ../io/libnxio.dylib ../memory/libnxmemory.dylib \
 
 LIB_NAME = libnxfile.dylib
 
-SOURCES += file-mac.m
+SOURCES += $(ROOT_DIR)/src/file/file-mac.m
 
 endif
 
@@ -59,3 +59,8 @@ clean:
 
 	rm -rf $(LIB_NAME)
 	rm -rf *.dSYM
+
+.PHONY: format
+format:
+
+	cd $(ROOT_DIR) && clang-format -i -style=file $(SOURCES)

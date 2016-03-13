@@ -1,5 +1,5 @@
 
-SOURCES = io.c
+SOURCES = $(ROOT_DIR)/src/io/io.c
 
 INCLUDES = -I../
 
@@ -39,3 +39,8 @@ clean:
 	rm -rf $(LIB_NAME)
 	rm -rf *.dSYM
 	rm -rf *.dylib
+
+.PHONY: format
+format:
+
+	cd $(ROOT_DIR) && clang-format -i -style=file $(SOURCES)

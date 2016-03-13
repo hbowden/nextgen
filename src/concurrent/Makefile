@@ -1,5 +1,5 @@
 
-SOURCES = concurrent.c
+SOURCES = $(ROOT_DIR)/src/concurrent/concurrent.c
 
 INCLUDES = -I../ -I../../deps/$(CK)/include \
            -isystem ../../deps/$(CK)/include
@@ -9,7 +9,7 @@ OPERATING_SYSTEM = $(shell uname)
 # FreeBSD build options.
 ifeq ($(OPERATING_SYSTEM), FreeBSD)
 
-SOURCES += concurrent-freebsd.c
+SOURCES += $(ROOT_DIR)/src/concurrent/concurrent-freebsd.c
 
 SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-padded \
                     -Wno-format-nonliteral -Wno-gnu-statement-expression \
@@ -26,7 +26,7 @@ endif
 # Mac OSX build options.
 ifeq ($(OPERATING_SYSTEM), Darwin)
 
-SOURCES += concurrent-mac.c
+SOURCES += $(ROOT_DIR)/src/concurrent/concurrent-mac.c
 
 SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-padded \
                     -Wno-format-nonliteral -Wno-gnu-statement-expression \
@@ -49,3 +49,8 @@ clean:
 
 	rm -rf $(LIB_NAME)
 	rm -rf *.dSYM
+
+.PHONY: format
+format:
+
+	cd $(ROOT_DIR) && clang-format -i -style=file $(SOURCES)

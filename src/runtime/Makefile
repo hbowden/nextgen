@@ -1,5 +1,6 @@
 
-SOURCES = runtime.c nextgen.c
+SOURCES = $(ROOT_DIR)/src/runtime/runtime.c \
+          $(ROOT_DIR)/src/runtime/nextgen.c
 
 INCLUDES = -I../ -I../../deps/$(CK)/include \
            -isystem ../../deps/$(CK)/include
@@ -63,3 +64,8 @@ clean:
 
 	rm -rf $(LIB_NAME)
 	rm -rf *.dSYM
+
+.PHONY: format
+format:
+
+	cd $(ROOT_DIR) && clang-format -i -style=file $(SOURCES)

@@ -129,6 +129,24 @@ BUILD_DEPS = cd deps/$(CK) && ./configure && $(MAKE) && \
 	         cd deps/$(CAPSTONE) && $(MAKE) && \
 	         cd deps/$(LIBRESSL) && ./configure && $(MAKE);
 
+FORMAT_SOURCE = cd $(ROOT_DIR)/src/io && $(MAKE) format && \
+                cd $(ROOT_DIR)/src/memory && $(MAKE) format && \
+                cd $(ROOT_DIR)/src/concurrent && $(MAKE) format && \
+                cd $(ROOT_DIR)/src/crypto && $(MAKE) format && \
+                cd $(ROOT_DIR)/src/utils && $(MAKE) format && \
+                cd $(ROOT_DIR)/src/probe && $(MAKE) format && \
+                cd $(ROOT_DIR)/src/network && $(MAKE) format && \
+                cd $(ROOT_DIR)/src/plugins && $(MAKE) format && \
+                cd $(ROOT_DIR)/src/mutate && $(MAKE) format && \
+                cd $(ROOT_DIR)/src/resource && $(MAKE) format && \
+                cd $(ROOT_DIR)/src/log && $(MAKE) format && \
+                cd $(ROOT_DIR)/src/syscall && $(MAKE) format && \
+                cd $(ROOT_DIR)/src/genetic && $(MAKE) format && \
+                cd $(ROOT_DIR)/src/reaper && $(MAKE) format && \
+                cd $(ROOT_DIR)/src/file && $(MAKE) format && \
+                cd $(ROOT_DIR)/src/disas && $(MAKE) format && \
+                cd $(ROOT_DIR)/src/runtime && $(MAKE) format
+
 export CK LIBRESSL CAPSTONE ROOT_DIR PLATFORM FLAGS SILENCED_WARNINGS
 
 all:
@@ -142,6 +160,10 @@ all:
 test:
 
 	./test_suite
+
+format:
+
+	$(FORMAT_SOURCE)
 
 quick:
 

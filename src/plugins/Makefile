@@ -1,4 +1,4 @@
-SOURCES = plugin.c
+SOURCES = $(ROOT_DIR)/src/plugins/plugin.c
 
 INCLUDES = -I../ -I../../deps/$(CK)/include \
            -isystem ../../deps/$(CK)/include
@@ -33,7 +33,6 @@ LIB = ../io/libnxio.dylib ../memory/libnxmemory.dylib \
       
 LIB_NAME = libnxplugin.dylib
 
-
 endif
 
 all:
@@ -45,3 +44,8 @@ clean:
 
 	rm -rf $(LIB_NAME)
 	rm -rf *.dSYM
+
+.PHONY: format
+format:
+
+	cd $(ROOT_DIR) && clang-format -i -style=file $(SOURCES)
