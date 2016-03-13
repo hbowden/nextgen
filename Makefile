@@ -129,6 +129,10 @@ BUILD_DEPS = cd deps/$(CK) && ./configure && $(MAKE) && \
 	         cd deps/$(CAPSTONE) && $(MAKE) && \
 	         cd deps/$(LIBRESSL) && ./configure && $(MAKE);
 
+TEST_DEPS =  cd deps/$(LIBRESSL) && $(MAKE) check && \
+	         cd deps/$(CK) && $(MAKE) check && \
+	         cd deps/$(CAPSTONE) && $(MAKE) check
+
 FORMAT_SOURCE = cd $(ROOT_DIR)/src/io && $(MAKE) format && \
                 cd $(ROOT_DIR)/src/memory && $(MAKE) format && \
                 cd $(ROOT_DIR)/src/concurrent && $(MAKE) format && \
@@ -157,8 +161,13 @@ all:
 
 	$(CC) $(FLAGS) $(SOURCES) $(LIB) $(INCLUDE) $(SILENCED_WARNINGS) -o $(PROG)
 
+test-quick:
+
+	./test_suite
+
 test:
 
+	$(TEST_DEPS)
 	./test_suite
 
 format:
