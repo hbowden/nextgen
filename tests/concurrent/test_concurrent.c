@@ -38,8 +38,16 @@
     _exit(0);
 } */
 
+static char *note = "test";
+
 static void *thread_start(void *arg)
 {
+    int32_t rtrn = 0;
+    msg_port_t *port = (msg_port_t *)arg;
+
+    rtrn = msg_send((*port), note, 4);
+    assert_stat(rtrn == 0);
+
     return (NULL);
 }
 
