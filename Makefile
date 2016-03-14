@@ -125,9 +125,8 @@ CLEAN_SUITE = cd $(ROOT_DIR)/tests/crypto && $(MAKE) clean && \
 	          cd $(ROOT_DIR)/tests/generate && $(MAKE) clean && \
 	          cd $(ROOT_DIR)/tests/runtime && $(MAKE) clean
 
-BUILD_DEPS = cd deps/$(CK) && ./configure && $(MAKE) && \
-	         cd deps/$(CAPSTONE) && $(MAKE) && \
-	         cd deps/$(LIBRESSL) && ./configure && $(MAKE);
+BUILD_DEPS = cd $(ROOT_DIR)/deps/$(CAPSTONE) && $(MAKE) && \
+	         cd $(ROOT_DIR)/deps/$(LIBRESSL) && ./configure && $(MAKE);
 
 TEST_DEPS =  cd deps/$(LIBRESSL) && $(MAKE) check && \
 	         cd deps/$(CK) && $(MAKE) check && \
