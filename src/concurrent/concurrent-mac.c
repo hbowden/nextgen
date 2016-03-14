@@ -16,14 +16,17 @@
 #include "concurrent.h"
 #include "io/io.h"
 
+#include <mach/message.h>
 #include <stdlib.h>
 
 #define SPECIAL_PORT TASK_BOOTSTRAP_PORT
 
-struct ool_msg_ctx
+struct ool_msg
 {
-    mach_msg_header_t h;
-    void *data;
+    mach_msg_header_t header;
+    mach_msg_body_t body;
+    mach_msg_ool_descriptor_t data;
+    mach_msg_type_number_t count;
 };
 
 int32_t init_msg_port(msg_port_t *msg_port)
@@ -245,20 +248,37 @@ int32_t msg_send(msg_port_t remote_port, void *data, uint32_t size)
         return (-1);
     }
 
-    struct ool_msg_ctx *msg;
+    kern_return_t err;
+    struct ool_msg msg;
+    mach_msg_header_t *hdr;
 
-    msg->h.msg_local_port = MACH_PORT_NULL;
-    msg->h.msg_remote_port = remote_port;
-    msg->h.msgh_size = sizeof(struct ool_msg_ctx);
-    msg->h.msg_simple = FALSE;
+    hdr = &(msg.header);
+    hdr->msgh_bits = MACH_MSGH_BITS(MACH_MSG_TYPE_COPY_SEND, MACH_MSG_TYPE_MAKE_SEND);
+    hdr->msgh_bits |= MACH_MSGH_BITS_COMPLEX;
+    hdr->msgh_size = sizeof(msg);
+    hdr->msgh_local_port = MACH_PORT_NULL;
+    hdr->msgh_remote_port = remote_port;
 
-    msg->t.msg_type_size = size;
-    msg->t.msg_type_number = MAXDATA;
-    msg->t.msg_type_inline = FALSE;
-    msg->t.msg_type_longform = FALSE;
-    msg->t.msg_type_deallocate = FALSE;
+    msg.body.msgh_descriptor_count = 1;
+    msg.data.address = data;
+    msg.data.size = size;
+    msg.data.deallocate = FALSE;
+    msg.data.copy = MACH_MSG_VIRTUAL_COPY;
+    msg.data.type = MACH_MSG_OOL_DESCRIPTOR;
+    msg.count = msg.data.size;
 
-    msg->data = data;
+    err = mach_msg(hdr,
+                  MACH_SEND_MSG,
+                  hdr->msgh_size,
+                  0,
+                  MACH_PORT_NULL,
+                  MACH_MSG_TIMEOUT_NONE,
+                  MACH_PORT_NULL);
+    if(err != KERN_SUCCESS)
+    {
+        mach_error("Can't send mach msg\n", err);
+        return (-1);
+    }
 
     return (0);
 }
