@@ -90,8 +90,8 @@ extern void *msg_recv(msg_port_t recv_port);
 /* Initialize a message port. */
 extern int32_t init_msg_port(msg_port_t *msg_port);
 
-extern int32_t recv_port(mach_port_t recv_port, mach_port_t *port);
+extern int32_t recv_port(msg_port_t recv_port, msg_port_t *port);
 
-extern int32_t send_port(mach_port_t remote_port, mach_port_t port);
+extern int32_t send_port(msg_port_t remote_port, msg_port_t port);
 
 #endif
