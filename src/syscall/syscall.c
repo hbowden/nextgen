@@ -886,7 +886,7 @@ void start_main_syscall_loop(msg_port_t port)
     if(rtrn < 0)
     {
         output(ERROR, "Can't initialize message port\n");
-        return (-1);
+        return;
     }
 
     /* Send our parent our message port. */
@@ -894,7 +894,7 @@ void start_main_syscall_loop(msg_port_t port)
     if(rtrn < 0)
     {
         output(ERROR, "Can't send parent our message port\n");
-        return (-1);
+        return;
     }
 
     /* Set up signal handler. */
