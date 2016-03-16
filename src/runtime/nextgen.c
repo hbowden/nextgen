@@ -38,9 +38,9 @@ struct shared_map *map;
 struct parser_ctx
 {
     enum fuzz_mode mode;
-    char *path_to_exec;
-    char *path_to_in_dir;
-    char *path_to_out_dir;
+    char *exec_path;
+    char *input_path;
+    char *output_path;
     enum crypto_method method;
     char *args;
     int32_t smart_mode;
