@@ -68,6 +68,16 @@ static int32_t start_syscall_mode_runtime(void)
         return (-1);
     }
 
+    msg_port_t child_port = 0;
+
+    /* Wait for child to send us a message port. */
+    rtrn = recv_port(port, &child_port);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't receive childs port\n");
+        return (-1);
+    }
+
     int32_t status = 0;
 
     /* Wait for the other process's created by nextgen. */

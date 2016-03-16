@@ -878,6 +878,25 @@ void start_main_syscall_loop(msg_port_t port)
 {
     output(STD, "Starting fuzzer\n");
 
+    int32_t rtrn = 0;
+    msg_port_t parent_port = 0;
+
+    /* Create message port. */
+    rtrn = init_msg_port(&parent_port);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't initialize message port\n");
+        return (-1);
+    }
+
+    /* Send our parent our message port. */
+    rtrn = send_port(port, parent_port);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't send parent our message port\n");
+        return (-1);
+    }
+
     /* Set up signal handler. */
     setup_signal_handler();
 
