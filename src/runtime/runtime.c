@@ -290,7 +290,7 @@ static int32_t setup_syscall_mode_runtime(void)
         pid_t pid = 0;
 
         /* Start the genetic algorithm. */
-        rtrn = setup_genetic_module(SYSCALL_FUZZING, &pid, &map->stop);
+        rtrn = setup_genetic_module(SYSCALL_FUZZING, &pid, &map->stop, &map->msg_port);
         if(rtrn < 0)
         {
             output(ERROR, "Can't setup the genetic module\n");

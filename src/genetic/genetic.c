@@ -30,8 +30,6 @@
 
 static atomic_int_fast32_t *stop;
 
-static msg_port_t msg_port;
-
 static enum genetic_mode run_mode;
 
 struct chromosome_ctx
@@ -284,9 +282,26 @@ static int32_t genesis(void)
     return (0);
 }
 
-static void god_loop(void)
+static void god_loop(msg_port_t port)
 {
     int32_t rtrn = 0;
+    msg_port_t parent_port = 0;
+
+    /* Create message port. */
+    rtrn = init_msg_port(&parent_port);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't initialize message port\n");
+        return;
+    }
+
+    /* Send our parent our message port. */
+    rtrn = send_port(port, parent_port);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't send parent our message port\n");
+        return;
+    }
 
     /* genesis() init's all the needed data structures and creates the first population. */
     rtrn = genesis();
@@ -305,33 +320,43 @@ static void god_loop(void)
     return;
 }
 
-int32_t setup_genetic_module(enum genetic_mode mode, pid_t *pid,
-                             atomic_int_fast32_t *stop_ptr)
+static int32_t start_genetic_algo_runtime(msg_port_t port, void *arg)
 {
-    pid_t god_pid = 0;
+    /* Start main genetic algo loop. */
+    god_loop(port);
 
-    run_mode = mode;
-    stop = stop_ptr;
+    /* Exit and cleanup. */
+    _exit(0);
+}
+
+int32_t setup_genetic_module(enum genetic_mode mode, pid_t *pid,
+                             atomic_int_fast32_t *stop_ptr,
+                             msg_port_t *msg_port)
+{
+    int32_t rtrn = 0;
+    pid_t god_pid = 0;
+    msg_port_t port = 0;
 
     /* Fork and create the genetic algo process. */
-    god_pid = fork();
-    if(god_pid == 0)
-    {
-        (*pid) = getpid();
-
-        /* Start main genetic algo loop. */
-        god_loop();
-
-        /* Exit and cleanup. */
-        _exit(0);
-    }
-    else if(god_pid > 0)
-    {
-        return (0);
-    }
-    else
+    god_pid = fork_pass_port(&port, start_genetic_algo_runtime, NULL);
+    if(god_pid < 0)
     {
         output(ERROR, "Failed to fork god process: %s\n", strerror(errno));
         return (-1);
     }
+
+    /* Receieve message port from the genetic algo process and set it
+    to the message port passed in to this function. */
+    rtrn = recv_port(port, msg_port);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't receieve message port from genertic algo\n");
+        return (-1);
+    }
+
+    (*pid) = god_pid;
+    run_mode = mode;
+    stop = stop_ptr;
+
+    return (0);
 }
