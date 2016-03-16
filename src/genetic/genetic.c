@@ -325,6 +325,9 @@ static int32_t start_genetic_algo_runtime(msg_port_t port, void *arg)
     /* Start main genetic algo loop. */
     god_loop(port);
 
+    /* Silence clang. */
+    (void)arg;
+
     /* Exit and cleanup. */
     _exit(0);
 }
