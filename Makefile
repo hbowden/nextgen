@@ -173,6 +173,10 @@ test-runtime:
 
 	./test_suite runtime
 
+test-genetic:
+
+	./test_suite genetic
+
 format:
 
 	$(FORMAT_SOURCE)
