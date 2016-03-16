@@ -88,10 +88,7 @@ int main(void)
 
     rtrn = test_init_world();
     if(rtrn < 0)
-    {
         log_test(FAIL, "init world test failed");
-        return (-1);
-    }
 
     _exit(0);
 }
