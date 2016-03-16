@@ -159,6 +159,16 @@ static int32_t set_output_path(struct parser_ctx *ctx, char *path)
         return (-1);
     }
 
+    struct stat sb;
+    int32_t rtrn = 0;
+
+    rtrn = stat(path, &sb);
+    if(rtrn != -1)
+    {
+        output(ERROR, "Path already exist\n");
+        return (-1);
+    }
+
     ctx->output_path = path;
 
     return (0);
