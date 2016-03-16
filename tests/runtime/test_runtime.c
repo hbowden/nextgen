@@ -42,6 +42,10 @@ static int32_t test_init_file_mapping(void)
     int32_t rtrn = 0;
     struct parser_ctx *ctx = NULL;
 
+    rtrn = init_parser_ctx(&ctx);
+    assert_stat(rtrn == 0);
+    assert_stat(ctx != NULL);
+
     /* Setup the shared mapping for file fuzzing mode with 
     cryptographic numbers and in smart mode. */
     rtrn = init_shared_mapping(&mapping, ctx);
@@ -136,8 +140,8 @@ static int32_t test_cmd_parser(void)
     ctx = parse_cmd_line(argc, args);
     assert_stat(ctx != NULL);
     assert_stat(ctx->mode == MODE_SYSCALL);
-    assert_stat(ctx->path_to_out_dir != NULL);
-    assert_stat(strncmp(ctx->path_to_out_dir, arg_string, strlen(arg_string)) == 0);
+    assert_stat(ctx->output_path != NULL);
+    assert_stat(strncmp(ctx->output_path, arg_string, strlen(arg_string)) == 0);
 
     log_test(SUCCESS, "Passed command line parser test");
 
@@ -214,6 +218,79 @@ static int32_t test_set_crypto_method(void)
     return (0);
 }
 
+static int32_t test_set_output_path(void)
+{
+    log_test(DECLARE, "Testing set output path");
+
+    int32_t rtrn = 0;
+    struct parser_ctx *ctx = NULL;
+
+    rtrn = init_parser_ctx(&ctx);
+    assert_stat(rtrn == 0);
+    assert_stat(ctx != NULL);
+
+    char *path = "/usr/bin/ls";
+
+    rtrn = set_output_path(ctx, path);
+    assert_stat(rtrn < 0);
+    assert_stat(path != NULL);
+    assert_stat(ctx != NULL);
+    assert_stat(strncmp(ctx->output_path, path, 11) == 0);
+
+    log_test(SUCCESS, "Set output path test passed");
+
+    return (0);
+}
+
+static int32_t test_set_input_path(void)
+{
+    log_test(DECLARE, "Testing set input path");
+
+    int32_t rtrn = 0;
+    struct parser_ctx *ctx = NULL;
+
+    rtrn = init_parser_ctx(&ctx);
+    assert_stat(rtrn == 0);
+    assert_stat(ctx != NULL);
+
+    char *path = "/usr/bin/ls";
+
+    rtrn = set_input_path(ctx, path);
+    assert_stat(rtrn < 0);
+    assert_stat(path != NULL);
+    assert_stat(ctx != NULL);
+    assert_stat(strncmp(ctx->input_path, path, 11) == 0);
+
+    log_test(SUCCESS, "Set input path test passed");
+
+    return (0);
+}
+
+
+static int32_t test_set_exec_path(void)
+{
+    log_test(DECLARE, "Testing set exec path");
+
+    int32_t rtrn = 0;
+    struct parser_ctx *ctx = NULL;
+
+    rtrn = init_parser_ctx(&ctx);
+    assert_stat(rtrn == 0);
+    assert_stat(ctx != NULL);
+
+    char *path = "/usr/bin/ls";
+
+    rtrn = set_exec_path(ctx, path);
+    assert_stat(rtrn < 0);
+    assert_stat(path != NULL);
+    assert_stat(ctx != NULL);
+    assert_stat(strncmp(ctx->exec_path, path, 11) == 0);
+
+    log_test(SUCCESS, "Set exec path test passed");
+
+    return (0);
+}
+
 int main(void)
 {
     test_stat = init_test_framework();
@@ -240,6 +317,18 @@ int main(void)
     rtrn = test_set_crypto_method();
     if(rtrn < 0)
         log_test(FAIL, "Set crypto method test failed");
+
+    rtrn = test_set_output_path();
+    if(rtrn < 0)
+        log_test(FAIL, "Set output path test failed");
+
+    rtrn = test_set_input_path();
+    if(rtrn < 0)
+        log_test(FAIL, "Set input path test failed");
+
+    rtrn = test_set_exec_path();
+    if(rtrn < 0)
+        log_test(FAIL, "Set exec path test failed");
 
     rtrn = test_init_file_mapping();
     if(rtrn < 0)
