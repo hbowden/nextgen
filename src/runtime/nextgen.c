@@ -467,7 +467,7 @@ void clean_shared_mapping(void)
             break;
 
         case MODE_FILE:
-
+            clean_file_mapping();
             break;
 
         case MODE_NETWORK:
