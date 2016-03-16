@@ -441,7 +441,21 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
     return ctx;
 }
 
-static void clean_syscall_mapping(void) { return; }
+static void clean_syscall_mapping(void)
+{ 
+    mem_free((void **)&map->path_to_out_dir);
+
+    return; 
+}
+
+static void clean_file_mapping(void)
+{
+    mem_free((void **)&map->path_to_out_dir);
+    mem_free((void **)&map->path_to_in_dir);
+    mem_free((void **)&map->exec_path);
+
+    return;
+}
 
 void clean_shared_mapping(void)
 {
