@@ -28,6 +28,15 @@
 /* The number of test to run, keep in sync with test_paths  */
 static uint32_t number_of_test = 13;
 
+enum { MEMORY_TEST = 0, CONCURRENT_TEST = 1,
+       CRYPTO_TEST = 2, UTILS_TEST = 3,
+       NETWORK_TEST = 4, GENERATE_TEST = 5,
+       RESOURCE_TEST = 6, REAPER_TEST = 7,
+       SYSCALL_TEST = 8, FILE_TEST = 9, 
+       GENETIC_TEST = 10, PLUGINS_TEST = 11,
+       RUNTIME_TEST = 12
+    };
+
 /* Array of unit test file paths. */
 static char *test_paths[] = {
     "tests/memory/test_memory",
@@ -134,10 +143,25 @@ static int32_t exec_test(char *path)
     }
 }
 
-int main(void)
+static void run_single_test(char *argv[])
 {
-	output(STD, "Starting nextgen's test suite\n");
+    int32_t rtrn = 0;
 
+    if(strncmp(argv[1], "runtime", 7) == 0)
+    {
+        rtrn = exec_test(test_paths[RUNTIME_TEST]);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't exec unit test\n");
+            return;
+        }
+    }
+
+    return;
+}
+
+int main(int argc, char *argv[])
+{
     uint32_t i = 0;
     int32_t rtrn = 0;
 
@@ -154,6 +178,16 @@ int main(void)
     test_stat->test_ran = 0;
     test_stat->successes = 0;
     test_stat->asserts_ran = 0;
+
+    if(argc < 1)
+    {
+        output(STD, "Starting nextgen's test suite\n");
+    }
+    else
+    {
+        run_single_test(argv);
+        return (0);
+    }
 
     /* Loop and execute each test in the test array. */
     for(i = 0; i < number_of_test; i++)
