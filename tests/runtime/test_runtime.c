@@ -231,11 +231,20 @@ static int32_t test_set_output_path(void)
 
     char *path = "/usr/bin/ls";
 
+    /* Should fail with a file path. */
+    rtrn = set_output_path(ctx, path);
+    assert_stat(rtrn < 0);
+
+    rtrn = get_home(&path);
+    assert_stat(rtrn == 0);
+
     rtrn = set_output_path(ctx, path);
     assert_stat(rtrn < 0);
     assert_stat(path != NULL);
     assert_stat(ctx != NULL);
     assert_stat(strncmp(ctx->output_path, path, 11) == 0);
+
+    mem_free((void **)&path);
 
     log_test(SUCCESS, "Set output path test passed");
 
@@ -255,11 +264,22 @@ static int32_t test_set_input_path(void)
 
     char *path = "/usr/bin/ls";
 
+    /* Should fail with a file path instead of a directory being passed. */
     rtrn = set_input_path(ctx, path);
     assert_stat(rtrn < 0);
+
+    rtrn = get_home(&path);
+    assert_stat(rtrn == 0);
+
+    /* Should work with directory path. */
+    rtrn = set_input_path(ctx, path);
+    assert_stat(rtrn == 0);
     assert_stat(path != NULL);
     assert_stat(ctx != NULL);
+    assert_stat(ctx->input_path != NULL);
     assert_stat(strncmp(ctx->input_path, path, 11) == 0);
+
+    mem_free((void **)&path);
 
     log_test(SUCCESS, "Set input path test passed");
 
@@ -274,17 +294,38 @@ static int32_t test_set_exec_path(void)
     int32_t rtrn = 0;
     struct parser_ctx *ctx = NULL;
 
+    char *path = "/bin/ls";
+
+    /* Should fail with a NULL parser context. */
+    rtrn = set_exec_path(ctx, path);
+    assert_stat(rtrn < 0);
+    assert_stat(ctx == NULL);
+
+    /* Allocate the parser context/ */
     rtrn = init_parser_ctx(&ctx);
     assert_stat(rtrn == 0);
     assert_stat(ctx != NULL);
 
-    char *path = "/usr/bin/ls";
+    /* Grab our home directory. */
+    rtrn = get_home(&path);
+    assert_stat(rtrn == 0);
 
+    /* Should fail with a directory path. */
+    rtrn = set_exec_path(ctx, path);
+    assert_stat(rtrn == -1);
+
+    /* Free the home path pointer. */
+    mem_free((void **)&path);
+
+    path = "/bin/ls";
+    
+    /* Should work with valid executable. */
     rtrn = set_exec_path(ctx, path);
     assert_stat(rtrn < 0);
     assert_stat(path != NULL);
     assert_stat(ctx != NULL);
-    assert_stat(strncmp(ctx->exec_path, path, 11) == 0);
+    assert_stat(ctx->exec_path != NULL);
+    assert_stat(strncmp(ctx->exec_path, path, 7) == 0);
 
     log_test(SUCCESS, "Set exec path test passed");
 
@@ -318,10 +359,6 @@ int main(void)
     if(rtrn < 0)
         log_test(FAIL, "Set crypto method test failed");
 
-    rtrn = test_set_output_path();
-    if(rtrn < 0)
-        log_test(FAIL, "Set output path test failed");
-
     rtrn = test_set_input_path();
     if(rtrn < 0)
         log_test(FAIL, "Set input path test failed");
@@ -341,6 +378,10 @@ int main(void)
     rtrn = test_init_network_mapping();
     if(rtrn < 0)
         log_test(FAIL, "Init shared mapping test failed");
+
+    rtrn = test_set_output_path();
+    if(rtrn < 0)
+        log_test(FAIL, "Set output path test failed");
 
     rtrn = test_setup_runtime();
     if(rtrn < 0)

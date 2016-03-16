@@ -169,6 +169,10 @@ test:
 	$(TEST_DEPS)
 	./test_suite
 
+test-runtime:
+
+	./test_suite runtime
+
 format:
 
 	$(FORMAT_SOURCE)
