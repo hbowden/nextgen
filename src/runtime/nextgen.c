@@ -81,7 +81,7 @@ static void display_help_banner(void)
     return;
 }
 
-int32_t init_parser_ctx(struct parser_ctx **ctx)
+static int32_t init_parser_ctx(struct parser_ctx **ctx)
 {
     if((*ctx) != NULL)
     {
@@ -99,7 +99,7 @@ int32_t init_parser_ctx(struct parser_ctx **ctx)
     return (0);
 }
 
-int32_t set_fuzz_mode(struct parser_ctx *ctx, enum fuzz_mode mode)
+static int32_t set_fuzz_mode(struct parser_ctx *ctx, enum fuzz_mode mode)
 {
     /* Make sure the mode passed is legit. */
     switch((int32_t)mode)
@@ -120,7 +120,7 @@ int32_t set_fuzz_mode(struct parser_ctx *ctx, enum fuzz_mode mode)
     return (0);
 }
 
-int32_t set_crypto_method(struct parser_ctx *ctx, enum crypto_method method)
+static int32_t set_crypto_method(struct parser_ctx *ctx, enum crypto_method method)
 {
     switch((int32_t)method)
     {
