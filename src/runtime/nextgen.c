@@ -99,6 +99,24 @@ static int32_t init_parser_ctx(struct parser_ctx **ctx)
     return (0);
 }
 
+static int32_t set_input_path(struct parser_ctx *ctx, char *path)
+{
+
+    return (0);
+}
+
+static int32_t set_output_path(struct parser_ctx *ctx, char *path)
+{
+    
+    return (0);
+}
+
+static int32_t set_exec_path(struct parser_ctx *ctx, char *path)
+{
+    
+    return (0);
+}
+
 static int32_t set_fuzz_mode(struct parser_ctx *ctx, enum fuzz_mode mode)
 {
     /* Make sure the mode passed is legit. */
@@ -187,7 +205,7 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
                 break;
 
             case 'e':
-                rtrn = asprintf(&ctx->path_to_exec, "%s", optarg);
+                rtrn = asprintf(&ctx->exec_path, "%s", optarg);
                 if(rtrn < 0)
                 {
                     output(ERROR, "asprintf: %s\n", strerror(errno));
@@ -198,7 +216,7 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
                 break;
 
             case 'i':
-                rtrn = asprintf(&ctx->path_to_in_dir, "%s", optarg);
+                rtrn = asprintf(&ctx->input_path, "%s", optarg);
                 if(rtrn < 0)
                 {
                     output(ERROR, "asprintf: %s\n", strerror(errno));
@@ -209,7 +227,7 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
                 break;
 
             case 'o':
-                rtrn = asprintf(&ctx->path_to_out_dir, "%s", optarg);
+                rtrn = asprintf(&ctx->output_path, "%s", optarg);
                 if(rtrn < 0)
                 {
                     output(ERROR, "asprintf: %s\n", strerror(errno));
@@ -350,10 +368,10 @@ static int32_t init_file_mapping(struct shared_map **mapping,
                                  struct parser_ctx *ctx)
 {
     /* Set the input and output directories. */
-    (*mapping)->path_to_out_dir = ctx->path_to_out_dir;
-    (*mapping)->path_to_in_dir = ctx->path_to_in_dir;
+    (*mapping)->path_to_out_dir = ctx->output_path;
+    (*mapping)->path_to_in_dir = ctx->input_path;
 
-    (*mapping)->exec_path = ctx->path_to_exec;
+    (*mapping)->exec_path = ctx->exec_path;
 
     atomic_init(&(*mapping)->target_pid, 0);
 
@@ -371,7 +389,7 @@ static int32_t init_syscall_mapping(struct shared_map **mapping,
                                     struct parser_ctx *ctx)
 {
     /* Set the outpath directory. */
-    (*mapping)->path_to_out_dir = ctx->path_to_out_dir;
+    (*mapping)->path_to_out_dir = ctx->output_path;
 
     /* We use atomic values for the pids, so let's init the reaper pid. */
     atomic_init(&(*mapping)->reaper_pid, 0);
