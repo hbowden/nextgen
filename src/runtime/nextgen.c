@@ -31,6 +31,7 @@
 #include <string.h>
 #include <sys/mman.h>
 #include <sys/mount.h>
+#include <sys/stat.h>
 #include <sys/param.h>
 
 struct shared_map *map;
@@ -101,20 +102,108 @@ static int32_t init_parser_ctx(struct parser_ctx **ctx)
 
 static int32_t set_input_path(struct parser_ctx *ctx, char *path)
 {
+    /* Make sure we have a valid parser context. If
+    not return an error and print to stderr. */
+    if(ctx == NULL)
+    {
+        output(ERROR, "Parser context is not allocated\n");
+        return (-1);
+    }
 
-    return (0);
+    /* The path supplied by the caller should be non NULL. */
+    if(path == NULL)
+    {
+        output(ERROR, "Path supplied is NULL\n");
+        return (-1);
+    }
+
+    struct stat sb;
+    int32_t rtrn = 0;
+
+    /* Get filesystem stats for the path supplied. */
+    rtrn = stat(path, &sb);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't get stats: %s\n", strerror(errno));
+        return(-1);
+    }
+
+    /* Make sure filepath is a directory. */
+    if(sb.st_mode & S_IFDIR)
+    {
+        /* We were passed a directory so set the input path in the context. */
+        ctx->input_path = path;
+        return (0);
+    }
+    else
+    {
+        output(ERROR, "Input path is not a directory\n");
+        return (-1);
+    }
 }
 
 static int32_t set_output_path(struct parser_ctx *ctx, char *path)
 {
-    
+    /* Make sure we have a valid parser context. If
+    not return an error and print to stderr. */
+    if(ctx == NULL)
+    {
+        output(ERROR, "Parser context is not allocated\n");
+        return (-1);
+    }
+
+    /* The path supplied by the caller should be non NULL. */
+    if(path == NULL)
+    {
+        output(ERROR, "Path supplied is NULL\n");
+        return (-1);
+    }
+
+    ctx->output_path = path;
+
     return (0);
 }
 
 static int32_t set_exec_path(struct parser_ctx *ctx, char *path)
 {
-    
-    return (0);
+    /* Make sure we have a valid parser context. If
+    not return an error and print to stderr. */
+    if(ctx == NULL)
+    {
+        output(ERROR, "Parser context is not allocated\n");
+        return (-1);
+    }
+
+    /* The path supplied by the caller should be non NULL. */
+    if(path == NULL)
+    {
+        output(ERROR, "Path supplied is NULL\n");
+        return (-1);
+    }
+
+    struct stat sb;
+    int32_t rtrn = 0;
+
+    /* Get filesystem stats for the path supplied. */
+    rtrn = stat(path, &sb);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't get stats: %s\n", strerror(errno));
+        return(-1);
+    }
+
+    /* Make sure the path is an executable. */
+    if(sb.st_mode & S_IXUSR)
+    {
+        /* We were passed a excutable so set the exec path in the context. */
+        ctx->exec_path = path;
+        return (0);
+    }
+    else
+    {
+        output(ERROR, "Exec path is not a excutable\n");
+        return (-1);
+    }
 }
 
 static int32_t set_fuzz_mode(struct parser_ctx *ctx, enum fuzz_mode mode)
@@ -204,33 +293,37 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
                 tFlag = TRUE;
                 break;
 
+            /* Set the path of the executable to fuzz test. */
             case 'e':
-                rtrn = asprintf(&ctx->exec_path, "%s", optarg);
+                rtrn = set_exec_path(ctx, optarg);
                 if(rtrn < 0)
                 {
-                    output(ERROR, "asprintf: %s\n", strerror(errno));
+                    output(ERROR, "Can't set exec path\n");
                     return (NULL);
                 }
 
                 eFlag = TRUE;
                 break;
 
+            /* Set the directory path of input files. */
             case 'i':
-                rtrn = asprintf(&ctx->input_path, "%s", optarg);
+                rtrn = set_input_path(ctx, optarg);
                 if(rtrn < 0)
                 {
-                    output(ERROR, "asprintf: %s\n", strerror(errno));
+                    output(ERROR, "Can't set input path\n");
                     return (NULL);
                 }
 
                 iFlag = TRUE;
                 break;
 
+            /* Set the output path of where the user wan't us to
+            create a output directory to store our output data. */
             case 'o':
-                rtrn = asprintf(&ctx->output_path, "%s", optarg);
+                rtrn = set_output_path(ctx, optarg);
                 if(rtrn < 0)
                 {
-                    output(ERROR, "asprintf: %s\n", strerror(errno));
+                    output(ERROR, "Can't set output path\n");
                     return (NULL);
                 }
 
