@@ -8,7 +8,7 @@ OPERATING_SYSTEM = $(shell uname)
 # FreeBSD build options.
 ifeq ($(OPERATING_SYSTEM), FreeBSD)
 
-SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-padded -Wno-cast-qual \
+SILENCED_WARNINGS = -Wno-padded -Wno-cast-qual \
                     -Wno-unused-parameter -Wno-unknown-pragmas \
                     -Wno-pedantic -Wno-sign-conversion
 
