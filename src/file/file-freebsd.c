@@ -48,8 +48,8 @@ static void *kill_test_proc(void *kill_pid)
 static int32_t handle_crash(char *file_path, char *file_extension)
 {
     int32_t rtrn = 0;
-    char *path auto_clean = NULL;
-    char *file_name auto_clean = NULL;
+    char *path auto_free = NULL;
+    char *file_name auto_free = NULL;
 
     /* Create a random file name. */
     rtrn = generate_name(&file_name, file_extension, FILE_NAME);
