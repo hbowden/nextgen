@@ -11,7 +11,7 @@ ifeq ($(OPERATING_SYSTEM), FreeBSD)
 
 SOURCES += $(ROOT_DIR)/src/concurrent/concurrent-freebsd.c
 
-SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-padded \
+SILENCED_WARNINGS = -Wno-padded \
                     -Wno-format-nonliteral -Wno-gnu-statement-expression \
                     -Wno-unused-parameter -Wno-undef -Wno-unused-parameter
 

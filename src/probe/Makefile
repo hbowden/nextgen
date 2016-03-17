@@ -8,10 +8,11 @@ OPERATING_SYSTEM = $(shell uname)
 # FreeBSD build options.
 ifeq ($(OPERATING_SYSTEM), FreeBSD)
 
-SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-padded \
+SILENCED_WARNINGS = -Wno-padded \
                     -Wno-unused-parameter -Wno-unused-variable \
                     -Wno-pedantic -Wno-unknown-pragmas \
-                    -Wno-undef -Wno-sign-conversion
+                    -Wno-undef -Wno-sign-conversion \
+                    -Wno-incompatible-pointer-types-discards-qualifiers
 
 INCLUDES += -I /usr/src/cddl/compat/opensolaris/include \
 	        -I /usr/src/cddl/contrib/opensolaris/lib/libdtrace/common/ \

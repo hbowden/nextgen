@@ -9,7 +9,7 @@ OPERATING_SYSTEM = $(shell uname)
 # FreeBSD build options.
 ifeq ($(OPERATING_SYSTEM), FreeBSD)
 
-SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-padded
+SILENCED_WARNINGS = -Wno-padded
 
 FLAGS = -DFREEBSD -shared -fPIC -Wall -Werror -Weverything -g -O3 -Wpedantic -std=c99
 
