@@ -18,6 +18,8 @@
 #include "crypto/crypto.h"
 #include "concurrent/concurrent.h"
 
+#include <pthread.h>
+
 static uint32_t iterations = 10000;
 
 static int32_t test_clean_file_pool(void)
@@ -132,11 +134,39 @@ static int32_t test_clean_file_pool(void)
     return (0);
 }
 
+static void *socket_test_thread(void *arg)
+{
+    (void)arg;
+
+    uint32_t i;
+    int32_t socket = 0;
+
+    for(i = 0; i < iterations; i++)
+    {
+        socket = get_socket();
+
+        assert_stat(socket != 0);
+
+        free_socket(&socket);
+    }
+
+    return (NULL);
+}
+
 static int32_t test_get_socket(void)
 {
     log_test(DECLARE, "Testing get socket");
 
+    int32_t rtrn = 0;
     int32_t socket = 0;
+    pthread_t thread = 0;
+
+    rtrn = pthread_create(&thread, NULL, socket_test_thread, NULL);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't create test thread\n");
+        return (-1);
+    }
 
     uint32_t i;
 
@@ -149,16 +179,46 @@ static int32_t test_get_socket(void)
         free_socket(&socket);
     }
 
+    pthread_join(thread, NULL);
+
     log_test(SUCCESS, "get socket test passed");
 
     return (0);
+}
+
+static void *mountpath_test_thread(void *arg)
+{
+    (void)arg;
+
+    uint32_t i;
+    char *mountpath = NULL;
+
+    for(i = 0; i < iterations; i++)
+    {
+        mountpath = get_mountpath();
+
+        assert_stat(mountpath != NULL);
+
+        free_mountpath(&mountpath);
+    }
+
+    return (NULL);
 }
 
 static int32_t test_get_mountpath(void)
 {
     log_test(DECLARE, "Testing get mountpath");
 
+    int32_t rtrn = 0;
     char *mountpath = NULL;
+    pthread_t thread = 0;
+
+    rtrn = pthread_create(&thread, NULL, mountpath_test_thread, NULL);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't create test thread\n");
+        return (-1);
+    }
 
     uint32_t i;
 
@@ -171,16 +231,45 @@ static int32_t test_get_mountpath(void)
         free_mountpath(&mountpath);
     }
 
+    pthread_join(thread, NULL);
+
     log_test(SUCCESS, "get mountpath test passed");
 
     return (0);
+}
+
+static void *dirpath_test_thread(void *arg)
+{
+    (void)arg;
+
+    uint32_t i;
+    char *dirpath = NULL;
+
+    for(i = 0; i < iterations; i++)
+    {
+        dirpath = get_dirpath();
+        assert_stat(dirpath != NULL);
+
+        free_dirpath(&dirpath);
+    }
+
+    return (NULL);
 }
 
 static int32_t test_get_dirpath(void)
 {
     log_test(DECLARE, "Testing get_dirpath");
 
+    int32_t rtrn = 0;
     char *dirpath = NULL;
+    pthread_t thread = 0;
+
+    rtrn = pthread_create(&thread, NULL, dirpath_test_thread, NULL);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't create test thread\n");
+        return (-1);
+    }
 
     uint32_t i;
     
@@ -192,16 +281,46 @@ static int32_t test_get_dirpath(void)
         free_dirpath(&dirpath);
     }
 
+    pthread_join(thread, NULL);
+
     log_test(SUCCESS, "get_dirpath test passed");
 
     return (0);
+}
+
+static void *file_test_thread(void *arg)
+{
+    (void)arg;
+
+    uint32_t i;
+    char *path = NULL;
+
+    for(i = 0; i < iterations; i++)
+    {
+        path = get_filepath();
+
+        assert_stat(path != NULL);
+
+        free_filepath(&path);
+    }
+
+    return (NULL);
 }
 
 static int32_t test_get_file(void)
 {
     log_test(DECLARE, "Testing get file path");
 
+    int32_t rtrn = 0;
     char *path = NULL;
+    pthread_t thread = 0;
+
+    rtrn = pthread_create(&thread, NULL, file_test_thread, NULL);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't create test thread\n");
+        return (-1);
+    }
 
     uint32_t i;
     
@@ -213,9 +332,30 @@ static int32_t test_get_file(void)
         free_filepath(&path);
     }
 
+    pthread_join(thread, NULL);
+
     log_test(SUCCESS, "Get file path test passed");
 
     return (0);
+}
+
+static void *fd_test_thread(void *arg)
+{
+    (void)arg;
+
+    uint32_t i;
+    int32_t fd = 0;
+
+    for(i = 0; i < iterations; i++)
+    {
+        fd = get_desc();
+
+        assert_stat(fd != 0);
+
+        free_socket(&fd);
+    }
+
+    return (NULL);
 }
 
 static int32_t test_get_fd(void)
@@ -223,6 +363,15 @@ static int32_t test_get_fd(void)
 	log_test(DECLARE, "Testing get file descriptor");
 
     int32_t fd = 0;
+    int32_t rtrn = 0;
+    pthread_t thread = 0;
+
+    rtrn = pthread_create(&thread, NULL, fd_test_thread, NULL);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't create test thread\n");
+        return (-1);
+    }
 
     uint32_t i;
     
@@ -234,6 +383,8 @@ static int32_t test_get_fd(void)
 
         free_desc(&fd);
     }
+
+    pthread_join(thread, NULL);
 	
     log_test(SUCCESS, "Get file descriptor test passed");
 
