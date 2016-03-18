@@ -25,7 +25,9 @@
 #include <stdint.h>
 #include <pthread.h>
 
-#define count 32768
+static uint32_t count = 1024;
+
+static uint32_t iterations = 100000;
 
 struct test_obj
 {
@@ -158,7 +160,7 @@ static void *thread_start(void *arg)
     struct memory_block *m_blk = NULL;
 
     /* Retrieve all the blocks, then return them. */
-    for(i = 0; i < count; i++)
+    for(i = 0; i < iterations; i++)
     {
         m_blk = mem_get_shared_block(pool);
 
@@ -222,7 +224,7 @@ static int32_t test_shared_pool(void)
     assert_stat(number_of_blocks == count);
 
     /* Retrieve all the blocks, then return them. */
-    for(i = 0; i < count; i++)
+    for(i = 0; i < iterations; i++)
     {
         m_blk = mem_get_shared_block(pool);
 
@@ -250,7 +252,7 @@ static int32_t test_shared_pool(void)
     }
 
     /* Retrieve some blocks, then return them. */
-    for(i = 0; i < count; i++)
+    for(i = 0; i < iterations; i++)
     {
         m_blk = mem_get_shared_block(pool);
 
