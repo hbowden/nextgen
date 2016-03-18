@@ -165,6 +165,15 @@ static void run_single_test(char *argv[])
             return;
         }
     }
+    else if(strncmp(argv[1], "syscall", 7) == 0)
+    {
+        rtrn = exec_test(test_paths[SYSCALL_TEST]);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't exec unit test\n");
+            return;
+        }
+    }
 
     return;
 }
