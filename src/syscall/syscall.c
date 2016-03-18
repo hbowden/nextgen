@@ -231,6 +231,13 @@ static int32_t free_old_arguments(struct child_ctx *ctx)
 
 static int32_t set_syscall(uint32_t num, struct child_ctx *ctx)
 {
+    /* Make sure number passed is in bounds. */
+    if(num > sys_table->number_of_syscalls - 1)
+    {
+        output(ERROR, "Syscall number passed is out of bounds\n");
+        return (-1);
+    }
+
     /* Set syscall value's. */
     ctx->syscall_number = num;
     ctx->syscall_symbol = sys_table->sys_entry[num]->syscall_symbol;
