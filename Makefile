@@ -215,6 +215,10 @@ test-resource:
 
 	./test_suite resource
 
+test-memory:
+
+	./test_suite memory
+
 format:
 
 	$(FORMAT_SOURCE)

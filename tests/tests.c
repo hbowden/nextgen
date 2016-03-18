@@ -174,6 +174,24 @@ static void run_single_test(char *argv[])
             return;
         }
     }
+    else if(strncmp(argv[1], "resource", 8) == 0)
+    {
+        rtrn = exec_test(test_paths[RESOURCE_TEST]);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't exec unit test\n");
+            return;
+        }
+    }
+    else if(strncmp(argv[1], "memory", 6) == 0)
+    {
+        rtrn = exec_test(test_paths[MEMORY_TEST]);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't exec unit test\n");
+            return;
+        }
+    }
 
     return;
 }
