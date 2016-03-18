@@ -211,6 +211,10 @@ test-genetic:
 
 	./test_suite genetic
 
+test-resource:
+
+	./test_suite resource
+
 format:
 
 	$(FORMAT_SOURCE)
