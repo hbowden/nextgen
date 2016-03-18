@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
     }
 
     /* Setup the fuzzer running enviroment. */
-    rtrn = setup_runtime();
+    rtrn = setup_runtime(map);
     if(rtrn < 0)
     {
         output(ERROR, "Can't setup runtime enviroment.\n");

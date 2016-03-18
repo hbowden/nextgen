@@ -5,15 +5,12 @@ CK = ck-0.5.1
 LIBRESSL = libressl-2.3.2
 CAPSTONE = capstone-3.0.4
 
-LIB = src/runtime/libnxruntime.dylib src/memory/libnxmemory.dylib \
-      src/utils/libnxutils.dylib src/io/libnxio.dylib
-
 TEST_LIB = $(ROOT_DIR)/src/io/libnxio.dylib \
            $(ROOT_DIR)/src/memory/libnxmemory.dylib \
            $(ROOT_DIR)/src/utils/libnxutils.dylib
 
-INCLUDE = -isystem ../../deps/$(CAPSTONE)/include \
-          -isystem ../../deps/$(CK)/include \
+INCLUDE = -isystem deps/$(CAPSTONE)/include \
+          -isystem deps/$(CK)/include \
           -Isrc
 
 OPERATING_SYSTEM = $(shell uname)
@@ -27,11 +24,43 @@ PLATFORM = -DFREEBSD
 
 CC = clang
 
+LIB = -rpath src/runtime \
+      -rpath src/memory \
+      -rpath src/utils \
+      -rpath src/io \
+      -rpath src/concurrent \
+      -rpath src/genetic \
+      -rpath src/mutate \
+      -rpath src/log \
+      -rpath src/reaper \
+      -rpath src/network \
+      -rpath src/file \
+      -rpath src/syscall \
+      -rpath src/probe \
+      -rpath src/disas \
+      -rpath src/crypto \
+      -rpath src/plugins \
+      -rpath src/resource \
+      src/memory/libnxmemory.so \
+      src/io/libnxio.so \
+      src/runtime/libnxruntime.so \
+      src/utils/libnxutils.so \
+      src/crypto/libnxcrypto.so \
+      src/syscall/libnxsyscall.so \
+      deps/$(LIBRESSL)/crypto/.libs/libcrypto.so \
+      deps/$(CK)/src/libck.so \
+     -l dtrace -l proc -l ctf -l elf -l z -l rtld_db -l pthread -l util
+
+INCLUDE += -I /usr/src/cddl/compat/opensolaris/include \
+	        -I /usr/src/cddl/contrib/opensolaris/lib/libdtrace/common/ \
+	        -I /usr/src/sys/cddl/compat/opensolaris \
+	        -I /usr/src/sys/cddl/contrib/opensolaris/uts/common/
+
 MAKE = gmake
 
 FLAGS = -DFREEBSD -Wall -Werror -Weverything -pedantic -g -O3 -std=c99
 
-SILENCED_WARNINGS = -Wno-padded -Wno-reserved-id-macro
+SILENCED_WARNINGS = -Wno-sign-conversion -Wno-unknown-pragmas -Wno-pedantic -Wno-padded 
 
 endif
 
@@ -46,7 +75,10 @@ CC = clang
 
 MAKE = make
 
-FLAGS = -DMAC_OSX -Wall -Werror -Weverything -pedantic -g -O3 -std=c99
+LIB = src/runtime/libnxruntime.dylib src/memory/libnxmemory.dylib \
+      src/utils/libnxutils.dylib src/io/libnxio.dylib src/objc/libnxobjcutils.dylib
+
+FLAGS = -DMAC_OSX -fsanitize=address -Wall -Werror -Weverything -pedantic -g -O3 -std=c99
 
 SILENCED_WARNINGS = -Wno-padded -Wno-reserved-id-macro \
                     -Wno-incompatible-pointer-types-discards-qualifiers \
@@ -54,8 +86,6 @@ SILENCED_WARNINGS = -Wno-padded -Wno-reserved-id-macro \
 
 BUILD_NX_LIBS = cd $(ROOT_DIR)/src/objc && $(MAKE) &&
 CLEAN_NX_LIBS = cd $(ROOT_DIR)/src/objc && $(MAKE) clean &&
-
-LIB += src/objc/libnxobjcutils.dylib
 
 endif
 
@@ -255,4 +285,5 @@ clean:
 	rm -rf *dSYM
 	rm -rf nextgen
 	rm -rf test_suite
+
 

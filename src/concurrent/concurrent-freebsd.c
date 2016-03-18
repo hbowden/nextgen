@@ -41,3 +41,15 @@ int32_t fork_pass_port(msg_port_t *pass_port, int32_t (*proc_start)(msg_port_t p
 
     return (0);
 }
+
+int32_t recv_port(msg_port_t recv_port, msg_port_t *port)
+{
+
+   return (0);
+}
+
+int32_t send_port(msg_port_t remote_port, msg_port_t port)
+{
+
+    return (0);
+}
