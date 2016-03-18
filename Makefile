@@ -46,7 +46,7 @@ CC = clang
 
 MAKE = make
 
-FLAGS = -DMAC_OSX -fsanitize=address -Wall -Werror -Weverything -pedantic -g -O3 -std=c99
+FLAGS = -DMAC_OSX -Wall -Werror -Weverything -pedantic -g -O3 -std=c99
 
 SILENCED_WARNINGS = -Wno-padded -Wno-reserved-id-macro \
                     -Wno-incompatible-pointer-types-discards-qualifiers \
