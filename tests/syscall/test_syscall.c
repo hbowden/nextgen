@@ -353,7 +353,7 @@ static int32_t test_set_syscall(void)
     for(i = 0; i < iterations; i++)
     {
         /* Pick a random syscall to set. */
-        rtrn = rand_range(sys_table->number_of_syscalls, &syscall_number);
+        rtrn = rand_range(sys_table->number_of_syscalls - 1, &syscall_number);
         assert_stat(rtrn == 0);
 
         /* Set the syscall chosen as the next syscall to test. */
@@ -400,10 +400,10 @@ static int32_t test_generate_arguments(void)
             assert_stat(&child->arg_size_index[ii] != NULL);
             assert_stat(child->arg_size_index[ii] > 0);
 
-            /* Make sure the arg value array is equal to the arg copy array. 
-            for(iii = 0; iii < child->arg_size_index[iii]; iii++)
-                assert_stat(child->arg_value_index[iii] == child->arg_copy_index[iii]);
-            */
+            /* Make sure the arg value array is equal to the arg copy array. */
+            assert_stat(memcmp(child->arg_value_index[ii], 
+                               child->arg_copy_index[ii], 
+                               child->arg_size_index[ii]) == 0);
         }
 
         free_old_arguments(child);
