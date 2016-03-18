@@ -78,7 +78,7 @@ MAKE = make
 LIB = src/runtime/libnxruntime.dylib src/memory/libnxmemory.dylib \
       src/utils/libnxutils.dylib src/io/libnxio.dylib src/objc/libnxobjcutils.dylib
 
-FLAGS = -DMAC_OSX -fsanitize=address -Wall -Werror -Weverything -pedantic -g -O3 -std=c99
+FLAGS = -DMAC_OSX -Wall -Werror -Weverything -pedantic -g -O3 -std=c99
 
 SILENCED_WARNINGS = -Wno-padded -Wno-reserved-id-macro \
                     -Wno-incompatible-pointer-types-discards-qualifiers \
@@ -202,6 +202,10 @@ test:
 test-runtime:
 
 	./test_suite runtime
+
+test-syscall:
+
+	./test_suite syscall
 
 test-genetic:
 
