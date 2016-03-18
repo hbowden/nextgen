@@ -188,7 +188,7 @@ int main(int argc, char *argv[])
     test_stat->successes = 0;
     test_stat->asserts_ran = 0;
 
-    if(argc < 1)
+    if(argc == 1)
     {
         output(STD, "Starting nextgen's test suite\n");
     }
