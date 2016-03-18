@@ -146,6 +146,7 @@ static void *socket_test_thread(void *arg)
         socket = get_socket();
 
         assert_stat(socket != 0);
+        assert_stat(socket != -1);
 
         free_socket(&socket);
     }
@@ -175,6 +176,7 @@ static int32_t test_get_socket(void)
         socket = get_socket();
 
         assert_stat(socket != 0);
+        assert_stat(socket != -1);
 
         free_socket(&socket);
     }
@@ -349,7 +351,7 @@ static void *fd_test_thread(void *arg)
     for(i = 0; i < iterations; i++)
     {
         fd = get_desc();
-
+        assert_stat(fd != -1);
         assert_stat(fd != 0);
 
         free_socket(&fd);
