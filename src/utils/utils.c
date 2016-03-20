@@ -317,12 +317,15 @@ int32_t create_random_file(char *root, char *ext, char **path, uint64_t *size)
     }
 
     /* Pick a random size between zero and 4 kilobytes. */
-    rtrn = rand_range(4096, (uint32_t *)size);
+    rtrn = rand_range(4095, (uint32_t *)size);
     if(rtrn < 0)
     {
         output(ERROR, "Can't choose random number\n");
         return (-1);
     }
+
+    /* Add one to size so it's not zero. */
+    (*size) = (*size) + 1;
 
     /* Allocate a buffer to put junk in. */
     junk = mem_alloc((*size) + 1);
