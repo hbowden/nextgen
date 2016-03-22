@@ -45,7 +45,14 @@ enum arg_type {
     RECV_FLAG,
     REQUEST, 
     MOUNT_PATH, 
-    DEV
+    DEV,
+    PTRACE_REQUEST,
+    MESSAGE,
+    SEND_FLAG,
+    SOCKADDR,
+    SOCKLEN,
+    AMODE,
+    CHFLAGS
 };
 
 struct arg_context
@@ -103,5 +110,19 @@ extern struct arg_context request_ctx;
 extern struct arg_context mount_path_ctx;
 
 extern struct arg_context dev_ctx;
+
+extern struct arg_context message_ctx;
+
+extern struct arg_context recv_flags_ctx;
+
+extern struct arg_context send_flags_ctx;
+
+extern struct arg_context sockaddr_ctx;
+
+extern struct arg_context socklen_ctx;
+
+extern struct arg_context amode_ctx;
+
+extern struct arg_context chflags_ctx;
 
 #endif

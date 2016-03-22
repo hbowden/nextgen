@@ -193,13 +193,71 @@ struct arg_context mount_path_ctx = {
 
 struct arg_context dev_ctx = {
 
-    .name = "dev", .type = DEV, .should_free = NX_YES, .log_type = NUMBER
+    .name = "DEV", 
+    .type = DEV, 
+    .should_free = NX_YES, 
+    .log_type = NUMBER
+};
 
+struct arg_context message_ctx = {
+
+    .name = "MESSAGE", 
+    .type = MESSAGE, 
+    .should_free = NX_YES, 
+    .log_type = POINTER
+};
+
+struct arg_context recv_flags_ctx = {
+
+    .name = "RECV_FLAG", 
+    .type = RECV_FLAG, 
+    .should_free = NX_YES, 
+    .log_type = NUMBER
+};
+
+struct arg_context send_flags_ctx = {
+
+    .name = "SEND_FLAG", 
+    .type = SEND_FLAG, 
+    .should_free = NX_YES, 
+    .log_type = NUMBER
+};
+
+struct arg_context sockaddr_ctx = {
+
+    .name = "SOCKADDR", 
+    .type = SOCKADDR, 
+    .should_free = NX_YES, 
+    .log_type = POINTER
+};
+
+struct arg_context socklen_ctx = {
+
+    .name = "SOCKLEN", 
+    .type = SOCKLEN, 
+    .should_free = NX_YES, 
+    .log_type = NUMBER
+};
+
+struct arg_context amode_ctx = {
+
+    .name = "AMODE", 
+    .type = AMODE, 
+    .should_free = NX_YES, 
+    .log_type = NUMBER
+};
+
+struct arg_context chflags_ctx = {
+
+    .name = "CHFLAGS", 
+    .type = CHFLAGS, 
+    .should_free = NX_YES, 
+    .log_type = NUMBER
 };
 
 struct arg_context *get_arg_context(enum arg_type type)
 {
-    switch((int)type)
+    switch((int32_t)type)
     {
         case FILE_DESC:
             return &file_desc_ctx;
@@ -269,6 +327,24 @@ struct arg_context *get_arg_context(enum arg_type type)
 
         case DEV:
             return &dev_ctx;
+
+        case MESSAGE:
+            return &message_ctx;
+
+        case SEND_FLAG:
+            return &send_flags_ctx;
+
+        case SOCKADDR:
+            return &sockaddr_ctx;
+
+        case SOCKLEN:
+            return &socklen_ctx;
+
+        case AMODE:
+            return &amode_ctx;
+
+        case CHFLAGS:
+            return &chflags_ctx;
 
         default:
             output(ERROR, "Unlisted arg type\n");
