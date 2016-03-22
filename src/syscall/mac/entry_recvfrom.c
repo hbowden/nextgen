@@ -36,7 +36,7 @@ struct syscall_entry entry_recvfrom = {
     .get_arg_index[THIRD_ARG] = &generate_length,
 
     .arg_type_index[FOURTH_ARG] = RECV_FLAG,
-    .get_arg_index[FOURTH_ARG] = &generate_recv_flag,
+    .get_arg_index[FOURTH_ARG] = &generate_recv_flags,
 
     .arg_type_index[FIFTH_ARG] = SOCKADDR,
     .get_arg_index[FIFTH_ARG] = &generate_sockaddr,
