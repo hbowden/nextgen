@@ -23,7 +23,7 @@
 
 struct syscall_table mac_osx_syscall_table[] = {
     
-    { .number_of_syscalls = 11 },
+    { .number_of_syscalls = 21 },
     { .sys_entry = &entry_read },
     { .sys_entry = &entry_write },
     { .sys_entry = &entry_open },
@@ -35,7 +35,16 @@ struct syscall_table mac_osx_syscall_table[] = {
     { .sys_entry = &entry_fchdir },
     { .sys_entry = &entry_mknod },
     { .sys_entry = &entry_getfsstat },
-    
+    { .sys_entry = &entry_setuid },
+    { .sys_entry = &entry_ptrace },
+    { .sys_entry = &entry_recvmsg },
+    { .sys_entry = &entry_sendmsg },
+    { .sys_entry = &entry_recvfrom },
+    { .sys_entry = &entry_accept },
+    { .sys_entry = &entry_getpeername },
+    { .sys_entry = &entry_getsockname },
+    { .sys_entry = &entry_access },
+    { .sys_entry = &entry_chflags },
 };
 
 #endif
