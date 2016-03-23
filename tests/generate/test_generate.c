@@ -303,7 +303,7 @@ static int32_t test_generate_path(void)
 	    assert_stat(fd > 0);
 	    assert_stat(child->arg_size_index[0] > 0);
 	    close(fd);
-	    free_filepath(&path);
+	    free_filepath(&path, (uint32_t)child->arg_size_index[0]);
     }
 
 	log_test(SUCCESS, "Generate path test passed");
