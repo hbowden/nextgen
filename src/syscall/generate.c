@@ -944,7 +944,8 @@ int32_t generate_send_flags(uint64_t **flag, struct child_ctx *ctx)
             break;
 
         case 2:
-            (**flag) = (uint64_t) send_flags[0] | (uint64_t) send_flags[1]; 
+            (**flag) = (uint64_t) send_flags[0] | (uint64_t) send_flags[1];
+            break;
 
         default:
             output(ERROR, "Random number is too high\n");
