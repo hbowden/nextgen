@@ -32,7 +32,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-static uint32_t port;
+static uint32_t ss_port;
 
 static atomic_int_fast32_t stop_socket_server;
 
@@ -47,7 +47,7 @@ int32_t connect_ipv4(int32_t *sockFd)
     } addr;
 
     addr.in.sin_family = AF_INET;
-    addr.in.sin_port = htons(port);
+    addr.in.sin_port = htons(ss_port);
     inet_pton(AF_INET, "127.0.0.1", &addr.in.sin_addr);
 
     *sockFd = socket(AF_INET, SOCK_STREAM, 0);
@@ -78,7 +78,7 @@ int32_t connect_ipv6(int *sockFd)
     } addr;
 
     addr.in6.sin6_family = AF_INET6;
-    addr.in6.sin6_port = htons(port + 1);
+    addr.in6.sin6_port = htons(ss_port + 1);
     inet_pton(AF_INET6, "::1", &addr.in6.sin6_addr);
 
     *sockFd = socket(AF_INET6, SOCK_STREAM, 0);
@@ -118,7 +118,7 @@ static int32_t setup_ipv4_tcp_server(int32_t *sockFd)
 
     address.in.sin_len = sizeof(address.in);
     address.in.sin_family = AF_INET;
-    address.in.sin_port = htons(port);
+    address.in.sin_port = htons(ss_port);
     address.in.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
     memset(address.in.sin_zero, 0, sizeof(address.in.sin_zero));
 
@@ -155,7 +155,7 @@ static int32_t setup_ipv6_tcp_server(int32_t *sockFd)
 
     address.in6.sin6_len = sizeof(address.in6);
     address.in6.sin6_family = AF_INET6;
-    address.in6.sin6_port = htons(port + 1);
+    address.in6.sin6_port = htons(ss_port + 1);
     address.in6.sin6_flowinfo = 0;
     address.in6.sin6_addr = in6addr_loopback;
     address.in6.sin6_scope_id = 0;
@@ -265,7 +265,7 @@ static int _start_socket_server(int listenFd4, int listenFd6)
     return 0;
 }
 
-static int32_t select_port_number(void)
+int32_t pick_random_port(uint32_t *port)
 {
     int32_t rtrn = 0;
     uint32_t offset = 0;
@@ -277,7 +277,21 @@ static int32_t select_port_number(void)
         return (-1);
     }
 
-    port = (1200 + offset);
+    (*port) = (1200 + offset);
+
+    return (0);
+}
+
+static int32_t select_port_number(void)
+{
+    int32_t rtrn = 0;
+
+    rtrn = pick_random_port(&ss_port);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't pick random port\n");
+        return (-1);
+    }
 
     return (0);
 }
