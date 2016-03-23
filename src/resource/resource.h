@@ -48,7 +48,7 @@ extern int32_t free_dirpath(char **path);
 
 extern char *get_filepath(void);
 
-extern int32_t free_filepath(char **path);
+extern int32_t free_filepath(char **path, uint32_t len);
 
 extern int32_t setup_resource_module(char *path);
 

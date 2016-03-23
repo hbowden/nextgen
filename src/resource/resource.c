@@ -247,7 +247,7 @@ char *get_filepath(void)
     return (path);
 }
 
-int32_t free_filepath(char **path)
+int32_t free_filepath(char **path, uint32_t len)
 {
     /* Declare a memory block pointer. */
     struct memory_block *m_blk = NULL;
@@ -262,7 +262,7 @@ int32_t free_filepath(char **path)
         char *filepath = (char *)resource->ptr;
 
         /* If the filepaths match, free the memory block.*/
-        if(strncmp((*path), filepath, strlen(filepath)) == 0)
+        if(memcmp((*path), filepath, len) == 0)
         {
             mem_free_shared_block(m_blk, file_pool);
             break;
@@ -272,92 +272,76 @@ int32_t free_filepath(char **path)
     return (0);
 }
 
-static int32_t create_fd_pool(char *path)
+static int32_t init_resource_ctx(struct resource_ctx **resource, uint32_t size)
+{
+    /* Allocate a resource context struct as shared memory. */
+    (*resource) = mem_alloc_shared(sizeof(struct resource_ctx));
+    if((*resource) == NULL)
+    {
+        output(ERROR, "Can't allocate resource context\n");
+        return (-1);
+    }
+
+    (*resource)->ptr = mem_alloc_shared(size);
+    if((*resource)->ptr == NULL)
+    {
+        output(ERROR, "Can't alloc resource pointer\n");
+        return (-1);
+    }
+
+    return (0);
+}
+
+static struct mem_pool_shared *create_fd_pool(char *path)
 {
     int32_t rtrn = 0;
     struct memory_block *m_blk = NULL;
+    struct mem_pool_shared *pool = NULL;
 
-    desc_pool = mem_create_shared_pool(sizeof(int32_t *), POOL_SIZE);
-    if(desc_pool == NULL)
+    pool = mem_create_shared_pool(sizeof(int32_t *), POOL_SIZE);
+    if(pool == NULL)
     {
         output(ERROR, "Can't allocate descriptor memory pool\n");
-        return -1;
+        return (NULL);
     }
 
     /* Create a bunch of file descriptors and stick them into the resource pool. */
-    init_shared_pool(&desc_pool, m_blk)
+    init_shared_pool(&pool, m_blk)
     {
-        /* Temp variables that we define with auto_clean so that we 
-        don't have to worry about calling free. */
-        char *file_name auto_free = NULL;
-        char *junk auto_free = NULL;
-        char *file_path auto_free = NULL;
+        uint64_t size = 0;
 
         /* Don't free that will be taken cared off later. */
         struct resource_ctx *resource = NULL;
 
-        resource = mem_alloc_shared(sizeof(struct resource_ctx));
-        if(resource == NULL)
-        {
-            output(ERROR, "Can't alloc resource object\n");
-            return (-1);
-        }
+        /* Declare a auto free pointer for storing the filepath. */
+        char *file_path auto_free = NULL;
 
-        resource->ptr = mem_alloc_shared(sizeof(int32_t *));
-        if(resource->ptr == NULL)
-        {
-            output(ERROR, "Can't alloc resource pointer\n");
-            return (-1);
-        }
-
-        /* Use generate_name to create a random file name with the text extension.  */
-        rtrn = generate_name((char **)&file_name, ".txt", FILE_NAME);
+        /* Create a resource context. */
+        rtrn = init_resource_ctx(&resource, sizeof(int32_t));
         if(rtrn < 0)
         {
-            output(ERROR, "Can't generate file path\n");
-            return (-1);
+            output(ERROR, "Can't initialize resource context\n");
+            return (NULL);
         }
 
-        /* Join the file name with the home path. */
-        rtrn = asprintf(&file_path, "%s/%s", path, file_name);
+        /* Create a random file in temp. */
+        rtrn = create_random_file(path, ".txt", &file_path, &size);
         if(rtrn < 0)
         {
-            output(ERROR, "Can't join paths: %s\n", strerror(errno));
-            return (-1);
+            output(ERROR, "Can't create random file\n");
+            return (NULL);
         }
 
-        /* Allocate a buffer to put junk in. */
-        junk = mem_alloc(4096);
-        if(junk == NULL)
-        {
-            output(ERROR, "Can't alloc junk buf: %s\n", strerror(errno));
-            return (-1);
-        }
-
-        /* Put some junk in a buffer. */
-        rtrn = rand_bytes(&junk, 4095);
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't alloc junk buf: %s\n", strerror(errno));
-            return (-1);
-        }
-
-        /* Write that junk to the file so that the file is not just blank. */
-        rtrn = map_file_out(file_path, junk, 4095);
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't write junk to disk\n");
-            return -1;
-        }
-
+        /* Open newly created file.  */
         int32_t fd = open(file_path, O_RDWR, 0777);
         if(fd < 0)
         {
             output(ERROR, "Can't open newly created file: %s\n",
                    strerror(errno));
-            return -1;
+            return (NULL);
         }
 
+        /* Move fd to shared memory. */
         memmove(resource->ptr, &fd, sizeof(int32_t));
 
         resource->m_blk = m_blk;
@@ -365,93 +349,59 @@ static int32_t create_fd_pool(char *path)
         m_blk->ptr = resource;
     }
 
-    return (0);
+    return (pool);
 }
 
-static int32_t create_file_pool(char *path)
+static struct mem_pool_shared *create_file_pool(char *path)
 {
     int32_t rtrn = 0;
     struct memory_block *m_blk = NULL;
+    struct mem_pool_shared *pool = NULL;
 
-    file_pool = mem_create_shared_pool(sizeof(char *), POOL_SIZE);
-    if(file_pool == NULL)
+    /* Create shared memory pool. */
+    pool = mem_create_shared_pool(sizeof(char *), POOL_SIZE);
+    if(pool == NULL)
     {
         output(ERROR, "Can't allocate file path memory pool\n");
-        return (-1);
+        return (NULL);
     }
 
-    init_shared_pool(&file_pool, m_blk)
+    /* Initialize shared pool with file paths. */
+    init_shared_pool(&pool, m_blk)
     {
-        /* Temp variables that we define with auto_clean so that we 
-        don't have to worry about calling free. */
-        char *file_name auto_free = NULL;
-        char *junk auto_free = NULL;
+        uint64_t file_size = 0;
 
         /* Don't free, that will be taken cared off later. */
         char *file_path = NULL;
         struct resource_ctx *resource = NULL;
 
-        resource = mem_alloc_shared(sizeof(struct resource_ctx));
-        if(resource == NULL)
-        {
-            output(ERROR, "Can't alloc resource object\n");
-            return (-1);
-        }
-
-        resource->ptr = mem_alloc_shared(PATH_MAX + 1);
-        if(resource->ptr == NULL)
-        {
-            output(ERROR, "Can't alloc resource pointer\n");
-            return (-1);
-        }
-
-        /* Use generate_name to create a random file name with the text extension.  */
-        rtrn = generate_name((char **)&file_name, ".txt", FILE_NAME);
+        /* Initialize resource context. */
+        rtrn = init_resource_ctx(&resource, PATH_MAX + 1);
         if(rtrn < 0)
         {
-            output(ERROR, "Can't generate file path\n");
-            return (-1);
+            output(ERROR, "Initialize resource context\n");
+            return (NULL);
         }
 
-        /* Join the file name with the home path. */
-        rtrn = asprintf(&file_path, "%s/%s", path, file_name);
+        /* Create random file in /tmp. */
+        rtrn = create_random_file(path, ".txt", &file_path, &file_size);
         if(rtrn < 0)
         {
-            output(ERROR, "Can't join paths: %s\n", strerror(errno));
-            return -1;
+            output(ERROR, "Can't create random file\n");
+            return (NULL);
         }
 
-        /* Allocate a buffer to put junk in. */
-        junk = mem_alloc(4096);
-        if(junk == NULL)
-        {
-            output(ERROR, "Can't alloc junk buf: %s\n", strerror(errno));
-            return -1;
-        }
-
-        /* Put some junk in a buffer. */
-        rtrn = rand_bytes(&junk, 4095);
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't alloc junk buf: %s\n", strerror(errno));
-            return -1;
-        }
-
-        /* Write that junk to the file so that the file is not just blank. */
-        rtrn = map_file_out(file_path, junk, 4095);
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't write junk to disk\n");
-            return -1;
-        }
-
+        /* Move file path to shared memory. */
         memmove(resource->ptr, file_path, strlen(file_path));
 
+        /* Set memory block pointer. */
         resource->m_blk = m_blk;
 
+        /* Set resource pointer. */
         m_blk->ptr = resource;
     }
-    return (0);
+
+    return (pool);
 }
 
 /*static int32_t create_mount_pool(char *path)
@@ -503,19 +453,21 @@ static int32_t create_file_pool(char *path)
 	return (0);
 } */
 
-static int32_t create_dirpath_pool(char *path)
+static struct mem_pool_shared *create_dirpath_pool(char *path)
 {
-    dirpath_pool = mem_create_shared_pool(sizeof(char *), POOL_SIZE);
-    if(dirpath_pool == NULL)
+    struct mem_pool_shared *pool = NULL;
+
+    pool = mem_create_shared_pool(sizeof(char *), POOL_SIZE);
+    if(pool == NULL)
     {
         output(ERROR, "Can't allocate dir path memory pool\n");
-        return (-1);
+        return (NULL);
     }
 
     int32_t rtrn = 0;
     struct memory_block *m_blk = NULL;
 
-    NX_SLIST_FOREACH(m_blk, &dirpath_pool->free_list)
+    NX_SLIST_FOREACH(m_blk, &pool->free_list)
     {
         /* Temp variable that we define with auto_clean so that we 
         don't have to worry about calling free. */
@@ -529,14 +481,14 @@ static int32_t create_dirpath_pool(char *path)
         if(resource == NULL)
         {
             output(ERROR, "Can't alloc resource object\n");
-            return (-1);
+            return (NULL);
         }
 
         resource->ptr = mem_alloc_shared(PATH_MAX + 1);
         if(resource->ptr == NULL)
         {
             output(ERROR, "Can't alloc resource pointer\n");
-            return (-1);
+            return (NULL);
         }
 
         /* Use generate_name to create a random directory name.  */
@@ -544,7 +496,7 @@ static int32_t create_dirpath_pool(char *path)
         if(rtrn < 0)
         {
             output(ERROR, "Can't generate file path\n");
-            return -1;
+            return (NULL);
         }
 
         /* Join the dir name with the temp path. */
@@ -552,7 +504,7 @@ static int32_t create_dirpath_pool(char *path)
         if(rtrn < 0)
         {
             output(ERROR, "Can't join paths: %s\n", strerror(errno));
-            return -1;
+            return (NULL);
         }
 
         memmove(resource->ptr, dir_path, strlen(dir_path));
@@ -562,7 +514,7 @@ static int32_t create_dirpath_pool(char *path)
         m_blk->ptr = resource;
     }
 
-    return (0);
+    return (pool);
 }
 
 static int32_t clean_file_pool(void)
@@ -620,50 +572,46 @@ static int32_t clean_file_pool(void)
     return (0);
 }
 
-static int32_t create_socket_pool(void)
+static struct mem_pool_shared *create_socket_pool(void)
 {
-    socket_pool = mem_create_shared_pool(sizeof(int32_t), POOL_SIZE);
-    if(socket_pool == NULL)
+    struct mem_pool_shared *pool = NULL;
+
+    pool = mem_create_shared_pool(sizeof(int32_t), POOL_SIZE);
+    if(pool == NULL)
     {
         output(ERROR, "Can't allocate socket memory pool\n");
-        return (-1);
+        return (NULL);
     }
 
     int32_t rtrn = 0;
     struct memory_block *m_blk = NULL;
 
-    NX_SLIST_FOREACH(m_blk, &socket_pool->free_list)
+    NX_SLIST_FOREACH(m_blk, &pool->free_list)
     {
         int32_t *sock = NULL;
 
         struct resource_ctx *resource = NULL;
 
-        resource = mem_alloc_shared(sizeof(struct resource_ctx));
-        if(resource == NULL)
+        /* Initialize resource context. */
+        rtrn = init_resource_ctx(&resource, sizeof(int32_t));
+        if(rtrn < 0)
         {
-            output(ERROR, "Can't alloc resource object\n");
-            return (-1);
-        }
-
-        resource->ptr = mem_alloc_shared(sizeof(int32_t));
-        if(resource->ptr == NULL)
-        {
-            output(ERROR, "Can't alloc resource pointer\n");
-            return (-1);
+            output(ERROR, "Initialize resource context\n");
+            return (NULL);
         }
 
         sock = mem_alloc(sizeof(int32_t));
         if(sock == NULL)
         {
             output(ERROR, "Can't allocate socket\n");
-            return (-1);
+            return (NULL);
         }
 
         rtrn = connect_ipv6(sock);
         if(rtrn < 0)
         {
             output(ERROR, "Can't create socket\n");
-            return (-1);
+            return (NULL);
         }
 
         memmove(resource->ptr, sock, sizeof(int32_t));
@@ -673,7 +621,7 @@ static int32_t create_socket_pool(void)
         m_blk->ptr = resource;
     }
 
-    return (0);
+    return (pool);
 }
 
 int32_t cleanup_resource_pool(void)
@@ -711,31 +659,31 @@ int32_t setup_resource_module(char *path)
 		return -1;
 	} */
 
-    rtrn = create_file_pool(path);
-    if(rtrn < 0)
+    file_pool = create_file_pool(path);
+    if(file_pool == NULL)
     {
         output(ERROR, "Can't create file pool\n");
         return (-1);
     }
 
-    rtrn = create_socket_pool();
-    if(rtrn < 0)
+    socket_pool = create_socket_pool();
+    if(socket_pool == NULL)
     {
         output(ERROR, "Can't create socket pool\n");
         return (-1);
     }
 
-    rtrn = create_fd_pool(path);
-    if(rtrn < 0)
+    desc_pool = create_fd_pool(path);
+    if(desc_pool == NULL)
     {
         output(ERROR, "Can't create fd pool\n");
         return (-1);
     }
 
-    rtrn = create_dirpath_pool(path);
-    if(rtrn < 0)
+    dirpath_pool = create_dirpath_pool(path);
+    if(dirpath_pool == NULL)
     {
-        output(ERROR, "Can't create fd pool\n");
+        output(ERROR, "Can't create dirpath pool\n");
         return (-1);
     }
 
