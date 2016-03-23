@@ -20,7 +20,7 @@
 
 #include <pthread.h>
 
-static uint32_t iterations = 10000;
+static uint32_t iterations = 10000000;
 
 static int32_t test_clean_file_pool(void)
 {
@@ -30,7 +30,7 @@ static int32_t test_clean_file_pool(void)
     int32_t rtrn = 0;
     char **paths = NULL;
 
-    /* Create an array of char pointers. */
+    /* Create an array of char pointers. */ 
     paths = mem_alloc(sizeof(char *) * POOL_SIZE);
     if(paths == NULL)
     {
@@ -303,7 +303,7 @@ static void *file_test_thread(void *arg)
 
         assert_stat(path != NULL);
 
-        free_filepath(&path);
+        free_filepath(&path, (uint32_t)strlen(path));
     }
 
     return (NULL);
@@ -331,7 +331,7 @@ static int32_t test_get_file(void)
         path = get_filepath();
         assert_stat(path != NULL);
 
-        free_filepath(&path);
+        free_filepath(&path, (uint32_t)strlen(path));
     }
 
     pthread_join(thread, NULL);
@@ -354,7 +354,7 @@ static void *fd_test_thread(void *arg)
         assert_stat(fd != -1);
         assert_stat(fd != 0);
 
-        free_socket(&fd);
+        free_desc(&fd);
     }
 
     return (NULL);
@@ -381,7 +381,8 @@ static int32_t test_get_fd(void)
     {
         fd = get_desc();
 
-        assert_stat(fd > 0);
+        assert_stat(fd != -1);
+        assert_stat(fd != 0);
 
         free_desc(&fd);
     }
@@ -410,6 +411,120 @@ static int32_t test_setup_resource_module(void)
     return (0);
 }
 
+static int32_t test_create_socket_pool(void)
+{
+    log_test(DECLARE, "Testing create socket pool");
+
+    struct mem_pool_shared *pool = NULL;
+
+    int32_t rtrn = 0;
+
+    /* Start socket server. We use this to connect to, to create loopback sockets. */
+    rtrn = setup_network_module(SOCKET_SERVER);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't start socket server\n");
+        return (-1);
+    }
+
+    pool = create_socket_pool();
+    assert_stat(pool != NULL);
+
+    struct memory_block *m_blk = NULL;
+
+    NX_SLIST_FOREACH(m_blk, &pool->free_list)
+    {
+        assert_stat(m_blk != NULL);
+        assert_stat(m_blk->ptr != NULL);
+    }
+
+    log_test(SUCCESS, "Create socket pool test passed");
+
+    return (0);
+}
+
+static int32_t test_create_file_pool(void)
+{
+    log_test(DECLARE, "Testing create file pool");
+
+    struct mem_pool_shared *pool = NULL;
+
+    pool = create_file_pool("/tmp");
+    assert_stat(pool != NULL);
+
+    struct memory_block *m_blk = NULL;
+
+    NX_SLIST_FOREACH(m_blk, &pool->free_list)
+    {
+        assert_stat(m_blk != NULL);
+        assert_stat(m_blk->ptr != NULL);
+    }
+
+    log_test(SUCCESS, "Create file pool test passed");
+
+    return (0);
+}
+
+static int32_t test_create_dirpath_pool(void)
+{
+    log_test(DECLARE, "Testing create dirpath pool");
+
+    struct mem_pool_shared *pool = NULL;
+
+    pool = create_dirpath_pool("/tmp");
+    assert_stat(pool != NULL);
+
+    struct memory_block *m_blk = NULL;
+
+    NX_SLIST_FOREACH(m_blk, &pool->free_list)
+    {
+        assert_stat(m_blk != NULL);
+        assert_stat(m_blk->ptr != NULL);
+    }
+
+    log_test(SUCCESS, "Create dirpath pool test passed");
+
+    return (0);
+}
+
+static int32_t test_create_fd_pool(void)
+{
+    log_test(DECLARE, "Testing create fd pool");
+    
+    struct mem_pool_shared *pool = NULL;
+
+    pool = create_fd_pool("/tmp");
+    assert_stat(pool != NULL);
+
+    struct memory_block *m_blk = NULL;
+
+    NX_SLIST_FOREACH(m_blk, &pool->free_list)
+    {
+        assert_stat(m_blk != NULL);
+        assert_stat(m_blk->ptr != NULL);
+    }
+
+    log_test(SUCCESS, "Create fd pool test passed");
+
+    return (0);
+}
+
+static int32_t test_init_resource_ctx(void)
+{
+    log_test(DECLARE, "Testing init resource context");
+
+    int32_t rtrn = 0;
+    struct resource_ctx *resource = NULL;
+
+    rtrn = init_resource_ctx(&resource, sizeof(int32_t *));
+    assert_stat(rtrn == 0);
+    assert_stat(resource != NULL);
+
+    log_test(SUCCESS, "Init resource context test passed");
+
+    return (0);
+}
+
 int main(void)
 {
 	int32_t rtrn = 0;
@@ -429,17 +544,37 @@ int main(void)
         return (0);
     }
 
+    rtrn = test_init_resource_ctx();
+    if(rtrn < 0)
+        log_test(FAIL, "Init resource context test failed");
+
+    rtrn = test_create_file_pool();
+    if(rtrn < 0)
+        log_test(FAIL, "Create file pool failed");
+
+    rtrn = test_create_dirpath_pool();
+    if(rtrn < 0)
+        log_test(FAIL, "Create dirpath pool failed");
+
+    rtrn = test_create_socket_pool();
+    if(rtrn < 0)
+        log_test(FAIL, "Create socket pool failed");
+
+    rtrn = test_create_fd_pool();
+    if(rtrn < 0)
+        log_test(FAIL, "Create fd pool failed");
+
     rtrn = test_setup_resource_module();
     if(rtrn < 0)
         log_test(FAIL, "setup resource module failed");
 
-	rtrn = test_get_fd();
-	if(rtrn < 0)
-        log_test(FAIL, "get fd test failed");
-
     rtrn = test_get_file();
     if(rtrn < 0)
         log_test(FAIL, "Get file path test failed");
+
+    rtrn = test_get_fd();
+    if(rtrn < 0)
+        log_test(FAIL, "get fd test failed");
 
     rtrn = test_get_dirpath();
     if(rtrn < 0)
