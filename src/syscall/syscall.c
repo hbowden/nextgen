@@ -182,7 +182,8 @@ static int32_t free_old_arguments(struct child_ctx *ctx)
                 break;
 
             case FILE_PATH:
-                rtrn = free_filepath((char **)&(ctx->arg_copy_index[i]));
+                rtrn = free_filepath((char **)&(ctx->arg_copy_index[i]),
+                                     (uint32_t)ctx->arg_size_index[i]);
                 if(rtrn < 0)
                     output(ERROR, "Can't free filepath\n");
                 /* Don't return on errors, just keep looping. */
@@ -465,6 +466,22 @@ NX_NO_RETURN static void start_syscall_child(void)
         exit_child();
     }
 
+    /* If the had error flag is set we are returning from the signal
+    handler. Cleanup our old mess before progressing. */
+    if(ctx->had_error == NX_YES)
+    {
+        /* Log the results of the last fuzz test. */
+        rtrn = log_results(ctx->had_error, ctx->ret_value, ctx->err_value);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't log test results\n");
+            exit_child();
+        }
+
+        /* Clean up our old mess. */
+        free_old_arguments(ctx);
+    }
+
     /* Check if we should stop or continue running. */
     while(atomic_load(stop) != TRUE)
     {
@@ -492,6 +509,7 @@ NX_NO_RETURN static void start_syscall_child(void)
             exit_child();
         }
 
+        /* Grab the syscall entry for the syscall we picked. */
         entry = get_entry(ctx->syscall_number);
         if(entry == NULL)
         {
@@ -515,6 +533,13 @@ NX_NO_RETURN static void start_syscall_child(void)
         if(rtrn < 0)
         {
             output(ERROR, "Syscall call failed\n");
+            exit_child();
+        }
+
+        rtrn = log_results(ctx->had_error, ctx->ret_value, ctx->err_value);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't log test results\n");
             exit_child();
         }
 
