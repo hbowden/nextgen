@@ -178,7 +178,8 @@ struct mem_pool_shared *mem_create_shared_pool(uint32_t block_size,
         .block_size = block_size,
         .block_count = block_count,
         .free_list = NX_SLIST_HEAD_INITIALIZER(s_pool->free_list),
-        .allocated_list = NX_SLIST_HEAD_INITIALIZER(s_pool->allocated_list)};
+        .allocated_list = NX_SLIST_HEAD_INITIALIZER(s_pool->allocated_list)
+    };
 
     memmove(pool, &s_pool, sizeof(struct mem_pool_shared));
 
@@ -227,23 +228,31 @@ struct memory_block *mem_get_shared_block(struct mem_pool_shared *pool)
     /* Declare a memory block pointer. */
     struct memory_block *block = NULL;
 
-    /* Lock the spinlock for exclusive access. */
-    nx_spinlock_lock(&pool->lock);
-
-    /* Loop for each node in the list. */
-    NX_SLIST_FOREACH(block, &pool->free_list)
+    /* Loop until we get a shared block. */
+    while(1)
     {
-        /* Remove the block from the free_list. */
-        NX_SLIST_REMOVE(&pool->free_list, block, memory_block);
+        /* Lock the spinlock for exclusive access. */
+        nx_spinlock_lock(&pool->lock);
 
-        /* Add the block to the allocated block list. */
-        NX_SLIST_INSERT_HEAD(&pool->allocated_list, block);
+        /* Get first node in list and break out of both loops. */
+        NX_SLIST_FOREACH(block, &pool->free_list)
+        {
+            /* Remove the block from the free_list. */
+            NX_SLIST_REMOVE(&pool->free_list, block, memory_block);
 
-        /* Break out of loop. */
-        break;
+            /* Add the block to the allocated block list. */
+            NX_SLIST_INSERT_HEAD(&pool->allocated_list, block);
+
+            if(block != NULL)
+                goto done;
+        }
+
+        /* Unlock the spinlock. */
+        nx_spinlock_unlock(&pool->lock);
     }
 
-    /* Unlock the spinlock. */
+done:
+
     nx_spinlock_unlock(&pool->lock);
 
     /* Return the empty block. */
