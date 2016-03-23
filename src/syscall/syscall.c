@@ -479,7 +479,12 @@ NX_NO_RETURN static void start_syscall_child(void)
         }
 
         /* Clean up our old mess. */
-        free_old_arguments(ctx);
+        rtrn = free_old_arguments(ctx);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't cleanup old arguments\n");
+            exit_child();
+        }
     }
 
     /* Check if we should stop or continue running. */
