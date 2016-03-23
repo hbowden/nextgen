@@ -40,6 +40,8 @@ void setup_signal_handler(void)
 
 static void syscall_child_signal_handler(int sig)
 {
+
+    /* Grab our child's context object. */
     struct child_ctx *child = get_child_ctx();
     if(child == NULL)
     {
@@ -47,18 +49,51 @@ static void syscall_child_signal_handler(int sig)
         return;
     }
 
+    /* Check what kind of signal got us here. */
     switch(sig)
     {
+        /* An alarm we set for a blocking syscall has gone off. */
         case SIGALRM:
 
-            (void)signal(sig, syscall_child_signal_handler);
+            /* Set the had error flag to no. */
+            child->had_error = NX_NO;
 
+            /* Set return value to zero. */
+            child->ret_value = 0;
+            
+            /* Jump back to child's main loop. */
+            longjmp(child->return_jump, 1); 
+
+        case SIGSEGV:
+
+            /* Set the had error flag to YES. */
+            child->had_error = NX_YES;
+
+            /* Set return value to -1. */
+            child->ret_value = -1;
+
+            /* Set err value. */
+            memmove(child->err_value, "SIGSEGV", 7);
+
+            child->err_value[7] = '\0';
+
+            /* Jump back to child's main loop. */
             longjmp(child->return_jump, 1);
-
-        /* No break needed, as we are jumping back to the child syscall fuzzing loop. */
 
         default:
 
+            /* Set the had error flag to YES. */
+            child->had_error = NX_YES;
+
+            /* Set return value to -1. */
+            child->ret_value = -1;
+
+            /* Set err value. */
+            memmove(child->err_value, "SIGNAL", 6);
+
+            child->err_value[6] = '\0';
+
+            /* Jump back to child's main loop. */
             longjmp(child->return_jump, 1);
     }
 }
