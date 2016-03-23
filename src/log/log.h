@@ -28,21 +28,9 @@
 
 #endif
 
-struct log_obj
-{
-	int32_t ret_value;
-	int32_t had_error;
-	uint32_t number_of_args;
-	uint32_t syscall_number;
-	const char *err_value;
-	const char *name_of_syscall;
-	uint64_t **arg_value_index;
-
-};
-
 extern int32_t create_out_directory(char *path);
 
-extern int32_t log_results(struct log_obj *obj);
+extern int32_t log_results(int32_t had_error, int32_t ret_value, char *err_value);
 
 extern int32_t log_file(char *file_path, char *file_extension);
 

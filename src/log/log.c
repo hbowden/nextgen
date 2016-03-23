@@ -92,15 +92,21 @@ int32_t create_out_directory(char *path)
     return (0);
 }
 
-int log_results(struct log_obj *obj)
+int32_t log_results(int32_t had_error, int32_t ret_value, char *err_value)
 {
     int32_t rtrn = 0;
     char *out_buf auto_free = NULL;
 
-    if(obj->had_error == NX_YES)
+    if(err_value == NULL)
     {
-        rtrn = asprintf(&out_buf, "%s= %d (%s) %s\n", BOLD_RED, obj->ret_value,
-                        obj->err_value, RESET);
+        output(ERROR, "Err value is NULL\n");
+        return (-1);
+    }
+
+    if(had_error == NX_YES)
+    {
+        rtrn = asprintf(&out_buf, "%s= %d (%s) %s\n", BOLD_RED, ret_value,
+                        err_value, RESET);
         if(rtrn < 0)
         {
             output(ERROR, "Can't create out message\n");
@@ -109,8 +115,7 @@ int log_results(struct log_obj *obj)
     }
     else
     {
-        rtrn = asprintf(&out_buf, "%s= %d %s\n", BOLD_GREEN, obj->ret_value,
-                        RESET);
+        rtrn = asprintf(&out_buf, "%s= %d %s\n", BOLD_GREEN, ret_value, RESET);
         if(rtrn < 0)
         {
             output(ERROR, "Can't create out message\n");
