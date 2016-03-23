@@ -235,7 +235,7 @@ static int32_t test_shared_pool(void)
     }
 
     int32_t rtrn = 0;
-    pthread_t thread1, thread2;
+    pthread_t thread1, thread2, thread3;
 
     rtrn = pthread_create(&thread1, NULL, thread_start, pool);
     if(rtrn < 0)
@@ -245,6 +245,13 @@ static int32_t test_shared_pool(void)
     }
 
     rtrn = pthread_create(&thread2, NULL, thread_start, pool);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't create thread\n");
+        return (0);
+    }
+
+    rtrn = pthread_create(&thread3, NULL, thread_start, pool);
     if(rtrn < 0)
     {
         output(ERROR, "Can't create thread\n");
@@ -275,6 +282,13 @@ static int32_t test_shared_pool(void)
     if(rtrn < 0)
     {
         output(ERROR, "Can't join thread2\n");
+        return (-1);
+    }
+
+    rtrn = pthread_join(thread3, &buf);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't join thread3\n");
         return (-1);
     }
 
