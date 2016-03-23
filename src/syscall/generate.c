@@ -23,6 +23,7 @@
 #include "runtime/nextgen.h"
 #include "utils/utils.h"
 
+#include <arpa/inet.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -34,6 +35,8 @@
 #include <sys/ptrace.h>
 #include <sys/resource.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
+#include <netinet/in.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -860,6 +863,274 @@ int32_t generate_dev(uint64_t **dev, struct child_ctx *ctx)
     memmove((*dev), &device, sizeof(dev_t));
 
     ctx->arg_size_index[ctx->current_arg] = sizeof(dev_t);
+
+    return (0);
+}
+
+int32_t generate_message(uint64_t **msg, struct child_ctx *ctx)
+{
+    (*msg) = mem_alloc(sizeof(struct msghdr));
+    if((*msg) == NULL)
+    {
+        output(ERROR, "Can't alloc message header\n");
+        return (-1);
+    }
+
+    struct msghdr message;
+    struct iovec iov;
+    char *data = NULL;
+    int32_t rtrn = 0;
+
+    data = mem_alloc(64);
+    if(data == NULL)
+    {
+        output(ERROR, "Can't allocate data\n");
+        return (-1);
+    }
+
+    rtrn = rand_bytes(&data, 63);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't get random data\n");
+        return (-1);
+    }
+
+    memset(&message, 0, sizeof(struct msghdr));
+    memset(&iov, 0, sizeof(struct iovec));
+
+    message.msg_name = NULL;
+    message.msg_namelen = 0;
+    iov.iov_base = data;
+
+    iov.iov_len = strlen(data) + 1;
+    message.msg_iov = &iov;
+    message.msg_iovlen = 1;
+    message.msg_control = NULL;
+    message.msg_controllen = 0;
+    message.msg_flags = 0;
+
+    memmove((*msg), &message, sizeof(struct msghdr));
+
+    ctx->arg_size_index[ctx->current_arg] = sizeof(struct msghdr);
+
+    return (0);
+}
+
+int32_t generate_send_flags(uint64_t **flag, struct child_ctx *ctx)
+{
+    int32_t rtrn = 0;
+    uint32_t number = 0;
+    int32_t send_flags[] = {MSG_OOB, MSG_DONTROUTE};
+
+    (*flag) = mem_alloc(sizeof(uint64_t));
+    if((*flag) == NULL)
+    {
+        output(ERROR, "Can't allocate send flags\n");
+        return (-1);
+    }
+
+    rtrn = rand_range(2, &number);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't pick random number\n");
+        return (-1);
+    }
+
+    switch((int32_t)number)
+    {
+        case 0:
+        case 1:
+            (**flag) |= (uint64_t) send_flags[number];
+            break;
+
+        case 2:
+            (**flag) = (uint64_t) send_flags[0] | (uint64_t) send_flags[1]; 
+
+        default:
+            output(ERROR, "Random number is too high\n");
+            return (-1);
+    }
+
+    ctx->arg_size_index[ctx->current_arg] = sizeof(uint64_t);
+
+    return (0);
+}
+
+int32_t generate_sockaddr(uint64_t **addr, struct child_ctx *ctx)
+{
+    int32_t rtrn = 0;
+    struct sockaddr_in in;
+    uint32_t port = 0;
+
+    (*addr) = mem_alloc(sizeof(struct sockaddr_in));
+    if((*addr) == NULL)
+    {
+        output(ERROR, "Can't allocate sockaddr\n");
+        return (-1);
+    }
+
+    rtrn = pick_random_port(&port);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't pick random port\n");
+        return (-1);
+    }
+
+    in.sin_family = AF_INET;
+    in.sin_port = htons(port);
+    inet_pton(AF_INET, "127.0.0.1", &in.sin_addr);
+
+    memmove((*addr), &port, sizeof(struct sockaddr_in));
+
+    ctx->arg_size_index[ctx->current_arg] = sizeof(struct sockaddr_in);
+
+    return (0);
+}
+
+int32_t generate_socklen(uint64_t **len, struct child_ctx *ctx)
+{
+    uint32_t last_arg = 0;
+
+    if(ctx->current_arg == 0)
+        last_arg = 0;
+    else
+        last_arg = ctx->current_arg - 1;
+
+    /* Allocate the length buffer */
+    (*len) = mem_alloc(sizeof(socklen_t));
+    if((*len) == NULL)
+    {
+        output(ERROR, "Can't alloc length\n");
+        return (-1);
+    }
+
+    /* Set the socklen to the length of the last syscall argument. */
+    memcpy((*len), &ctx->arg_size_index[last_arg], sizeof(socklen_t));
+
+    /* Set this argument's length. */
+    ctx->arg_size_index[ctx->current_arg] = sizeof(socklen_t);
+
+    return (0);
+}
+
+int32_t generate_amode(uint64_t **amode, struct child_ctx *ctx)
+{
+    int32_t rtrn = 0;
+    uint32_t number = 0;
+
+    (*amode) = mem_alloc(sizeof(uint64_t));
+    if((*amode) == NULL)
+    {
+        output(ERROR, "Can't allocate amode\n");
+        return (-1);
+    }
+
+    rtrn = rand_range(6, &number);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't pick random number\n");
+        return (-1);
+    }
+
+    switch((int32_t)number)
+    {
+        case 0:
+            (**amode) |= R_OK;
+            break;
+
+        case 1:
+            (**amode) |= W_OK;
+            break;
+
+        case 2:
+            (**amode) |= X_OK;
+            break;
+
+        case 3:
+            (**amode) = R_OK | W_OK;
+            break;
+
+        case 4:
+            (**amode) = R_OK | X_OK;
+            break;
+
+        case 5:
+            (**amode) = W_OK | X_OK;
+            break;
+
+        case 6:
+            (**amode) = W_OK | R_OK;
+            break;
+
+        default:
+            output(ERROR, "Random number is too high\n");
+            return (-1);
+    }
+
+    ctx->arg_size_index[ctx->current_arg] = sizeof(uint64_t);
+
+    return (0);
+}
+
+int32_t generate_chflags(uint64_t **flag, struct child_ctx *ctx)
+{
+    int32_t rtrn = 0;
+    uint32_t number = 0;
+
+    (*flag) = mem_alloc(sizeof(uint64_t));
+    if((*flag) == NULL)
+    {
+        output(ERROR, "Can't allocate flag\n");
+        return (-1);
+    }
+
+    rtrn = rand_range(7, &number);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't pick random number\n");
+        return (-1);
+    }
+
+    switch((int32_t)number)
+    {
+        case 0:
+            (**flag) |= UF_NODUMP;
+            break;
+
+        case 1:
+            (**flag) |= UF_IMMUTABLE;
+            break;
+
+        case 2:
+            (**flag) |= UF_APPEND;
+            break;
+
+        case 3:
+            (**flag) |= UF_OPAQUE;
+            break;
+
+        case 4:
+            (**flag) |= UF_HIDDEN;
+            break;
+
+        case 5:
+            (**flag) |= SF_ARCHIVED;
+            break;
+
+        case 6:
+            (**flag) |= SF_IMMUTABLE;
+            break;
+
+        case 7:
+            (**flag) |= SF_APPEND;
+            break;
+
+        default:
+            output(ERROR, "Random number is too high\n");
+            return (-1);
+    }
+
+    ctx->arg_size_index[ctx->current_arg] = sizeof(uint64_t);
 
     return (0);
 }

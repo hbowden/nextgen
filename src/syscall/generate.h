@@ -68,4 +68,16 @@ extern int32_t generate_mountpath(uint64_t **path, struct child_ctx *ctx);
 
 extern int32_t generate_dev(uint64_t **dev, struct child_ctx *ctx);
 
+extern int32_t generate_message(uint64_t **msg, struct child_ctx *ctx);
+
+extern int32_t generate_send_flags(uint64_t **flag, struct child_ctx *ctx);
+
+extern int32_t generate_sockaddr(uint64_t **addr, struct child_ctx *ctx);
+
+extern int32_t generate_socklen(uint64_t **len, struct child_ctx *ctx);
+
+extern int32_t generate_amode(uint64_t **amode, struct child_ctx *ctx);
+
+extern int32_t generate_chflags(uint64_t **flag, struct child_ctx *ctx);
+
 #endif
