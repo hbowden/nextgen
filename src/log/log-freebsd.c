@@ -13,8 +13,7 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#include "log-freebsd.h" 
-
+#include "log.h" 
 #include "io/io.h"
 #include "memory/memory.h"
 

@@ -20,6 +20,8 @@ SOURCES += $(ROOT_DIR)/src/log/log-freebsd.c
 
 LIB_NAME = libnxlog.so
 
+SOURCES += log-freebsd.c
+
 endif
 
 # Mac OSX build options.
