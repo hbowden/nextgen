@@ -26,7 +26,7 @@
 #include <sys/wait.h>
 
 /* The number of test to run, keep in sync with test_paths  */
-static uint32_t number_of_test = 13;
+static uint32_t number_of_test = 14;
 
 enum { MEMORY_TEST = 0, CONCURRENT_TEST = 1,
        CRYPTO_TEST = 2, UTILS_TEST = 3,
@@ -34,7 +34,7 @@ enum { MEMORY_TEST = 0, CONCURRENT_TEST = 1,
        RESOURCE_TEST = 6, REAPER_TEST = 7,
        SYSCALL_TEST = 8, FILE_TEST = 9, 
        GENETIC_TEST = 10, PLUGINS_TEST = 11,
-       RUNTIME_TEST = 12
+       RUNTIME_TEST = 12, LOG_TEST = 13
     };
 
 /* Array of unit test file paths. */
@@ -52,6 +52,7 @@ static char *test_paths[] = {
     "tests/genetic/test_genetic",
     "tests/plugin/test_plugins",
     "tests/runtime/test_runtime",
+    "tests/log/test_log",
     NULL   
 };
 
@@ -186,6 +187,16 @@ static void run_single_test(char *argv[])
     else if(strncmp(argv[1], "memory", 6) == 0)
     {
         rtrn = exec_test(test_paths[MEMORY_TEST]);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't exec unit test\n");
+            return;
+        }
+    }
+
+    else if(strncmp(argv[1], "log", 3) == 0)
+    {
+        rtrn = exec_test(test_paths[LOG_TEST]);
         if(rtrn < 0)
         {
             output(ERROR, "Can't exec unit test\n");
