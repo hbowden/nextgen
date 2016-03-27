@@ -32,12 +32,14 @@ enum argnums { FIRST_ARG, SECOND_ARG, THIRD_ARG, FOURTH_ARG, FIFTH_ARG, SIXTH_AR
 /* In memory format. */
 struct syscall_entry_shadow
 {
-    const char *name_of_syscall;
+    const char *syscall_name;
     const uint32_t syscall_symbol;
 
     atomic_bool status;
     const bool need_alarm;
     const bool requires_root;
+
+    const char padding[1];
 
     const uint32_t number_of_args;
     const uint32_t entry_number;
