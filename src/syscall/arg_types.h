@@ -61,6 +61,7 @@ struct arg_context
 	enum arg_type type;
 	enum yes_no should_free;
 	int32_t log_type;
+    const char padding[4];
 };
 
 extern struct arg_context *get_arg_context(enum arg_type type);
