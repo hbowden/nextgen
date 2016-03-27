@@ -43,27 +43,23 @@ struct child_ctx
     /* Symbolized syscall number. */
     uint32_t syscall_symbol;
 
-    /* */
+    /* The argument were currently generating. */
     uint32_t current_arg;
-
-    const char *name_of_syscall;
-
-    /* This index is where we store the arguments we generate. */
-    uint64_t **arg_value_index;
-
-    uint64_t **arg_copy_index;
-
-    /* This index tracks the size of the arguments.*/
-    uint64_t *arg_size_index;
-
-    struct mem_pool_shared *pool;
 
     /* The number of args for the syscall were testing. */
     uint32_t number_of_args;
 
-    bool need_alarm;
+    /* The name of the syscall were testing. */
+    const char *syscall_name;
 
-    dtrace_hdl_t *probe_handle;
+    /* This array is where we store the arguments we generate. */
+    uint64_t **arg_value_array;
+
+    /* This array is a copy of the value array. */
+    uint64_t **arg_copy_array;
+
+    /* This index tracks the size of the arguments.*/
+    uint64_t *arg_size_array;
 
     /* Time that we made the syscall fuzz test. */
     struct timeval time_of_syscall;
@@ -77,12 +73,16 @@ struct child_ctx
     /* The string value of errno if the syscall test failed. */
     char *err_value;
 
-    /* This pipe is used to inform the main-loop process we are done
-    creating and setting up the child process. */
-    int32_t pipe_port[2];
-
     /* Child's message port. */
     msg_port_t msg_port;
+
+    const char padding[4];
+
+    dtrace_hdl_t *probe_handle;
+
+    bool need_alarm;
+
+    const char padding2[7];
 };
 
 #endif
