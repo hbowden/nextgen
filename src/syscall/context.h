@@ -47,7 +47,7 @@ struct child_ctx
     uint32_t current_arg;
 
     /* The number of args for the syscall were testing. */
-    uint32_t number_of_args;
+    uint32_t total_args;
 
     /* The name of the syscall were testing. */
     const char *syscall_name;

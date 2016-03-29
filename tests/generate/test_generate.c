@@ -45,7 +45,7 @@ static int32_t test_generate_fd(void)
         rtrn = generate_fd((uint64_t **)&fd, child);
         assert_stat(rtrn == 0);
         assert_stat((*fd) > 0);
-        assert_stat(child->arg_size_index[0] > 0);
+        assert_stat(child->arg_size_array[0] > 0);
 
         /* Make sure we can write to the descriptor. */
         assert_stat(write((*fd), "TEST", 4) == 4);
@@ -77,7 +77,7 @@ static int32_t test_generate_socket(void)
         rtrn = generate_socket((uint64_t **)&fd, child);
         assert_stat(rtrn == 0);
         assert_stat((*fd) > 0);
-        assert_stat(child->arg_size_index[0] > 0);
+        assert_stat(child->arg_size_array[0] > 0);
 
         /* Make sure we can write to the descriptor. */
         assert_stat(write((*fd), "TEST", 4) == 4);
@@ -109,7 +109,7 @@ static int32_t test_generate_unmount_flags(void)
 	    assert_stat(rtrn == 0);
 	    assert_stat(flag != NULL);
 	    assert_stat((*flag) > 0);
-	    assert_stat(child->arg_size_index[0] > 0);
+	    assert_stat(child->arg_size_array[0] > 0);
 
 	    mem_free((void **)&flag);
     }
@@ -138,7 +138,7 @@ static int32_t test_generate_request(void)
 	    assert_stat(rtrn == 0);
 	    assert_stat(request != NULL);
 	    assert_stat((*request) >= 0);
-	    assert_stat(child->arg_size_index[0] > 0);
+	    assert_stat(child->arg_size_array[0] > 0);
 	    mem_free((void **)&request);
     }
 
@@ -167,7 +167,7 @@ static int32_t test_generate_recv_flags(void)
 	    assert_stat(rtrn == 0);
 	    assert_stat(flag != NULL);
 	    assert_stat((*flag) > 0);
-	    assert_stat(child->arg_size_index[0] > 0);
+	    assert_stat(child->arg_size_array[0] > 0);
     }
 
 	log_test(SUCCESS, "Generate recv flags test passed");
@@ -219,7 +219,7 @@ static int32_t test_generate_dev(void)
 	    rtrn = generate_dev((uint64_t **)&dev, child);
 	    assert_stat(rtrn == 0);
 	    assert_stat(dev != NULL);
-	    assert_stat(child->arg_size_index[0] > 0);
+	    assert_stat(child->arg_size_array[0] > 0);
     }
 
 	log_test(SUCCESS, "Generate dev_t test passed");
@@ -245,7 +245,7 @@ static int32_t test_generate_buf(void)
 	    rtrn = generate_buf((uint64_t **)&buf, child);
 	    assert_stat(rtrn == 0);
 	    assert_stat(buf != NULL);
-	    assert_stat(child->arg_size_index[0] > 0);
+	    assert_stat(child->arg_size_array[0] > 0);
     }
 
 	log_test(SUCCESS, "Generate buf test passed");
@@ -272,7 +272,7 @@ static int32_t test_generate_length(void)
 	    assert_stat(rtrn == 0);
 	    assert_stat(len != NULL);
 	    assert_stat((*len) > 0);
-	    assert_stat(child->arg_size_index[0] > 0);
+	    assert_stat(child->arg_size_array[0] > 0);
     }
 
 	log_test(SUCCESS, "Generate length test passed");
@@ -301,9 +301,9 @@ static int32_t test_generate_path(void)
 	    assert_stat(path != NULL);
 	    fd = open(path, O_RDONLY);
 	    assert_stat(fd > 0);
-	    assert_stat(child->arg_size_index[0] > 0);
+	    assert_stat(child->arg_size_array[0] > 0);
 	    close(fd);
-	    free_filepath(&path, (uint32_t)child->arg_size_index[0]);
+	    free_filepath(&path, (uint32_t)child->arg_size_array[0]);
     }
 
 	log_test(SUCCESS, "Generate path test passed");
@@ -330,7 +330,7 @@ static int32_t test_generate_mode(void)
 	    assert_stat(rtrn == 0);
 	    assert_stat(mode_ptr != NULL);
 	    assert_stat((*mode_ptr) > 0);
-	    assert_stat(child->arg_size_index[0] > 0);
+	    assert_stat(child->arg_size_array[0] > 0);
     }
 
 	log_test(SUCCESS, "Generate mode test passed");
@@ -356,7 +356,7 @@ static int32_t test_generate_open_flag(void)
 	    rtrn = generate_open_flag((uint64_t **)&flag, child);
 	    assert_stat(rtrn == 0);
 	    assert_stat(flag != NULL);
-	    assert_stat(child->arg_size_index[0] > 0);
+	    assert_stat(child->arg_size_array[0] > 0);
     }
 
 	log_test(SUCCESS, "Generate open flag test passed");
@@ -382,7 +382,7 @@ static int32_t test_generate_fs_stat(void)
 	    rtrn = generate_fs_stat((uint64_t **)&buf, child);
 	    assert_stat(rtrn == 0);
 	    assert_stat(buf != NULL);
-	    assert_stat(child->arg_size_index[0] > 0);
+	    assert_stat(child->arg_size_array[0] > 0);
     }
 
 	log_test(SUCCESS, "Generate open flag test passed"); 
@@ -409,7 +409,7 @@ static int32_t test_generate_fs_stat_flag(void)
 	    assert_stat(rtrn == 0);
 	    assert_stat(flag != NULL);
 	    assert_stat((*flag) > 0);
-	    assert_stat(child->arg_size_index[0] > 0);
+	    assert_stat(child->arg_size_array[0] > 0);
     }
 
 	log_test(SUCCESS, "Generate fs stat flag test passed"); 
@@ -435,7 +435,7 @@ static int32_t test_generate_dirpath(void)
 	    rtrn = generate_dirpath((uint64_t **)&dirpath, child);
 	    assert_stat(rtrn == 0);
 	    assert_stat(dirpath != NULL);
-	    assert_stat(child->arg_size_index[0] > 0);
+	    assert_stat(child->arg_size_array[0] > 0);
 	    free_dirpath(&dirpath);
     }
 
@@ -462,7 +462,7 @@ static int32_t test_generate_mount_type(void)
 	    rtrn = generate_mount_type((uint64_t **)&type, child);
 	    assert_stat(rtrn == 0);
 	    assert_stat(type != NULL);
-	    assert_stat(child->arg_size_index[0] > 0);
+	    assert_stat(child->arg_size_array[0] > 0);
     }
 
 	log_test(SUCCESS, "Generate mount type test passed");
@@ -489,7 +489,7 @@ static int32_t test_generate_offset(void)
 	    assert_stat(rtrn == 0);
 	    assert_stat(offset != NULL);
 	    assert_stat((*offset) >= 0);
-	    assert_stat(child->arg_size_index[0] > 0);
+	    assert_stat(child->arg_size_array[0] > 0);
     }
 
 	log_test(SUCCESS, "Generate offset test passed");
@@ -515,7 +515,7 @@ static int32_t test_generate_whence(void)
 	    rtrn = generate_whence((uint64_t **)&whence, child);
 	    assert_stat(rtrn == 0);
 	    assert_stat(whence != NULL);
-	    assert_stat(child->arg_size_index[0] > 0);
+	    assert_stat(child->arg_size_array[0] > 0);
     }
 
 	log_test(SUCCESS, "Generate whence test passed");
@@ -541,7 +541,7 @@ static int32_t test_generate_wait_option(void)
 	    rtrn = generate_wait_option((uint64_t **)&option, child);
 	    assert_stat(rtrn == 0);
 	    assert_stat(option != NULL);
-	    assert_stat(child->arg_size_index[0] > 0);
+	    assert_stat(child->arg_size_array[0] > 0);
     }
 
 	log_test(SUCCESS, "Generate wait option test passed");
@@ -567,7 +567,7 @@ static int32_t test_generate_rusage(void)
 	    rtrn = generate_rusage((uint64_t **)&buf, child);
 	    assert_stat(rtrn == 0);
 	    assert_stat(buf != NULL);
-	    assert_stat(child->arg_size_index[0] > 0);
+	    assert_stat(child->arg_size_array[0] > 0);
     }
 
 	log_test(SUCCESS, "Generate rusage test passed");
@@ -594,7 +594,7 @@ static int32_t test_generate_int(void)
 	    assert_stat(rtrn == 0);
 	    assert_stat(number != NULL);
 	    assert_stat((*number) >= 0);
-	    assert_stat(child->arg_size_index[0] > 0);
+	    assert_stat(child->arg_size_array[0] > 0);
     }
 
 	log_test(SUCCESS, "Generate integer test passed");
@@ -622,7 +622,7 @@ static int32_t test_generate_pid(void)
 	    assert_stat(rtrn == 0);
 	    assert_stat(pid != NULL);
 	    assert_stat((*pid) >= 0);
-	    assert_stat(child->arg_size_index[0] > 0);
+	    assert_stat(child->arg_size_array[0] > 0);
 	    kill((*pid), SIGKILL);
     }
 

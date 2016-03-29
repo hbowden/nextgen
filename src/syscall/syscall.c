@@ -155,7 +155,7 @@ static int32_t free_old_arguments(struct child_ctx *ctx)
 {
     uint32_t i;
     int32_t rtrn = 0;
-    uint32_t number_of_args = ctx->number_of_args;
+    uint32_t total_args = ctx->total_args;
     struct syscall_entry_shadow *entry = NULL;
 
     /* Grab the syscall entry. */
@@ -166,7 +166,7 @@ static int32_t free_old_arguments(struct child_ctx *ctx)
         return (-1);
     }
 
-    for(i = 0; i < number_of_args; i++)
+    for(i = 0; i < total_args; i++)
     {
         /* Handle args that require special cleanup procedures. */
         switch((int32_t)entry->arg_context_array[i]->type)
@@ -244,7 +244,7 @@ static int32_t set_syscall(uint32_t num, struct child_ctx *ctx)
     ctx->syscall_symbol = sys_table->sys_entry[num]->syscall_symbol;
     ctx->syscall_name = sys_table->sys_entry[num]->syscall_name;
     ctx->need_alarm = sys_table->sys_entry[num]->need_alarm;
-    ctx->number_of_args = sys_table->sys_entry[num]->total_args;
+    ctx->total_args = sys_table->sys_entry[num]->total_args;
     ctx->had_error = NX_NO;
 
     return (0);
@@ -314,7 +314,7 @@ static int32_t process_genesis(struct job_ctx *job)
 
     /* Log the arguments before we use them, in case we cause a
     kernel panic, so we know what caused the panic. */
-    rtrn = log_arguments(ctx->number_of_args, ctx->syscall_name,
+    rtrn = log_arguments(ctx->total_args, ctx->syscall_name,
                          ctx->arg_value_array, entry->arg_context_array);
     if(rtrn < 0)
     {
@@ -524,7 +524,7 @@ NX_NO_RETURN static void start_syscall_child(void)
 
         /* Log the arguments before we use them, in case we cause a
         kernel panic, so we know what caused the panic. */
-        rtrn = log_arguments(ctx->number_of_args, ctx->syscall_name,
+        rtrn = log_arguments(ctx->total_args, ctx->syscall_name,
                              ctx->arg_value_array, entry->arg_context_array);
         if(rtrn < 0)
         {
@@ -806,7 +806,7 @@ int32_t pick_syscall(struct child_ctx *ctx)
     ctx->syscall_name =
         sys_table->sys_entry[ctx->syscall_number]->syscall_name;
     ctx->need_alarm = sys_table->sys_entry[ctx->syscall_number]->need_alarm;
-    ctx->number_of_args =
+    ctx->total_args =
         sys_table->sys_entry[ctx->syscall_number]->total_args;
     ctx->had_error = NX_NO;
 
@@ -817,10 +817,10 @@ int32_t generate_arguments(struct child_ctx *ctx)
 {
     uint32_t i = 0;
     int32_t rtrn = 0;
-    uint32_t number_of_args = ctx->number_of_args;
+    uint32_t total_args = ctx->total_args;
 
     /* Loop for each syscall argument. */
-    for(i = 0; i < number_of_args; i++)
+    for(i = 0; i < total_args; i++)
     {
         /* Set the current argument number. */
         ctx->current_arg = i;

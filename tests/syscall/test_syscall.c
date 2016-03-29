@@ -65,9 +65,7 @@ static int32_t test_syscall_setup(void)
 
 static int32_t test_init_child_context(void)
 {
-    int32_t rtrn = log_test(DECLARE, "Testing init_child_context");
-    if(rtrn < 0)
-        return (-1);
+    log_test(DECLARE, "Testing init_child_context");
 
     struct child_ctx *child = NULL;
 
@@ -76,9 +74,9 @@ static int32_t test_init_child_context(void)
     assert_stat(child != NULL);
     assert_stat(child->current_arg == 0);
     assert_stat(atomic_load(&child->pid) == 0);
-    assert_stat(child->arg_value_index != NULL);
-    assert_stat(child->arg_copy_index != NULL);
-    assert_stat(child->arg_size_index != NULL);
+    assert_stat(child->arg_value_array != NULL);
+    assert_stat(child->arg_copy_array != NULL);
+    assert_stat(child->arg_size_array != NULL);
     assert_stat(child->err_value != NULL);
 
     uint32_t i = 0;
@@ -86,8 +84,8 @@ static int32_t test_init_child_context(void)
     /* Loop and create the various indecies in the child struct. */
     for(i = 0; i < 7; i++)
     {
-        assert_stat(child->arg_value_index[i] != NULL);
-        assert_stat(child->arg_copy_index[i] != NULL);
+        assert_stat(child->arg_value_array[i] != NULL);
+        assert_stat(child->arg_copy_array[i] != NULL);
     }
 
     log_test(SUCCESS, "init_child_context test passed");
@@ -97,9 +95,7 @@ static int32_t test_init_child_context(void)
 
 static int32_t test_get_table(void)
 {
-    int32_t rtrn = log_test(DECLARE, "Testing get_table");
-    if(rtrn < 0)
-        return (-1);
+    log_test(DECLARE, "Testing get_table");
 
     /* Declare a syscall table in disk format. */
     struct syscall_table *table = NULL;
@@ -123,10 +119,10 @@ static int32_t test_get_table(void)
         assert_stat(table[i].sys_entry != NULL);
 
         /* Make sure syscall name is not NULL. */
-        assert_stat(table[i].sys_entry->name_of_syscall);
+        assert_stat(table[i].sys_entry->syscall_name != NULL);
 
         /* Number of arguments should be greater than zero and less then or equal to 7. */
-        assert_stat(table[i].sys_entry->number_of_args > 0 && table[i].sys_entry->number_of_args <= 7);
+        assert_stat(table[i].sys_entry->total_args > 0 && table[i].sys_entry->total_args <= 7);
 
         /* Status has to be either ON or OFF. */
         assert_stat(table[i].sys_entry->status == ON || table[i].sys_entry->status == OFF);
@@ -138,18 +134,20 @@ static int32_t test_get_table(void)
         assert_stat(table[i].sys_entry->need_alarm == NX_NO || table[i].sys_entry->need_alarm == NX_YES);
 
         /* Loop for each argument in the syscall entry and verify that they are correct. */
-        for(ii = 0; ii < table[i].sys_entry->number_of_args; ii++)
+        for(ii = 0; ii < table[i].sys_entry->total_args; ii++)
         {
-            assert_stat(table[i].sys_entry->get_arg_index[ii] != NULL);
+            assert_stat(table[i].sys_entry->get_arg_array[ii] != NULL);
 
             uint64_t *arg = NULL;
 
-            rtrn = table[i].sys_entry->get_arg_index[ii](&arg, child);
+            int32_t rtrn = 0;
+
+            rtrn = table[i].sys_entry->get_arg_array[ii](&arg, child);
 
             assert_stat(rtrn == 0);
             assert_stat(arg != NULL);
-            assert_stat(child->arg_size_index != NULL);
-            assert_stat(child->arg_size_index[0] > 0);
+            assert_stat(child->arg_size_array != NULL);
+            assert_stat(child->arg_size_array[0] > 0);
         }
     }
 
@@ -160,9 +158,7 @@ static int32_t test_get_table(void)
 
 static int32_t test_get_syscall_table(void)
 {
-    int32_t rtrn = log_test(DECLARE, "Testing get_syscall_table");
-    if(rtrn < 0)
-        return (-1);
+    log_test(DECLARE, "Testing get_syscall_table");
 
     /* Declare the memory format of the syscall table. */
     struct syscall_table_shadow *table = NULL;
@@ -187,9 +183,9 @@ static int32_t test_get_syscall_table(void)
         assert_stat(table->sys_entry[i] != NULL);
 
         /* Name of syscall should not be NULL. */
-        assert_stat(table->sys_entry[i]->name_of_syscall != NULL);
+        assert_stat(table->sys_entry[i]->syscall_name != NULL);
 
-        assert_stat(table->sys_entry[i]->number_of_args > 0 && table->sys_entry[i]->number_of_args <= ARG_LIMIT);
+        assert_stat(table->sys_entry[i]->total_args > 0 && table->sys_entry[i]->total_args <= ARG_LIMIT);
 
         assert_stat(atomic_load(&table->sys_entry[i]->status) == ON || atomic_load(&table->sys_entry[i]->status) == OFF);
 
@@ -197,22 +193,23 @@ static int32_t test_get_syscall_table(void)
 
         assert_stat(table->sys_entry[i]->need_alarm == NX_NO || table->sys_entry[i]->need_alarm == NX_YES);
 
-        for(ii = 0; ii < table->sys_entry[i]->number_of_args; ii++)
+        for(ii = 0; ii < table->sys_entry[i]->total_args; ii++)
         {
-            assert_stat(table->sys_entry[i]->arg_context_index[ii] != NULL);
+            assert_stat(table->sys_entry[i]->arg_context_array[ii] != NULL);
 
-            assert_stat(table->sys_entry[i]->arg_context_index[ii]->name != NULL);
+            assert_stat(table->sys_entry[i]->arg_context_array[ii]->name != NULL);
 
-            assert_stat(table->sys_entry[i]->get_arg_index[ii] != NULL);
+            assert_stat(table->sys_entry[i]->get_arg_array[ii] != NULL);
 
             uint64_t *arg = NULL;
+            int32_t rtrn = 0;
 
-            rtrn = table->sys_entry[i]->get_arg_index[ii](&arg, child);
+            rtrn = table->sys_entry[i]->get_arg_array[ii](&arg, child);
             assert_stat(rtrn == 0);
 
             assert_stat(arg != NULL);
-            assert_stat(child->arg_size_index != NULL);
-            assert_stat(child->arg_size_index[0] > 0);
+            assert_stat(child->arg_size_array != NULL);
+            assert_stat(child->arg_size_array[0] > 0);
         }
     }
 
@@ -223,9 +220,7 @@ static int32_t test_get_syscall_table(void)
 
 static int32_t test_get_entry(void)
 {
-    int32_t rtrn = log_test(DECLARE, "Testing get_entry");
-    if(rtrn < 0)
-        return (-1);
+    log_test(DECLARE, "Testing get_entry");
 
     struct syscall_entry_shadow *entry = NULL;
 
@@ -240,9 +235,9 @@ static int32_t test_get_entry(void)
 
         assert_stat(entry != NULL);
 
-        assert_stat(entry->name_of_syscall != NULL);
+        assert_stat(entry->syscall_name != NULL);
 
-        assert_stat(entry->number_of_args > 0 && entry->number_of_args <= 7);
+        assert_stat(entry->total_args > 0 && entry->total_args <= 7);
 
         assert_stat(atomic_load(&entry->status) == ON || atomic_load(&entry->status) == OFF);
 
@@ -250,13 +245,13 @@ static int32_t test_get_entry(void)
 
         assert_stat(entry->need_alarm == NX_NO || entry->need_alarm == NX_YES);
 
-        for(ii = 0; ii < entry->number_of_args; ii++)
+        for(ii = 0; ii < entry->total_args; ii++)
         {
-            assert_stat(entry->arg_context_index[ii] != NULL);
+            assert_stat(entry->arg_context_array[ii] != NULL);
 
-            assert_stat(entry->arg_context_index[ii]->name != NULL);
+            assert_stat(entry->arg_context_array[ii]->name != NULL);
 
-            assert_stat(entry->get_arg_index[ii] != NULL);
+            assert_stat(entry->get_arg_array[ii] != NULL);
 
             uint64_t *arg = NULL;
             struct child_ctx *child = NULL;
@@ -267,13 +262,15 @@ static int32_t test_get_entry(void)
             arg = mem_alloc(sizeof(uint64_t));
             assert_stat(arg != NULL);
 
-            rtrn = entry->get_arg_index[ii](&arg, child);
+            int32_t rtrn = 0;
+
+            rtrn = entry->get_arg_array[ii](&arg, child);
 
             assert_stat(rtrn == 0);
 
             assert_stat(arg != NULL);
-            assert_stat(child->arg_size_index != NULL);
-            assert_stat(child->arg_size_index[0] > 0);
+            assert_stat(child->arg_size_array != NULL);
+            assert_stat(child->arg_size_array[0] > 0);
         }
     }
 
@@ -325,7 +322,7 @@ static int32_t test_pick_syscall(void)
     {
         rtrn = pick_syscall(child);
         assert_stat(rtrn == 0);
-        assert_stat(child->number_of_args > 0 && child->number_of_args <= 7);
+        assert_stat(child->total_args > 0 && child->total_args <= 7);
         assert_stat(child->need_alarm == NX_YES || child->need_alarm == NX_NO);
         assert_stat(child->had_error == NX_NO);
     }
@@ -361,10 +358,9 @@ static int32_t test_set_syscall(void)
         assert_stat(rtrn == 0);
 
         /* Make sure the proper fields were set in the child context object. */
-        //assert_stat(ctx->syscall_symbol > 0);
-        assert_stat(ctx->name_of_syscall != NULL);
+        assert_stat(ctx->syscall_name != NULL);
         assert_stat(ctx->need_alarm == NX_YES || ctx->need_alarm == NX_NO);
-        assert_stat(ctx->number_of_args > 0);
+        assert_stat(ctx->total_args > 0);
         assert_stat(ctx->had_error == NX_NO);
     }
 
@@ -393,17 +389,17 @@ static int32_t test_generate_arguments(void)
 
         uint32_t ii = 0;
 
-        for(ii = 0; ii < child->number_of_args; ii++)
+        for(ii = 0; ii < child->total_args; ii++)
         {
-            assert_stat(child->arg_value_index[ii] != NULL);
-            assert_stat(child->arg_copy_index[ii] != NULL);
-            assert_stat(&child->arg_size_index[ii] != NULL);
-            assert_stat(child->arg_size_index[ii] > 0);
+            assert_stat(child->arg_value_array[ii] != NULL);
+            assert_stat(child->arg_copy_array[ii] != NULL);
+            assert_stat(&child->arg_size_array[ii] != NULL);
+            assert_stat(child->arg_size_array[ii] > 0);
 
             /* Make sure the arg value array is equal to the arg copy array. */
-            assert_stat(memcmp(child->arg_value_index[ii], 
-                               child->arg_copy_index[ii], 
-                               child->arg_size_index[ii]) == 0);
+            assert_stat(memcmp(child->arg_value_array[ii], 
+                               child->arg_copy_array[ii], 
+                               child->arg_size_array[ii]) == 0);
         }
 
         free_old_arguments(child);
