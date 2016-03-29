@@ -41,12 +41,12 @@ struct syscall_entry_shadow
 
     const char padding[1];
 
-    const uint32_t number_of_args;
+    const uint32_t total_args;
     const uint32_t entry_number;
 
-    struct arg_context *arg_context_index[7];
+    struct arg_context *arg_context_array[7];
 
-    int32_t (*get_arg_index[7])(uint64_t **, struct child_ctx *);
+    int32_t (*get_arg_array[7])(uint64_t **, struct child_ctx *);
 
     atomic_uint_least64_t return_value;
 };
@@ -54,19 +54,22 @@ struct syscall_entry_shadow
 /* The on disk format. */
 struct syscall_entry
 {
-    const char *name_of_syscall;
+    const char *syscall_name;
     const uint32_t syscall_symbol;
 
     bool status;
     const bool need_alarm;
     const bool requires_root;
 
-    const uint32_t number_of_args;
+    const char padding[1];
+    int32_t arg_type_array[7];
+
+    const uint32_t total_args;
     const uint32_t entry_number;
 
-    int32_t arg_type_index[7];
+    const char padding2[4];
 
-    int32_t (*get_arg_index[7])(uint64_t **, struct child_ctx *);
+    int32_t (*get_arg_array[7])(uint64_t **, struct child_ctx *);
 };
 
 #endif
