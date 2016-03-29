@@ -19,13 +19,13 @@
 
 struct syscall_entry entry_setuid = {
 
-    .name_of_syscall = "setuid",
+    .syscall_name = "setuid",
     .syscall_symbol = SYS_setuid,
-    .number_of_args = 1,
+    .total_args = 1,
     .status = ON,
     .requires_root = NX_NO,
     .need_alarm = NX_NO,
 
-    .arg_type_index[FIRST_ARG] = INT,
-    .get_arg_index[FIRST_ARG] = &generate_int
+    .arg_type_array[FIRST_ARG] = INT,
+    .get_arg_array[FIRST_ARG] = &generate_int
 };

@@ -19,19 +19,19 @@
 
 struct syscall_entry entry_write = {
 
-    .name_of_syscall = "write",
+    .syscall_name = "write",
     .syscall_symbol = SYS_write,
-    .number_of_args = 3,
+    .total_args = 3,
     .status = ON,
     .requires_root = NX_NO,
     .need_alarm = NX_NO,
 
-    .arg_type_index[FIRST_ARG] = FILE_DESC,
-    .get_arg_index[FIRST_ARG] = &generate_fd,
+    .arg_type_array[FIRST_ARG] = FILE_DESC,
+    .get_arg_array[FIRST_ARG] = &generate_fd,
 
-    .arg_type_index[SECOND_ARG] = VOID_BUF,
-    .get_arg_index[SECOND_ARG] = &generate_buf,
+    .arg_type_array[SECOND_ARG] = VOID_BUF,
+    .get_arg_array[SECOND_ARG] = &generate_buf,
 
-    .arg_type_index[THIRD_ARG] = SIZE,
-    .get_arg_index[THIRD_ARG] = &generate_length    
+    .arg_type_array[THIRD_ARG] = SIZE,
+    .get_arg_array[THIRD_ARG] = &generate_length    
 };

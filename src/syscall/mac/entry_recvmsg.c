@@ -19,19 +19,19 @@
 
 struct syscall_entry entry_recvmsg = {
 
-    .name_of_syscall = "recvmsg",
+    .syscall_name = "recvmsg",
     .syscall_symbol = SYS_recvmsg,
-    .number_of_args = 3,
+    .total_args = 3,
     .status = ON,
     .requires_root = NX_NO,
     .need_alarm = NX_NO,
 
-    .arg_type_index[FIRST_ARG] = SOCKET,
-    .get_arg_index[FIRST_ARG] = &generate_socket,
+    .arg_type_array[FIRST_ARG] = SOCKET,
+    .get_arg_array[FIRST_ARG] = &generate_socket,
 
-    .arg_type_index[SECOND_ARG] = MESSAGE,
-    .get_arg_index[SECOND_ARG] = &generate_message,
+    .arg_type_array[SECOND_ARG] = MESSAGE,
+    .get_arg_array[SECOND_ARG] = &generate_message,
 
-    .arg_type_index[THIRD_ARG] = RECV_FLAG,
-    .get_arg_index[THIRD_ARG] = &generate_recv_flags,
+    .arg_type_array[THIRD_ARG] = RECV_FLAG,
+    .get_arg_array[THIRD_ARG] = &generate_recv_flags,
 };

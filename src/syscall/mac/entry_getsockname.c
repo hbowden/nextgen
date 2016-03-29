@@ -17,19 +17,19 @@
 
 struct syscall_entry entry_getsockname = {
 
-    .name_of_syscall = "getsockname",
+    .syscall_name = "getsockname",
     .syscall_symbol = SYS_getsockname,
-     .number_of_args = 3,
+    .total_args = 3,
     .status = ON,
     .requires_root = NX_NO,
     .need_alarm = NX_NO,
 
-    .arg_type_index[FIRST_ARG] = SOCKET,
-    .get_arg_index[FIRST_ARG] = &generate_socket,
+    .arg_type_array[FIRST_ARG] = SOCKET,
+    .get_arg_array[FIRST_ARG] = &generate_socket,
 
-    .arg_type_index[SECOND_ARG] = SOCKADDR,
-    .get_arg_index[SECOND_ARG] = &generate_sockaddr,
+    .arg_type_array[SECOND_ARG] = SOCKADDR,
+    .get_arg_array[SECOND_ARG] = &generate_sockaddr,
 
-    .arg_type_index[THIRD_ARG] = SOCKLEN,
-    .get_arg_index[THIRD_ARG] = &generate_socklen,
+    .arg_type_array[THIRD_ARG] = SOCKLEN,
+    .get_arg_array[THIRD_ARG] = &generate_socklen,
 };

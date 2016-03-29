@@ -19,19 +19,19 @@
 
 struct syscall_entry entry_getfsstat = {
 
-    .name_of_syscall = "getfsstat",
+    .syscall_name = "getfsstat",
     .syscall_symbol = SYS_getfsstat,
-    .number_of_args = 3,
+    .total_args = 3,
     .status = ON,
     .requires_root = NX_NO,
     .need_alarm = NX_NO,
 
-    .arg_type_index[FIRST_ARG] = STAT_FS,
-    .get_arg_index[FIRST_ARG] = &generate_fs_stat,
+    .arg_type_array[FIRST_ARG] = STAT_FS,
+    .get_arg_array[FIRST_ARG] = &generate_fs_stat,
 
-    .arg_type_index[SECOND_ARG] = SIZE,
-    .get_arg_index[SECOND_ARG] = &generate_length,
+    .arg_type_array[SECOND_ARG] = SIZE,
+    .get_arg_array[SECOND_ARG] = &generate_length,
 
-    .arg_type_index[THIRD_ARG] = STAT_FLAG,
-    .get_arg_index[THIRD_ARG] = &generate_fs_stat_flag    
+    .arg_type_array[THIRD_ARG] = STAT_FLAG,
+    .get_arg_array[THIRD_ARG] = &generate_fs_stat_flag    
 };
