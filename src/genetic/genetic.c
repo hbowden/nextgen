@@ -112,7 +112,7 @@ static int32_t init_world(void)
         struct species_ctx ctx = {
 
             /* Set species name to syscall name. */
-            .species_name = sys_table->sys_entry[i]->name_of_syscall,
+            .species_name = sys_table->sys_entry[i]->syscall_name,
 
             /* Set population to zero. */
             .species_population = 0,
