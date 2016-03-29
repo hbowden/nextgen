@@ -169,35 +169,35 @@ static int32_t free_old_arguments(struct child_ctx *ctx)
     for(i = 0; i < number_of_args; i++)
     {
         /* Handle args that require special cleanup procedures. */
-        switch((int32_t)entry->arg_context_index[i]->type)
+        switch((int32_t)entry->arg_context_array[i]->type)
         {
             /* Below is the resource types ie they are from the resource module. 
             They must be freed using special functions and the free must be done on 
             the arg_copy_index so the free_* functions don't use the mutated value in arg_value_index. */
             case FILE_DESC:
-                rtrn = free_desc((int32_t *)ctx->arg_copy_index[i]);
+                rtrn = free_desc((int32_t *)ctx->arg_copy_array[i]);
                 if(rtrn < 0)
                     output(ERROR, "Can't free descriptor\n");
                 /* Don't return on errors, just keep looping. */
                 break;
 
             case FILE_PATH:
-                rtrn = free_filepath((char **)&(ctx->arg_copy_index[i]),
-                                     (uint32_t)ctx->arg_size_index[i]);
+                rtrn = free_filepath((char **)&(ctx->arg_copy_array[i]),
+                                     (uint32_t)ctx->arg_size_array[i]);
                 if(rtrn < 0)
                     output(ERROR, "Can't free filepath\n");
                 /* Don't return on errors, just keep looping. */
                 break;
 
             case DIR_PATH:
-                rtrn = free_dirpath((char **)&(ctx->arg_copy_index[i]));
+                rtrn = free_dirpath((char **)&(ctx->arg_copy_array[i]));
                 if(rtrn < 0)
                     output(ERROR, "Can't free dirpath\n");
                 /* Don't return on errors, just keep looping. */
                 break;
 
             case SOCKET:
-                rtrn = free_socket((int32_t *)ctx->arg_copy_index[i]);
+                rtrn = free_socket((int32_t *)ctx->arg_copy_array[i]);
                 if(rtrn < 0)
                     output(ERROR, "Can't free socket\n");
                 /* Don't return on errors, just keep looping. */
@@ -206,15 +206,15 @@ static int32_t free_old_arguments(struct child_ctx *ctx)
 
             /* Clean this with mem_free_shared(). */
             case VOID_BUF:
-                mem_free_shared((void **)&ctx->arg_value_index[i],
-                                ctx->arg_size_index[i]);
+                mem_free_shared((void **)&ctx->arg_value_array[i],
+                                ctx->arg_size_array[i]);
                 break;
 
             /* Kill the temp process using the copy value
                so that we don't use the mutated value
                in arg_value_index[i]. */
             case PID:
-                rtrn = kill((pid_t)(*ctx->arg_copy_index[i]), SIGKILL);
+                rtrn = kill((pid_t)(*ctx->arg_copy_array[i]), SIGKILL);
                 if(rtrn < 0)
                     output(ERROR, "Can't kill child: %s\n", strerror(errno));
                 /* Don't return on errors, just keep looping. */
@@ -222,7 +222,7 @@ static int32_t free_old_arguments(struct child_ctx *ctx)
 
             default:
                 /* Free value if non NULL. */
-                mem_free((void **)&ctx->arg_value_index[i]);
+                mem_free((void **)&ctx->arg_value_array[i]);
                 break;
         }
     }
@@ -242,9 +242,9 @@ static int32_t set_syscall(uint32_t num, struct child_ctx *ctx)
     /* Set syscall value's. */
     ctx->syscall_number = num;
     ctx->syscall_symbol = sys_table->sys_entry[num]->syscall_symbol;
-    ctx->name_of_syscall = sys_table->sys_entry[num]->name_of_syscall;
+    ctx->syscall_name = sys_table->sys_entry[num]->syscall_name;
     ctx->need_alarm = sys_table->sys_entry[num]->need_alarm;
-    ctx->number_of_args = sys_table->sys_entry[num]->number_of_args;
+    ctx->number_of_args = sys_table->sys_entry[num]->total_args;
     ctx->had_error = NX_NO;
 
     return (0);
@@ -314,8 +314,8 @@ static int32_t process_genesis(struct job_ctx *job)
 
     /* Log the arguments before we use them, in case we cause a
     kernel panic, so we know what caused the panic. */
-    rtrn = log_arguments(ctx->number_of_args, ctx->name_of_syscall,
-                         ctx->arg_value_index, entry->arg_context_index);
+    rtrn = log_arguments(ctx->number_of_args, ctx->syscall_name,
+                         ctx->arg_value_array, entry->arg_context_array);
     if(rtrn < 0)
     {
         output(ERROR, "Can't log arguments\n");
@@ -524,8 +524,8 @@ NX_NO_RETURN static void start_syscall_child(void)
 
         /* Log the arguments before we use them, in case we cause a
         kernel panic, so we know what caused the panic. */
-        rtrn = log_arguments(ctx->number_of_args, ctx->name_of_syscall,
-                             ctx->arg_value_index, entry->arg_context_index);
+        rtrn = log_arguments(ctx->number_of_args, ctx->syscall_name,
+                             ctx->arg_value_array, entry->arg_context_array);
         if(rtrn < 0)
         {
             output(ERROR, "Can't log arguments\n");
@@ -548,7 +548,7 @@ NX_NO_RETURN static void start_syscall_child(void)
             exit_child();
         }
 
-        /* If we didn't crash cleanup are mess. If we don't do this the generate
+        /* If we didn't crash, cleanup are mess. If we don't do this the generate
         functions will crash in a hard to understand way. */
         free_old_arguments(ctx);
     }
@@ -593,9 +593,6 @@ static int32_t init_syscall_child(uint32_t i)
 
     /* Increment the running child counter. */
     atomic_fetch_add(&running_children, 1);
-
-    /* Inform main loop we are done setting up. */
-    write(children[i]->pipe_port[1], "1", 1);
 
     return (0);
 }
@@ -736,10 +733,11 @@ struct syscall_table_shadow *get_syscall_table(void)
         /* Create and intialize the const value for a shadow struct. */
         struct syscall_entry_shadow entry_obj = {
 
-            .number_of_args =
-                syscall_table[i + offset].sys_entry->number_of_args,
-            .name_of_syscall =
-                syscall_table[i + offset].sys_entry->name_of_syscall};
+            .total_args =
+                syscall_table[i + offset].sys_entry->total_args,
+            .syscall_name =
+                syscall_table[i + offset].sys_entry->syscall_name
+        };
 
         struct syscall_entry_shadow *entry = NULL;
 
@@ -753,17 +751,17 @@ struct syscall_table_shadow *get_syscall_table(void)
         memmove(entry, &entry_obj, sizeof(struct syscall_entry_shadow));
 
         /* Loop for each arg and set the arg array's. */
-        for(ii = 0; ii < entry->number_of_args; ii++)
+        for(ii = 0; ii < entry->total_args; ii++)
         {
             /* Set the get argument function pointers. */
-            entry->get_arg_index[ii] =
-                syscall_table[i + offset].sys_entry->get_arg_index[ii];
+            entry->get_arg_array[ii] =
+                syscall_table[i + offset].sys_entry->get_arg_array[ii];
 
             /* Set argument type context structs. */
-            entry->arg_context_index[ii] =
+            entry->arg_context_array[ii] =
                 get_arg_context((enum arg_type)syscall_table[i + 1]
-                                    .sys_entry->arg_type_index[ii]);
-            if(entry->arg_context_index[ii] == NULL)
+                                    .sys_entry->arg_type_array[ii]);
+            if(entry->arg_context_array[ii] == NULL)
             {
                 output(ERROR, "Can't get arg context\n");
                 return (NULL);
@@ -805,11 +803,11 @@ int32_t pick_syscall(struct child_ctx *ctx)
     /* Set syscall value's. */
     ctx->syscall_symbol =
         sys_table->sys_entry[ctx->syscall_number]->syscall_symbol;
-    ctx->name_of_syscall =
-        sys_table->sys_entry[ctx->syscall_number]->name_of_syscall;
+    ctx->syscall_name =
+        sys_table->sys_entry[ctx->syscall_number]->syscall_name;
     ctx->need_alarm = sys_table->sys_entry[ctx->syscall_number]->need_alarm;
     ctx->number_of_args =
-        sys_table->sys_entry[ctx->syscall_number]->number_of_args;
+        sys_table->sys_entry[ctx->syscall_number]->total_args;
     ctx->had_error = NX_NO;
 
     return (0);
@@ -828,24 +826,24 @@ int32_t generate_arguments(struct child_ctx *ctx)
         ctx->current_arg = i;
 
         /* Generate the argument. */
-        rtrn = sys_table->sys_entry[ctx->syscall_number]->get_arg_index[i](
-            &ctx->arg_value_index[i], ctx);
+        rtrn = sys_table->sys_entry[ctx->syscall_number]->get_arg_array[i](
+            &ctx->arg_value_array[i], ctx);
         if(rtrn < 0)
         {
             output(ERROR, "Can't generate arguments for: %s\n",
-                   sys_table->sys_entry[ctx->syscall_number]->name_of_syscall);
+                   sys_table->sys_entry[ctx->syscall_number]->syscall_name);
             return (-1);
         }
 
         /* Copy the argument into the argument copy array. */
-        memcpy(ctx->arg_copy_index[i], ctx->arg_value_index[i],
-               ctx->arg_size_index[i]);
+        memcpy(ctx->arg_copy_array[i], ctx->arg_value_array[i],
+               ctx->arg_size_array[i]);
     }
 
     return (0);
 }
 
-static int32_t check_for_failure(int ret_value)
+static int32_t check_for_failure(int32_t ret_value)
 {
     if(ret_value < 0)
         return (-1);
@@ -856,12 +854,12 @@ static int32_t check_for_failure(int ret_value)
 int32_t test_syscall(struct child_ctx *ctx)
 {
     /* Grab argument values. */
-    uint64_t *arg1 = ctx->arg_value_index[0];
-    uint64_t *arg2 = ctx->arg_value_index[1];
-    uint64_t *arg3 = ctx->arg_value_index[2];
-    uint64_t *arg4 = ctx->arg_value_index[3];
-    uint64_t *arg5 = ctx->arg_value_index[4];
-    uint64_t *arg6 = ctx->arg_value_index[5];
+    uint64_t *arg1 = ctx->arg_value_array[0];
+    uint64_t *arg2 = ctx->arg_value_array[1];
+    uint64_t *arg3 = ctx->arg_value_array[2];
+    uint64_t *arg4 = ctx->arg_value_array[3];
+    uint64_t *arg5 = ctx->arg_value_array[4];
+    uint64_t *arg6 = ctx->arg_value_array[5];
 
     /* Check if we need to set the alarm for blocking syscalls.  */
     if(ctx->need_alarm == NX_YES)
@@ -963,36 +961,28 @@ static struct child_ctx *init_child_context(void)
         return (NULL);
     }
 
-    /* Create pipe here so we can communicate with the child and avoid a race condition. */
-    int32_t rtrn = pipe(child->pipe_port);
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't create msg port: %s\n", strerror(errno));
-        return (NULL);
-    }
-
     /* Set current arg to zero. */
     child->current_arg = 0;
     atomic_init(&child->pid, EMPTY);
 
     /* Create the index where we store the syscall arguments. */
-    child->arg_value_index = mem_alloc(ARG_LIMIT * sizeof(uint64_t *));
-    if(child->arg_value_index == NULL)
+    child->arg_value_array = mem_alloc(ARG_LIMIT * sizeof(uint64_t *));
+    if(child->arg_value_array == NULL)
     {
         output(ERROR, "Can't create arg value index: %s\n", strerror(errno));
         return (NULL);
     }
 
     /* This index tracks the size of the argument generated.  */
-    child->arg_size_index = mem_alloc(ARG_LIMIT * sizeof(uint64_t));
-    if(child->arg_size_index == NULL)
+    child->arg_size_array = mem_alloc(ARG_LIMIT * sizeof(uint64_t));
+    if(child->arg_size_array == NULL)
     {
         output(ERROR, "Can't create arg size index: %s\n", strerror(errno));
         return (NULL);
     }
 
-    child->arg_copy_index = mem_alloc(ARG_LIMIT * sizeof(uint64_t *));
-    if(child->arg_copy_index == NULL)
+    child->arg_copy_array = mem_alloc(ARG_LIMIT * sizeof(uint64_t *));
+    if(child->arg_copy_array == NULL)
     {
         output(ERROR, "Can't create arg copy index: %s\n", strerror(errno));
         return (NULL);
@@ -1011,15 +1001,15 @@ static struct child_ctx *init_child_context(void)
     /* Loop and create the various arrays in the child struct. */
     for(i = 0; i < ARG_LIMIT; i++)
     {
-        child->arg_value_index[i] = mem_alloc(ARG_BUF_LEN);
-        if(child->arg_value_index[i] == NULL)
+        child->arg_value_array[i] = mem_alloc(ARG_BUF_LEN);
+        if(child->arg_value_array[i] == NULL)
         {
             output(ERROR, "Can't create arg value\n");
             return (NULL);
         }
 
-        child->arg_copy_index[i] = mem_alloc(ARG_BUF_LEN);
-        if(child->arg_copy_index[i] == NULL)
+        child->arg_copy_array[i] = mem_alloc(ARG_BUF_LEN);
+        if(child->arg_copy_array[i] == NULL)
         {
             output(ERROR, "Can't create arg copy value\n");
             return (NULL);

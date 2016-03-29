@@ -62,7 +62,7 @@ int32_t generate_fd(uint64_t **fd, struct child_ctx *ctx)
     memmove((*fd), &desc, sizeof(int32_t));
 
     /* Set the argument size. */
-    ctx->arg_size_index[ctx->current_arg] = sizeof(int32_t);
+    ctx->arg_size_array[ctx->current_arg] = sizeof(int32_t);
 
     return (0);
 }
@@ -87,7 +87,7 @@ int32_t generate_socket(uint64_t **sock, struct child_ctx *ctx)
 
     memmove((*sock), &sock_fd, sizeof(int32_t));
 
-    ctx->arg_size_index[ctx->current_arg] = sizeof(int32_t);
+    ctx->arg_size_array[ctx->current_arg] = sizeof(int32_t);
 
     return (0);
 }
@@ -153,7 +153,7 @@ int32_t generate_buf(uint64_t **buf, struct child_ctx *ctx)
             return (-1);
     }
 
-    ctx->arg_size_index[ctx->current_arg] = nbytes;
+    ctx->arg_size_array[ctx->current_arg] = nbytes;
 
     return (0);
 }
@@ -176,10 +176,10 @@ int32_t generate_length(uint64_t **length, struct child_ctx *ctx)
     }
 
     /* Set the length to the length of the last syscall argument. */
-    memcpy((*length), &ctx->arg_size_index[last_arg], sizeof(uint64_t));
+    memcpy((*length), &ctx->arg_size_array[last_arg], sizeof(uint64_t));
 
     /* Set this argument's length. */
-    ctx->arg_size_index[ctx->current_arg] = sizeof(uint64_t);
+    ctx->arg_size_array[ctx->current_arg] = sizeof(uint64_t);
 
     return (0);
 }
@@ -193,7 +193,7 @@ int32_t generate_path(uint64_t **path, struct child_ctx *ctx)
         return (-1);
     }
 
-    ctx->arg_size_index[ctx->current_arg] = strlen((char *)(*path));
+    ctx->arg_size_array[ctx->current_arg] = strlen((char *)(*path));
 
     return (0);
 }
@@ -256,7 +256,7 @@ int32_t generate_open_flag(uint64_t **flag, struct child_ctx *ctx)
             return (-1);
     }
 
-    ctx->arg_size_index[ctx->current_arg] = sizeof(int64_t);
+    ctx->arg_size_array[ctx->current_arg] = sizeof(int64_t);
 
     return (0);
 }
@@ -371,7 +371,7 @@ int32_t generate_mode(uint64_t **mode, struct child_ctx *ctx)
             return (-1);
     }
 
-    ctx->arg_size_index[ctx->current_arg] = sizeof(int64_t);
+    ctx->arg_size_array[ctx->current_arg] = sizeof(int64_t);
 
     return (0);
 }
@@ -387,7 +387,7 @@ int32_t generate_fs_stat(uint64_t **stat, struct child_ctx *ctx)
 
     (*stat) = (uint64_t *)stat_buf;
 
-    ctx->arg_size_index[ctx->current_arg] = sizeof(struct statfs);
+    ctx->arg_size_array[ctx->current_arg] = sizeof(struct statfs);
 
     return (0);
 }
@@ -426,7 +426,7 @@ int32_t generate_fs_stat_flag(uint64_t **flag, struct child_ctx *ctx)
             return (-1);
     }
 
-    ctx->arg_size_index[ctx->current_arg] = sizeof(int64_t);
+    ctx->arg_size_array[ctx->current_arg] = sizeof(int64_t);
 
     return (0);
 }
@@ -445,11 +445,9 @@ int32_t generate_pid(uint64_t **pid, struct child_ctx *ctx)
     local_pid = fork();
     if(local_pid == 0)
     {
-        /* Loop sleep until we our killed after we are used for a syscall argument. */
-        while(1)
-        {
-            sleep(30);
-        }
+        sleep(1);
+
+        _exit(0);
     }
     else if(local_pid > 0)
     {
@@ -462,7 +460,7 @@ int32_t generate_pid(uint64_t **pid, struct child_ctx *ctx)
 
     (**pid) = (uint64_t)local_pid;
 
-    ctx->arg_size_index[ctx->current_arg] = sizeof(int64_t);
+    ctx->arg_size_array[ctx->current_arg] = sizeof(int64_t);
 
     return (0);
 }
@@ -488,7 +486,7 @@ int32_t generate_int(uint64_t **integer, struct child_ctx *ctx)
 
     (**integer) = (uint64_t)number;
 
-    ctx->arg_size_index[ctx->current_arg] = sizeof(int64_t);
+    ctx->arg_size_array[ctx->current_arg] = sizeof(int64_t);
 
     return (0);
 }
@@ -506,7 +504,7 @@ int32_t generate_rusage(uint64_t **usage, struct child_ctx *ctx)
 
     (*usage) = (uint64_t *)buf;
 
-    ctx->arg_size_index[ctx->current_arg] = sizeof(struct rusage);
+    ctx->arg_size_array[ctx->current_arg] = sizeof(struct rusage);
 
     return (0);
 }
@@ -545,7 +543,7 @@ int32_t generate_wait_option(uint64_t **option, struct child_ctx *ctx)
             return (-1);
     }
 
-    ctx->arg_size_index[ctx->current_arg] = sizeof(int64_t);
+    ctx->arg_size_array[ctx->current_arg] = sizeof(int64_t);
 
     return (0);
 }
@@ -615,7 +613,7 @@ int32_t generate_whence(uint64_t **whence, struct child_ctx *ctx)
             return (-1);
     }
 
-    ctx->arg_size_index[ctx->current_arg] = sizeof(int64_t);
+    ctx->arg_size_array[ctx->current_arg] = sizeof(int64_t);
 
     return (0);
 }
@@ -638,7 +636,7 @@ int32_t generate_offset(uint64_t **offset, struct child_ctx *ctx)
         return (-1);
     }
 
-    ctx->arg_size_index[ctx->current_arg] = sizeof(uint64_t);
+    ctx->arg_size_array[ctx->current_arg] = sizeof(uint64_t);
 
     return (0);
 }
@@ -663,7 +661,7 @@ int32_t generate_dirpath(uint64_t **dirpath, struct child_ctx *ctx)
         return (-1);
     }
 
-    ctx->arg_size_index[ctx->current_arg] = strlen((char *)(*dirpath));
+    ctx->arg_size_array[ctx->current_arg] = strlen((char *)(*dirpath));
 
     return (0);
 }
@@ -707,7 +705,7 @@ int32_t generate_mount_flags(uint64_t **flag, struct child_ctx *ctx)
     memcpy((*flag), &flags[number], sizeof(int32_t));
 
     /* Set argument size. */
-    ctx->arg_size_index[ctx->current_arg] = sizeof(uint32_t);
+    ctx->arg_size_array[ctx->current_arg] = sizeof(uint32_t);
 
     return (0);
 }
@@ -752,7 +750,7 @@ int32_t generate_unmount_flags(uint64_t **flag, struct child_ctx *ctx)
     memcpy((*flag), &flags[number], sizeof(flags[number]));
 
     /* Set arg size. */
-    ctx->arg_size_index[ctx->current_arg] = sizeof(flags[number]);
+    ctx->arg_size_array[ctx->current_arg] = sizeof(flags[number]);
 
     return (0);
 }
@@ -779,7 +777,8 @@ int32_t generate_request(uint64_t **flag, struct child_ctx *ctx)
         PT_SETFPREGS,  PT_GETDBREGS,   PT_SETDBREGS,    PT_LWPINFO,
         PT_GETNUMLWPS, PT_GETLWPLIST,  PT_SETSTEP,      PT_CLEARSTEP,
         PT_SUSPEND,    PT_RESUME,      PT_TO_SCE,       PT_TO_SCX,
-        PT_SYSCALL,    PT_FOLLOW_FORK, PT_VM_TIMESTAMP, PT_VM_ENTRY};
+        PT_SYSCALL,    PT_FOLLOW_FORK, PT_VM_TIMESTAMP, PT_VM_ENTRY
+    };
 
     uint32_t range = 28;
 
@@ -801,7 +800,7 @@ int32_t generate_request(uint64_t **flag, struct child_ctx *ctx)
 
     memcpy((*flag), &request[number], sizeof(int32_t));
 
-    ctx->arg_size_index[ctx->current_arg] = sizeof(int32_t);
+    ctx->arg_size_array[ctx->current_arg] = sizeof(int32_t);
 
     return (0);
 }
@@ -844,7 +843,7 @@ int32_t generate_recv_flags(uint64_t **flag, struct child_ctx *ctx)
             return (-1);
     }
 
-    ctx->arg_size_index[ctx->current_arg] = sizeof(uint64_t);
+    ctx->arg_size_array[ctx->current_arg] = sizeof(uint64_t);
 
     return (0);
 }
@@ -862,7 +861,7 @@ int32_t generate_dev(uint64_t **dev, struct child_ctx *ctx)
 
     memmove((*dev), &device, sizeof(dev_t));
 
-    ctx->arg_size_index[ctx->current_arg] = sizeof(dev_t);
+    ctx->arg_size_array[ctx->current_arg] = sizeof(dev_t);
 
     return (0);
 }
@@ -911,7 +910,7 @@ int32_t generate_message(uint64_t **msg, struct child_ctx *ctx)
 
     memmove((*msg), &message, sizeof(struct msghdr));
 
-    ctx->arg_size_index[ctx->current_arg] = sizeof(struct msghdr);
+    ctx->arg_size_array[ctx->current_arg] = sizeof(struct msghdr);
 
     return (0);
 }
@@ -952,7 +951,7 @@ int32_t generate_send_flags(uint64_t **flag, struct child_ctx *ctx)
             return (-1);
     }
 
-    ctx->arg_size_index[ctx->current_arg] = sizeof(uint64_t);
+    ctx->arg_size_array[ctx->current_arg] = sizeof(uint64_t);
 
     return (0);
 }
@@ -983,7 +982,7 @@ int32_t generate_sockaddr(uint64_t **addr, struct child_ctx *ctx)
 
     memmove((*addr), &port, sizeof(struct sockaddr_in));
 
-    ctx->arg_size_index[ctx->current_arg] = sizeof(struct sockaddr_in);
+    ctx->arg_size_array[ctx->current_arg] = sizeof(struct sockaddr_in);
 
     return (0);
 }
@@ -1006,10 +1005,10 @@ int32_t generate_socklen(uint64_t **len, struct child_ctx *ctx)
     }
 
     /* Set the socklen to the length of the last syscall argument. */
-    memcpy((*len), &ctx->arg_size_index[last_arg], sizeof(socklen_t));
+    memcpy((*len), &ctx->arg_size_array[last_arg], sizeof(socklen_t));
 
     /* Set this argument's length. */
-    ctx->arg_size_index[ctx->current_arg] = sizeof(socklen_t);
+    ctx->arg_size_array[ctx->current_arg] = sizeof(socklen_t);
 
     return (0);
 }
@@ -1068,7 +1067,7 @@ int32_t generate_amode(uint64_t **amode, struct child_ctx *ctx)
             return (-1);
     }
 
-    ctx->arg_size_index[ctx->current_arg] = sizeof(uint64_t);
+    ctx->arg_size_array[ctx->current_arg] = sizeof(uint64_t);
 
     return (0);
 }
@@ -1131,7 +1130,7 @@ int32_t generate_chflags(uint64_t **flag, struct child_ctx *ctx)
             return (-1);
     }
 
-    ctx->arg_size_index[ctx->current_arg] = sizeof(uint64_t);
+    ctx->arg_size_array[ctx->current_arg] = sizeof(uint64_t);
 
     return (0);
 }
