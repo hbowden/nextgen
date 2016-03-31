@@ -24,7 +24,10 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <fts.h>
+#include <err.h>
 #include <sys/mman.h>
+#include <sys/stat.h>
 #include <sys/sysctl.h>
 #include <sys/syslimits.h>
 #include <sys/wait.h>
@@ -373,6 +376,177 @@ int32_t binary_to_ascii(char *input, char **out, uint64_t input_len,
     }
 
     (*out)[(*out_len)] = '\0';
+
+    return (0);
+}
+
+static int32_t entcmp(const FTSENT **a, const FTSENT **b)
+{
+    return strcmp((*a)->fts_name, (*b)->fts_name);
+}
+
+int32_t delete_dir_contents(char *dir)
+{
+    FTS *tree;
+    FTSENT *f;
+    int32_t rtrn = 0;
+    char *argv[] = { dir, NULL };
+ 
+    tree = fts_open(argv, FTS_LOGICAL | FTS_NOSTAT, entcmp);
+    if(tree == NULL)
+    {
+        output(ERROR, "Can't walk directory\n");
+        return (-1);
+    }
+
+    while((f = fts_read(tree))) 
+    {
+        switch(f->fts_info)
+        {
+            case FTS_DNR:   /* Cannot read directory */
+            case FTS_ERR:   /* Miscellaneous error */
+            case FTS_NS:    /* stat() error */
+                continue;
+        }
+
+        struct stat sb;
+
+        rtrn = stat(f->fts_path, &sb);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't get stats: %s\n", strerror(errno));
+            return(-1);
+        }
+
+        /* Check if we have a directory. */
+        if(sb.st_mode & S_IFDIR)
+        {
+            continue;
+        }
+        else
+        {
+            rtrn = unlink(f->fts_path);
+            if(rtrn < 0)
+            {
+                output(ERROR, "Can't remove file\n");
+                return (-1);
+            }
+        }
+    }
+ 
+    rtrn = fts_close(tree);
+    if(rtrn < 0)
+    {
+        output(ERROR, "fts: %s\n", strerror(errno));
+        return (-1);
+    }
+
+    return (0);
+}
+
+int32_t delete_directory(char *path)
+{
+    /* Check for a NULL pointer being passed to us. */
+    if(path == NULL)
+    {
+        output(ERROR, "Path pointer is NULL\n");
+        return (-1);
+    }
+
+    struct stat sb;
+    int32_t rtrn = 0;
+
+    /* Get filesystem stats for the path supplied. */
+    rtrn = stat(path, &sb);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't get stats: %s\n", strerror(errno));
+        return(-1);
+    }
+
+    /* Make sure path is a directory. */
+    if(sb.st_mode & S_IFDIR)
+    {
+        /* Delete the contents of the directory before we
+        try deleting the directory it's self. */
+        rtrn = delete_dir_contents(path);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't delete files\n");
+            return (-1);
+        }
+    }
+    else
+    {
+        output(ERROR, "Input path is not a directory\n");
+        return (-1);
+    }
+
+    rtrn = rmdir(path);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't remove directory\n");
+        return (-1);
+    }
+ 
+    return (0);
+}
+
+int32_t count_files_directory(uint32_t *count, char *dir)
+{
+    struct stat buf;
+    int32_t rtrn = 0;
+    DIR *directory = NULL;
+    char *file_path auto_free = NULL;
+    struct dirent *entry = NULL;
+
+    /* Open the directory. */
+    directory = opendir(dir);
+    if(directory == NULL)
+    {
+        output(ERROR, "Can't open dir: %s\n", strerror(errno));
+        return (-1);
+    }
+
+    /* Walk the directory. */
+    while((entry = readdir(directory)) != NULL)
+    {
+        /* Skip hidden files. */
+        if(entry->d_name[0] == '.')
+            continue;
+
+        /* Create file path. */
+        rtrn = asprintf(&file_path, "%s/%s", dir, entry->d_name);
+        if(rtrn < 0)
+        {
+            /* Ignore error for closedir() because we are going to quit anyway. */
+            closedir(directory);
+            return (-1);
+        }
+
+        /* Grab file stats. */
+        rtrn = stat(file_path, &buf);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't get file stats: %s\n", strerror(errno));
+            return (-1);
+        }
+
+        /* Make sure the path is a file if not skip and continue. */
+        if(buf.st_mode & S_IFREG)
+        {
+            /* Increment the file count. */
+            (*count)++;
+        }
+    }
+
+    /* Close the directory. */
+    rtrn = closedir(directory);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't close directory\n");
+        return (-1);
+    }
 
     return (0);
 }

@@ -62,5 +62,14 @@ extern int32_t create_random_file(char *root, char *ext, char **path, uint64_t *
 /* Drop privileges.  */
 extern int32_t drop_privileges(void);
 
+/* Delete a directory and all it's contents. */
+extern int32_t delete_directory(char *path);
+
+/* Delete the contents of the directory but not the directory it's self. */
+extern int32_t delete_dir_contents(char *dir);
+
+/* Count files directory. */
+extern int32_t count_files_directory(uint32_t *count, char *dir);
+
 /* End of header. */
 #endif

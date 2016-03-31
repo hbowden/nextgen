@@ -19,6 +19,7 @@
 #include "crypto/crypto.h"
 #include "memory/memory.h"
 
+#include <sys/stat.h>
 #include <stdint.h>
 #include <unistd.h>
 
@@ -39,6 +40,109 @@ static char *string_array[] = { "a", "b", "c", "d", "e", "f", NULL };
 /* Array of binary strings to compare against. */
 static char *binary_array[] = { "01100001", "01100010", "01100011", "01100100",
                                 "01100101", "01100110", NULL };
+
+static int32_t test_delete_directory(void)
+{
+    log_test(DECLARE, "Testing delete directory");
+
+    int32_t rtrn = 0;
+    char *dir auto_free = NULL;
+    char *name auto_free = NULL;
+
+    rtrn = generate_name(&name, ".txt", DIR_NAME);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't generate directory name\n");
+        return (-1);
+    }
+
+    rtrn = asprintf(&dir, "/tmp/%s\n", name);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't create directory\n");
+        return (-1);
+    }
+
+    /* Let's make a directory in /temp for testing delete_directory(). */
+    rtrn = mkdir(dir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't create directory\n");
+        return (-1);
+    }
+
+    uint32_t total_files = 0;
+
+    /* Pick a random amount of files to create. */
+    rtrn = rand_range(25, &total_files);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't pick random number\n");
+        return (-1);
+    }
+
+    uint32_t i;
+
+    /* Loop and create a bunch of random text files. */
+    for(i = 0; i < total_files; i++)
+    {
+        uint64_t size = 0;
+        char *path auto_free = NULL;
+        
+        /* Create random file. */
+        rtrn = create_random_file(dir, ".txt", &path, &size);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't create random file\n");
+            return (-1);
+        }
+    }
+
+    /* Now that were done setting up a test directory let's start 
+    testing delete_directory(). Pass a NULL path and make sure delete_directory
+    returns an error. */
+    char *dir_path = NULL;
+
+    rtrn = delete_directory(dir_path);
+    assert_stat(rtrn < 0);
+
+    char *file_path auto_free = NULL;
+    uint64_t size = 0;
+
+    /* Create a file path. */
+    rtrn = create_random_file("/tmp", ".txt", &file_path, &size);
+    assert_stat(rtrn == 0);
+
+    /* If we pass delete_directory() a file path then it should fail. */
+    rtrn = delete_directory(file_path);
+    assert_stat(rtrn < 0);
+
+    /* Create a directory path that does not exist. */
+    char *random_path auto_free = NULL;
+
+    rtrn = generate_name(&random_path, NULL, DIR_NAME);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't generate dir name\n");
+        return (-1);
+    }
+
+    rtrn = delete_directory(random_path);
+    assert_stat(rtrn < 0);
+
+    /* Now let's try deleting the directory we made. */
+    rtrn = delete_directory(dir);
+    assert_stat(rtrn == 0);
+
+    struct stat buf;
+
+    /* Stat should fail on the directory. */
+    assert_stat(stat(dir, &buf) < 0);
+
+    log_test(SUCCESS, "Delete directory test passed");
+
+    return (0);
+}
 
 static int32_t test_check_root(void)
 {
@@ -144,6 +248,7 @@ static int32_t test_ascii_to_binary(void)
     return (0);
 }
 
+/*
 static int32_t test_binary_to_ascii(void)
 {
     log_test(DECLARE, "Testing Binary to ascii");
@@ -155,8 +260,6 @@ static int32_t test_binary_to_ascii(void)
     char *binary_string = "01100001011000100110010101100010011001100110100101110101";
     char *ascii_string = NULL;
 
-    /* If we pass a zero for input size, binary_to_ascii()
-    should fail and return -1. */
     rtrn = binary_to_ascii(binary_string, &ascii_string, 0, &size);
     assert_stat(rtrn == -1);
     assert_stat(ascii_string == NULL);
@@ -176,6 +279,7 @@ static int32_t test_binary_to_ascii(void)
 
     return (0);
 }
+*/
 
 static int32_t test_get_core_count(void)
 {
@@ -272,9 +376,22 @@ int main(void)
     if(rtrn < 0)
         log_test(FAIL, "Ascii to binary test failed");
 
+    rtrn = test_delete_directory();
+    if(rtrn < 0)
+        log_test(FAIL, "Delete directory test failed");
+
+    /* This function is not implemented so no need to test it.
     rtrn = test_binary_to_ascii();
     if(rtrn < 0)
-        log_test(FAIL, "Binary to ascii test failed");
+        log_test(FAIL, "Binary to ascii test failed"); */
+
+    /* Clean up our mess in temp. */
+    rtrn = delete_dir_contents("/tmp");
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't delete directory contents\n");
+        return (-1);
+    }
 
     _exit(0);
 }
