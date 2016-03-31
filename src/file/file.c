@@ -269,65 +269,6 @@ static struct file_ctx **init_file_array(char *dir, uint32_t size)
     return (array);
 }
 
-static int32_t count_files_directory(uint32_t *count, char *dir)
-{
-    struct stat buf;
-    int32_t rtrn = 0;
-    DIR *directory = NULL;
-    char *file_path auto_free = NULL;
-    struct dirent *entry = NULL;
-
-    /* Open the directory. */
-    directory = opendir(dir);
-    if(directory == NULL)
-    {
-        output(ERROR, "Can't open dir: %s\n", strerror(errno));
-        return (-1);
-    }
-
-    /* Walk the directory. */
-    while((entry = readdir(directory)) != NULL)
-    {
-        /* Skip hidden files. */
-        if(entry->d_name[0] == '.')
-            continue;
-
-        /* Create file path. */
-        rtrn = asprintf(&file_path, "%s/%s", dir, entry->d_name);
-        if(rtrn < 0)
-        {
-            /* Ignore error for closedir() because we are going to quit anyway. */
-            closedir(directory);
-            return (-1);
-        }
-
-        /* Grab file stats. */
-        rtrn = stat(file_path, &buf);
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't get file stats: %s\n", strerror(errno));
-            return (-1);
-        }
-
-        /* Make sure the path is a file if not skip and continue. */
-        if(buf.st_mode & S_IFREG)
-        {
-            /* Increment the file count. */
-            (*count)++;
-        }
-    }
-
-    /* Close the directory. */
-    rtrn = closedir(directory);
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't close directory\n");
-        return (-1);
-    }
-
-    return (0);
-}
-
 int32_t initial_fuzz_run(void)
 {
     uint32_t i;
