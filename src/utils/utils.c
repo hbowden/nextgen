@@ -409,19 +409,24 @@ int32_t delete_dir_contents(char *dir)
                 continue;
         }
 
+        if(strcmp(f->fts_path, dir) == 0)
+            continue;
+        
         struct stat sb;
 
         rtrn = stat(f->fts_path, &sb);
         if(rtrn < 0)
         {
-            output(ERROR, "Can't get stats: %s\n", strerror(errno));
-            return(-1);
+            output(ERROR, "Can't get path stats: %s\n", strerror(errno));
+            return (-1);
         }
 
         /* Check if we have a directory. */
         if(sb.st_mode & S_IFDIR)
         {
-            continue;
+            rtrn = rmdir(f->fts_path);
+            if(rtrn < 0)
+                continue;
         }
         else
         {
@@ -472,7 +477,7 @@ int32_t delete_directory(char *path)
         rtrn = delete_dir_contents(path);
         if(rtrn < 0)
         {
-            output(ERROR, "Can't delete files\n");
+            output(ERROR, "Can't delete dir contents\n");
             return (-1);
         }
     }
@@ -485,7 +490,7 @@ int32_t delete_directory(char *path)
     rtrn = rmdir(path);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't remove directory\n");
+        output(ERROR, "Can't remove directory: %s\n", strerror(errno));
         return (-1);
     }
  
