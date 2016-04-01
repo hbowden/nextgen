@@ -71,5 +71,7 @@ extern int32_t delete_dir_contents(char *dir);
 /* Count files directory. */
 extern int32_t count_files_directory(uint32_t *count, char *dir);
 
+extern void SetProcessName(char *name);
+
 /* End of header. */
 #endif
