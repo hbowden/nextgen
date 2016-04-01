@@ -35,6 +35,8 @@ enum child_state {EMPTY};
 
 extern uint32_t number_of_children;
 
+extern int32_t get_total_syscalls(uint32_t *total);
+
 extern struct syscall_entry_shadow *get_entry(uint32_t syscall_number);
 
 extern struct child_ctx *get_child_from_index(uint32_t i);

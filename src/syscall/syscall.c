@@ -38,7 +38,7 @@
 /* The total number of children process to run. */
 uint32_t number_of_children;
 
-/* An index of child context structures. These structures track variables
+/* An array of child context structures. These structures track variables
    local to the child process. */
 static struct child_ctx **children;
 
@@ -56,6 +56,13 @@ static atomic_int_fast32_t *stop;
 static int32_t mode;
 
 int32_t cleanup_syscall_table(void) { return (0); }
+
+int32_t get_total_syscalls(uint32_t *total)
+{
+    (*total) = sys_table->number_of_syscalls;
+
+    return (0);
+}
 
 struct syscall_entry_shadow *get_entry(uint32_t syscall_number)
 {
