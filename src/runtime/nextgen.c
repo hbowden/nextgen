@@ -128,7 +128,7 @@ static int32_t set_input_path(struct parser_ctx *ctx, char *path)
         return(-1);
     }
 
-    /* Make sure filepath is a directory. */
+    /* Make sure path is a directory. */
     if(sb.st_mode & S_IFDIR)
     {
         /* We were passed a directory so set the input path in the context. */
