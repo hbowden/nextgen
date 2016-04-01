@@ -17,7 +17,8 @@
 #include "io/io.h"
 #include "memory/memory.h"
 
-int32_t log_arguments(uint32_t number_of_args, const char *syscall_name,
+int32_t log_arguments(uint32_t total_args, 
+                      const char *syscall_name,
                       uint64_t **arg_value_array,
                       struct arg_context **arg_context_array)
 {
@@ -39,7 +40,7 @@ int32_t log_arguments(uint32_t number_of_args, const char *syscall_name,
 
     uint32_t i;
 
-    for(i = 0; i < number_of_args; i++)
+    for(i = 0; i < total_args; i++)
     {
         switch((int32_t)arg_context_array[i]->log_type)
         {

@@ -17,7 +17,7 @@
 #include "io/io.h"
 #include "memory/memory.h"
 #include "platform.h"
-#include "syscall/arg_types.h"
+#include "syscall/syscall.h"
 #include "utils/utils.h"
 
 #include <assert.h>
@@ -27,6 +27,22 @@
 #include <sys/stat.h>
 
 static char *out_dir_path;
+
+static uint32_t total_syscalls;
+
+static const uint32_t LATEST_LOG_VERSION = 0;
+
+static FILE *log;
+
+/* This flag will be set to NX_YES after a call to setup_log_module(). */
+static int8_t set = NX_NO;
+
+struct log_entry
+{
+    uint64_t **arg_value_array;
+    uint32_t syscall_number;
+    uint32_t total_args;
+};
 
 int32_t log_file(char *file_path, char *file_extension)
 {
@@ -53,11 +69,84 @@ int32_t log_file(char *file_path, char *file_extension)
     return (0);
 }
 
-int32_t create_out_directory(char *path)
+static int32_t create_log_file(char *path)
+{
+    FILE *fp = NULL;
+
+    /* Create log file. */
+    fp = fopen(path, "w+");
+    if(fp == NULL)
+    {
+        output(ERROR, "Can't create log file\n");
+        return (-1);
+    }
+
+    size_t ret = 0;
+
+    /* Write the log version number. */
+    ret = fwrite(&LATEST_LOG_VERSION, sizeof(uint32_t), 1, fp);
+    if(ferror(fp))
+    {
+        output(ERROR, "Can't write log version: %s\n", strerror(errno));
+        return (-1);
+    }
+
+    /* Set log pointer. */
+    log = fp;
+    
+    return (0);
+}
+
+int32_t write_arguments_to_log(uint32_t total_args, 
+                               uint64_t **arg_value_array, 
+                               uint32_t syscall_number)
+{
+    /* Make sure the total argument count is in bounds. */
+    if(total_args > ARG_LIMIT)
+    {
+        output(ERROR, "Total args is greater than the arg limit for this system\n");
+        return (-1);
+    }
+
+    /* Make sure the argument value array is not NULL */
+    if(arg_value_array == NULL)
+    {
+        output(ERROR, "Argument value array is NULL\n");
+        return (-1);
+    }
+
+    /* Now make sure the syscall number is in bounds too. */
+    if(syscall_number > total_syscalls)
+    {
+        output(ERROR, "Total arguments \n");
+        return (-1);
+    }
+
+    /* Create log entry. */
+    struct log_entry entry = {
+        .arg_value_array = arg_value_array,
+        .syscall_number = syscall_number,
+        .total_args = total_args
+    };
+
+    size_t ret = 0;
+
+    ret = fwrite(&entry, sizeof(struct log_entry), 1, log);
+    if(ferror(log))
+    {
+        output(ERROR, "Can't write log entry\n");
+        return (-1);
+    }
+
+    return (0);
+}
+
+static int32_t create_out_directory(char *path)
 {
     int32_t rtrn = 0;
     char *crash_dir = NULL;
 
+    /* Create the output directory. */
     rtrn = mkdir(path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     if(rtrn < 0)
     {
@@ -76,7 +165,7 @@ int32_t create_out_directory(char *path)
     rtrn = asprintf(&crash_dir, "%s/crash_dir", path);
     if(rtrn < 0)
     {
-        output(STD, "Out directory already exist\n");
+        output(STD, "Can't create crash directory path\n");
         return (-1);
     }
 
@@ -126,4 +215,46 @@ int32_t log_results(int32_t had_error, int32_t ret_value, char *err_value)
     output(STD, "%s", out_buf);
 
     return 0;
+}
+
+int32_t setup_log_module(char *path, uint32_t syscall_max)
+{
+    /* Make sure we have not been set up before. */
+    if(set != NX_NO)
+    {
+        output(ERROR, "We have already been setup\n");
+        return (-1);
+    }
+
+    int32_t rtrn = 0;
+    char *log_path = NULL;
+
+    /* Create output directory. This is the directory where
+    we will be dumping output from nextgen. */
+    rtrn = create_out_directory(path);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't create output directory\n");
+        return (-1);
+    }
+
+    /* Create the file path for the log file we will be creating. */
+    rtrn = asprintf(&log_path, "%s/log.nx", path);
+    if(rtrn < 0)
+    {
+        output(STD, "Can't create log path\n");
+        return (-1);
+    }
+
+    /* Create the log file. */
+    rtrn = create_log_file(log_path);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't create log file\n");
+        return (-1);
+    }
+
+    total_syscalls = syscall_max;
+
+    return (0);
 }
