@@ -631,7 +631,7 @@ static int32_t create_syscall_child_proc(msg_port_t port, void *arg)
     uint32_t *i = (uint32_t *)arg;
 
     /* Create message port. */
-    rtrn = init_msg_port(&port);
+    rtrn = init_msg_port(&local_port);
     if(rtrn < 0)
     {
         output(ERROR, "Can't init msg port\n");
@@ -640,14 +640,14 @@ static int32_t create_syscall_child_proc(msg_port_t port, void *arg)
 
     /* Send message port we just created to the runtime process
     so that we can be messaged. */
-    rtrn = msg_send(port, (void *)&local_port, sizeof(msg_port_t));
+    rtrn = send_port(port, local_port);
     if(rtrn < 0)
     {
         output(ERROR, "Can't send message port\n");
         return (-1);
     }
 
-    /* Start child process. */
+    /* Start child process's loop. */
     start_child((*i));
 }
 
