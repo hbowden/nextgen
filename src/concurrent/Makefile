@@ -12,7 +12,7 @@ ifeq ($(OPERATING_SYSTEM), FreeBSD)
 SOURCES += $(ROOT_DIR)/src/concurrent/concurrent-freebsd.c
 
 SILENCED_WARNINGS = -Wno-format-nonliteral -Wno-gnu-statement-expression \
-                    -Wno-undef
+                    -Wno-undef -Wno-unused-parameter
 
 FLAGS = -DFREEBSD -shared -fno-strict-aliasing -fPIC -Wall -Werror -Weverything -g -O3 -std=c99
 
