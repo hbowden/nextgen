@@ -10,17 +10,25 @@ ifeq ($(OPERATING_SYSTEM), FreeBSD)
            
 SILENCED_WARNINGS = -Wno-padded \
                     -Wno-unused-parameter -Wno-unused-parameter \
-                    -Wno-unused-variable
+                    -Wno-unused-variable \
+                    -Wno-pedantic
 
-FLAGS = -DFREEBSD -shared -fno-strict-aliasing -fPIC -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
+FLAGS = -DFREEBSD -shared -fno-strict-aliasing -fPIC -Wall -Werror -Weverything -g -O3 -std=c99
 
 LIB = ../io/libnxio.so ../memory/libnxmemory.so
       
 SOURCES += $(ROOT_DIR)/src/log/log-freebsd.c
 
-LIB_NAME = libnxlog.so
+INCLUDES += -I/usr/src/cddl/compat/opensolaris/include \
+            -I/usr/src/cddl/contrib/opensolaris/lib/libdtrace/common \
+            -I/usr/src/sys/cddl/compat/opensolaris \
+            -I/usr/src/sys/cddl/contrib/opensolaris/uts/common \
+            -isystem /usr/src/cddl/compat/opensolaris/include \
+            -isystem /usr/src/cddl/compat/opensolaris/lib/libdtrace/common \
+            -isystem /usr/src/sys/cddl/compat/opensolaris \
+            -isystem /usr/src/sys/cddl/contrib/opensolaris/uts/common 
 
-SOURCES += log-freebsd.c
+LIB_NAME = libnxlog.so
 
 endif
 
