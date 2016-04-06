@@ -19,8 +19,8 @@
 
 int32_t log_arguments(uint32_t total_args, 
                       const char *syscall_name,
-	                  uint64_t **arg_value_array, 
-                      uint32_t syscall_symbol)
+	              uint64_t **arg_value_array, 
+                      struct arg_context **arg_context_array)
 {
     char *arg_value auto_free = mem_alloc(1024);
     if(arg_value == NULL)
