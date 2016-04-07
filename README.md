@@ -13,7 +13,7 @@ To install `nextgen` on `FreeBSD` you will need to install a few dependencies an
 
 Due to a regression in `concurrencykit` a `nextgen` dependency you will have to go into `deps` and build `concurrencykit` manually. Run `./configure && gmake` in the `ck-0.5.1` directory to build `concurrencykit`.
 
-Now that your done building `concurrencykit` use run `gmake` to build the rest of `nextgen`.
+Now that your done building `concurrencykit`, run `gmake` to build the rest of `nextgen`.
 
 Use `gmake quick` if you don't wan't to build the dependencies and only want to build nextgen, note you will have to build the dependencies at least once.
 
