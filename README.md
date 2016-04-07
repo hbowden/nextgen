@@ -6,9 +6,14 @@ I will start adding the missing features and known bugs to the issue tracker.
 
 In the mean time `FreeBSD` and `OSX` users can build and "use" nextgen.
 
-Due to a regression in `concurrencykit` a nextgen dependency you will have to go into `deps` and build `concurrencykit` manually. Run `./configure && gmake` in the `ck-0.5.1` directory to build `concurrencykit`.
+# Install
+To install `nextgen` on `FreeBSD` you will need to install a few dependencies and have the `FreeBSD` source tree installed at `/src` as well. Use the command below to install the needed dependencies.
 
-Now you will be able to use `gmake` or `make` on `OSX` to build the rest of nextgen.
+    sudo pkg install gmake autotools
+
+Due to a regression in `concurrencykit` a `nextgen` dependency you will have to go into `deps` and build `concurrencykit` manually. Run `./configure && gmake` in the `ck-0.5.1` directory to build `concurrencykit`.
+
+Now that your done building `concurrencykit` use run `gmake` to build the rest of `nextgen`.
 
 Use `gmake quick` if you don't wan't to build the dependencies and only want to build nextgen, note you will have to build the dependencies at least once.
 
@@ -20,6 +25,7 @@ Install nextgen with `sudo make install`. This will install the required dynamic
 
 To run nextgen use the binary in the nextgen directory, if you run nextgen outside it's directory, nextgen won't find it's plugin directory. This limitation will be fixed later.
 
+#Example
 Below is an example of running nextgen as a syscall fuzzer.
 
 `sudo ./nextgen --syscall --out /file/path/to/create/output/directory`
