@@ -28,8 +28,7 @@ LIB = ../io/libnxio.so ../memory/libnxmemory.so \
       ../crypto/libnxcrypto.so ../syscall/libnxsyscall.so \
       ../disas/libnxdisas.so ../probe/libnxprobe.so \
       ../genetic/libnxgenetic.so ../plugins/libnxplugin.so \
-      ../reaper/libnxreaper.so ../resource/libnxresource.so \
-      ../file/libnxfile.so
+      ../resource/libnxresource.so ../file/libnxfile.so
 
 LIB_NAME = libnxruntime.so
 
@@ -49,8 +48,7 @@ LIB = -lobjc ../io/libnxio.dylib ../memory/libnxmemory.dylib \
       ../crypto/libnxcrypto.dylib ../syscall/libnxsyscall.dylib \
       ../disas/libnxdisas.dylib ../probe/libnxprobe.dylib \
       ../genetic/libnxgenetic.dylib ../plugins/libnxplugin.dylib \
-      ../reaper/libnxreaper.dylib ../resource/libnxresource.dylib \
-      ../file/libnxfile.dylib
+      ../resource/libnxresource.dylib ../file/libnxfile.dylib
 
 LIB_NAME = libnxruntime.dylib
 

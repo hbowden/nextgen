@@ -32,7 +32,6 @@ LIB = -rpath src/runtime \
       -rpath src/genetic \
       -rpath src/mutate \
       -rpath src/log \
-      -rpath src/reaper \
       -rpath src/network \
       -rpath src/file \
       -rpath src/syscall \
@@ -104,7 +103,6 @@ BUILD_NX_LIBS += cd $(ROOT_DIR)/src/io && $(MAKE) && \
                  cd $(ROOT_DIR)/src/log && $(MAKE) && \
                  cd $(ROOT_DIR)/src/syscall && $(MAKE) && \
                  cd $(ROOT_DIR)/src/genetic && $(MAKE) && \
-                 cd $(ROOT_DIR)/src/reaper && $(MAKE) && \
                  cd $(ROOT_DIR)/src/file && $(MAKE) && \
                  cd $(ROOT_DIR)/src/disas && $(MAKE) && \
                  cd $(ROOT_DIR)/src/runtime && $(MAKE)
@@ -122,7 +120,6 @@ CLEAN_NX_LIBS += cd $(ROOT_DIR)/src/io && $(MAKE) clean && \
                  cd $(ROOT_DIR)/src/log && $(MAKE) clean && \
                  cd $(ROOT_DIR)/src/syscall && $(MAKE) clean && \
                  cd $(ROOT_DIR)/src/genetic && $(MAKE) clean && \
-                 cd $(ROOT_DIR)/src/reaper && $(MAKE) clean && \
                  cd $(ROOT_DIR)/src/file && $(MAKE) clean && \
                  cd $(ROOT_DIR)/src/disas && $(MAKE) clean && \
                  cd $(ROOT_DIR)/src/runtime && $(MAKE) clean
@@ -132,7 +129,6 @@ TEST_SUITE = cd $(ROOT_DIR)/tests/memory && $(MAKE) && \
              cd $(ROOT_DIR)/tests/plugin && $(MAKE) && \
              cd $(ROOT_DIR)/tests/utils && $(MAKE) && \
 	         cd $(ROOT_DIR)/tests/genetic && $(MAKE) && \
-	         cd $(ROOT_DIR)/tests/reaper && $(MAKE) && \
 	         cd $(ROOT_DIR)/tests/resource && $(MAKE) && \
 	         cd $(ROOT_DIR)/tests/syscall && $(MAKE) && \
 	         cd $(ROOT_DIR)/tests/concurrent && $(MAKE) && \
@@ -146,7 +142,6 @@ CLEAN_SUITE = cd $(ROOT_DIR)/tests/crypto && $(MAKE) clean && \
               cd $(ROOT_DIR)/tests/utils && $(MAKE) clean && \
 	          cd $(ROOT_DIR)/tests/memory && $(MAKE) clean && \
 	          cd $(ROOT_DIR)/tests/genetic && $(MAKE) clean && \
-	          cd $(ROOT_DIR)/tests/reaper && $(MAKE) clean && \
 	          cd $(ROOT_DIR)/tests/resource && $(MAKE) clean && \
 	          cd $(ROOT_DIR)/tests/syscall && $(MAKE) clean && \
 	          cd $(ROOT_DIR)/tests/concurrent && $(MAKE) clean && \
@@ -175,7 +170,6 @@ FORMAT_SOURCE = cd $(ROOT_DIR)/src/io && $(MAKE) format && \
                 cd $(ROOT_DIR)/src/log && $(MAKE) format && \
                 cd $(ROOT_DIR)/src/syscall && $(MAKE) format && \
                 cd $(ROOT_DIR)/src/genetic && $(MAKE) format && \
-                cd $(ROOT_DIR)/src/reaper && $(MAKE) format && \
                 cd $(ROOT_DIR)/src/file && $(MAKE) format && \
                 cd $(ROOT_DIR)/src/disas && $(MAKE) format && \
                 cd $(ROOT_DIR)/src/runtime && $(MAKE) format
@@ -245,7 +239,6 @@ install:
 	cp -rf src/log/libnxlog.dylib.dSYM /usr/local/lib 
 	cp -rf src/syscall/libnxsyscall.dylib.dSYM /usr/local/lib 
 	cp -rf src/genetic/libnxgenetic.dylib.dSYM /usr/local/lib 
-	cp -rf src/reaper/libnxreaper.dylib.dSYM /usr/local/lib 
 	cp -rf src/file/libnxfile.dylib.dSYM /usr/local/lib 
 	cp -rf src/disas/libnxdisas.dylib.dSYM /usr/local/lib 
 
@@ -264,7 +257,6 @@ install:
 	cp -f src/log/libnxlog.dylib /usr/local/lib 
 	cp -f src/syscall/libnxsyscall.dylib /usr/local/lib 
 	cp -f src/genetic/libnxgenetic.dylib /usr/local/lib 
-	cp -f src/reaper/libnxreaper.dylib /usr/local/lib 
 	cp -f src/file/libnxfile.dylib /usr/local/lib 
 	cp -f src/disas/libnxdisas.dylib /usr/local/lib 
 	cp -f deps/$(CAPSTONE)/libcapstone.dylib /usr/local/lib

@@ -19,7 +19,6 @@
 #include "io/io.h"
 #include "memory/memory.h"
 #include "plugins/plugin.h"
-#include "reaper/reaper.h"
 #include "resource/resource.h"
 #include "runtime/runtime.h"
 
@@ -508,8 +507,6 @@ static int32_t init_syscall_mapping(struct shared_map **mapping,
     /* Set the outpath directory. */
     (*mapping)->path_to_out_dir = ctx->output_path;
 
-    /* We use atomic values for the pids, so let's init the reaper pid. */
-    atomic_init(&(*mapping)->reaper_pid, 0);
     atomic_init(&(*mapping)->god_pid, 0);
 
     /* Intialize socket server values.*/

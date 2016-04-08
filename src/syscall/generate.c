@@ -18,7 +18,6 @@
 #include "io/io.h"
 #include "memory/memory.h"
 #include "network/network.h"
-#include "reaper/reaper.h"
 #include "resource/resource.h"
 #include "runtime/nextgen.h"
 #include "utils/utils.h"

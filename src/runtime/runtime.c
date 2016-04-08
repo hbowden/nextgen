@@ -27,7 +27,6 @@
 #include "platform.h"
 #include "plugins/plugin.h"
 #include "probe/probe.h"
-#include "reaper/reaper.h"
 #include "resource/resource.h"
 #include "syscall/signals.h"
 #include "syscall/syscall.h"
@@ -82,7 +81,6 @@ static int32_t start_syscall_mode_runtime(void)
 
     /* Wait for the other process's created by nextgen. */
     wait_on(&map->runloop_pid, &status);
-    wait_on(&map->reaper_pid, &status);
     wait_on(&map->socket_server_pid, &status);
 
     /* If were running in smart mode wait for the genetic algorithm(god) to exit. */
@@ -237,18 +235,6 @@ static int32_t setup_network_mode_runtime(void) { return (0); }
 static int32_t setup_syscall_mode_runtime(void)
 {
     int32_t rtrn = 0;
-    pid_t reaper_pid = 0;
-
-    /* Intialize the reaper module. */
-    rtrn = setup_reaper_module(&reaper_pid, &map->stop);
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't set up the reaper module\n");
-        return (-1);
-    }
-
-    /* Set the atomic pid in the global shared mapping. */
-    cas_loop_int32(&map->reaper_pid, reaper_pid);
 
     /* Setup the resource module. */
     rtrn = setup_resource_module("/tmp");

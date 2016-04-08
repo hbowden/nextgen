@@ -26,15 +26,15 @@
 #include <sys/wait.h>
 
 /* The number of test to run, keep in sync with test_paths  */
-static uint32_t number_of_test = 14;
+static uint32_t number_of_test = 13;
 
 enum { MEMORY_TEST = 0, CONCURRENT_TEST = 1,
        CRYPTO_TEST = 2, UTILS_TEST = 3,
        NETWORK_TEST = 4, GENERATE_TEST = 5,
-       RESOURCE_TEST = 6, REAPER_TEST = 7,
-       SYSCALL_TEST = 8, FILE_TEST = 9, 
-       GENETIC_TEST = 10, PLUGINS_TEST = 11,
-       RUNTIME_TEST = 12, LOG_TEST = 13
+       RESOURCE_TEST = 6, SYSCALL_TEST = 7, 
+       FILE_TEST = 8, GENETIC_TEST = 9, 
+       PLUGINS_TEST = 10, RUNTIME_TEST = 11, 
+       LOG_TEST = 12
     };
 
 /* Array of unit test file paths. */
@@ -46,7 +46,6 @@ static char *test_paths[] = {
     "tests/network/test_network",
     "tests/generate/test_generate",
     "tests/resource/test_resource",
-    "tests/reaper/test_reaper",
     "tests/syscall/test_syscall",
     "tests/file/test_file",
     "tests/genetic/test_genetic",
@@ -139,7 +138,7 @@ static int32_t exec_test(char *path)
     }
     else
     {
-    	output(ERROR, "Failed to fork reaper process: %s\n", strerror(errno));
+    	output(ERROR, "Failed to fork process: %s\n", strerror(errno));
     	return (-1);
     }
 }
