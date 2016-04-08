@@ -2,13 +2,15 @@ UNIT_TEST = test_plugins
 
 SOURCES = $(UNIT_TEST).c ../test_utils.c
 
-INCLUDES = -I../ -I$(ROOT_DIR)/src
+INCLUDES = -I../ -I$(ROOT_DIR)/src \
+           -I../../deps/$(CK)/include \
+           -isystem ../../deps/$(CK)/include
 
 SILENCED_WARNINGS += -Wno-unused-parameter -Wno-cast-qual
 
 LIB = $(ROOT_DIR)/src/io/libnxio.dylib \
       $(ROOT_DIR)/src/memory/libnxmemory.dylib \
-      $(ROOT_DIR)/src/utils/libnxutils.dylib
+      $(ROOT_DIR)/src/utils/libnxutils.dylib \
 
 all:
 

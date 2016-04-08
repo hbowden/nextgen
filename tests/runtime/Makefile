@@ -2,7 +2,9 @@ UNIT_TEST = test_runtime
 
 SOURCES = $(UNIT_TEST).c ../test_utils.c
 
-INCLUDES = -I../ -I$(ROOT_DIR)/src
+INCLUDES = -I../ -I$(ROOT_DIR)/src \
+           -I../../deps/$(CK)/include \
+           -isystem ../../deps/$(CK)/include
 
 SILENCED_WARNINGS += -Wno-unused-parameter -Wno-cast-qual
 

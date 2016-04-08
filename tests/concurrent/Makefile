@@ -1,6 +1,8 @@
 SOURCES = $(UNIT_TEST).c ../test_utils.c
 
-INCLUDES = -I../ -I$(ROOT_DIR)/src
+INCLUDES = -I../ -I$(ROOT_DIR)/src \
+           -I../../deps/$(CK)/include \
+           -isystem ../../deps/$(CK)/include
 
 LIB = $(ROOT_DIR)/src/memory/libnxmemory.dylib \
       $(ROOT_DIR)/src/io/libnxio.dylib \
