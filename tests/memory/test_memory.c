@@ -32,6 +32,7 @@ static uint32_t iterations = 100000;
 struct test_obj
 {
     int32_t value;
+    const char padding[4];
     char *ptr;
 };
 

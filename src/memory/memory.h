@@ -38,6 +38,8 @@ struct mem_pool_shared
     /* The number of blocks in the memory pool. */
     uint32_t block_count;
 
+    const char padding[4];
+
     /* Shared memory list that represents the memory pool. */
     NX_SLIST_HEAD(free_list, memory_block);
 
