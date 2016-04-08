@@ -37,13 +37,14 @@ struct shared_map *map;
 
 struct parser_ctx
 {
-    enum fuzz_mode mode;
     char *exec_path;
     char *input_path;
     char *output_path;
-    enum crypto_method method;
     char *args;
     int32_t smart_mode;
+    enum crypto_method method;
+    enum fuzz_mode mode;
+    const char padding[4];
 };
 
 static const char *optstring = "p:e:";

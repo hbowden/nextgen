@@ -52,6 +52,8 @@ struct species_ctx
 
     uint32_t species_population;
 
+    const char padding[4];
+
     double average_species_fitness;
 
     NX_SLIST_HEAD(organism_list, organism_ctx);
@@ -60,6 +62,8 @@ struct species_ctx
 struct world_population
 {
     uint32_t number_of_species;
+
+    const char padding[4];
 
     uint64_t current_generation;
 
