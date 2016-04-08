@@ -68,7 +68,6 @@ int main(int argc, char *argv[])
     if(rtrn < 0)
     {
         output(ERROR, "Can't setup runtime enviroment.\n");
-        clean_shared_mapping();
         return (-1);
     }
 
