@@ -2,7 +2,7 @@
 ROOT_DIR = $(shell pwd)
 
 CK = ck-0.5.1
-LIBRESSL = libressl-2.3.2
+LIBRESSL = libressl-2.3.3
 CAPSTONE = capstone-3.0.4
 
 TEST_LIB = $(ROOT_DIR)/src/io/libnxio.dylib \
