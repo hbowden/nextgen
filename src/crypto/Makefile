@@ -1,6 +1,7 @@
 SOURCES = $(ROOT_DIR)/src/crypto/crypto.c
 
 INCLUDES = -I../ -I../../deps/$(LIBRESSL)/include \
+           -isystem ../../deps/$(LIBRESSL)/include \
            -I../../deps/$(CK)/include \
            -isystem ../../deps/$(CK)/include
 
@@ -9,7 +10,7 @@ OPERATING_SYSTEM = $(shell uname)
 # FreeBSD build options.
 ifeq ($(OPERATING_SYSTEM), FreeBSD)
 
-SILENCED_WARNINGS = -Wno-padded
+SILENCED_WARNINGS =
 
 FLAGS = -DFREEBSD -shared -fno-strict-aliasing -fPIC -Wall -Werror -Weverything -g -O3 -Wpedantic -std=c99
 
@@ -23,7 +24,7 @@ endif
 # Mac OSX build options.
 ifeq ($(OPERATING_SYSTEM), Darwin)
 
-SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-padded
+SILENCED_WARNINGS = -Wno-reserved-id-macro
 
 FLAGS = -dynamiclib -DMAC_OSX -fno-strict-aliasing -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
 
