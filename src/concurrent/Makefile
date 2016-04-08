@@ -11,9 +11,8 @@ ifeq ($(OPERATING_SYSTEM), FreeBSD)
 
 SOURCES += $(ROOT_DIR)/src/concurrent/concurrent-freebsd.c
 
-SILENCED_WARNINGS = -Wno-padded \
-                    -Wno-format-nonliteral -Wno-gnu-statement-expression \
-                    -Wno-unused-parameter -Wno-undef -Wno-unused-parameter
+SILENCED_WARNINGS = -Wno-format-nonliteral -Wno-gnu-statement-expression \
+                    -Wno-undef
 
 FLAGS = -DFREEBSD -shared -fno-strict-aliasing -fPIC -Wall -Werror -Weverything -g -O3 -std=c99
 
@@ -28,9 +27,9 @@ ifeq ($(OPERATING_SYSTEM), Darwin)
 
 SOURCES += $(ROOT_DIR)/src/concurrent/concurrent-mac.c
 
-SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-padded \
-                    -Wno-format-nonliteral -Wno-gnu-statement-expression \
-                    -Wno-unused-parameter
+SILENCED_WARNINGS = -Wno-reserved-id-macro \
+                    -Wno-format-nonliteral \
+                    -Wno-gnu-statement-expression
 
 FLAGS = -dynamiclib -DMAC_OSX -fno-strict-aliasing -Wall -Werror -Weverything -g -O3 -std=c99
 
