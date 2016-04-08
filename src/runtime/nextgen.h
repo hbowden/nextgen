@@ -60,17 +60,17 @@ struct shared_map
     atomic_int_fast32_t runloop_pid;
     atomic_int_fast32_t socket_server_pid;
 
-    /* Counter for the number of fuzz test perform. */
-    atomic_uint_fast64_t test_counter;
-
     /* An atomic value used to tell the various processes whether to run or not. */
     atomic_int_fast32_t stop;
 
     /* If this mode is FALSE then we don't use the binary feedback and genetic algorithm. */
-    bool smart_mode;
+    int32_t smart_mode;
 
     /* The port that the ipv4 socket server is on. The ipv6 port is ipv4 + 1. */
     uint32_t socket_server_port;
+
+    /* Counter for the number of fuzz test perform. */
+    atomic_uint_fast64_t test_counter;
 };
 
 extern struct shared_map *map;
