@@ -12,7 +12,7 @@ ifeq ($(OPERATING_SYSTEM), FreeBSD)
 SILENCED_WARNINGS = -Wno-padded -Wno-cast-qual \
                     -Wno-used-but-marked-unused
 
-FLAGS = -DFREEBSD -shared -fPIC -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
+FLAGS = -DFREEBSD -shared -fno-strict-aliasing -fPIC -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
 
 LIB = ../io/libnxio.so
 
@@ -26,7 +26,7 @@ ifeq ($(OPERATING_SYSTEM), Darwin)
 SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-padded -Wno-cast-qual \
                     -Wno-used-but-marked-unused
 
-FLAGS = -dynamiclib -DMAC_OSX -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
+FLAGS = -dynamiclib -DMAC_OSX -fno-strict-aliasing -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
 
 LIB = ../io/libnxio.dylib
 

@@ -18,7 +18,7 @@ INCLUDES += -I/usr/src/cddl/compat/opensolaris/include \
             -I/usr/src/sys/cddl/compat/opensolaris \
             -I/usr/src/sys/cddl/contrib/opensolaris/uts/common
 
-FLAGS = -DFREEBSD -shared -fPIC -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
+FLAGS = -DFREEBSD -shared -fno-strict-aliasing -fPIC -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
 
 LIB = ../io/libnxio.so ../memory/libnxmemory.so \
       ../crypto/libnxcrypto.so ../syscall/libnxsyscall.so \
@@ -35,7 +35,7 @@ SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-padded \
                     -Wno-unused-parameter -Wno-unused-parameter \
                     -Wno-unused-variable -Wno-used-but-marked-unused
 
-FLAGS = -dynamiclib -DMAC_OSX -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
+FLAGS = -dynamiclib -DMAC_OSX -fno-strict-aliasing -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
 
 LIB = ../io/libnxio.dylib ../memory/libnxmemory.dylib \
       ../crypto/libnxcrypto.dylib ../syscall/libnxsyscall.dylib \

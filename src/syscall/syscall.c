@@ -664,7 +664,7 @@ void create_syscall_children(void)
             continue;
 
         msg_port_t port = 0;
-        msg_port_t *child_port = 0;
+        msg_port_t child_port = 0;
 
         /* Create child process and pass it a message port. */
         rtrn = fork_pass_port(&port, create_syscall_child_proc, &i);
@@ -675,7 +675,7 @@ void create_syscall_children(void)
         }
 
         /* Wait for the child to send us it's message port. */
-        child_port = (msg_port_t *)msg_recv(port);
+        rtrn = recv_port(port, &child_port);
         if(rtrn < 0)
         {
             output(ERROR, "Can't recieve message\n");

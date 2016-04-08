@@ -15,7 +15,7 @@ SILENCED_WARNINGS = -Wno-padded \
                     -Wno-format-nonliteral -Wno-gnu-statement-expression \
                     -Wno-unused-parameter -Wno-undef -Wno-unused-parameter
 
-FLAGS = -DFREEBSD -shared -fPIC -Wall -Werror -Weverything -g -O3 -std=c99
+FLAGS = -DFREEBSD -shared -fno-strict-aliasing -fPIC -Wall -Werror -Weverything -g -O3 -std=c99
 
 LIB = ../../deps/$(CK)/src/libck.so ../io/libnxio.so
 
@@ -32,7 +32,7 @@ SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-padded \
                     -Wno-format-nonliteral -Wno-gnu-statement-expression \
                     -Wno-unused-parameter
 
-FLAGS = -dynamiclib -DMAC_OSX -Wall -Werror -Weverything -g -O3 -std=c99
+FLAGS = -dynamiclib -DMAC_OSX -fno-strict-aliasing -Wall -Werror -Weverything -g -O3 -std=c99
 
 LIB = ../../deps/$(CK)/src/libck.so ../io/libnxio.dylib
 

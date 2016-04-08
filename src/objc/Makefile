@@ -7,7 +7,7 @@ SOURCES = objc-utils.m AppDelegate.m
 INCLUDES = -I../ -I../../deps/$(CK)/include \
            -isystem ../../deps/$(CK)/include
 
-FLAGS = -DMAC_OSX -dynamiclib -Wall -Werror -Weverything -Wpedantic -g -O3
+FLAGS = -DMAC_OSX -dynamiclib -fno-strict-aliasing -Wall -Werror -Weverything -Wpedantic -g -O3
 
 LIB = -framework Foundation -framework AppKit
 
