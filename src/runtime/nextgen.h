@@ -57,7 +57,6 @@ struct shared_map
     /* The PID's of our helper processes. */
     atomic_int_fast32_t god_pid;
     atomic_int_fast32_t target_pid;
-    atomic_int_fast32_t reaper_pid;
     atomic_int_fast32_t runloop_pid;
     atomic_int_fast32_t socket_server_pid;
 
