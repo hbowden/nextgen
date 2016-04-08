@@ -432,32 +432,14 @@ int32_t generate_fs_stat_flag(uint64_t **flag, struct child_ctx *ctx)
 
 int32_t generate_pid(uint64_t **pid, struct child_ctx *ctx)
 {
-    pid_t local_pid = 0;
-
-    *pid = mem_alloc(sizeof(unsigned long));
-    if(*pid == NULL)
+    (*pid) = mem_alloc(sizeof(unsigned long));
+    if((*pid) == NULL)
     {
         output(STD, "Can't alloc pid\n");
         return (-1);
     }
 
-    local_pid = fork();
-    if(local_pid == 0)
-    {
-        sleep(1);
-
-        _exit(0);
-    }
-    else if(local_pid > 0)
-    {
-    }
-    else
-    {
-        output(ERROR, "Can't create pid: %s\n", strerror(errno));
-        return (-1);
-    }
-
-    (**pid) = (uint64_t)local_pid;
+    (**pid) = (uint64_t)getpid();
 
     ctx->arg_size_array[ctx->current_arg] = sizeof(int64_t);
 
