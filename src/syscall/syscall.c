@@ -18,7 +18,7 @@
 #include "crypto/crypto.h"
 #include "entry.h"
 #include "io/io.h"
-#include "job.h"
+#include "genetic/job.h"
 #include "log/log.h"
 #include "memory/memory.h"
 #include "mutate/mutate.h"
