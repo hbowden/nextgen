@@ -260,6 +260,7 @@ install:
 	cp -f src/file/libnxfile.dylib /usr/local/lib 
 	cp -f src/disas/libnxdisas.dylib /usr/local/lib 
 	cp -f deps/$(CAPSTONE)/libcapstone.dylib /usr/local/lib
+	cp -f deps/$(CK)/src/libck.so /usr/local/lib/libck.0.dylib
 
 	cp -f src/runtime/runtime.h /usr/local/include
 	cp -f src/io/io.h /usr/local/include
@@ -267,9 +268,6 @@ install:
 	cp -f src/memory/memory.h /usr/local/include
 	cp -f src/concurrent/concurrent.h /usr/local/include
 	cp -f src/crypto/crypto.h /usr/local/include
-
-	cd deps/$(CK) && $(MAKE) install
-	cp nextgen /usr/local/bin
 
 build-test:
 
