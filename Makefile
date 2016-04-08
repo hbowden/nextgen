@@ -57,7 +57,7 @@ INCLUDE += -I /usr/src/cddl/compat/opensolaris/include \
 
 MAKE = gmake
 
-FLAGS = -DFREEBSD -Wall -Werror -Weverything -pedantic -g -O3 -std=c99
+FLAGS = -DFREEBSD -Wall -Werror -Weverything -g -O3 -std=c99
 
 SILENCED_WARNINGS = -Wno-sign-conversion -Wno-unknown-pragmas -Wno-pedantic -Wno-padded 
 
