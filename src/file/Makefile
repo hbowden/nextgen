@@ -33,7 +33,8 @@ endif
 # Mac OSX build options.
 ifeq ($(OPERATING_SYSTEM), Darwin)
 
-SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-padded -Wno-cast-qual \
+SILENCED_WARNINGS = -Wno-reserved-id-macro \
+                    -Wno-cast-qual \
                     -Wno-unused-parameter
 
 FLAGS = -dynamiclib -DMAC_OSX -fno-strict-aliasing -Wall -Werror -Weverything -Wpedantic -g -O3

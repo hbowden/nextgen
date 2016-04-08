@@ -46,6 +46,8 @@ struct file_ctx
 {
     enum file_type type;
 
+    const char padding[4];
+
     const char *path;
 
     const char *extension;
