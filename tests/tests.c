@@ -70,9 +70,6 @@ static int32_t exec_test(char *path)
 	exec_pid = fork();
     if(exec_pid == 0)
     {
-        /* Set the PID of the currently running test. */
-        test_stat->running_test = getpid();
-
     	/* Execute the test passed, with no arguments. */
         rtrn = execv(path, args);
         if(rtrn < 0)
@@ -102,16 +99,6 @@ static int32_t exec_test(char *path)
         /* Make sure the process exited normally, if not return an error. */
     	if(WIFEXITED(status) != 0)
     	{
-            if(WEXITSTATUS(status) != 0)
-            {
-                rtrn = kill(test_stat->running_test, SIGKILL);
-                if(rtrn < 0)
-                {
-                    output(ERROR, "Can't kill target process: %s\n", strerror(errno));
-                    return (-1);
-                }
-            }
-
             /* Return the exit status from the child process. */
             return (WEXITSTATUS(status));
     	}
@@ -125,14 +112,7 @@ static int32_t exec_test(char *path)
             }
 
             log_test(FAIL, buf);
-
-            rtrn = kill(test_stat->running_test, SIGKILL);
-            if(rtrn < 0)
-            {
-                output(ERROR, "Can't kill target process: %s\n", strerror(errno));
-                return (-1);
-            }
-
+            
             return (-1);
     	}
     }
