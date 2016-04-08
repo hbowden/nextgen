@@ -40,47 +40,14 @@
 
 static int32_t start_network_mode_runtime(void) { return (0); }
 
-static int32_t start_syscall_runtime(msg_port_t port, void *arg)
+static int32_t start_syscall_mode_runtime(void)
 {
-    /* Set the pid in the global shared mapping so that other processes
-       know this process's pid, so they can wait for it or kill it. */
-    cas_loop_int32(&map->runloop_pid, getpid());
+    int32_t status = 0;
 
     /* Start the main loop for the syscall fuzzer. This function should not 
     return except when the user set's ctrl-c or there is an unrecoverable error. */
-    start_main_syscall_loop(port);
+    start_main_syscall_loop();
 
-    /* Clean up this process and exit. */
-    _exit(0);
-}
-
-static int32_t start_syscall_mode_runtime(void)
-{
-    int32_t rtrn = 0;
-    msg_port_t port = 0;
-
-    /* Create the syscall runtime process. */
-    rtrn = fork_pass_port(&port, start_syscall_runtime, NULL);
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't create child process\n");
-        return (-1);
-    }
-
-    msg_port_t child_port = 0;
-
-    /* Wait for child to send us a message port. */
-    rtrn = recv_port(port, &child_port);
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't receive childs port\n");
-        return (-1);
-    }
-
-    int32_t status = 0;
-
-    /* Wait for the other process's created by nextgen. */
-    wait_on(&map->runloop_pid, &status);
     wait_on(&map->socket_server_pid, &status);
 
     /* If were running in smart mode wait for the genetic algorithm(god) to exit. */

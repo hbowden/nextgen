@@ -61,6 +61,6 @@ extern int32_t setup_syscall_module(atomic_int_fast32_t *stop_ptr,
 	                                atomic_uint_fast64_t *counter,
 	                                int32_t run_mode);
 
-extern void start_main_syscall_loop(msg_port_t port);
+extern void start_main_syscall_loop(void);
 
 #endif
