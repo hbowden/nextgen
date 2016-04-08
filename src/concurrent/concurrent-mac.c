@@ -287,5 +287,7 @@ void *msg_recv(msg_port_t recv_port)
 {
     void *data = NULL;
 
+    (void)recv_port;
+
     return (data);
 }
