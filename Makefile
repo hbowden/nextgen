@@ -79,7 +79,7 @@ LIB = src/runtime/libnxruntime.dylib src/memory/libnxmemory.dylib \
 
 FLAGS = -DMAC_OSX -fno-strict-aliasing -Wall -Werror -Weverything -pedantic -g -O3 -std=c99
 
-SILENCED_WARNINGS = -Wno-padded -Wno-reserved-id-macro \
+SILENCED_WARNINGS = -Wno-reserved-id-macro \
                     -Wno-incompatible-pointer-types-discards-qualifiers \
                     -Wno-used-but-marked-unused
 
