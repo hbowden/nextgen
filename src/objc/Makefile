@@ -4,7 +4,8 @@ SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-padded \
                     -Wno-unused-parameter
 SOURCES = objc-utils.m AppDelegate.m
 
-INCLUDES = -I../
+INCLUDES = -I../ -I../../deps/$(CK)/include \
+           -isystem ../../deps/$(CK)/include
 
 FLAGS = -DMAC_OSX -dynamiclib -Wall -Werror -Weverything -Wpedantic -g -O3
 

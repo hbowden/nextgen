@@ -43,7 +43,8 @@ ifeq ($(OPERATING_SYSTEM), Darwin)
 
 ENTRY_SOURCES := $(wildcard mac/*.c)
 
-INCLUDES = -I../ -I../../deps/ck-0.5.0/include -Imac
+INCLUDES = -I../ -I../../deps/$(CK)/include \
+           -isystem ../../deps/$(CK)/include -Imac
            
 SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-padded \
                     -Wno-used-but-marked-unused -Wno-cast-align \
