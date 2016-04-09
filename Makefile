@@ -213,6 +213,10 @@ test-memory:
 
 	./test_suite memory
 
+test-concurrent:
+
+	./test_suite concurrent
+
 format:
 
 	$(FORMAT_SOURCE)

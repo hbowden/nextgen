@@ -182,6 +182,16 @@ static void run_single_test(char *argv[])
             return;
         }
     }
+    
+    else if(strncmp(argv[1], "concurrent", 10) == 0)
+    {
+        rtrn = exec_test(test_paths[CONCURRENT_TEST]);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't exec unit test\n");
+            return;
+        }
+    }
 
     return;
 }
