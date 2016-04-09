@@ -35,8 +35,13 @@ typedef mqd_t msg_port_t;
 #include <mach/port.h>
 #include <mach/mach.h>
 
-/* Message ports are really mach ports on Mac OSX systems. */
 typedef mach_port_t msg_port_t;
+
+#elif COMMON
+
+struct msg_port;
+
+typedef struct msg_port msg_port_t;
 
 #endif
 
