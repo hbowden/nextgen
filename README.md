@@ -7,7 +7,7 @@ I will start adding the missing features and known bugs to the issue tracker.
 In the mean time `FreeBSD` and `OSX` users can build and "use" nextgen.
 
 # Install-freebsd
-To install `nextgen` on `FreeBSD` you will need to install a few dependencies and have the `FreeBSD` source tree installed at `/src` as well. Use the command below to install the needed dependencies.
+To install `nextgen` on `FreeBSD` you will need to install a few dependencies and have the `FreeBSD` source tree installed at `/usr/src` as well. Use the command below to install the needed dependencies.
 
     sudo pkg install gmake autotools
     
