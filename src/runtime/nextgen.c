@@ -512,12 +512,11 @@ static int32_t init_syscall_mapping(struct shared_map **mapping,
 
     /* Intialize socket server values.*/
     (*mapping)->socket_server_port = 0;
-    atomic_init(&(*mapping)->socket_server_pid, 0);
 
     /* Set this counter to zero. */
     atomic_init(&(*mapping)->test_counter, 0);
 
-    return 0;
+    return (0);
 }
 
 /**
@@ -538,9 +537,6 @@ int32_t init_shared_mapping(struct shared_map **mapping, struct parser_ctx *ctx)
 
     /* Set the stop flag to FALSE, when set to TRUE all processes start their exit routines and eventually exit. */
     atomic_init(&(*mapping)->stop, FALSE);
-
-    /* Init the runloop pid. */
-    atomic_init(&(*mapping)->runloop_pid, 0);
 
     /* Do mode specific shared mapping setup. */
     switch((int32_t)ctx->mode)
