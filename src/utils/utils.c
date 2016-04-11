@@ -387,12 +387,14 @@ static int32_t entcmp(const FTSENT **a, const FTSENT **b)
     return strcmp((*a)->fts_name, (*b)->fts_name);
 }
 
-#endif
+#else
 
 static int32_t entcmp(const FTSENT *const *a, const FTSENT *const *b)
 {
     return (strcmp((*a)->fts_name, (*b)->fts_name));
 }
+
+#endif
 
 int32_t delete_dir_contents(char *dir)
 {
