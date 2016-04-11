@@ -36,6 +36,9 @@ static uint32_t ss_port;
 
 static atomic_int_fast32_t stop_socket_server;
 
+static int32_t listen_fd4;
+static int32_t listen_fd6;
+
 int32_t connect_ipv4(int32_t *sockFd)
 {
     int32_t rtrn = 0;
@@ -174,23 +177,24 @@ static int32_t setup_ipv6_tcp_server(int32_t *sockFd)
 static int32_t setup_socket_server(int32_t *sockFd4, int *sockFd6)
 {
     output(STD, "Setting Up Socket Server\n");
-    int rtrn;
+
+    int32_t rtrn = 0;
 
     rtrn = setup_ipv4_tcp_server(sockFd4);
     if(rtrn < 0)
     {
         output(ERROR, "Can't set up ipv4 socket server\n");
-        return -1;
+        return (-1);
     }
 
     rtrn = setup_ipv6_tcp_server(sockFd6);
     if(rtrn < 0)
     {
         output(ERROR, "Can't set up ipv6 socket server\n");
-        return -1;
+        return (-1);
     }
 
-    return 0;
+    return (0);
 }
 
 static int accept_client(int listenFd)
@@ -209,7 +213,7 @@ static int accept_client(int listenFd)
     return 0;
 }
 
-static void *thread_start(void *obj)
+static void *accept_thread_start(void *obj)
 {
     int rtrn;
     int *sockFd = (int *)obj;
@@ -234,35 +238,42 @@ static void *thread_start(void *obj)
     return NULL;
 }
 
-static int _start_socket_server(int listenFd4, int listenFd6)
+static void *start_thread(void *arg)
 {
     output(STD, "Starting Socket Server\n");
 
-    int rtrn;
-    pthread_t ipv6AcceptThread;
+    (void)arg;
 
-    pthread_create(&ipv6AcceptThread, NULL, thread_start, &listenFd6);
+    int32_t rtrn = 0;
+    pthread_t ipv6AcceptThread = 0;
+
+    rtrn = pthread_create(&ipv6AcceptThread, NULL, accept_thread_start, &listen_fd6);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't start the IPV6 accept thread\n");
+        return (NULL);
+    }
 
     while(atomic_load(&stop_socket_server) != TRUE)
     {
-        rtrn = listen(listenFd4, 1024);
+        rtrn = listen(listen_fd4, 1024);
         if(rtrn < 0)
         {
             output(ERROR, "listen: %s\n", strerror(errno));
-            return -1;
+            return (NULL);
         }
 
-        rtrn = accept_client(listenFd4);
+        rtrn = accept_client(listen_fd4);
         if(rtrn < 0)
         {
             output(ERROR, "Can't accept\n");
-            return -1;
+            return (NULL);
         }
     }
 
     pthread_join(ipv6AcceptThread, NULL);
 
-    return 0;
+    return (NULL);
 }
 
 int32_t pick_random_port(uint32_t *port)
@@ -299,50 +310,33 @@ static int32_t select_port_number(void)
 static int32_t start_socket_server(void)
 {
     int32_t rtrn = 0;
-    int32_t sockFd4 = 0;
-    int32_t sockFd6 = 0;
-    pid_t socket_server_pid;
+    pthread_t thread = 0;
 
     /* Pick a random port above 1200. */
     rtrn = select_port_number();
     if(rtrn < 0)
     {
         output(ERROR, "Can't select port number\n");
-        return -1;
+        return (-1);
     }
 
-    socket_server_pid = fork();
-    if(socket_server_pid == 0)
+    /* Setup the socket server threads and have them start
+    listening on the port selected earlier. */
+    rtrn = setup_socket_server(&listen_fd4, &listen_fd6);
+    if(rtrn < 0)
     {
-        // Socket server process
-        rtrn = setup_socket_server(&sockFd4, &sockFd6);
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't set up socket server\n");
-            return -1;
-        }
-
-        rtrn = _start_socket_server(sockFd4, sockFd6);
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't start socket server\n");
-            return -1;
-        }
+        output(ERROR, "Can't set up socket server\n");
+        return (-1);
     }
-    else if(socket_server_pid > 0)
+
+    rtrn = pthread_create(&thread, NULL, start_thread, NULL);
+    if(rtrn < 0)
     {
-        // Parent process
-
-        return 0;
+        output(ERROR, "Can't start socket server thread\n");
+        return (-1);
     }
-    else
-    {
-        // fork failed
-        output(ERROR, "fork: %s\n", strerror(errno));
-        return -1;
-    }
-
-    return 0;
+  
+    return (0);
 }
 
 int32_t setup_network_module(enum network_mode mode)
