@@ -9,12 +9,12 @@ OPERATING_SYSTEM = $(shell uname)
 # FreeBSD build options.
 ifeq ($(OPERATING_SYSTEM), FreeBSD)
 
-SOURCES += $(ROOT_DIR)/src/concurrent/concurrent-freebsd.c
+SOURCES += $(ROOT_DIR)/src/concurrent/concurrent-common.c
 
 SILENCED_WARNINGS = -Wno-format-nonliteral -Wno-gnu-statement-expression \
                     -Wno-undef
 
-FLAGS = -DFREEBSD -shared -fno-strict-aliasing -fPIC -Wall -Werror -Weverything -g -O3 -std=c99
+FLAGS = -DCOMMON -shared -fno-strict-aliasing -fPIC -Wall -Werror -Weverything -g -O3 -std=c99
 
 LIB = ../../deps/$(CK)/src/libck.so ../io/libnxio.so
 
@@ -25,15 +25,19 @@ endif
 # Mac OSX build options.
 ifeq ($(OPERATING_SYSTEM), Darwin)
 
-SOURCES += $(ROOT_DIR)/src/concurrent/concurrent-mac.c
+SOURCES += $(ROOT_DIR)/src/concurrent/concurrent-common.c
 
 SILENCED_WARNINGS = -Wno-reserved-id-macro \
                     -Wno-format-nonliteral \
-                    -Wno-gnu-statement-expression
+                    -Wno-gnu-statement-expression \
+                    -Wno-undef \
+                    -Wno-used-but-marked-unused
 
-FLAGS = -dynamiclib -DMAC_OSX -fno-strict-aliasing -Wall -Werror -Weverything -g -O3 -std=c99
+FLAGS = -DCOMMON -dynamiclib -fno-strict-aliasing -Wall -Werror -Weverything -g -O3 -std=c99
 
-LIB = ../../deps/$(CK)/src/libck.so ../io/libnxio.dylib
+LIB = ../../deps/$(CK)/src/libck.so \
+      ../io/libnxio.dylib \
+      ../memory/libnxmemory.dylib
 
 LIB_NAME = libnxconcurrent.dylib
 
