@@ -48,8 +48,6 @@ static int32_t start_syscall_mode_runtime(void)
     return except when the user set's ctrl-c or there is an unrecoverable error. */
     start_main_syscall_loop();
 
-    wait_on(&map->socket_server_pid, &status);
-
     /* If were running in smart mode wait for the genetic algorithm(god) to exit. */
     if(map->smart_mode)
         wait_on(&map->god_pid, &status);
