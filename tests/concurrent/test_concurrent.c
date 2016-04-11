@@ -62,7 +62,7 @@ static int32_t test_msg_send_recv(void)
 
     /* Initialize the message port. */
     rtrn = init_msg_port(&port);
-    assert_stat(port != 0);
+    assert_stat(&port != NULL);
 
     /* Create a thread for us to communicate with. */
     rtrn = pthread_create(&thread, NULL, thread_start, &port);

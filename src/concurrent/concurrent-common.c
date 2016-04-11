@@ -22,9 +22,7 @@
 
 struct msg_port
 {
-	nx_spinlock_t lock;
-
-    int32_t msg_pipe[2];
+    int32_t port[2];
 };
 
 struct message_ctx
@@ -36,21 +34,15 @@ struct message_ctx
 
 int32_t init_msg_port(msg_port_t *port)
 {
-	port = mem_alloc(sizeof(msg_port_t));
-	if(port == NULL)
-	{
+    port = mem_alloc(sizeof(struct msg_port));
+    if(port == NULL)
+    {
         output(ERROR, "Can't allocate message port\n");
         return (-1);
-	}
-
-	msg_port_t msg_port = {
-		.lock = NX_SPINLOCK_INITIALIZER
-	};
-
-	memmove(port, &msg_port, sizeof(msg_port_t));
+    }
 
     /* Create a new pipe. */
-	int32_t rtrn = pipe(port->msg_pipe);
+	int32_t rtrn = pipe(port->port);
 	if(rtrn < 0)
 	{
         output(ERROR, "Can't create pipe: %s\n", strerror(errno));
@@ -76,17 +68,12 @@ int32_t msg_send(msg_port_t remote_port, void *data, uint32_t size)
 	msg->size = size;
 	msg->data = data;
 
-    nx_spinlock_lock(&remote_port.lock);
-
-	ret = write(remote_port.msg_pipe[0], &msg, msg_len);
+	ret = write(remote_port.port[1], &msg, msg_len);
 	if(ret < (ssize_t)size)
 	{
 		output(ERROR, "Can't write message: %s\n", strerror(errno));
-		nx_spinlock_unlock(&remote_port.lock);
 		return (-1);
 	}
-
-	nx_spinlock_unlock(&remote_port.lock);
 
     return (0);
 }
@@ -104,20 +91,12 @@ void *msg_recv(msg_port_t recv_port)
         return (NULL);
     }
 
-    nx_spinlock_lock(&recv_port.lock);
-
-    ret = read(recv_port.msg_pipe[1], &msg, msg_len);
+    ret = read(recv_port.port[1], &msg, msg_len);
     if(ret < (ssize_t)msg_len)
     {
     	output(ERROR, "Can't read message: %s\n", strerror(errno));
-    	nx_spinlock_unlock(&recv_port.lock);
     	return (NULL);
     }
-
-    printf("msg: %p\n", (void *)msg);
-    printf("msg->data: %p\n", (void *)msg->data);
-
-    nx_spinlock_unlock(&recv_port.lock);
 
     return (msg->data);
 }
@@ -172,5 +151,5 @@ int32_t recv_port(msg_port_t recv_port, msg_port_t *port)
 
 int32_t send_port(msg_port_t remote_port, msg_port_t port)
 {
-    return (msg_send(remote_port, &port, sizeof(port)));
+    return (msg_send(remote_port, &port, sizeof(msg_port_t)));
 }

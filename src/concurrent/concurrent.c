@@ -35,7 +35,7 @@ void cas_loop_int32(atomic_int_fast32_t *target, int32_t value)
         int32_t snapshot = atomic_load(target);
 
         /* Try swaping the variable if successful break from the loop. */
-        if(atomic_compare_exchange_weak(target, &snapshot, value) == TRUE)
+        if(atomic_compare_exchange_weak(target, &snapshot, value) == true)
             break;
     }
 }
@@ -50,7 +50,7 @@ void cas_loop_uint32(atomic_uint_fast32_t *target, uint32_t value)
         uint32_t snapshot = atomic_load(target);
 
         /* Try swaping the variable if successful break from the loop. */
-        if(atomic_compare_exchange_weak(target, &snapshot, value) == TRUE)
+        if(atomic_compare_exchange_weak(target, &snapshot, value) == true)
             break;
     }
 }
