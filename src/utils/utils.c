@@ -380,9 +380,18 @@ int32_t binary_to_ascii(char *input, char **out, uint64_t input_len,
     return (0);
 }
 
+#ifdef MAC_OSX
+
 static int32_t entcmp(const FTSENT **a, const FTSENT **b)
 {
     return strcmp((*a)->fts_name, (*b)->fts_name);
+}
+
+#endif
+
+static int32_t entcmp(const FTSENT *const *a, const FTSENT *const *b)
+{
+    return (strcmp((*a)->fts_name, (*b)->fts_name));
 }
 
 int32_t delete_dir_contents(char *dir)
