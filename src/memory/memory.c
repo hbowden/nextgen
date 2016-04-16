@@ -15,7 +15,7 @@
 
 #include "memory.h"
 #include "io/io.h"
-#include "platform.h"
+#include "runtime/platform.h"
 
 #include <errno.h>
 #include <stdlib.h>
