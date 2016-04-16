@@ -18,8 +18,10 @@
 #ifndef SIGNAL_H
 #define SIGNAL_H
 
-extern void setup_signal_handler(void);
+#include <stdint.h>
 
-extern void setup_syscall_child_signal_handler(void);
+extern int32_t setup_signal_handler(void);
+
+extern int32_t setup_child_signal_handler(void);
 
 #endif
