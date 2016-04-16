@@ -16,7 +16,7 @@
 #include "log.h"
 #include "io/io.h"
 #include "memory/memory.h"
-#include "platform.h"
+#include "runtime/platform.h"
 #include "syscall/syscall.h"
 #include "utils/utils.h"
 

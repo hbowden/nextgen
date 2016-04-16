@@ -19,7 +19,7 @@
 #define ENTRY_H
 
 #include "context.h"
-#include "platform.h"
+#include "runtime/platform.h"
 #include "arg_types.h"
 #include "stdatomic.h"
 

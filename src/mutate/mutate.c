@@ -16,8 +16,8 @@
 #include "mutate.h"
 #include "crypto/crypto.h"
 #include "io/io.h"
-#include "platform.h"
 #include "plugins/plugin.h"
+#include "runtime/platform.h"
 #include "runtime/nextgen.h"
 
 static int32_t flip_byte_mutator(char **file, uint64_t *file_size)

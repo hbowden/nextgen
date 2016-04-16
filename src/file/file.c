@@ -20,7 +20,7 @@
 #include "log/log.h"
 #include "memory/memory.h"
 #include "mutate/mutate.h"
-#include "platform.h"
+#include "runtime/platform.h"
 #include "utils/utils.h"
 
 #include <dirent.h>

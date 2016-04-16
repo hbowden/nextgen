@@ -264,6 +264,20 @@ static int32_t setup_syscall_mode_runtime(void)
     return (0);
 }
 
+static void ctrlc_handler(int sig)
+{
+    (void)sig;
+    shutdown();
+    return;
+}
+
+static void setup_main_signal_handler(void)
+{
+    (void)signal(SIGINT, ctrlc_handler);
+
+    return;
+}
+
 int32_t setup_runtime(struct shared_map *mapping)
 {
     output(STD, "Setting up fuzzer\n");
@@ -279,6 +293,8 @@ int32_t setup_runtime(struct shared_map *mapping)
         output(ERROR, "Can't set up crypto\n");
         return (-1);
     }
+
+    setup_main_signal_handler();
 
     /* We are done doing common init work now we call the specific init routines. */
     switch((int32_t)map->mode)

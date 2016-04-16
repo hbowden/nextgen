@@ -18,7 +18,7 @@
 #include "crypto/crypto.h"
 #include "io/io.h"
 #include "network/network.h"
-#include "platform.h"
+#include "runtime/platform.h"
 #include "utils/utils.h"
 
 #include <assert.h>
