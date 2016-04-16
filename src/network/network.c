@@ -17,7 +17,7 @@
 #include "concurrent/concurrent.h"
 #include "crypto/crypto.h"
 #include "io/io.h"
-#include "platform.h"
+#include "runtime/platform.h"
 #include "stdatomic.h"
 
 #include <arpa/inet.h>
