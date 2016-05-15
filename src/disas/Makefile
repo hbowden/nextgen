@@ -15,6 +15,8 @@ FLAGS = -DFREEBSD -shared -fno-strict-aliasing -fPIC -Wall -Werror -Weverything 
 LIB = ../io/libnxio.so ../memory/libnxmemory.so \
       ../file/libnxfile.so ../../deps/capstone-3.0.4/libcapstone.a
 
+SILENCED_WARNINGS += -Wno-unused-parameter
+
 LIB_NAME = libnxdisas.so
 
 SOURCES += $(ROOT_DIR)/src/disas/disas-freebsd.c
