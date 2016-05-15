@@ -10,8 +10,8 @@ ifeq ($(OPERATING_SYSTEM), FreeBSD)
 
 SOURCES += $(ROOT_DIR)/src/concurrent/concurrent-common.c
 
-SILENCED_WARNINGS = -Wno-format-nonliteral -Wno-gnu-statement-expression \
-                    -Wno-undef -Wno-unused-parameter
+SILENCED_WARNINGS += -Wno-format-nonliteral -Wno-gnu-statement-expression -Wno-undef \
+                     -Wno-used-but-marked-unused
 
 FLAGS = -DCOMMON -shared -fno-strict-aliasing -fPIC -Wall -Werror -Weverything -g -O3 -std=c99
 LIB = ../../deps/$(CK)/src/libck.so ../io/libnxio.so
