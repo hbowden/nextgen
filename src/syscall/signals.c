@@ -23,6 +23,8 @@
 #include <signal.h>
 #include <string.h>
 #include <errno.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 static void child_exit_handler(int sig)
 {
