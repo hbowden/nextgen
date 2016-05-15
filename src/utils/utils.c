@@ -13,7 +13,7 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#ifndef LINUX
+#ifdef MAC_OSX
 
 #include <sys/syslimits.h>
 
