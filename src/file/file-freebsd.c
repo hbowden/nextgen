@@ -17,7 +17,7 @@
 #include "memory/memory.h"
 #include "utils/utils.h"
 #include "io/io.h"
-#include "platform.h"
+#include "runtime/platform.h"
 
 #include <signal.h>
 #include <stdio.h>
