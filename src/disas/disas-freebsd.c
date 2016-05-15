@@ -14,6 +14,7 @@
  **/
 
 #include "disas-freebsd.h"
+#include "file/file.h"
 #include "io/io.h"
 
 #include <string.h>
