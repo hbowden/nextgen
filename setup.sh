@@ -4,7 +4,9 @@ root=${PWD}
 
 os=`uname`
 
-if [[ "$os" == 'FreeBSD' ]]; then
+echo $os
+
+if [ $os = 'FreeBSD' ]; then
 	cd $root/deps/capstone-3.0.4 && gmake && \
     cd $root/deps/ck-0.5.1 && ./configure && gmake && \
     cd $root/deps/sqlite && gmake && \
