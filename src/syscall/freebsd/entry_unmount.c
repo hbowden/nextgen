@@ -19,17 +19,17 @@
 
 struct syscall_entry entry_unmount = {
 
-    .name_of_syscall = "unmount",
+    .syscall_name = "unmount",
     .syscall_symbol = SYS_unmount,
-    .number_of_args = 2,
+    .total_args = 2,
     .status = ON,
     .requires_root = NX_YES,
     .need_alarm = NX_NO,
 
-    .arg_type_index[FIRST_ARG] = DIR_PATH,
-    .get_arg_index[FIRST_ARG] = &generate_dirpath,
+    .arg_type_array[FIRST_ARG] = DIR_PATH,
+    .get_arg_array[FIRST_ARG] = &generate_dirpath,
 
-    .arg_type_index[SECOND_ARG] = UNMOUNT_FLAG,
-    .get_arg_index[SECOND_ARG] = &generate_unmount_flags
+    .arg_type_array[SECOND_ARG] = UNMOUNT_FLAG,
+    .get_arg_array[SECOND_ARG] = &generate_unmount_flags
     
 };

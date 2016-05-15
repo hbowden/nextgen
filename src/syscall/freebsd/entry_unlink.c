@@ -19,14 +19,14 @@
 
 struct syscall_entry entry_unlink = {
 
-    .name_of_syscall = "unlink",
+    .syscall_name = "unlink",
     .syscall_symbol = SYS_unlink,
-    .number_of_args = 1,
+    .total_args = 1,
     .status = ON,
     .requires_root = NX_NO,
     .need_alarm = NX_NO,
 
-    .arg_type_index[FIRST_ARG] = FILE_PATH,
-    .get_arg_index[FIRST_ARG] = &generate_path
+    .arg_type_array[FIRST_ARG] = FILE_PATH,
+    .get_arg_array[FIRST_ARG] = &generate_path
 
 };
