@@ -105,6 +105,7 @@ EXIT:
 
 int32_t inject_fork_server(uint64_t main_address)
 {
+    (void)main_address;
     output(STD, "Creating fork server\n");
 
     /* Variables. */

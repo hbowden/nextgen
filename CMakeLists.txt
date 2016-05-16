@@ -15,7 +15,7 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   # using Visual Studio C++
 endif()
 
-add_definitions("-Wall -fstack-protector-all -fno-strict-aliasing -g -Werror -Wno-unknown-warning-option -Wno-pedantic -Wno-deprecated-declarations -Wno-used-but-marked-unused")
+add_definitions("-Wall -fstack-protector-all -fno-strict-aliasing -g -Werror -Wno-unknown-warning-option -Wno-pedantic -Wno-deprecated-declarations -Wno-used-but-marked-unused -Wno-padded")
 
 set_source_files_properties(src/io/io.c PROPERTIES COMPILE_FLAGS -Wno-format-nonliteral)
 
@@ -26,6 +26,14 @@ set_source_files_properties(src/syscall/set_test.c PROPERTIES COMPILE_FLAGS -Wno
 set_source_files_properties(src/syscall/generate.c PROPERTIES COMPILE_FLAGS -Wno-cast-align)
 
 set_source_files_properties(src/file/file.c PROPERTIES COMPILE_FLAGS -Wno-cast-qual)
+
+set_source_files_properties(src/probe/probe-freebsd.c PROPERTIES COMPILE_FLAGS -Wno-incompatible-pointer-types-discards-qualifiers)
+
+set_source_files_properties(src/runtime/runtime.c PROPERTIES COMPILE_FLAGS -Wno-incompatible-pointer-types-discards-qualifiers)
+
+set_source_files_properties(src/resource/resource.c PROPERTIES COMPILE_FLAGS -Wno-incompatible-pointer-types-discards-qualifiers)
+
+set_source_files_properties(src/concurrent/concurrent-freebsd.c PROPERTIES COMPILE_FLAGS -Wno-unused-parameter)
 
 set_source_files_properties(src/main.m PROPERTIES COMPILE_FLAGS -Wno-incompatible-pointer-types-discards-qualifiers)
 
@@ -43,6 +51,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 endif() 
 
 include_directories(src)
+include_directories(SYSTEM deps/sqlite)
 include_directories(SYSTEM deps/libressl-2.4.1/include)
 include_directories(SYSTEM deps/ck-0.5.1/include SYSTEM)
 
@@ -83,6 +92,10 @@ target_link_libraries(nxutils nxio)
 target_link_libraries(nxutils nxmemory)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
+    include_directories(SYSTEM /usr/src/cddl/compat/opensolaris/include)
+    include_directories(SYSTEM /usr/src/cddl/contrib/opensolaris/lib/libdtrace/common)
+    include_directories(SYSTEM /usr/src/sys/cddl/compat/opensolaris)
+    include_directories(SYSTEM /usr/src/sys/cddl/contrib/opensolaris/uts/common)
     add_library(nxprobe SHARED src/probe/probe.c src/probe/probe-freebsd.c)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     add_library(nxprobe SHARED src/probe/probe.c src/probe/probe-mac.c)
@@ -132,19 +145,21 @@ target_link_libraries(nxresource nxnetwork)
 target_link_libraries(nxresource nxio)
 target_link_libraries(nxresource nxmemory)
 
-link_directories(${CMAKE_SOURCE_DIR}/deps/sqlite)
-
 if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
    add_library(nxlog SHARED src/log/log.c src/log/log-freebsd.c)
+   target_link_libraries(nxlog ${CMAKE_SOURCE_DIR}/deps/sqlite/sqlite3.so)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
    add_library(nxlog SHARED src/log/log.c src/log/log-mac.c)
+   target_link_libraries(nxlog sqlite)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
    add_library(nxlog SHARED src/log/log.c src/log/log-freebsd.c)
+   target_link_libraries(nxlog sqlite)
 endif()
+
+link_directories(${CMAKE_SOURCE_DIR}/deps/sqlite)
 
 target_link_libraries(nxlog nxio)
 target_link_libraries(nxlog nxmemory)
-target_link_libraries(nxlog sqlite3)
 
 link_directories(${CMAKE_SOURCE_DIR}/deps/ck-0.5.1/src)
 
@@ -242,6 +257,14 @@ target_link_libraries(nxruntime nxgenetic)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     add_executable(nextgen src/main.c)
+    target_link_libraries(nextgen dtrace)
+    target_link_libraries(nextgen proc)
+    target_link_libraries(nextgen ctf)
+    target_link_libraries(nextgen elf)
+    target_link_libraries(nextgen z)
+    target_link_libraries(nextgen rtld_db)
+    target_link_libraries(nextgen pthread)
+    target_link_libraries(nextgen util)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     add_executable(nextgen src/main.m)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")

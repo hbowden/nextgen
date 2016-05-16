@@ -30,6 +30,7 @@
 
 int32_t get_load_address(uint64_t *main_addr)
 {
+    (void)main_addr;
 	int32_t fd = 0;
     int32_t rtrn = 0;
     GElf_Ehdr ehdr;
@@ -52,8 +53,8 @@ int32_t get_load_address(uint64_t *main_addr)
         return (-1);
     }
 
-    rtrn = elf_version(EV_CURRENT);
-    if(rtrn == EV_NONE)
+    uint32_t version = elf_version(EV_CURRENT);
+    if(version == EV_NONE)
     {
         output(ERROR, "Can't init elf library: %s\n", elf_errmsg(elf_errno()));
         return (-1);
