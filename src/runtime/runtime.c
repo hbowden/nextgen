@@ -201,32 +201,6 @@ static int32_t setup_syscall_mode_runtime(void)
 {
     int32_t rtrn = 0;
 
-    /* Setup the resource module. */
-    rtrn = setup_resource_module("/tmp");
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't setup resource module\n");
-        return (-1);
-    }
-
-    /* Setup the syscall module. */
-    rtrn =
-        setup_syscall_module(&map->stop, &map->test_counter, map->smart_mode);
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't create syscall module\n");
-        return (-1);
-    }
-
-    uint32_t total_syscalls = 0;
-
-    rtrn = get_total_syscalls(&total_syscalls);
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't get total syscalls\n");
-        return (-1);
-    }
-
     rtrn = setup_log_module(map->path_to_out_dir, total_syscalls);
     if(rtrn < 0)
     {
@@ -242,6 +216,33 @@ static int32_t setup_syscall_mode_runtime(void)
 
         pid_t pid = 0;
 
+        /* Setup the resource module. */
+        rtrn = setup_resource_module("/tmp", CACHE);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't setup resource module\n");
+            return (-1);
+        }
+
+        /* Setup the syscall module. */
+        rtrn = setup_syscall_module(&map->stop, 
+                                    &map->test_counter, 
+                                    map->smart_mode);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't create syscall module\n");
+            return (-1);
+        }
+
+        uint32_t total_syscalls = 0;
+
+        rtrn = get_total_syscalls(&total_syscalls);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't get total syscalls\n");
+            return (-1);
+        }
+
         /* Start the genetic algorithm. */
         rtrn = setup_genetic_module(SYSCALL_FUZZING, &pid, &map->stop, &map->msg_port);
         if(rtrn < 0)
@@ -256,6 +257,33 @@ static int32_t setup_syscall_mode_runtime(void)
     {
         /* Do init work specific to dumb mode. */
         output(STD, "Starting syscall fuzzer in dumb mode\n");
+
+        /* Setup the resource module. */
+        rtrn = setup_resource_module("/tmp", NO_CACHE);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't setup resource module\n");
+            return (-1);
+        }
+
+        /* Setup the syscall module. */
+        rtrn = setup_syscall_module(&map->stop, 
+                                    &map->test_counter, 
+                                    map->smart_mode);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't create syscall module\n");
+            return (-1);
+        }
+
+        uint32_t total_syscalls = 0;
+
+        rtrn = get_total_syscalls(&total_syscalls);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't get total syscalls\n");
+            return (-1);
+        }
     }
 
     /* Set up the signal handler for the main process. */
