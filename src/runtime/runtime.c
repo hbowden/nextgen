@@ -200,13 +200,7 @@ static int32_t setup_network_mode_runtime(void) { return (0); }
 static int32_t setup_syscall_mode_runtime(void)
 {
     int32_t rtrn = 0;
-
-    rtrn = setup_log_module(map->path_to_out_dir, total_syscalls);
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't setup the logging module: %s\n");
-        return (-1);
-    }
+    uint32_t total_syscalls = 0;
 
     /* Check if the user want's dumb or smart mode. */
     if(map->smart_mode == TRUE)
@@ -217,7 +211,7 @@ static int32_t setup_syscall_mode_runtime(void)
         pid_t pid = 0;
 
         /* Setup the resource module. */
-        rtrn = setup_resource_module("/tmp", CACHE);
+        rtrn = setup_resource_module(CACHE, "/tmp");
         if(rtrn < 0)
         {
             output(ERROR, "Can't setup resource module\n");
@@ -233,8 +227,6 @@ static int32_t setup_syscall_mode_runtime(void)
             output(ERROR, "Can't create syscall module\n");
             return (-1);
         }
-
-        uint32_t total_syscalls = 0;
 
         rtrn = get_total_syscalls(&total_syscalls);
         if(rtrn < 0)
@@ -259,7 +251,7 @@ static int32_t setup_syscall_mode_runtime(void)
         output(STD, "Starting syscall fuzzer in dumb mode\n");
 
         /* Setup the resource module. */
-        rtrn = setup_resource_module("/tmp", NO_CACHE);
+        rtrn = setup_resource_module(NO_CACHE, "/tmp");
         if(rtrn < 0)
         {
             output(ERROR, "Can't setup resource module\n");
@@ -276,14 +268,19 @@ static int32_t setup_syscall_mode_runtime(void)
             return (-1);
         }
 
-        uint32_t total_syscalls = 0;
-
         rtrn = get_total_syscalls(&total_syscalls);
         if(rtrn < 0)
         {
             output(ERROR, "Can't get total syscalls\n");
             return (-1);
         }
+    }
+
+    rtrn = setup_log_module(map->path_to_out_dir, total_syscalls);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't setup the logging module: %s\n");
+        return (-1);
     }
 
     /* Set up the signal handler for the main process. */
