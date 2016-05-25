@@ -22,7 +22,7 @@
 #include "log/log.h"
 #include "memory/memory.h"
 #include "mutate/mutate.h"
-#include "platform.h"
+#include "runtime/platform.h"
 #include "probe/probe.h"
 #include "resource/resource.h"
 #include "signals.h"
@@ -189,8 +189,7 @@ static int32_t free_old_arguments(struct child_ctx *ctx)
                 break;
 
             case FILE_PATH:
-                rtrn = free_filepath((char **)&(ctx->arg_copy_array[i]),
-                                     (uint32_t)ctx->arg_size_array[i]);
+                rtrn = free_filepath((char **)&(ctx->arg_copy_array[i]);
                 if(rtrn < 0)
                     output(ERROR, "Can't free filepath\n");
                 /* Don't return on errors, just keep looping. */
@@ -221,15 +220,15 @@ static int32_t free_old_arguments(struct child_ctx *ctx)
                so that we don't use the mutated value
                in arg_value_index[i]. */
             case PID:
-                rtrn = kill((pid_t)(*ctx->arg_copy_array[i]), SIGKILL);
+                /*rtrn = kill((pid_t)(*ctx->arg_copy_array[i]), SIGKILL);
                 if(rtrn < 0)
                     output(ERROR, "Can't kill child: %s\n", strerror(errno));
-                /* Don't return on errors, just keep looping. */
+                 Don't return on errors, just keep looping. */
                 break;
 
             default:
                 /* Free value if non NULL. */
-                mem_free((void **)&ctx->arg_value_array[i]);
+                //mem_free((void **)&ctx->arg_value_array[i]);
                 break;
         }
     }
@@ -419,6 +418,19 @@ NX_NO_RETURN static void start_smart_syscall_child(void)
     exit_child();
 }
 
+struct child_ctx *get_child_ctx_from_pid(pid_t pid)
+{
+    uint32_t i;
+
+    for(i = 0; i < number_of_children; i++)
+    {
+        if(atomic_load(&children[i]->pid) == pid)
+            return (children[i]);
+    }
+
+    return (NULL);
+}
+
 struct child_ctx *get_child_ctx(void)
 {
     int32_t rtrn = 0;
@@ -571,8 +583,8 @@ static int32_t init_syscall_child(uint32_t i)
     /* Set the child pid. */
     cas_loop_int32(&children[i]->pid, getpid());
 
-    /* Set up the child signal handler. */
-    setup_syscall_child_signal_handler();
+    /* Set up the child signal handlers. */
+    setup_child_signal_handler();
 
     /* If were using a software PRNG we need to seed the PRNG. */
     if(using_hardware_prng() == FALSE)
