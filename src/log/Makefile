@@ -1,7 +1,9 @@
 SOURCES = $(ROOT_DIR)/src/log/log.c
 
 INCLUDES = -I../ -I../../deps/$(CK)/include \
-           -isystem ../../deps/$(CK)/include
+           -isystem ../../deps/$(CK)/include \
+           -I ../../deps/sqlite \
+           -isystem ../../deps/sqlite
 
 OPERATING_SYSTEM = $(shell uname)
 
@@ -41,7 +43,7 @@ SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-padded \
 
 FLAGS = -dynamiclib -DMAC_OSX -fno-strict-aliasing -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
 
-LIB = ../io/libnxio.dylib ../memory/libnxmemory.dylib
+LIB = ../io/libnxio.dylib ../memory/libnxmemory.dylib $(ROOT_DIR)/deps/sqlite/.libs/libsqlite3.0.dylib
 
 SOURCES += $(ROOT_DIR)/src/log/log-mac.c
       
@@ -63,3 +65,8 @@ clean:
 format:
 
 	cd $(ROOT_DIR) && clang-format -i -style=file $(SOURCES)
+
+.PHONY: list
+list:
+
+	$(SOURCES)
