@@ -189,7 +189,7 @@ static int32_t free_old_arguments(struct child_ctx *ctx)
                 break;
 
             case FILE_PATH:
-                rtrn = free_filepath((char **)&(ctx->arg_copy_array[i]);
+                rtrn = free_filepath((char **)&(ctx->arg_copy_array[i]));
                 if(rtrn < 0)
                     output(ERROR, "Can't free filepath\n");
                 /* Don't return on errors, just keep looping. */
