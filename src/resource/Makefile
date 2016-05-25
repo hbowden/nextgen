@@ -26,7 +26,8 @@ endif
 ifeq ($(OPERATING_SYSTEM), Darwin)
 
 SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-padded \
-                    -Wno-used-but-marked-unused
+                    -Wno-used-but-marked-unused \
+                    -Wno-covered-switch-default
 
 FLAGS = -dynamiclib -DMAC_OSX -fno-strict-aliasing -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
 
@@ -52,3 +53,8 @@ clean:
 format:
 
 	cd $(ROOT_DIR) && clang-format -i -style=file $(SOURCES)
+
+.PHONY: list
+list:
+
+	$(SOURCES)
