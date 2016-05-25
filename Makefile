@@ -2,7 +2,7 @@
 ROOT_DIR = $(shell pwd)
 
 CK = ck-0.5.1
-LIBRESSL = libressl-2.3.3
+LIBRESSL = libressl-2.3.4
 CAPSTONE = capstone-3.0.4
 
 TEST_LIB = $(ROOT_DIR)/src/io/libnxio.dylib \
@@ -51,9 +51,9 @@ LIB = -rpath src/runtime \
      -l dtrace -l proc -l ctf -l elf -l z -l rtld_db -l pthread -l util
 
 INCLUDE += -I /usr/src/cddl/compat/opensolaris/include \
-	        -I /usr/src/cddl/contrib/opensolaris/lib/libdtrace/common/ \
-	        -I /usr/src/sys/cddl/compat/opensolaris \
-	        -I /usr/src/sys/cddl/contrib/opensolaris/uts/common/
+	       -I /usr/src/cddl/contrib/opensolaris/lib/libdtrace/common/ \
+	       -I /usr/src/sys/cddl/compat/opensolaris \
+	       -I /usr/src/sys/cddl/contrib/opensolaris/uts/common/
 
 MAKE = gmake
 
