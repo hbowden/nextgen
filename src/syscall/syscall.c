@@ -601,7 +601,7 @@ static int32_t init_syscall_child(uint32_t i)
         }
     }
 
-    /* check if we are in smart mode. */
+    /* Check if we are in smart mode. */
     if(mode == TRUE)
     {
         /* Inject probes into the kernel. */
@@ -641,26 +641,7 @@ NX_NO_RETURN static void start_child(uint32_t i)
 
 static int32_t create_syscall_child_proc(msg_port_t port, void *arg)
 {
-    int32_t rtrn = 0;
-    msg_port_t local_port = 0;
     uint32_t *i = (uint32_t *)arg;
-
-    /* Create message port. */
-    rtrn = init_msg_port(&local_port);
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't init msg port\n");
-        return (-1);
-    }
-
-    /* Send message port we just created to the runtime process
-    so that we can be messaged. */
-    rtrn = send_port(port, local_port);
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't send message port\n");
-        return (-1);
-    }
 
     /* Start child process's loop. */
     start_child((*i));
