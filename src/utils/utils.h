@@ -59,6 +59,10 @@ extern int32_t check_root(void);
  will be put in the buffer path. */
 extern int32_t create_random_file(char *root, char *ext, char **path, uint64_t *size);
 
+/* Create a random directory at path root the path created
+ will be put in the buffer path. */
+extern int32_t create_random_directory(char *root, char **path);
+
 /* Drop privileges.  */
 extern int32_t drop_privileges(void);
 
@@ -71,7 +75,8 @@ extern int32_t delete_dir_contents(char *dir);
 /* Count files directory. */
 extern int32_t count_files_directory(uint32_t *count, char *dir);
 
-extern void SetProcessName(char *name);
+/* Call set_process_name() to set the name of the process. */
+extern void set_process_name(char *name);
 
 /* End of header. */
 #endif

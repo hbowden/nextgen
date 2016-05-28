@@ -7,7 +7,8 @@
 #include "utils.h"
 #include "io/io.h"
 
-void SetProcessName(char *name) {
+void set_process_name(char *name)
+{
 
   CFStringRef process_name;
 

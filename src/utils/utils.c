@@ -566,3 +566,9 @@ int32_t count_files_directory(uint32_t *count, char *dir)
 
     return (0);
 }
+
+int32_t create_random_directory(char *root, char **path)
+{
+    
+    return (0);
+}
