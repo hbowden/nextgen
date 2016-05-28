@@ -21,7 +21,7 @@
 #include "memory/memory.h"
 #include <stdint.h>
 
-//enum resource_type = { desc_r, mount_r, dirpath_r, file_r, socket_r };
+enum rsrc_gen_type { CACHE, NO_CACHE };
 
 struct resource_ctx
 {
@@ -48,9 +48,9 @@ extern int32_t free_dirpath(char **path);
 
 extern char *get_filepath(void);
 
-extern int32_t free_filepath(char **path, uint32_t len);
+extern int32_t free_filepath(char **path);
 
-extern int32_t setup_resource_module(char *path);
+extern int32_t setup_resource_module(enum rsrc_gen_type type, char *path);
 
 extern int32_t cleanup_resource_pool(void);
 

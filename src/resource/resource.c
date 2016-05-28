@@ -26,134 +26,226 @@
 #include <fcntl.h>
 #include <string.h>
 
+/* If the setup variable is equal to zero
+   the resource module is not setup. Set this
+   variable after successfully setting up the module. */
+static uint8_t setup = 0; 
+
+/* Shared memory pools. */
 static struct mem_pool_shared *desc_pool;
-
 static struct mem_pool_shared *mount_pool;
-
 static struct mem_pool_shared *dirpath_pool;
-
 static struct mem_pool_shared *file_pool;
-
 static struct mem_pool_shared *socket_pool;
 
-/* The resource free_* functions are inefficient and should be replaced
- with a more efficent implementation. */
-int32_t get_desc(void)
+/* The resource get functions abstraction/interface. 
+If a functions uses this signature and returns the 
+right resource they can be used for this interface. */
+static int32_t (*get_desc_interface)(void);
+static int32_t (*get_socket_interface)(void);
+static char *(*get_mountpath_interface)(void);
+static char *(*get_dirpath_interface)(void);
+static char *(*get_filepath_interface)(void);
+
+/* The resource free functions abstraction/interface. 
+If a functions uses this signature and returns the 
+right resource they can be used for this interface. */
+static int32_t (*free_desc_interface)(int32_t *);
+static int32_t (*free_socket_interface)(int32_t *);
+static int32_t (*free_mountpath_interface)(char **);
+static int32_t (*free_dirpath_interface)(char **);
+static int32_t (*free_filepath_interface)(char **);
+
+static char *get_dirpath_nocached(void)
 {
-    int32_t *fd = NULL;
-    struct memory_block *m_blk = NULL;
+    int32_t rtrn = 0;
+    char *path = NULL;
 
-    /* Grab a shared memory block from the decriptor pool. */
-    m_blk = mem_get_shared_block(desc_pool);
-    if(m_blk == NULL)
+    rtrn = create_random_directory("/tmp", &path);
+    if(rtrn < 0)
     {
-        output(ERROR, "Can't get shared block\n");
-        return (-1);
+        output(ERROR, "Can't create directory");
+        return (NULL);
     }
-
-    /* Get resource pointer. */
-    struct resource_ctx *resource = (struct resource_ctx *)m_blk->ptr;
-
-    /* Set fd to the descriptor we grabbed from the pool. */
-    fd = (int32_t *)resource->ptr;
-
-    return (*fd);
+    
+    return (path);
 }
 
-int32_t free_desc(int32_t *fd)
-{
-    /* Declare a memory block pointer. */
-    struct memory_block *m_blk = NULL;
-
-    /* Loop and find the resource */
-    NX_SLIST_FOREACH(m_blk, &desc_pool->allocated_list)
-    {
-        /* Get resource pointer. */
-        struct resource_ctx *resource = (struct resource_ctx *)m_blk->ptr;
-
-        /* Get the descriptor pointer. */
-        int32_t *desc = (int32_t *)resource->ptr;
-
-        /* If the descriptors match, free the memory block.*/
-        if((*fd) == (*desc))
-        {
-            mem_free_shared_block(m_blk, desc_pool);
-            break;
-        }
-    }
-
-    return (0);
-}
-
-int32_t get_socket(void)
-{
-    int32_t *sock = NULL;
-    struct memory_block *m_blk = NULL;
-
-    /* Grab a shared memory block from the socket pool. */
-    m_blk = mem_get_shared_block(socket_pool);
-    if(m_blk == NULL)
-    {
-        output(ERROR, "Can't get shared block\n");
-        return (-1);
-    }
-
-    /* Get resource pointer. */
-    struct resource_ctx *resource = (struct resource_ctx *)m_blk->ptr;
-
-    /* Set fd to the descriptor we grabbed from the pool. */
-    sock = (int32_t *)resource->ptr;
-
-    return ((*sock));
-}
-
-int32_t free_socket(int32_t *sock_fd)
-{
-    /* Declare a memory block pointer. */
-    struct memory_block *m_blk = NULL;
-
-    /* Loop and find the resource */
-    NX_SLIST_FOREACH(m_blk, &socket_pool->allocated_list)
-    {
-        /* Get resource pointer. */
-        struct resource_ctx *resource = (struct resource_ctx *)m_blk->ptr;
-
-        /* Get the socket pointer. */
-        int32_t *sock = (int32_t *)resource->ptr;
-
-        /* If the descriptors match, free the memory block.*/
-        if((*sock) == (*sock_fd))
-        {
-            mem_free_shared_block(m_blk, socket_pool);
-            break;
-        }
-    }
-
-    return (0);
-}
-
-char *get_mountpath(void)
+static char *get_filepath_nocached(void)
 {
     char *path = NULL;
-    struct memory_block *m_blk = NULL;
 
-    /* Grab a shared memory block from the mountpath pool. */
-    m_blk = mem_get_shared_block(mount_pool);
-    if(m_blk == NULL)
+    int32_t rtrn = 0;
+    uint64_t size = 0;
+
+    rtrn = create_random_file("/tmp", ".txt", &path, &size);
+    if(rtrn < 0)
     {
-        output(ERROR, "Can't get shared block\n");
-        return NULL;
+        output(ERROR, "Can't create random file\n");
+        return (NULL);
     }
 
-    /* Get resource pointer. */
-    struct resource_ctx *resource = (struct resource_ctx *)m_blk->ptr;
+    (void)size;
 
-    path = (char *)resource->ptr;
+    return (path);
+
+}
+
+static char *get_mountpath_nocached(void)
+{
+    char *path = NULL;
 
     return (path);
 }
 
-int32_t free_mountpath(char **path)
+static int32_t get_socket_nocached(void)
+{
+    int32_t rtrn = 0;
+    uint32_t num = 0;
+    int32_t *sock = NULL;
+
+    rtrn = rand_range(1, &num);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't generate random number\n");
+        return (-1);
+    }
+
+    switch(num)
+    {
+        case 0:
+            connect_ipv6(sock);
+            break;
+
+        case 1:
+            connect_ipv4(sock);
+            break;
+
+        default:
+            output(ERROR, "Should not get here\n");
+            return (-1);
+    }
+
+    return ((*sock));
+}
+
+static int32_t get_desc_nocached(void)
+{
+    int32_t rtrn = 0;
+    uint64_t size = 0;
+    int32_t *fd = NULL;
+    char *path auto_free = NULL;
+
+    rtrn = create_random_file("/tmp", ".txt", &path, &size);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't create random file\n");
+        return (-1);
+    }
+
+    /* Open the newly created file, there's no need for
+    closing the descriptor that is taken cared of latter. */
+    (*fd) = open(path, O_RDWR);
+    if((*fd) < 0)
+    {
+        output(ERROR, "Can't open file: %s", strerror(errno));
+        return (-1);
+    }
+
+    return (*fd);
+}
+
+static int32_t free_filepath_nocached(char **path)
+{
+    if((*path) == NULL)
+        return (-1);
+
+    int32_t rtrn = 0;
+
+    /* Remove the file. */
+    rtrn = unlink((*path));
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't remove file: %s\n", strerror(errno));
+        return (-1);
+    }
+
+    /* Now free the memory used for the file path. */
+    mem_free((void **)path);
+
+    return (0);
+}
+
+static int32_t free_mountpath_nocached(char **path)
+{
+    if((*path) == NULL)
+        return (-1);
+
+    /* Implement later. */
+    (void)(*path);
+
+    return (0);
+}
+
+static int32_t free_dirpath_nocached(char **path)
+{
+    if((*path) == NULL)
+        return (-1);
+
+    int32_t rtrn = 0;
+
+    rtrn = delete_directory((*path));
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't delete directory");
+        return (-1);
+    }
+
+    mem_free((void **)path);
+
+    return (0);
+}
+
+static int32_t free_socket_nocached(int32_t *socket_fd)
+{
+    close((*socket_fd));
+
+    return (0);
+}
+
+static int32_t free_desc_nocached(int32_t *fd)
+{
+    close((*fd));
+
+    return (0);
+}
+
+static int32_t free_filepath_cached(char **path)
+{
+    /* Declare a memory block pointer. */
+    struct memory_block *m_blk = NULL;
+
+    /* Loop and find the resource */
+    NX_SLIST_FOREACH(m_blk, &file_pool->allocated_list)
+    {
+        /* Get resource pointer. */
+        struct resource_ctx *resource = (struct resource_ctx *)m_blk->ptr;
+
+        /* Get the filepath pointer. */
+        char *filepath = (char *)resource->ptr;
+
+        /* If the filepaths match, free the memory block.*/
+        if(memcmp((*path), filepath, strlen(filepath)) == 0)
+        {
+            mem_free_shared_block(m_blk, file_pool);
+            break;
+        }
+    }
+
+    return (0);   
+}
+
+static int32_t free_mountpath_cached(char **path)
 {
     /* Declare a memory block pointer. */
     struct memory_block *m_blk = NULL;
@@ -178,29 +270,7 @@ int32_t free_mountpath(char **path)
     return (0);
 }
 
-char *get_dirpath(void)
-{
-    char *path = NULL;
-    struct memory_block *m_blk = NULL;
-
-    /* Grab a shared memory block from the dirpath pool. */
-    m_blk = mem_get_shared_block(dirpath_pool);
-    if(m_blk == NULL)
-    {
-        output(ERROR, "Can't get shared block\n");
-        return NULL;
-    }
-
-    /* Get resource pointer. */
-    struct resource_ctx *resource = (struct resource_ctx *)m_blk->ptr;
-
-    /* Set fd to the descriptor we grabbed from the pool. */
-    path = (char *)resource->ptr;
-
-    return (path);
-}
-
-int32_t free_dirpath(char **path)
+static int32_t free_dirpath_cached(char **path)
 {
     /* Declare a memory block pointer. */
     struct memory_block *m_blk = NULL;
@@ -225,7 +295,79 @@ int32_t free_dirpath(char **path)
     return (0);
 }
 
-char *get_filepath(void)
+static int32_t free_socket_cached(int32_t *sock_fd)
+{
+    /* Declare a memory block pointer. */
+    struct memory_block *m_blk = NULL;
+
+    /* Loop and find the resource */
+    NX_SLIST_FOREACH(m_blk, &socket_pool->allocated_list)
+    {
+        /* Get resource pointer. */
+        struct resource_ctx *resource = (struct resource_ctx *)m_blk->ptr;
+
+        /* Get the socket pointer. */
+        int32_t *sock = (int32_t *)resource->ptr;
+
+        /* If the descriptors match, free the memory block.*/
+        if((*sock) == (*sock_fd))
+        {
+            mem_free_shared_block(m_blk, socket_pool);
+            break;
+        }
+    }
+
+    return (0);
+}
+
+static int32_t free_desc_cached(int32_t *fd)
+{
+    /* Declare a memory block pointer. */
+    struct memory_block *m_blk = NULL;
+
+    /* Loop and find the resource */
+    NX_SLIST_FOREACH(m_blk, &desc_pool->allocated_list)
+    {
+        /* Get resource pointer. */
+        struct resource_ctx *resource = (struct resource_ctx *)m_blk->ptr;
+
+        /* Get the descriptor pointer. */
+        int32_t *desc = (int32_t *)resource->ptr;
+
+        /* If the descriptors match, free the memory block.*/
+        if((*fd) == (*desc))
+        {
+            mem_free_shared_block(m_blk, desc_pool);
+            break;
+        }
+    }
+
+    return (0);
+}
+
+static char *get_dirpath_cached(void)
+{
+    char *path = NULL;
+    struct memory_block *m_blk = NULL;
+
+    /* Grab a shared memory block from the dirpath pool. */
+    m_blk = mem_get_shared_block(dirpath_pool);
+    if(m_blk == NULL)
+    {
+        output(ERROR, "Can't get shared block\n");
+        return NULL;
+    }
+
+    /* Get resource pointer. */
+    struct resource_ctx *resource = (struct resource_ctx *)m_blk->ptr;
+
+    /* Set fd to the descriptor we grabbed from the pool. */
+    path = (char *)resource->ptr;
+
+    return (path);
+}
+
+static char *get_filepath_cached(void)
 {
     char *path = NULL;
     struct memory_block *m_blk = NULL;
@@ -245,31 +387,184 @@ char *get_filepath(void)
     path = (char *)resource->ptr;
 
     return (path);
+
 }
 
-int32_t free_filepath(char **path, uint32_t len)
+static char *get_mountpath_cached(void)
 {
-    /* Declare a memory block pointer. */
+    char *path = NULL;
     struct memory_block *m_blk = NULL;
 
-    /* Loop and find the resource */
-    NX_SLIST_FOREACH(m_blk, &file_pool->allocated_list)
+    /* Grab a shared memory block from the mountpath pool. */
+    m_blk = mem_get_shared_block(mount_pool);
+    if(m_blk == NULL)
     {
-        /* Get resource pointer. */
-        struct resource_ctx *resource = (struct resource_ctx *)m_blk->ptr;
-
-        /* Get the filepath pointer. */
-        char *filepath = (char *)resource->ptr;
-
-        /* If the filepaths match, free the memory block.*/
-        if(memcmp((*path), filepath, len) == 0)
-        {
-            mem_free_shared_block(m_blk, file_pool);
-            break;
-        }
+        output(ERROR, "Can't get shared block\n");
+        return NULL;
     }
 
-    return (0);
+    /* Get resource pointer. */
+    struct resource_ctx *resource = (struct resource_ctx *)m_blk->ptr;
+
+    path = (char *)resource->ptr;
+
+    return (path);
+}
+
+static int32_t get_socket_cached(void)
+{
+    int32_t *sock = NULL;
+    struct memory_block *m_blk = NULL;
+
+    /* Grab a shared memory block from the socket pool. */
+    m_blk = mem_get_shared_block(socket_pool);
+    if(m_blk == NULL)
+    {
+        output(ERROR, "Can't get shared block\n");
+        return (-1);
+    }
+
+    /* Get resource pointer. */
+    struct resource_ctx *resource = (struct resource_ctx *)m_blk->ptr;
+
+    /* Set fd to the descriptor we grabbed from the pool. */
+    sock = (int32_t *)resource->ptr;
+
+    return ((*sock));
+}
+
+static int32_t get_desc_cached(void)
+{
+    int32_t *fd = NULL;
+    struct memory_block *m_blk = NULL;
+
+    /* Grab a shared memory block from the decriptor pool. */
+    m_blk = mem_get_shared_block(desc_pool);
+    if(m_blk == NULL)
+    {
+        output(ERROR, "Can't get shared block\n");
+        return (-1);
+    }
+
+    /* Get resource pointer. */
+    struct resource_ctx *resource = (struct resource_ctx *)m_blk->ptr;
+
+    /* Set fd to the descriptor we grabbed from the pool. */
+    fd = (int32_t *)resource->ptr;
+
+    return (*fd);
+}
+
+/* The resource free_* functions are inefficient and should be replaced
+ with a more efficent implementation. */
+int32_t get_desc(void)
+{
+    if(setup == 0)
+    {
+        output(ERROR, "Setup resource module first\n");
+        return (-1);
+    }
+
+    return (get_desc_interface());
+}
+
+int32_t free_desc(int32_t *fd)
+{
+    if(setup == 0)
+    {
+        output(ERROR, "Setup resource module first\n");
+        return (-1);
+    }
+
+    return (free_desc_interface(fd));
+}
+
+int32_t get_socket(void)
+{
+    if(setup == 0)
+    {
+        output(ERROR, "Setup resource module first\n");
+        return (-1);
+    }
+
+    return (get_socket_interface());
+}
+
+int32_t free_socket(int32_t *sock_fd)
+{
+    if(setup == 0)
+    {
+        output(ERROR, "Setup resource module first\n");
+        return (-1);
+    }
+
+    return (free_socket_interface(sock_fd));
+}
+
+char *get_mountpath(void)
+{
+    if(setup == 0)
+    {
+        output(ERROR, "Setup resource module first\n");
+        return (NULL);
+    }
+
+    return (get_mountpath_interface());
+}
+
+int32_t free_mountpath(char **path)
+{
+    if(setup == 0)
+    {
+        output(ERROR, "Setup resource module first\n");
+        return (-1);
+    }
+
+    return (free_mountpath_interface(path));
+}
+
+char *get_dirpath(void)
+{
+    if(setup == 0)
+    {
+        output(ERROR, "Setup resource module first\n");
+        return (NULL);
+    }
+
+    return (get_dirpath_interface());
+}
+
+int32_t free_dirpath(char **path)
+{
+    if(setup == 0)
+    {
+        output(ERROR, "Setup resource module first\n");
+        return (-1);
+    }
+
+    return (free_dirpath_interface(path));
+}
+
+char *get_filepath(void)
+{
+    if(setup == 0)
+    {
+        output(ERROR, "Setup resource module first\n");
+        return (NULL);
+    }
+
+    return (get_filepath_interface());
+}
+
+int32_t free_filepath(char **path)
+{
+    if(setup == 0)
+    {
+        output(ERROR, "Setup resource module first\n");
+        return (-1);
+    }
+
+    return (free_filepath_interface(path));
 }
 
 static int32_t init_resource_ctx(struct resource_ctx **resource, uint32_t size)
@@ -638,26 +933,47 @@ int32_t cleanup_resource_pool(void)
     return (0);
 }
 
-int32_t setup_resource_module(char *path)
+static void setup_nocache_interface(void)
+{
+    /* Set the resource get_* function pointer interface.  */
+    get_desc_interface = &get_desc_nocached;
+    get_socket_interface = &get_socket_nocached;
+    get_mountpath_interface = &get_mountpath_nocached;
+    get_filepath_interface = &get_filepath_nocached;
+    get_dirpath_interface = &get_dirpath_nocached;
+
+    /* Set the resource free_* function pointer interface.  */
+    free_desc_interface = &free_desc_nocached;
+    free_socket_interface = &free_socket_nocached;
+    free_mountpath_interface = &free_mountpath_nocached;
+    free_filepath_interface = &free_filepath_nocached;
+    free_dirpath_interface = &free_dirpath_nocached;
+
+    return;
+}
+
+static void setup_cached_interface(void)
+{
+    /* Set the resource get_* function pointer interface.  */
+    get_desc_interface = &get_desc_cached;
+    get_socket_interface = &get_socket_cached;
+    get_mountpath_interface = &get_mountpath_cached;
+    get_filepath_interface = &get_filepath_cached;
+    get_dirpath_interface = &get_dirpath_cached;
+
+    /* Set the resource free_* function pointer interface.  */
+    free_desc_interface = &free_desc_cached;
+    free_socket_interface = &free_socket_cached;
+    free_mountpath_interface = &free_mountpath_cached;
+    free_filepath_interface = &free_filepath_cached;
+    free_dirpath_interface = &free_dirpath_cached;
+
+    return;
+}
+
+static int32_t create_resource_pools(char *path)
 {
     output(STD, "Creating resource pools\n");
-
-    int32_t rtrn = 0;
-
-    /* Start socket server. We use this to connect to, to create loopback sockets. */
-    rtrn = setup_network_module(SOCKET_SERVER);
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't start socket server\n");
-        return (-1);
-    }
-
-    /*	rtrn = create_mount_pool(path);
-	if(rtrn < 0)
-	{
-		output(ERROR, "Can't create mount pool\n");
-		return -1;
-	} */
 
     file_pool = create_file_pool(path);
     if(file_pool == NULL)
@@ -686,6 +1002,61 @@ int32_t setup_resource_module(char *path)
         output(ERROR, "Can't create dirpath pool\n");
         return (-1);
     }
+
+    return (0);
+}
+
+int32_t setup_resource_module(enum rsrc_gen_type type, char *path)
+{
+    if(setup != 0)
+    {
+        output(ERROR, "Resource module already setup\n");
+        return (-1);
+    }
+
+    if(path == NULL)
+    {
+        output(ERROR, "Path is NULL\n");
+        return (-1);
+    }
+
+    int32_t rtrn = 0;
+
+    /* Start socket server. We use this to connect to, to create loopback sockets. */
+    rtrn = setup_network_module(SOCKET_SERVER);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't start socket server\n");
+        return (-1);
+    }
+
+    switch(type)
+    {
+        case CACHE:
+            /* We have to create the resource pools before we setup
+            the cached interface. */
+            rtrn = create_resource_pools(path);
+            if(rtrn < 0)
+            {
+                output(ERROR, "Can't create resource pools\n");
+                return (-1);
+            }
+            
+            setup_cached_interface();
+
+            break;
+
+        case NO_CACHE:
+            setup_nocache_interface();
+            break;
+
+        default:
+            output(ERROR, "Unknown type\n");
+            return (-1);
+    }
+
+    /* Now that were done setting up let's set the setup flag. */
+    setup = 1;
 
     return (0);
 }
