@@ -20,36 +20,27 @@
 #include "syscall/syscall.h"
 #include "utils/utils.h"
 
+#include <sqlite3.h>
+
 #include <assert.h>
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
 
-static char *out_dir_path;
-
-static uint32_t total_syscalls;
-
-static const uint32_t LATEST_LOG_VERSION = 0;
-
-static FILE *log;
-
 /* This flag will be set to NX_YES after a call to setup_log_module(). */
 static int8_t set = NX_NO;
+static uint32_t total_syscalls;
 
-struct log_entry
-{
-    uint64_t **arg_value_array;
-    uint32_t syscall_number;
-    uint32_t total_args;
-};
+/* Sqlite3 database connection object. */
+static sqlite3 *db;
 
 int32_t log_file(char *file_path, char *file_extension)
 {
+    /*
     int32_t rtrn = 0;
     char *out_path auto_free = NULL;
 
-    /* Create out file path. */
     rtrn = asprintf(&out_path, "%s/last_file_run.%s", out_dir_path,
                     file_extension);
     if(rtrn < 0)
@@ -58,41 +49,29 @@ int32_t log_file(char *file_path, char *file_extension)
         return (-1);
     }
 
-    /* Copy file to the out directory. */
     rtrn = copy_file_to(file_path, out_path);
     if(rtrn < 0)
     {
         output(ERROR, "Can't copy file to the out directory\n");
         return (-1);
-    }
+    }*/
 
     return (0);
 }
 
 static int32_t create_log_file(char *path)
 {
-    FILE *fp = NULL;
+    int32_t rtrn = 0;
 
-    /* Create log file. */
-    fp = fopen(path, "w+");
-    if(fp == NULL)
+    if(path == NULL)
+        return (-1);
+
+    rtrn = sqlite3_open(path, &db);
+    if(rtrn != SQLITE_OK)
     {
-        output(ERROR, "Can't create log file\n");
+        output(ERROR, "Can't create database: %s", strerror(errno));
         return (-1);
     }
-
-    size_t ret = 0;
-
-    /* Write the log version number. */
-    ret = fwrite(&LATEST_LOG_VERSION, sizeof(uint32_t), 1, fp);
-    if(ferror(fp))
-    {
-        output(ERROR, "Can't write log version: %s\n", strerror(errno));
-        return (-1);
-    }
-
-    /* Set log pointer. */
-    log = fp;
     
     return (0);
 }
@@ -122,19 +101,23 @@ int32_t write_arguments_to_log(uint32_t total_args,
         return (-1);
     }
 
-    /* Create log entry. */
-    struct log_entry entry = {
-        .arg_value_array = arg_value_array,
-        .syscall_number = syscall_number,
-        .total_args = total_args
-    };
+    char *err;
+    char *sql auto_free = NULL;
 
-    size_t ret = 0;
-
-    ret = fwrite(&entry, sizeof(struct log_entry), 1, log);
-    if(ferror(log))
+    /* Create SQL statement. */
+    int32_t rtrn = asprintf(&sql, "INSERT INTO syscallEntry(");
+    if(rtrn < 0)
     {
-        output(ERROR, "Can't write log entry\n");
+        output(ERROR, "Can't create sql statement: %s\n", strerror(errno));
+        return (-1);
+    }
+
+    /* Store the syscall argument. */
+    rtrn = sqlite3_exec(db, sql, NULL, NULL, &err);
+    if(rtrn != SQLITE_OK)
+    {
+        output(ERROR, "Can't insert syscall values into db: %s\n", err);
+        sqlite3_free(err);
         return (-1);
     }
 
@@ -176,8 +159,6 @@ static int32_t create_out_directory(char *path)
         return (-1);
     }
 
-    out_dir_path = crash_dir;
-
     return (0);
 }
 
@@ -217,6 +198,50 @@ int32_t log_results(int32_t had_error, int32_t ret_value, char *err_value)
     return 0;
 }
 
+static int32_t setup_tables(void)
+{
+    char *err;
+    int32_t rtrn = 0;
+    char *sql1 auto_free = NULL;
+    char *sql2 auto_free = NULL;
+
+    /* Create SQL statement. */
+    rtrn = asprintf(&sql1, "CREATE TABLE IF NOT EXISTS arg_entry(id INT NOT NULL, val BLOB NOT NULL);");
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't create  SQL statement: %s\n", strerror(errno));
+        return (-1);
+    }
+
+    /* Store the syscall argument. */
+    rtrn = sqlite3_exec(db, sql1, NULL, NULL, &err);
+    if(rtrn != SQLITE_OK)
+    {
+        output(ERROR, "Can't create argument entry table: %s\n", err);
+        sqlite3_free(err);
+        return (-1);
+    }
+
+    /* Create SQL statement. */
+    rtrn = asprintf(&sql2, "CREATE TABLE IF NOT EXISTS syscall_entry(id INT NOT NULL, num INT NOT NULL, name );");
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't create  SQL statement: %s\n", strerror(errno));
+        return (-1);
+    }
+
+    /* Store the syscall argument. */
+    rtrn = sqlite3_exec(db, sql2, NULL, NULL, &err);
+    if(rtrn != SQLITE_OK)
+    {
+        output(ERROR, "Can't create syscall entry table: %s\n", err);
+        sqlite3_free(err);
+        return (-1);
+    }
+
+    return (0);
+}
+
 int32_t setup_log_module(char *path, uint32_t syscall_max)
 {
     /* Make sure we have not been set up before. */
@@ -251,6 +276,13 @@ int32_t setup_log_module(char *path, uint32_t syscall_max)
     if(rtrn < 0)
     {
         output(ERROR, "Can't create log file\n");
+        return (-1);
+    }
+
+    rtrn = setup_tables();
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't create tables\n");
         return (-1);
     }
 
