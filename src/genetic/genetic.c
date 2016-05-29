@@ -233,7 +233,6 @@ static int32_t create_first_generation(void)
 
     uint32_t i, ii;
     int32_t rtrn = 0;
-    uint32_t syscall_symbol = 0;
 
     /* Loop for each syscall in the syscall table. */
     for(i = 0; i < sys_table->number_of_syscalls; i++)
@@ -242,9 +241,9 @@ static int32_t create_first_generation(void)
         {
             struct job_ctx *job = NULL;
 
-            syscall_symbol = sys_table->sys_entry[i]->syscall_symbol;
+            uint32_t num = sys_table->sys_entry[i]->entry_number;
 
-            job = create_job(GENESIS, syscall_symbol);
+            job = create_job(GENESIS, num);
             if(job == NULL)
             {
                 output(ERROR, "Can't create job\n");
