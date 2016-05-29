@@ -26,6 +26,7 @@
 #include "probe/probe.h"
 #include "resource/resource.h"
 #include "signals.h"
+#include "set_test.h"
 #include "syscall_table.h"
 #include "utils/utils.h"
 
@@ -771,8 +772,10 @@ struct syscall_table_shadow *get_syscall_table(void)
             }
         }
 
-        /* Init the atomic value. */
+        /* Init atomic value. */
         atomic_init(&entry->status, ON);
+
+        set_test_syscall(entry, syscall_table[i + offset].sys_entry->id);
 
         /* Set the newly created entry in the index. */
         shadow_table->sys_entry[i] = entry;
@@ -856,30 +859,26 @@ static int32_t check_for_failure(int32_t ret_value)
 
 int32_t test_syscall(struct child_ctx *ctx)
 {
-    /* Grab argument values. */
-    uint64_t *arg1 = ctx->arg_value_array[0];
-    uint64_t *arg2 = ctx->arg_value_array[1];
-    uint64_t *arg3 = ctx->arg_value_array[2];
-    uint64_t *arg4 = ctx->arg_value_array[3];
-    uint64_t *arg5 = ctx->arg_value_array[4];
-    uint64_t *arg6 = ctx->arg_value_array[5];
-
     /* Check if we need to set the alarm for blocking syscalls.  */
     if(ctx->need_alarm == NX_YES)
         alarm(1);
 
-    /* Set the time of the syscall test. */
-    (void)gettimeofday(&ctx->time_of_syscall, NULL);
-
-#ifndef ASAN
+    struct syscall_entry_shadow *entry = get_entry(ctx->syscall_number);
+    if(entry == NULL)
+    {
+        output(ERROR, "Can't get syscall entry\n");
+        return (-1);
+    }
 
     /* Do the add before the syscall test because we usually crash on the syscall test
     and we don't wan't to do this in a signal handler. */
     atomic_fetch_add(test_counter, 1);
 
+    /* Set the time of the syscall test. */
+    (void)gettimeofday(&ctx->time_of_syscall, NULL);
+
     /* Call the syscall with the args generated. */
-    ctx->ret_value = syscall((int32_t)ctx->syscall_symbol, *arg1, *arg2, *arg3,
-                             *arg4, *arg5, *arg6);
+    ctx->ret_value = entry->test_syscall(ctx->syscall_symbol, ctx->arg_value_array);
     if(check_for_failure(ctx->ret_value) < 0)
     {
         /* If we got here, we had an error, so grab the error string. */
@@ -888,8 +887,6 @@ int32_t test_syscall(struct child_ctx *ctx)
         /* Set the error flag so the logging system knows we had an error. */
         ctx->had_error = NX_YES;
     }
-
-#endif
 
     return (0);
 }

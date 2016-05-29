@@ -41,7 +41,7 @@ struct child_ctx
     uint32_t syscall_number;
 
     /* Symbolized syscall number. */
-    uint32_t syscall_symbol;
+    int32_t syscall_symbol;
 
     /* The argument were currently generating. */
     uint32_t current_arg;
