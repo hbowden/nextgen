@@ -33,7 +33,7 @@ enum argnums { FIRST_ARG, SECOND_ARG, THIRD_ARG, FOURTH_ARG, FIFTH_ARG, SIXTH_AR
 struct syscall_entry_shadow
 {
     const char *syscall_name;
-    const uint32_t syscall_symbol;
+    const int32_t syscall_symbol;
 
     atomic_bool status;
     const bool need_alarm;
@@ -49,13 +49,15 @@ struct syscall_entry_shadow
     int32_t (*get_arg_array[7])(uint64_t **, struct child_ctx *);
 
     atomic_uint_least64_t return_value;
+
+    int32_t (*test_syscall)(int32_t, uint64_t **);
 };
 
 /* The on disk format. */
 struct syscall_entry
 {
     const char *syscall_name;
-    const uint32_t syscall_symbol;
+    const int32_t syscall_symbol;
 
     bool status;
     const bool need_alarm;
@@ -70,6 +72,8 @@ struct syscall_entry
     const char padding2[4];
 
     int32_t (*get_arg_array[7])(uint64_t **, struct child_ctx *);
+
+    enum test_id id;
 };
 
 #endif
