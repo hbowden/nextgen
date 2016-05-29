@@ -43,7 +43,8 @@ int32_t connect_ipv4(int32_t *sockFd)
 {
     int32_t rtrn = 0;
 
-    union {
+    union
+    {
         struct sockaddr_in in;
         struct sockaddr_in6 in6;
 
@@ -53,14 +54,14 @@ int32_t connect_ipv4(int32_t *sockFd)
     addr.in.sin_port = htons(ss_port);
     inet_pton(AF_INET, "127.0.0.1", &addr.in.sin_addr);
 
-    *sockFd = socket(AF_INET, SOCK_STREAM, 0);
-    if(*sockFd < 0)
+    (*sockFd) = socket(AF_INET, SOCK_STREAM, 0);
+    if((*sockFd) < 0)
     {
         output(ERROR, "socket: %s\n", strerror(errno));
         return (-1);
     }
 
-    rtrn = connect(*sockFd, (struct sockaddr *)&addr.in, sizeof(addr.in));
+    rtrn = connect((*sockFd), (struct sockaddr *)&addr.in, sizeof(addr.in));
     if(rtrn < 0)
     {
         output(ERROR, "connect: %s\n", strerror(errno));
@@ -70,11 +71,12 @@ int32_t connect_ipv4(int32_t *sockFd)
     return (0);
 }
 
-int32_t connect_ipv6(int *sockFd)
+int32_t connect_ipv6(int32_t *sockFd)
 {
     int32_t rtrn = 0;
 
-    union {
+    union
+    {
         struct sockaddr_in in;
         struct sockaddr_in6 in6;
 
@@ -84,14 +86,14 @@ int32_t connect_ipv6(int *sockFd)
     addr.in6.sin6_port = htons(ss_port + 1);
     inet_pton(AF_INET6, "::1", &addr.in6.sin6_addr);
 
-    *sockFd = socket(AF_INET6, SOCK_STREAM, 0);
-    if(*sockFd < 0)
+    (*sockFd) = socket(AF_INET6, SOCK_STREAM, 0);
+    if((*sockFd) < 0)
     {
         output(ERROR, "socket: %s\n", strerror(errno));
         return (-1);
     }
 
-    rtrn = connect(*sockFd, (struct sockaddr *)&addr.in6, sizeof(addr.in6));
+    rtrn = connect((*sockFd), (struct sockaddr *)&addr.in6, sizeof(addr.in6));
     if(rtrn < 0)
     {
         output(ERROR, "connect: %s\n", strerror(errno));
