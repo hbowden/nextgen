@@ -70,7 +70,7 @@ int32_t log_arguments(uint32_t total_args,
         strncat(syscall_log_buf, arg_value, strlen(arg_value));
     }
 
-    output(STD, "%s", syscall_log_buf);
+    output(STD, "%s\n", syscall_log_buf);
 
     return (0);
 }
