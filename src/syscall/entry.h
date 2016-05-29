@@ -25,6 +25,8 @@
 
 #include <stdbool.h>
 
+enum test_id { V_ID, P_ID, VP_ID, VPV_ID, PV_ID };
+
 enum syscall_status { ON, OFF };
 
 enum argnums { FIRST_ARG, SECOND_ARG, THIRD_ARG, FOURTH_ARG, FIFTH_ARG, SIXTH_ARG};
