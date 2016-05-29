@@ -104,6 +104,13 @@ static int32_t get_socket_nocached(void)
     uint32_t num = 0;
     int32_t *sock = NULL;
 
+    sock = mem_alloc(sizeof(int32_t));
+    if(sock == NULL)
+    {
+        output(ERROR, "Can't allocate socket\n");
+        return (-1);
+    }
+
     rtrn = rand_range(1, &num);
     if(rtrn < 0)
     {
