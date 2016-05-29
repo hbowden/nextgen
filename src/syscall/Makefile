@@ -1,7 +1,8 @@
 SOURCES = $(ROOT_DIR)/src/syscall/syscall.c \
           $(ROOT_DIR)/src/syscall/arg_types.c \
           $(ROOT_DIR)/src/syscall/generate.c \
-          $(ROOT_DIR)/src/syscall/signals.c
+          $(ROOT_DIR)/src/syscall/signals.c \
+          $(ROOT_DIR)/src/syscall/set_test.c
 
 OPERATING_SYSTEM = $(shell uname)
 
@@ -49,7 +50,8 @@ INCLUDES = -I../ -I../../deps/$(CK)/include \
 SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-padded \
                     -Wno-used-but-marked-unused -Wno-cast-align \
                     -Wno-missing-noreturn -Wno-unused-parameter \
-                    -Wno-deprecated-declarations -Wno-undef
+                    -Wno-deprecated-declarations -Wno-undef \
+                    -Wno-unused-function
 
 FLAGS = -DMAC_OSX -dynamiclib -fno-strict-aliasing -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
 
@@ -74,8 +76,3 @@ clean:
 
 	rm -rf $(LIB_NAME)
 	rm -rf *.dSYM
-
-.PHONY: format
-format:
-
-	cd $(ROOT_DIR) && clang-format -i -style=file $(SOURCES)
