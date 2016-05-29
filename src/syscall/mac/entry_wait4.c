@@ -25,6 +25,7 @@ struct syscall_entry entry_wait4 = {
     .status = ON,
     .requires_root = NX_NO,
     .need_alarm = NX_NO,
+    .id = VPVP_ID,
 
     .arg_type_array[FIRST_ARG] = PID,
     .get_arg_array[FIRST_ARG] = &generate_pid,

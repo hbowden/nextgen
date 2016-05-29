@@ -25,6 +25,7 @@ struct syscall_entry entry_getfsstat = {
     .status = ON,
     .requires_root = NX_NO,
     .need_alarm = NX_NO,
+    .id = PVV_ID,
 
     .arg_type_array[FIRST_ARG] = STAT_FS,
     .get_arg_array[FIRST_ARG] = &generate_fs_stat,

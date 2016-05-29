@@ -25,6 +25,7 @@ struct syscall_entry entry_link = {
     .status = ON,
     .requires_root = NX_NO,
     .need_alarm = NX_NO,
+    .id = PP_ID,
 
     .arg_type_array[FIRST_ARG] = FILE_PATH,
     .get_arg_array[FIRST_ARG] = &generate_path,

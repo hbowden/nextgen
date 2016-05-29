@@ -25,6 +25,7 @@ struct syscall_entry entry_unlink = {
     .status = ON,
     .requires_root = NX_NO,
     .need_alarm = NX_NO,
+    .id = P_ID,
 
     .arg_type_array[FIRST_ARG] = FILE_PATH,
     .get_arg_array[FIRST_ARG] = &generate_path

@@ -25,6 +25,7 @@ struct syscall_entry entry_recvfrom = {
     .status = ON,
     .requires_root = NX_NO,
     .need_alarm = NX_YES,
+    .id = VPVVPV_ID,
 
     .arg_type_array[FIRST_ARG] = SOCKET,
     .get_arg_array[FIRST_ARG] = &generate_socket,

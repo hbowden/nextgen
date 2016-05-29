@@ -25,6 +25,7 @@ struct syscall_entry entry_close = {
     .status = ON,
     .requires_root = NX_NO,
     .need_alarm = NX_NO,
+    .id = V_ID,
 
     .arg_type_array[FIRST_ARG] = FILE_DESC,
     .get_arg_array[FIRST_ARG] = &generate_fd

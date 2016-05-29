@@ -18,13 +18,13 @@
 #include "syscall_list.h"
 
 struct syscall_entry entry_recvmsg = {
-
     .syscall_name = "recvmsg",
     .syscall_symbol = SYS_recvmsg,
     .total_args = 3,
     .status = ON,
     .requires_root = NX_NO,
     .need_alarm = NX_NO,
+    .id = VPV_ID,
 
     .arg_type_array[FIRST_ARG] = SOCKET,
     .get_arg_array[FIRST_ARG] = &generate_socket,

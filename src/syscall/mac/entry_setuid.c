@@ -25,6 +25,7 @@ struct syscall_entry entry_setuid = {
     .status = ON,
     .requires_root = NX_NO,
     .need_alarm = NX_NO,
+    .id = V_ID,
 
     .arg_type_array[FIRST_ARG] = INT,
     .get_arg_array[FIRST_ARG] = &generate_int

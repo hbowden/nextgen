@@ -25,6 +25,7 @@ struct syscall_entry entry_ptrace = {
     .status = ON,
     .requires_root = NX_YES,
     .need_alarm = NX_NO,
+    .id = VVPV_ID,
 
     .arg_type_array[FIRST_ARG] = REQUEST,
     .get_arg_array[FIRST_ARG] = &generate_request,
