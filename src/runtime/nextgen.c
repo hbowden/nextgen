@@ -31,7 +31,6 @@
 #include <sys/mman.h>
 #include <sys/mount.h>
 #include <sys/stat.h>
-#include <sys/param.h>
 
 struct shared_map *map;
 
@@ -62,6 +61,7 @@ static struct option longopts[] = {{"in", required_argument, NULL, 'i'},
                                    {"syscall", 0, NULL, 's'},
                                    {"help", 0, NULL, 'h'},
                                    {"dumb", 0, NULL, 'd'},
+                                   {"verbose", 0, NULL, 'v'},
                                    {NULL, 0, NULL, 0}};
 
 static void display_help_banner(void)
@@ -383,6 +383,11 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
 
             case 'd':
                 ctx->smart_mode = FALSE;
+                break;
+
+            case 'v':
+                /* Have the IO module dump output to stdout. */
+                set_verbosity(TRUE);
                 break;
 
             case 'x':

@@ -15,13 +15,24 @@
 
 #include "io.h"
 #include "utils/utils.h"
+#include "runtime/platform.h"
 
 #include <errno.h>
 #include <string.h>
 #include <sys/stat.h>
 
+static int32_t verbose = FALSE;
+
+void set_verbosity(int32_t val)
+{
+    verbose = val;
+}
+
 void output(enum out_type type, const char *format, ...)
 {
+    if(type == STD && verbose == FALSE)
+        return;
+
     va_list args;
 
     va_start(args, format);

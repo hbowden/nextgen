@@ -24,6 +24,7 @@
 #include <dirent.h>
 #include <sys/mman.h>
 #include <sys/types.h>
+#include <sys/param.h>
 
 /* MACROS for map_file_in(). */
 #define READ PROT_READ
@@ -74,6 +75,8 @@ enum out_type { ERROR, STD };
 
 /* This function replaces printf and perror in the code so we can aggregate output to one point. */
 extern void output(enum out_type type, const char *format, ...);
+
+extern void set_verbosity(int32_t val);
 
 extern int32_t get_file_size(int32_t fd, uint64_t *size);
 
