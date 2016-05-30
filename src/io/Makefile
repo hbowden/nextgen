@@ -10,7 +10,7 @@ ifeq ($(OPERATING_SYSTEM), FreeBSD)
 
 SILENCED_WARNINGS = -Wno-format-nonliteral 
 
-FLAGS = -shared -fno-strict-aliasing -fPIC -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
+FLAGS = -DFREEBSD -shared -fno-strict-aliasing -fPIC -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
 
 LIB_NAME = libnxio.so
 
@@ -22,7 +22,7 @@ ifeq ($(OPERATING_SYSTEM), Darwin)
 SILENCED_WARNINGS = -Wno-reserved-id-macro \
                     -Wno-format-nonliteral
 
-FLAGS = -dynamiclib -Wall -fno-strict-aliasing -Werror -Weverything -Wpedantic -g -O3 -std=c99
+FLAGS = -DMAC_OSX -dynamiclib -Wall -fno-strict-aliasing -Werror -Weverything -Wpedantic -g -O3 -std=c99
 
 LIB_NAME = libnxio.dylib
 
@@ -43,3 +43,8 @@ clean:
 format:
 
 	cd $(ROOT_DIR) && clang-format -i -style=file $(SOURCES)
+
+.PHONY: list
+list:
+
+	$(SOURCES)
