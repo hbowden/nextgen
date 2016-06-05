@@ -2,7 +2,7 @@
 ROOT_DIR = $(shell pwd)
 
 CK = ck-0.5.1
-LIBRESSL = libressl-2.3.4
+LIBRESSL = libressl-2.4.0
 CAPSTONE = capstone-3.0.4
 
 TEST_LIB = $(ROOT_DIR)/src/io/libnxio.dylib \
@@ -227,6 +227,43 @@ quick:
 	$(BUILD_NX_LIBS)
 
 	$(CC) $(FLAGS) $(SOURCES) $(LIB) $(INCLUDE) $(SILENCED_WARNINGS) -o $(PROG)
+
+clean-lib:
+
+	rm -rf src/runtime/libnxruntime.dylib.dSYM
+	rm -rf src/io/libnxio.dylib.dSYM
+	rm -rf src/objc/libnxobjcutils.dylib.dSYM
+	rm -rf src/memory/libnxmemory.dylib.dSYM
+	rm -rf src/concurrent/libnxconcurrent.dylib.dSYM
+	rm -rf src/crypto/libnxcrypto.dylib.dSYM 
+	rm -rf src/probe/libnxprobe.dylib.dSYM 
+	rm -rf src/network/libnxnetwork.dylib.dSYM 
+	rm -rf src/plugins/libnxplugin.dylib.dSYM 
+	rm -rf src/mutate/libnxmutate.dylib.dSYM 
+	rm -rf src/resource/libnxresource.dylib.dSYM
+	rm -rf src/log/libnxlog.dylib.dSYM 
+	rm -rf src/syscall/libnxsyscall.dylib.dSYM
+	rm -rf src/genetic/libnxgenetic.dylib.dSYM 
+	rm -rf src/file/libnxfile.dylib.dSYM
+	rm -rf src/disas/libnxdisas.dylib.dSYM
+
+	rm -f src/runtime/libnxruntime.dylib
+	rm -f src/io/libnxio.dylib
+	rm -f src/objc/libnxobjcutils.dylib
+	rm -f src/memory/libnxmemory.dylib
+	rm -f src/concurrent/libnxconcurrent.dylib
+	rm -f src/crypto/libnxcrypto.dylib 
+	rm -f src/utils/libnxutils.dylib
+	rm -f src/probe/libnxprobe.dylib
+	rm -f src/network/libnxnetwork.dylib 
+	rm -f src/plugins/libnxplugin.dylib
+	rm -f src/mutate/libnxmutate.dylib 
+	rm -f src/resource/libnxresource.dylib 
+	rm -f src/log/libnxlog.dylib
+	rm -f src/syscall/libnxsyscall.dylib
+	rm -f src/genetic/libnxgenetic.dylib
+	rm -f src/file/libnxfile.dylib 
+	rm -f src/disas/libnxdisas.dylib
 
 install:
 
