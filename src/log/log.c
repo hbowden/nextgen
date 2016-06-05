@@ -193,7 +193,7 @@ int32_t log_results(int32_t had_error, int32_t ret_value, char *err_value)
         }
     }
 
-    output(STD, "%s", out_buf);
+    output(STD, "%s\n", out_buf);
 
     return 0;
 }

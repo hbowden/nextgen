@@ -16,7 +16,7 @@
 #include "concurrent.h"
 #include "io/io.h"
 #include "memory.h"
-#include "platform.h"
+#include "runtime/platform.h"
 
 #include <errno.h>
 #include <stdbool.h>

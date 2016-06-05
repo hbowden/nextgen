@@ -68,7 +68,7 @@ int32_t msg_send(msg_port_t remote_port, void *data, uint32_t size)
 	msg->size = size;
 	msg->data = data;
 
-	ret = write(remote_port.port[1], &msg, msg_len);
+	ret = write(remote_port.port[0], &msg, msg_len);
 	if(ret < (ssize_t)size)
 	{
 		output(ERROR, "Can't write message: %s\n", strerror(errno));
@@ -91,7 +91,7 @@ void *msg_recv(msg_port_t recv_port)
         return (NULL);
     }
 
-    ret = read(recv_port.port[1], &msg, msg_len);
+    ret = read(recv_port.port[0], &msg, msg_len);
     if(ret < (ssize_t)msg_len)
     {
     	output(ERROR, "Can't read message: %s\n", strerror(errno));
@@ -106,13 +106,13 @@ int32_t fork_pass_port(msg_port_t *pass_port, int32_t (*proc_start)(msg_port_t p
 	pid_t pid = 0;
 	int32_t rtrn = 0;
 
-	/* Initialize the port passed in. */
+	/* Initialize the port passed in. 
 	rtrn = init_msg_port(pass_port);
 	if(rtrn < 0)
 	{
 		output(ERROR, "Can't initialze message port\n");
 		return (-1);
-	}
+	} */
 
 	pid = fork();
     if(pid == 0)
@@ -137,14 +137,25 @@ int32_t fork_pass_port(msg_port_t *pass_port, int32_t (*proc_start)(msg_port_t p
     }
 }
 
+int32_t destroy_msg_port(msg_port_t *msg_port)
+{
+    close(msg_port->port[0]);
+    close(msg_port->port[1]);
+
+    return (0);
+}
+
 int32_t recv_port(msg_port_t recv_port, msg_port_t *port)
 {
-    port = msg_recv(recv_port);
+ /*   port = msg_recv(recv_port);
     if(port == NULL)
     {
     	output(ERROR, "Can't recv message\n");
     	return (-1);
-    }
+    } */
+
+    (void)recv_port;
+    (void)port;
 
     return (0);
 }

@@ -57,3 +57,8 @@ clean:
 format:
 
 	cd $(ROOT_DIR) && clang-format -i -style=file $(SOURCES)
+
+.PHONY: list
+list:
+
+	$(SOURCES)
