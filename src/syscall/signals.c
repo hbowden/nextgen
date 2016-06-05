@@ -129,6 +129,8 @@ static void child_signal_handler(int sig)
 
             /* Set return value to zero. */
             child->ret_value = 0;
+
+            child->did_jump = NX_YES;
             
             /* Jump back to child's main loop. */
             longjmp(child->return_jump, 1); 
@@ -140,6 +142,8 @@ static void child_signal_handler(int sig)
 
             /* Set return value to -1. */
             child->ret_value = -1;
+
+            child->did_jump = NX_YES;
 
             /* Set err value. */
             memmove(child->err_value, "SIGSEGV", 7);
@@ -157,6 +161,8 @@ static void child_signal_handler(int sig)
             /* Set return value to -1. */
             child->ret_value = -1;
 
+            child->did_jump = NX_YES;
+
             /* Set err value. */
             memmove(child->err_value, "SIGBUS", 6);
 
@@ -169,6 +175,8 @@ static void child_signal_handler(int sig)
 
             /* Set the had error flag to YES. */
             child->had_error = NX_YES;
+
+            child->did_jump = NX_YES;
 
             /* Set return value to -1. */
             child->ret_value = -1;

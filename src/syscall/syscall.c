@@ -489,9 +489,8 @@ NX_NO_RETURN static void start_syscall_child(void)
         exit_child();
     }
 
-    /* If the had error flag is set we are returning from the signal
-    handler. Cleanup our old mess before progressing. */
-    if(ctx->had_error == NX_YES)
+    /* Check to see if we jumped back from the signal handler. */
+    if(ctx->did_jump == NX_YES)
     {
         /* Log the results of the last fuzz test. */
         rtrn = log_results(ctx->had_error, ctx->ret_value, ctx->err_value);
@@ -520,7 +519,7 @@ NX_NO_RETURN static void start_syscall_child(void)
             output(ERROR, "Can't pick syscall to test\n");
             exit_child();
         }
-
+ 
         /* Generate arguments for the syscall selected. */
         rtrn = generate_arguments(ctx);
         if(rtrn < 0)
@@ -1059,11 +1058,9 @@ int32_t setup_syscall_module(atomic_int_fast32_t *stop_ptr,
         children[i] = child;
     }
 
-    /* Set the stop pointer. */
+    /* Set file scope variables. */
     stop = stop_ptr;
-
     mode = run_mode;
-
     test_counter = counter;
 
     return (0);

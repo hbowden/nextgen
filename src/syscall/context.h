@@ -76,7 +76,7 @@ struct child_ctx
     /* Child's message port. */
     msg_port_t msg_port;
 
-    const char padding[4];
+    int32_t did_jump;
 
     dtrace_hdl_t *probe_handle;
 
