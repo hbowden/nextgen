@@ -138,9 +138,9 @@ static int32_t get_socket_nocached(void)
 
 static int32_t get_desc_nocached(void)
 {
+    int32_t fd = 0;
     int32_t rtrn = 0;
     uint64_t size = 0;
-    int32_t *fd = NULL;
     char *path auto_free = NULL;
 
     rtrn = create_random_file("/tmp", ".txt", &path, &size);
@@ -152,14 +152,14 @@ static int32_t get_desc_nocached(void)
 
     /* Open the newly created file, there's no need for
     closing the descriptor that is taken cared of latter. */
-    (*fd) = open(path, O_RDWR);
-    if((*fd) < 0)
+    fd = open(path, O_RDWR);
+    if(fd < 0)
     {
         output(ERROR, "Can't open file: %s", strerror(errno));
         return (-1);
     }
 
-    return (*fd);
+    return (fd);
 }
 
 static int32_t free_filepath_nocached(char **path)
