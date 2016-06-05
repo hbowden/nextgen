@@ -19,23 +19,23 @@
 
 struct syscall_entry entry_ptrace = {
 
-    .name_of_syscall = "ptrace",
+    .syscall_name = "ptrace",
     .syscall_symbol = SYS_ptrace,
-    .number_of_args = 4,
+    .total_args = 4,
     .status = ON,
     .requires_root = NX_YES,
     .need_alarm = NX_NO,
 
-    .arg_type_index[FIRST_ARG] = REQUEST,
-    .get_arg_index[FIRST_ARG] = &generate_request,
+    .arg_type_array[FIRST_ARG] = REQUEST,
+    .get_arg_array[FIRST_ARG] = &generate_request,
 
-    .arg_type_index[SECOND_ARG] = PID,
-    .get_arg_index[SECOND_ARG] = &generate_pid,
+    .arg_type_array[SECOND_ARG] = PID,
+    .get_arg_array[SECOND_ARG] = &generate_pid,
 
-    .arg_type_index[THIRD_ARG] = VOID_BUF,
-    .get_arg_index[THIRD_ARG] = &generate_buf,
+    .arg_type_array[THIRD_ARG] = VOID_BUF,
+    .get_arg_array[THIRD_ARG] = &generate_buf,
 
-    .arg_type_index[FOURTH_ARG] = INT,
-    .get_arg_index[FOURTH_ARG] = &generate_int
+    .arg_type_array[FOURTH_ARG] = INT,
+    .get_arg_array[FOURTH_ARG] = &generate_int
 
 };

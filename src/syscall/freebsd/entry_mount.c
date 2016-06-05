@@ -19,22 +19,22 @@
 
 struct syscall_entry entry_mount = {
 
-    .name_of_syscall = "mount",
+    .syscall_name = "mount",
     .syscall_symbol = SYS_mount,
-    .number_of_args = 4,
+    .total_args = 4,
     .status = ON,
     .requires_root = NX_YES,
     .need_alarm = NX_NO,
 
-    .arg_type_index[FIRST_ARG] = MOUNT_TYPE,
-    .get_arg_index[FIRST_ARG] = &generate_mount_type,
+    .arg_type_array[FIRST_ARG] = MOUNT_TYPE,
+    .get_arg_array[FIRST_ARG] = &generate_mount_type,
 
-    .arg_type_index[SECOND_ARG] = MOUNT_PATH,
-    .get_arg_index[SECOND_ARG] = &generate_mountpath,
+    .arg_type_array[SECOND_ARG] = MOUNT_PATH,
+    .get_arg_array[SECOND_ARG] = &generate_mountpath,
 
-    .arg_type_index[THIRD_ARG] = MOUNT_FLAG,
-    .get_arg_index[THIRD_ARG] = &generate_mount_flags,
+    .arg_type_array[THIRD_ARG] = MOUNT_FLAG,
+    .get_arg_array[THIRD_ARG] = &generate_mount_flags,
 
-    .arg_type_index[FOURTH_ARG] = VOID_BUF,
-    .get_arg_index[FOURTH_ARG] = &generate_buf,
+    .arg_type_array[FOURTH_ARG] = VOID_BUF,
+    .get_arg_array[FOURTH_ARG] = &generate_buf,
 };

@@ -19,20 +19,20 @@
 
 struct syscall_entry entry_open = {
 
-    .name_of_syscall = "open",
+    .syscall_name = "open",
     .syscall_symbol = SYS_open,
-    .number_of_args = 3,
+    .total_args = 3,
     .status = ON,
     .requires_root = NX_NO,
     .need_alarm = NX_NO,
 
-    .arg_type_index[FIRST_ARG] = FILE_PATH,
-    .get_arg_index[FIRST_ARG] = &generate_path,
+    .arg_type_array[FIRST_ARG] = FILE_PATH,
+    .get_arg_array[FIRST_ARG] = &generate_path,
 
-    .arg_type_index[SECOND_ARG] = OPEN_FLAG,
-    .get_arg_index[SECOND_ARG] = &generate_open_flag,
+    .arg_type_array[SECOND_ARG] = OPEN_FLAG,
+    .get_arg_array[SECOND_ARG] = &generate_open_flag,
 
-    .arg_type_index[THIRD_ARG] = MODE,
-    .get_arg_index[THIRD_ARG] = &generate_mode    
+    .arg_type_array[THIRD_ARG] = MODE,
+    .get_arg_array[THIRD_ARG] = &generate_mode    
 
 };

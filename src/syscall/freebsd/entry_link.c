@@ -19,17 +19,17 @@
 
 struct syscall_entry entry_link = {
 
-    .name_of_syscall = "link",
+    .syscall_name = "link",
     .syscall_symbol = SYS_link,
-    .number_of_args = 2,
+    .total_args = 2,
     .status = ON,
     .requires_root = NX_NO,
     .need_alarm = NX_NO,
 
-    .arg_type_index[FIRST_ARG] = FILE_PATH,
-    .get_arg_index[FIRST_ARG] = &generate_path,
+    .arg_type_array[FIRST_ARG] = FILE_PATH,
+    .get_arg_array[FIRST_ARG] = &generate_path,
 
-    .arg_type_index[SECOND_ARG] = FILE_PATH,
-    .get_arg_index[SECOND_ARG] = &generate_path,
+    .arg_type_array[SECOND_ARG] = FILE_PATH,
+    .get_arg_array[SECOND_ARG] = &generate_path,
 
 };

@@ -19,23 +19,23 @@
 
 struct syscall_entry entry_wait4 = {
 
-    .name_of_syscall = "wait4",
+    .syscall_name = "wait4",
     .syscall_symbol = SYS_wait4,
-    .number_of_args = 4,
+    .total_args = 4,
     .status = ON,
     .requires_root = NX_NO,
     .need_alarm = NX_NO,
 
-    .arg_type_index[FIRST_ARG] = PID,
-    .get_arg_index[FIRST_ARG] = &generate_pid,
+    .arg_type_array[FIRST_ARG] = PID,
+    .get_arg_array[FIRST_ARG] = &generate_pid,
 
-    .arg_type_index[SECOND_ARG] = INT,
-    .get_arg_index[SECOND_ARG] = &generate_int,
+    .arg_type_array[SECOND_ARG] = INT,
+    .get_arg_array[SECOND_ARG] = &generate_int,
 
-    .arg_type_index[THIRD_ARG] = WAIT_OPTION,
-    .get_arg_index[THIRD_ARG] = &generate_wait_option,
+    .arg_type_array[THIRD_ARG] = WAIT_OPTION,
+    .get_arg_array[THIRD_ARG] = &generate_wait_option,
 
-    .arg_type_index[FOURTH_ARG] = RUSAGE,
-    .get_arg_index[FOURTH_ARG] = &generate_rusage
+    .arg_type_array[FOURTH_ARG] = RUSAGE,
+    .get_arg_array[FOURTH_ARG] = &generate_rusage
 
 };

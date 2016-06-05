@@ -19,19 +19,19 @@
 
 struct syscall_entry entry_lseek = {
 
-    .name_of_syscall = "lseek",
+    .syscall_name = "lseek",
     .syscall_symbol = SYS_lseek,
-    .number_of_args = 3,
+    .total_args = 3,
     .status = ON,
     .requires_root = NX_NO,
     .need_alarm = NX_NO,
 
-    .arg_type_index[FIRST_ARG] = FILE_DESC,
-    .get_arg_index[FIRST_ARG] = &generate_fd,
+    .arg_type_array[FIRST_ARG] = FILE_DESC,
+    .get_arg_array[FIRST_ARG] = &generate_fd,
 
-    .arg_type_index[SECOND_ARG] = OFFSET,
-    .get_arg_index[SECOND_ARG] = &generate_offset,
+    .arg_type_array[SECOND_ARG] = OFFSET,
+    .get_arg_array[SECOND_ARG] = &generate_offset,
 
-    .arg_type_index[THIRD_ARG] = WHENCE,
-    .get_arg_index[THIRD_ARG] = &generate_whence   
+    .arg_type_array[THIRD_ARG] = WHENCE,
+    .get_arg_array[THIRD_ARG] = &generate_whence   
 };

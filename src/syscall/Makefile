@@ -18,7 +18,8 @@ SILENCED_WARNINGS = -Wno-padded \
                     -Wno-used-but-marked-unused -Wno-cast-align \
                     -Wno-missing-noreturn -Wno-unused-parameter \
                     -Wno-deprecated-declarations -Wno-pedantic \
-                    -Wno-unknown-pragmas -Wno-sign-conversion
+                    -Wno-unknown-pragmas -Wno-sign-conversion \
+                    -Wno-unused-function
 
 INCLUDES += -I/usr/src/cddl/compat/opensolaris/include \
             -I/usr/src/cddl/contrib/opensolaris/lib/libdtrace/common \

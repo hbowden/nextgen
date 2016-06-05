@@ -1056,10 +1056,6 @@ int32_t setup_resource_module(enum rsrc_gen_type type, char *path)
         case NO_CACHE:
             setup_nocache_interface();
             break;
-
-        default:
-            output(ERROR, "Unknown type\n");
-            return (-1);
     }
 
     /* Now that were done setting up let's set the setup flag. */
