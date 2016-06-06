@@ -70,10 +70,10 @@ typedef struct msg_port msg_port_t;
 typedef ck_spinlock_t nx_spinlock_t;
 
 /* CAS loop for swapping atomic int32 values. */ 
-extern void cas_loop_int32(atomic_int_fast32_t *target, int32_t value);
+extern void cas_loop_int32(int32_t *target, int32_t value);
 
 /* CAS loop for swapping atomic uint32 values. */ 
-extern void cas_loop_uint32(atomic_uint_fast32_t *target, uint32_t value);
+extern void cas_loop_uint32(uint32_t *target, uint32_t value);
 
 /* Simple wrapper function so we can wait on atomic pid values.  */
 extern int32_t wait_on(atomic_int_fast32_t *pid, int32_t *status);

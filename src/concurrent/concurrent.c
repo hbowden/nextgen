@@ -15,8 +15,10 @@
 
 #include "concurrent.h"
 #include "io/io.h"
-#include "memory.h"
+#include "memory/memory.h"
 #include "runtime/platform.h"
+
+#include <ck_pr.h>
 
 #include <errno.h>
 #include <stdbool.h>
@@ -25,8 +27,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-/* Compare and swap loop for swapping atomic int32 values. */
-void cas_loop_int32(atomic_int_fast32_t *target, int32_t value)
+void cas_loop_int32(int32_t *target, int32_t value)
 {
     /* Loop until we can succesfully update the the value. */
     while(1)
@@ -35,13 +36,13 @@ void cas_loop_int32(atomic_int_fast32_t *target, int32_t value)
         int32_t snapshot = atomic_load(target);
 
         /* Try swaping the variable if successful break from the loop. */
-        if(atomic_compare_exchange_weak(target, &snapshot, value) == true)
+        if(ck_pr_cas_int(target, snapshot, value) == true)
             break;
     }
 }
 
 /* CAS loop for swapping atomic uint32 values. */
-void cas_loop_uint32(atomic_uint_fast32_t *target, uint32_t value)
+void cas_loop_uint32(uint32_t *target, uint32_t value)
 {
     /* Loop until we can succesfully update the the value. */
     while(1)
@@ -50,7 +51,7 @@ void cas_loop_uint32(atomic_uint_fast32_t *target, uint32_t value)
         uint32_t snapshot = atomic_load(target);
 
         /* Try swaping the variable if successful break from the loop. */
-        if(atomic_compare_exchange_weak(target, &snapshot, value) == true)
+        if(ck_pr_cas_uint(target, snapshot, value) == true)
             break;
     }
 }
