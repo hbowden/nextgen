@@ -25,19 +25,39 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-static dtrace_hdl_t *dtrace_handle;
+#ifndef LINUX
 
-static dtrace_proginfo_t info;
+#include <dtrace.h>
 
-static dtrace_prog_t *prog;
+struct probe_ctx
+{
+    dtrace_hdl_t *dtrace_handle
+
+    dtrace_proginfo_t inf
+
+    dtrace_prog_t *prog
+
+};
+
+#endif 
 
 static const char *target_path;
 
 static pid_t target_pid;
 
-int32_t inject_kernel_probes(dtrace_hdl_t *handle) { return (0); }
+int32_t inject_kernel_probes(struct probe_ctx *probe)
+{
+    (void)probe;
 
-int32_t cleanup_kernel_probes(dtrace_hdl_t *handle) { return (0); }
+    return (0); 
+}
+
+int32_t cleanup_kernel_probes(struct probe_ctx *probe) 
+{
+    (void)probe;
+
+    return (0); 
+}
 
 int32_t inject_probes(pid_t pid)
 {

@@ -19,7 +19,10 @@
 #define PROBE_H
 
 #include <stdint.h>
-#include <dtrace.h>
+#include <unistd.h>
+#include <sys/types.h>
+
+struct probe_ctx;
 
 #define REGISTER_IP RIP
 #define TRAP_LEN    1
@@ -28,9 +31,9 @@
 
 extern int32_t inject_probes(pid_t pid);
 
-extern int32_t inject_kernel_probes(dtrace_hdl_t *handle);
+extern int32_t inject_kernel_probes(struct probe_ctx *probe);
 
-extern int32_t cleanup_kernel_probes(dtrace_hdl_t *handle);
+extern int32_t cleanup_kernel_probes(struct probe_ctx *probe);
 
 extern int32_t start_and_pause_target(char *path, pid_t *pid);
 
