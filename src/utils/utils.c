@@ -13,6 +13,20 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
+#ifndef LINUX
+
+#include <sys/syslimits.h>
+
+#else
+
+/* We need to define _GNU_SOURCE to use
+ asprintf on Linux. We also need to place
+ _GNU_SOURCE at the top of the file before
+ any other includes for it to work properly. */
+#define _GNU_SOURCE
+
+#endif
+
 #include "utils.h"
 #include "crypto/crypto.h"
 #include "io/io.h"
@@ -30,12 +44,6 @@
 #include <sys/stat.h>
 #include <sys/sysctl.h>
 #include <sys/wait.h>
-
-#ifndef LINUX
-
-#include <sys/syslimits.h>
-
-#endif
 
 int32_t check_root(void)
 {
