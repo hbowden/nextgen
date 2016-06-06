@@ -54,7 +54,7 @@ SILENCED_WARNINGS =
 
 INCLUDES += 
 
-FLAGS = -DLINUX -shared -fno-strict-aliasing -fPIC -Wall -Werror -Wextra -Wpedantic -g -O3 -std=c99
+FLAGS = -DLINUX -DCOMMON -shared -fno-strict-aliasing -fPIC -Wall -Werror -Wextra -Wpedantic -g -O3 -std=c99
 
 LIB = ../io/libnxio.so ../memory/libnxmemory.so \
       -ldtrace ../utils/libnxutils.so 
