@@ -261,15 +261,7 @@ static int32_t set_syscall(uint32_t num, struct child_ctx *ctx)
 static struct job_ctx *get_job(struct child_ctx *ctx)
 {
     struct job_ctx *job = NULL;
-
-    /* Grab message(job) from childs message port(job queue). */
-    job = (struct job_ctx *)msg_recv(ctx->msg_port);
-    if(job == NULL)
-    {
-        output(ERROR, "Can't recieve message\n");
-        return (NULL);
-    }
-
+    (void)ctx;
     return (job);
 }
 
