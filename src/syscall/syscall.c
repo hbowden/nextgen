@@ -29,6 +29,7 @@
 #include "set_test.h"
 #include "syscall_table.h"
 #include "utils/utils.h"
+#include "concurrent/concurrent.h"
 
 #include <assert.h>
 #include <errno.h>
@@ -292,23 +293,7 @@ NX_NO_RETURN static void start_smart_syscall_child(void)
     /* Loop until ctrl-c is pressed by the user. */
     while(ck_pr_load_int(stop) != TRUE)
     {
-        struct job_ctx *job = NULL;
-
-        /* Grab a job from the child's message port. */
-        job = get_job(ctx);
-        if(job == NULL)
-        {
-            output(ERROR, "Can't get job\n");
-            exit_child();
-        }
-
-        /* Proccess the orders from the genetic algorithm. */
-        rtrn = do_job(job);
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't do job\n");
-            exit_child();
-        }
+        
     }
 
     exit_child();
