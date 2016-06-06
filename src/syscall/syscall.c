@@ -517,18 +517,10 @@ NX_NO_RETURN static void start_child(uint32_t i)
     start_child_loop();
 }
 
-static int32_t create_syscall_child_proc(msg_port_t port, void *arg)
-{
-    uint32_t *i = (uint32_t *)arg;
-
-    /* Start child process's loop. */
-    start_child((*i));
-}
-
 void create_syscall_children(void)
 {
+    pid_t pid = 0;
     uint32_t i = 0;
-    int32_t rtrn = 0;
 
     /* Walk the child structure array and find the first empty child slot. */
     for(i = 0; i < number_of_children; i++)
@@ -537,26 +529,25 @@ void create_syscall_children(void)
         if(children[i]->pid != EMPTY)
             continue;
 
-        msg_port_t port = 0;
-        msg_port_t child_port = 0;
-
-        /* Create child process and pass it a message port. */
-        rtrn = fork_pass_port(&port, create_syscall_child_proc, &i);
-        if(rtrn == 0)
+        /* Fork and create child process. */
+        pid = fork();
+        if(pid == 0)
         {
-            output(ERROR, "Can't create child process\n");
+            /* Start child process's loop. */
+            start_child(i);
+
+            /* Exit and clean up. */
+            _exit(0);
+        }
+        else if(pid > 0)
+        {
             return;
         }
-
-        /* Wait for the child to send us it's message port. */
-        rtrn = recv_port(port, &child_port);
-        if(rtrn < 0)
+        else
         {
-            output(ERROR, "Can't recieve message\n");
+            output(ERROR, "Can't create child proc: %s\n", strerror(errno));
             return;
         }
-
-        return;
     }
 }
 
