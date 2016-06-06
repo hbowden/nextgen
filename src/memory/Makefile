@@ -34,6 +34,18 @@ LIB_NAME = libnxmemory.dylib
 
 endif
 
+ifeq ($(OPERATING_SYSTEM), Linux)
+
+SILENCED_WARNINGS = 
+
+FLAGS = -DLINUX -DCOMMON -shared -fno-strict-aliasing -fPIC -Wall -Werror -Wextra -Wpedantic -g -O3 -std=gnu99
+
+LIB = ../io/libnxio.so
+
+LIB_NAME = libnxmemory.so
+
+endif
+
 all:
 
 	$(CC) $(FLAGS) $(SILENCED_WARNINGS) $(INCLUDES) $(SOURCES) $(LIB) -o $(LIB_NAME)
