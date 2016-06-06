@@ -29,8 +29,13 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/sysctl.h>
-#include <sys/syslimits.h>
 #include <sys/wait.h>
+
+#ifndef LINUX
+
+#include <sys/syslimits.h>
+
+#endif
 
 int32_t check_root(void)
 {
@@ -380,18 +385,18 @@ int32_t binary_to_ascii(char *input, char **out, uint64_t input_len,
     return (0);
 }
 
-#ifdef MAC_OSX
-
-static int32_t entcmp(const FTSENT **a, const FTSENT **b)
-{
-    return strcmp((*a)->fts_name, (*b)->fts_name);
-}
-
-#else
+#ifdef FREEBSD
 
 static int32_t entcmp(const FTSENT *const *a, const FTSENT *const *b)
 {
     return (strcmp((*a)->fts_name, (*b)->fts_name));
+}
+
+#else
+
+static int32_t entcmp(const FTSENT **a, const FTSENT **b)
+{
+    return strcmp((*a)->fts_name, (*b)->fts_name);
 }
 
 #endif
