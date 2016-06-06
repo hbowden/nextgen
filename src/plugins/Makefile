@@ -35,6 +35,21 @@ LIB_NAME = libnxplugin.dylib
 
 endif
 
+ifeq ($(OPERATING_SYSTEM), Linux)
+
+SILENCED_WARNINGS = -Wno-padded \
+                    -Wno-unused-parameter \
+                    -Wno-cast-qual 
+
+FLAGS = -DLINUX -DCOMMON -shared -fno-strict-aliasing -fPIC -Wall -Werror -Wextra -Wpedantic -g -O3 -std=c99
+
+LIB = ../io/libnxio.so ../memory/libnxmemory.so \
+      ../utils/libnxutils.so
+      
+LIB_NAME = libnxplugin.so
+
+endif
+
 all:
 
 	$(CC) $(FLAGS) $(SILENCED_WARNINGS) $(INCLUDES) $(SOURCES) $(LIB) -o $(LIB_NAME)
