@@ -16,20 +16,13 @@
 #ifndef SYSCALL_H
 #define SYSCALL_H
 
-#include <stdint.h>
 #include "context.h"
 #include "concurrent/concurrent.h"
 
-#ifdef FREEBSD
-
-#include "syscall-freebsd.h"
-
-#elif MAC_OSX
-
-#include "syscall-mac.h"
-
-#endif
-
+#include <unistd.h>
+#include <sys/types.h>
+#include <stdint.h>
+ 
 enum child_state {EMPTY};
 
 extern uint32_t number_of_children;
