@@ -13,6 +13,15 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
+#ifdef LINUX
+/* We need to define _GNU_SOURCE to use
+ asprintf on Linux. We also need to place
+ _GNU_SOURCE at the top of the file before
+ any other includes for it to work properly. */
+#define _GNU_SOURCE
+
+#endif
+
 #include "resource.h"
 #include "concurrent/concurrent.h"
 #include "crypto/crypto.h"
