@@ -91,6 +91,8 @@ int32_t get_extension(char *path, char **extension)
     return (0);
 }
 
+#ifndef LINUX
+
 int32_t get_core_count(uint32_t *core_count)
 {
     int32_t mib[4];
@@ -112,6 +114,16 @@ int32_t get_core_count(uint32_t *core_count)
 
     return (0);
 }
+
+#else
+
+int32_t get_core_count(uint32_t *core_count)
+{
+    (*core_count) = (uint32_t) sysconf(_SC_NPROCESSORS_ONLN);
+    return (0);
+}
+
+#endif
 
 int32_t generate_name(char **name, char *extension, enum name_type type)
 {
