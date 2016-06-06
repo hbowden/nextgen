@@ -36,7 +36,12 @@ extern int32_t generate_mode(uint64_t **mode, struct child_ctx *ctx);
 
 extern int32_t generate_open_flag(uint64_t **flag, struct child_ctx *ctx);
 
+/* Don't compile on Linux. */
+#ifndef LINUX
+
 extern int32_t generate_fs_stat(uint64_t **stat, struct child_ctx *ctx);
+
+#endif
 
 extern int32_t generate_fs_stat_flag(uint64_t **flag, struct child_ctx *ctx);
 

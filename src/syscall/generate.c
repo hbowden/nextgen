@@ -397,6 +397,9 @@ int32_t generate_fs_stat(uint64_t **stat, struct child_ctx *ctx)
     return (0);
 }
 
+/* Don't compile on Linux. */
+#ifndef LINUX
+
 int32_t generate_fs_stat_flag(uint64_t **flag, struct child_ctx *ctx)
 {
     int32_t rtrn = 0;
@@ -435,6 +438,8 @@ int32_t generate_fs_stat_flag(uint64_t **flag, struct child_ctx *ctx)
 
     return (0);
 }
+
+#endif
 
 int32_t generate_pid(uint64_t **pid, struct child_ctx *ctx)
 {
