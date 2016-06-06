@@ -35,6 +35,8 @@ struct syscall_table_shadow
 
 };
 
+extern struct syscall_table *get_table(void);
+
 extern struct syscall_table freebsd_syscall_table[];
 
 extern struct syscall_table mac_osx_syscall_table[];
