@@ -21,7 +21,7 @@
 #include <stdint.h>
 
 /* The mutator for syscall arguments. */
-extern int32_t mutate_arguments(uint64_t **args, uint64_t **size);
+extern int32_t mutate_arguments(uint64_t **args, uint64_t *size);
 
 /* File mutator function. */
 extern int32_t mutate_file(char **file, const char *file_extension, uint64_t *file_size);

@@ -163,4 +163,4 @@ int32_t mutate_file(char **file, const char *file_extension,
     return (0);
 }
 
-int32_t mutate_arguments(uint64_t **args, uint64_t **size) { return (0); }
+int32_t mutate_arguments(uint64_t **args, uint64_t *size) { return (0); }
