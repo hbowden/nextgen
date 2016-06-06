@@ -18,16 +18,18 @@
 
 struct probe_ctx
 {
-   
-
+	int32_t member;
 };
 
 int32_t start_and_pause_target(char *exec_path, pid_t *target_pid)
 {
+	(void)exec_path;
+	(void)target_pid;
     return (0);
 }
 
 int32_t inject_fork_server(uint64_t main_address)
 {
+	(void)main_address;
 	return (0);
 }
