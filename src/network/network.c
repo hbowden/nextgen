@@ -18,7 +18,6 @@
 #include "crypto/crypto.h"
 #include "io/io.h"
 #include "runtime/platform.h"
-#include "stdatomic.h"
 
 #include <arpa/inet.h>
 #include <errno.h>
@@ -34,7 +33,7 @@
 
 static uint32_t ss_port;
 
-static atomic_int_fast32_t stop_socket_server;
+static int32_t stop;
 
 static int32_t listen_fd4;
 static int32_t listen_fd6;
@@ -220,7 +219,7 @@ static void *accept_thread_start(void *obj)
     int rtrn;
     int *sockFd = (int *)obj;
 
-    while(atomic_load(&stop_socket_server) != TRUE)
+    while(ck_pr_load_int(&stop) != TRUE)
     {
         rtrn = listen(*sockFd, 1024);
         if(rtrn < 0)
@@ -256,7 +255,7 @@ static void *start_thread(void *arg)
         return (NULL);
     }
 
-    while(atomic_load(&stop_socket_server) != TRUE)
+    while(ck_pr_load_int(&stop) != TRUE)
     {
         rtrn = listen(listen_fd4, 1024);
         if(rtrn < 0)
@@ -344,8 +343,6 @@ static int32_t start_socket_server(void)
 int32_t setup_network_module(enum network_mode mode)
 {
     int32_t rtrn = 0;
-
-    atomic_init(&stop_socket_server, FALSE);
 
     switch((int32_t)mode)
     {
