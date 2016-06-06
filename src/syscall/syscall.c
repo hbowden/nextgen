@@ -31,9 +31,10 @@
 #include "utils/utils.h"
 #include "concurrent/concurrent.h"
 
-#include <assert.h>
 #include <errno.h>
 #include <string.h>
+#include <sys/types.h>
+#include <signal.h>
 
 /* The total number of children process to run. */
 uint32_t number_of_children;
