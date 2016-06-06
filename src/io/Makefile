@@ -28,6 +28,17 @@ LIB_NAME = libnxio.dylib
 
 endif
 
+# Linux build options.
+ifeq ($(OPERATING_SYSTEM), Linux)
+
+SILENCED_WARNINGS = 
+
+FLAGS = -DLINUX -shared -fPIC -Wall -Wextra -fno-strict-aliasing -Werror -Wpedantic -g -O3 -std=c99
+
+LIB_NAME = libnxio.so
+
+endif
+
 all:
 
 	$(CC) $(FLAGS) $(SILENCED_WARNINGS) $(INCLUDES) $(SOURCES) -o $(LIB_NAME)
