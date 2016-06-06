@@ -57,7 +57,7 @@ INCLUDES +=
 FLAGS = -DLINUX -DCOMMON -shared -fno-strict-aliasing -fPIC -Wall -Werror -Wextra -Wpedantic -g -O3 -std=c99
 
 LIB = ../io/libnxio.so ../memory/libnxmemory.so \
-      -ldtrace ../utils/libnxutils.so 
+      ../utils/libnxutils.so 
 
 SOURCES += $(ROOT_DIR)/src/probe/probe-linux.c
 
