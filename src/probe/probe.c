@@ -53,8 +53,6 @@ struct probe_ctx
 
 static const char *target_path;
 
-static pid_t target_pid;
-
 int32_t inject_kernel_probes(struct probe_ctx *probe)
 {
     (void)probe;
@@ -69,10 +67,20 @@ int32_t cleanup_kernel_probes(struct probe_ctx *probe)
     return (0); 
 }
 
+#ifdef LINUX
+
 int32_t inject_probes(pid_t pid)
 {
+    (void)pid;
+    return (0);
+}
+
+#endif
+
 #ifndef LINUX
 
+int32_t inject_probes(pid_t pid)
+{
     int32_t rtrn = 0;
     char *dtrace_prog = NULL;
 
@@ -126,9 +134,10 @@ int32_t inject_probes(pid_t pid)
 
     /* Sleep so we don't record any information. */
     dtrace_sleep(dtrace_handle);
-#endif
     return (0);
 }
+
+#endif
 
 int32_t setup_probe_module(char *exec_path)
 {
