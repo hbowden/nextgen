@@ -45,11 +45,11 @@ ifeq ($(OPERATING_SYSTEM), Linux)
 ENTRY_SOURCES := $(wildcard linux/*.c)
 
 INCLUDES = -I../ -I../../deps/$(CK)/include \
-           -isystem ../../deps/$(CK)/include -Ifreebsd
+           -isystem ../../deps/$(CK)/include -Ilinux
            
 SILENCED_WARNINGS = -Wno-unused-function
 
-FLAGS = -DLINUX -DCOMMON -shared -fno-strict-aliasing -fPIC -Wall -Werror -Wextra -g -O3 -std=c99
+FLAGS = -DLINUX -DCOMMON -shared -fno-strict-aliasing -fPIC -Wall -Werror -Wextra -g -O3 -std=gnu99
 
 LIB = ../io/libnxio.so ../memory/libnxmemory.so \
       ../crypto/libnxcrypto.so ../concurrent/libnxconcurrent.so \
