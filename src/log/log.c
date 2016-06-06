@@ -36,6 +36,9 @@ static sqlite3 *db;
 
 int32_t log_file(char *file_path, char *file_extension)
 {
+    (void)file_path;
+    (void)file_extension;
+
     /*
     int32_t rtrn = 0;
     char *out_path auto_free = NULL;
