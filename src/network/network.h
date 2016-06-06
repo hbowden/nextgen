@@ -30,4 +30,8 @@ extern int32_t connect_ipv4(int32_t *sockFd);
 
 extern int32_t connect_ipv6(int32_t *sockFd);
 
+extern int32_t setup_ipv4_tcp_server(int32_t *sockFd);
+
+extern int32_t setup_ipv6_tcp_server(int32_t *sockFd);
+
 #endif
