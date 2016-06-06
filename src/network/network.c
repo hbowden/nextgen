@@ -38,6 +38,13 @@ static int32_t stop;
 static int32_t listen_fd4;
 static int32_t listen_fd6;
 
+void get_server_port(uint32_t *port)
+{
+    (*port) = ss_port;
+    
+    return;
+}
+
 int32_t connect_ipv4(int32_t *sockFd)
 {
     int32_t rtrn = 0;

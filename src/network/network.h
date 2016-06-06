@@ -24,6 +24,8 @@ enum network_mode { SOCKET_SERVER };
 
 extern int32_t setup_network_module(enum network_mode mode);
 
+extern void get_server_port(uint32_t *port);
+
 extern int32_t pick_random_port(uint32_t *port);
 
 extern int32_t connect_ipv4(int32_t *sockFd);

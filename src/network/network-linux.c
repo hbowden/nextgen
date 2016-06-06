@@ -14,8 +14,15 @@
  **/
 
 #include "network.h"
+#include "io/io.h"
 
 #include <stdint.h>
+#include <arpa/inet.h>
+#include <errno.h>
+#include <netdb.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 
 int32_t setup_ipv4_tcp_server(int32_t *sockFd)
 {
@@ -35,13 +42,16 @@ int32_t setup_ipv4_tcp_server(int32_t *sockFd)
         return (-1);
     }
 
+    uint32_t ss_port;
+    get_server_port(&ss_port);
+
     address.in.sin_family = AF_INET;
     address.in.sin_port = htons(ss_port);
     address.in.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
     memset(address.in.sin_zero, 0, sizeof(address.in.sin_zero));
 
     /* Bind socket to port */
-    rtrn = bind(*sockFd, &address.sa, address.sa.sa_len);
+    rtrn = bind(*sockFd, &address.sa, sizeof(address.in));
     if(rtrn < 0)
     {
         output(ERROR, "Bind: %s\n", strerror(errno));
@@ -71,6 +81,10 @@ int32_t setup_ipv6_tcp_server(int32_t *sockFd)
         return (-1);
     }
 
+
+    uint32_t ss_port;
+    get_server_port(&ss_port);
+
     address.in6.sin6_family = AF_INET6;
     address.in6.sin6_port = htons(ss_port + 1);
     address.in6.sin6_flowinfo = 0;
@@ -78,7 +92,7 @@ int32_t setup_ipv6_tcp_server(int32_t *sockFd)
     address.in6.sin6_scope_id = 0;
 
     /* Bind socket to port */
-    rtrn = bind(*sockFd, (struct sockaddr *)&address.in6, address.in6.sin6_len);
+    rtrn = bind(*sockFd, (struct sockaddr *)&address.in6, sizeof(address.in6));
     if(rtrn < 0)
     {
         output(ERROR, "bind 6: %s\n", strerror(errno));

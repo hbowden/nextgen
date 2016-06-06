@@ -15,6 +15,8 @@ FLAGS = -DFREEBSD -shared -fno-strict-aliasing -fPIC -Wall -Werror -Weverything 
 LIB = ../io/libnxio.so ../memory/libnxmemory.so \
       ../crypto/libnxcrypto.so
 
+SOURCES += network-bsd.c
+
 LIB_NAME = libnxnetwork.so
 
 endif
@@ -29,6 +31,8 @@ FLAGS = -dynamiclib -DMAC_OSX -fno-strict-aliasing -Wall -Werror -Weverything -W
 LIB = ../io/libnxio.dylib ../memory/libnxmemory.dylib \
       ../crypto/libnxcrypto.dylib
 
+SOURCES += network-bsd.c
+
 LIB_NAME = libnxnetwork.dylib
 
 endif
@@ -41,6 +45,8 @@ FLAGS = -DLINUX -DCOMMON -shared -fno-strict-aliasing -fPIC -Wall -Werror -Wextr
 
 LIB = ../io/libnxio.so ../memory/libnxmemory.so \
       ../crypto/libnxcrypto.so
+
+SOURCES += network-linux.c
 
 LIB_NAME = libnxnetwork.so
 
