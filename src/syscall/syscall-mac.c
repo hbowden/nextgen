@@ -15,7 +15,7 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#include "syscall-mac.h"
+#include "syscall_table.h"
 #include "mac_osx_syscall_table.h"
 
 struct syscall_table *get_table(void) { return (mac_osx_syscall_table); }

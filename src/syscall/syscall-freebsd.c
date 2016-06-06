@@ -13,7 +13,7 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
  
-#include "syscall-freebsd.h"
+#include "syscall_table.h"
 #include "freebsd_syscall_table.h"
 
 struct syscall_table *get_table(void)
