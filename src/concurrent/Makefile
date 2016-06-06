@@ -43,6 +43,20 @@ LIB_NAME = libnxconcurrent.dylib
 
 endif
 
+ifeq ($(OPERATING_SYSTEM), Linux)
+
+SOURCES += $(ROOT_DIR)/src/concurrent/concurrent-common.c
+
+SILENCED_WARNINGS =
+
+FLAGS = -DCOMMON -DLINUX -shared -fno-strict-aliasing -fPIC -Wall -Werror -Wextra -g -O3 -std=gnu99
+
+LIB = ../../deps/$(CK)/src/libck.so ../io/libnxio.so
+
+LIB_NAME = libnxconcurrent.so
+
+endif
+
 all:
 
 	$(CC) $(FLAGS) $(SILENCED_WARNINGS) $(INCLUDES) $(SOURCES) $(LIB) -o $(LIB_NAME)
