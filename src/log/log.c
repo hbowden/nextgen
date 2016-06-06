@@ -17,7 +17,6 @@
 #include "io/io.h"
 #include "memory/memory.h"
 #include "runtime/platform.h"
-#include "syscall/syscall.h"
 #include "utils/utils.h"
 
 #include <sqlite3.h>
