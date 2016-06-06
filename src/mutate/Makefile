@@ -44,6 +44,27 @@ LIB_NAME = libnxmutate.dylib
 
 endif
 
+ifeq ($(OPERATING_SYSTEM), Linux)
+
+SILENCED_WARNINGS = -Wno-padded \
+                    -Wno-unused-parameter -Wno-unused-parameter \
+                    -Wno-unused-variable -Wno-pedantic \
+                    -Wno-unknown-pragmas -Wno-sign-conversion
+
+FLAGS = -DLINUX -DCOMMON -shared -fno-strict-aliasing -fPIC -Wall -Werror -Wextra -g -O3 -std=c99
+
+INCLUDES += -I/usr/src/cddl/compat/opensolaris/include \
+            -I/usr/src/cddl/contrib/opensolaris/lib/libdtrace/common \
+            -I/usr/src/sys/cddl/compat/opensolaris \
+            -I/usr/src/sys/cddl/contrib/opensolaris/uts/common
+
+LIB = ../io/libnxio.so ../memory/libnxmemory.so \
+      ../crypto/libnxcrypto.so ../plugins/libnxplugin.so
+
+LIB_NAME = libnxmutate.so
+
+endif
+
 all:
 
 	$(CC) $(FLAGS) $(SILENCED_WARNINGS) $(INCLUDES) $(SOURCES) $(LIB) -o $(LIB_NAME)
