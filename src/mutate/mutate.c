@@ -18,7 +18,8 @@
 #include "io/io.h"
 #include "plugins/plugin.h"
 #include "runtime/platform.h"
-#include "runtime/nextgen.h"
+
+#include <stdbool.h>
 
 static int32_t flip_byte_mutator(char **file, uint64_t *file_size)
 {
@@ -162,4 +163,4 @@ int32_t mutate_file(char **file, const char *file_extension,
     return (0);
 }
 
-int32_t mutate_arguments(struct child_ctx *ctx) { return (0); }
+int32_t mutate_arguments(uint64_t **args, uint64_t **size) { return (0); }
