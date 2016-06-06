@@ -36,7 +36,19 @@ LIB = ../io/libnxio.dylib ../memory/libnxmemory.dylib \
 
 LIB_NAME = libnxresource.dylib
 
-endif 
+endif
+
+ifeq ($(OPERATING_SYSTEM), Linux)
+
+FLAGS = -DCOMMON -DLINUX -shared -fno-strict-aliasing -fPIC -Wall -Werror -Wextra -Wpedantic -g -O3 -std=c99
+
+LIB = ../io/libnxio.so ../memory/libnxmemory.so \
+      ../crypto/libnxcrypto.so ../concurrent/libnxconcurrent.so \
+      ../network/libnxnetwork.so ../utils/libnxutils.so
+
+LIB_NAME = libnxresource.so
+
+endif
 
 all:
 
