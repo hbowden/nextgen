@@ -40,6 +40,29 @@ SOURCES += $(ROOT_DIR)/src/syscall/syscall-freebsd.c
 
 endif
 
+ifeq ($(OPERATING_SYSTEM), Linux)
+
+ENTRY_SOURCES := $(wildcard linux/*.c)
+
+INCLUDES = -I../ -I../../deps/$(CK)/include \
+           -isystem ../../deps/$(CK)/include -Ifreebsd
+           
+SILENCED_WARNINGS = 
+
+FLAGS = -DLINUX -DCOMMON -shared -fno-strict-aliasing -fPIC -Wall -Werror -Wextra -g -O3 -std=c99
+
+LIB = ../io/libnxio.so ../memory/libnxmemory.so \
+      ../crypto/libnxcrypto.so ../concurrent/libnxconcurrent.so \
+      ../network/libnxnetwork.so ../utils/libnxutils.so \
+      ../probe/libnxprobe.so ../resource/libnxresource.so \
+      ../mutate/libnxmutate.so ../log/libnxlog.so 
+
+LIB_NAME = libnxsyscall.so
+
+SOURCES += $(ROOT_DIR)/src/syscall/syscall-linux.c
+
+endif
+
 # Mac OSX build options.
 ifeq ($(OPERATING_SYSTEM), Darwin)
 
