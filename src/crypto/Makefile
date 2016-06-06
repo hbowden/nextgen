@@ -35,6 +35,19 @@ LIB_NAME = libnxcrypto.dylib
 
 endif
 
+ifeq ($(OPERATING_SYSTEM), Linux)
+
+SILENCED_WARNINGS =
+
+FLAGS = -DLINUX -DCOMMON -shared -fno-strict-aliasing -fPIC -Wall -Werror -Wextra -g -O3 -Wpedantic -std=gnu99
+
+LIB = ../io/libnxio.so ../memory/libnxmemory.so \
+      ../../deps/$(LIBRESSL)/crypto/.libs/libcrypto.so
+
+LIB_NAME = libnxcrypto.so
+
+endif
+
 all:
 
 	$(CC) $(FLAGS) $(SILENCED_WARNINGS) $(INCLUDES) $(SOURCES) $(LIB) -o $(LIB_NAME)
