@@ -16,6 +16,12 @@
 
 #include "probe.h"
 
+struct probe_ctx
+{
+   
+
+};
+
 int32_t start_and_pause_target(char *exec_path, pid_t *target_pid)
 {
     return (0);
