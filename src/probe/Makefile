@@ -47,6 +47,24 @@ LIB_NAME = libnxprobe.dylib
 
 endif
 
+# Linux.
+ifeq ($(OPERATING_SYSTEM), Linux)
+
+SILENCED_WARNINGS = 
+
+INCLUDES += 
+
+FLAGS = -DLINUX -shared -fno-strict-aliasing -fPIC -Wall -Werror -Wextra -Wpedantic -g -O3 -std=c99
+
+LIB = ../io/libnxio.so ../memory/libnxmemory.so \
+      -ldtrace ../utils/libnxutils.so 
+
+SOURCES += $(ROOT_DIR)/src/probe/probe-linux.c
+
+LIB_NAME = libnxprobe.so
+
+endif
+
 all:
 
 	$(CC) $(FLAGS) $(SILENCED_WARNINGS) $(INCLUDES) $(SOURCES) $(LIB) -o $(LIB_NAME)

@@ -21,18 +21,6 @@
 #include <stdint.h>
 #include <dtrace.h>
 
-#ifdef FREEBSD
-
-#include "probe-freebsd.h"
-
-#endif
-
-#ifdef MAC_OSX
-
-#include "probe-mac.h"
-
-#endif
-
 #define REGISTER_IP RIP
 #define TRAP_LEN    1
 #define TRAP_INST   0xCC
@@ -43,6 +31,10 @@ extern int32_t inject_probes(pid_t pid);
 extern int32_t inject_kernel_probes(dtrace_hdl_t *handle);
 
 extern int32_t cleanup_kernel_probes(dtrace_hdl_t *handle);
+
+extern int32_t start_and_pause_target(char *path, pid_t *pid);
+
+extern int32_t inject_fork_server(uint64_t main_address);
 
 extern int32_t setup_probe_module(char *exec_path);
 

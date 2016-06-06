@@ -1,7 +1,6 @@
 
-
 /**
- * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
+ * Copyright (c) 2016, Harrison Bowden, Minneapolis, MN
  * 
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice 
@@ -15,14 +14,14 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#ifndef PROBE_FREEBSD_H
-#define PROBE_FREEBSD_H
+#include "probe.h"
 
-#include <unistd.h>
-#include <stdint.h>
+int32_t start_and_pause_target(char *exec_path, pid_t *target_pid)
+{
+    return (0);
+}
 
-extern int32_t start_and_pause_target(char *exec_path, pid_t *target_pid);
-
-extern int32_t inject_fork_server(uint64_t main_address);
-
-#endif
+int32_t inject_fork_server(uint64_t main_address)
+{
+	return (0);
+}

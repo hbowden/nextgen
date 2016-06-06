@@ -13,7 +13,7 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#include "probe-mac.h"
+#include "probe.h"
 #include "io/io.h"
 #include "utils/utils.h"
 
