@@ -22,6 +22,21 @@ LIB_NAME = libnxutils.so
 
 endif
 
+ifeq ($(OPERATING_SYSTEM), Linux)
+           
+SILENCED_WARNINGS = -Wno-padded \
+                    -Wno-unused-parameter \
+                    -Wno-pedantic
+
+FLAGS = -DLINUX -DCOMMON -shared -fno-strict-aliasing -fPIC -Wall -Werror -Wextra -g -O3 -std=gnu99
+
+LIB = ../io/libnxio.so ../memory/libnxmemory.so \
+      ../crypto/libnxcrypto.so
+
+LIB_NAME = libnxutils.so
+
+endif
+
 # Mac OSX build options.
 ifeq ($(OPERATING_SYSTEM), Darwin)
 
