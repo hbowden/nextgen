@@ -72,9 +72,6 @@ struct child_ctx
     /* The string value of errno if the syscall test failed. */
     char *err_value;
 
-    /* Child's message port. */
-    msg_port_t msg_port;
-
     int32_t did_jump;
 
     struct probe_ctx *probe_handle;
