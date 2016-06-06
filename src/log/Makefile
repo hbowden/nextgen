@@ -34,6 +34,18 @@ LIB_NAME = libnxlog.so
 
 endif
 
+ifeq ($(OPERATING_SYSTEM), Linux)
+
+FLAGS = -DLINUX -DCOMMON -shared -fno-strict-aliasing -fPIC -Wall -Werror -Wextra -g -O3 -std=c99
+
+LIB = ../io/libnxio.so ../memory/libnxmemory.so
+      
+SOURCES += $(ROOT_DIR)/src/log/log-freebsd.c
+
+LIB_NAME = libnxlog.so
+
+endif
+
 # Mac OSX build options.
 ifeq ($(OPERATING_SYSTEM), Darwin)
            
