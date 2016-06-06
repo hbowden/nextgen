@@ -47,7 +47,7 @@ ENTRY_SOURCES := $(wildcard linux/*.c)
 INCLUDES = -I../ -I../../deps/$(CK)/include \
            -isystem ../../deps/$(CK)/include -Ifreebsd
            
-SILENCED_WARNINGS = 
+SILENCED_WARNINGS = -Wno-unused-function
 
 FLAGS = -DLINUX -DCOMMON -shared -fno-strict-aliasing -fPIC -Wall -Werror -Wextra -g -O3 -std=c99
 
