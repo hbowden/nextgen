@@ -26,7 +26,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <sys/time.h>
-#include <dtrace.h>
 
 struct child_ctx
 {
