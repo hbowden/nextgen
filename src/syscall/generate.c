@@ -40,6 +40,12 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#ifdef LINUX
+
+#include <sys/vfs.h>
+
+#endif
+
 int32_t generate_fd(uint64_t **fd, struct child_ctx *ctx)
 {
     /* Allocate the descriptor. */
