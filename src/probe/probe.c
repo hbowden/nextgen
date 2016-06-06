@@ -73,6 +73,7 @@ int32_t cleanup_kernel_probes(struct probe_ctx *probe)
 int32_t inject_probes(pid_t pid)
 {
     (void)pid;
+    (void)ctx;
     return (0);
 }
 
