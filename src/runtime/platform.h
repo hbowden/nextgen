@@ -44,4 +44,16 @@ enum local_bool { FALSE, TRUE };
 
 #endif /* End of MAC OSX. */
 
+#ifdef LINUX
+
+#define ARG_LIMIT 7
+
+enum local_bool { FALSE, TRUE };
+
+#define POOL_SIZE 1024
+
+#define ARG_BUF_LEN 4096
+
+#endif
+
 #endif /* End of header file. */
