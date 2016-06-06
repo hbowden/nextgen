@@ -17,12 +17,11 @@
 #define SYSCALL_H
 
 #include "context.h"
-#include "concurrent/concurrent.h"
 
 #include <unistd.h>
 #include <sys/types.h>
 #include <stdint.h>
- 
+
 enum child_state {EMPTY};
 
 extern uint32_t number_of_children;

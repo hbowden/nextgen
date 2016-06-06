@@ -406,7 +406,8 @@ NX_NO_RETURN static void start_syscall_child(void)
         }
 
         /* Mutate the arguments randomly. */
-        rtrn = mutate_arguments(ctx);
+        rtrn = mutate_arguments(ctx->arg_value_array,
+                                ctx->arg_size_array);
         if(rtrn < 0)
         {
             output(ERROR, "Can't mutate arguments\n");

@@ -49,9 +49,6 @@ struct shared_map
     /* Path to target executable. */
     char *exec_path;
 
-    /* The genetic algorithm's message port. */
-    msg_port_t msg_port;
-
     /* The PID of the target app being file fuzzed. */
     int32_t target_pid;
 
