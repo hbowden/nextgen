@@ -71,6 +71,8 @@ int32_t cleanup_kernel_probes(struct probe_ctx *probe)
 
 int32_t inject_probes(pid_t pid)
 {
+#ifndef LINUX
+
     int32_t rtrn = 0;
     char *dtrace_prog = NULL;
 
@@ -124,7 +126,7 @@ int32_t inject_probes(pid_t pid)
 
     /* Sleep so we don't record any information. */
     dtrace_sleep(dtrace_handle);
-
+#endif
     return (0);
 }
 
