@@ -41,7 +41,7 @@ LIB = ../io/libnxio.so ../memory/libnxmemory.so \
 
 LIB_NAME = libnxfile.so
 
-SOURCES += file-freebsd.c
+SOURCES += file-linux.c
 
 endif
 

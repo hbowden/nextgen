@@ -36,6 +36,8 @@ extern void set_start_addr(uint64_t addr);
 
 extern uint64_t get_start_addr(void);
 
+extern int32_t run_test_case(char *exec_path, char *file_path, char *file_extension);
+
 extern int32_t initial_fuzz_run(void);
 
 #endif

@@ -13,11 +13,13 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#ifndef NX_FILE_FREEBSD_H
-#define NX_FILE_FREEBSD_H
+#include "file.h"
 
-#include <stdint.h>
+int32_t run_test_case(char *exec_path, char *file_path, char *file_extension)
+{
+	(void)exec_path;
+	(void)file_path;
+	(void)file_extension;
 
-extern int32_t run_test_case(char *exec_path, char *file_path, char *file_extension);
-
-#endif
+	return (0);
+}

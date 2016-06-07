@@ -13,7 +13,7 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#include "file-mac.h"
+#include "file.h"
 #include "io/io.h"
 #include "memory/memory.h"
 #include "objc/objc-utils.h"
