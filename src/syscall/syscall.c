@@ -536,9 +536,6 @@ void create_syscall_children(void)
         {
             /* Start child process's loop. */
             start_child(i);
-
-            /* Exit and clean up. */
-            _exit(0);
         }
         else if(pid > 0)
         {
