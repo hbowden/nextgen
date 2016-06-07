@@ -14,7 +14,7 @@ SILENCED_WARNINGS = -Wno-padded \
 
 FLAGS = -DFREEBSD -shared -fno-strict-aliasing -fstack-protector-all -fPIC -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
 
-LIB = ../io/libnxio.so ../memory/libnxmemory.so \
+LIB = $(ROOT_DIR)/src/io/libnxio.so ../memory/libnxmemory.so \
       ../crypto/libnxcrypto.so ../concurrent/libnxconcurrent.so \
       ../network/libnxnetwork.so ../utils/libnxutils.so
 
@@ -42,9 +42,9 @@ endif
 ifeq ($(OPERATING_SYSTEM), Linux)
 
 FLAGS += -shared -fPIC
-LIB = ../io/libnxio.so ../memory/libnxmemory.so \
-      ../crypto/libnxcrypto.so ../concurrent/libnxconcurrent.so \
-      ../network/libnxnetwork.so ../utils/libnxutils.so
+LIB = $(ROOT_DIR)/src/io/libnxio.so $(ROOT_DIR)/src/memory/libnxmemory.so \
+      $(ROOT_DIR)/src/crypto/libnxcrypto.so $(ROOT_DIR)/src/concurrent/libnxconcurrent.so \
+      $(ROOT_DIR)/src/network/libnxnetwork.so $(ROOT_DIR)/src/utils/libnxutils.so
 
 LIB_NAME = libnxresource.so
 

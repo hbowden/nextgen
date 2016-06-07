@@ -139,26 +139,20 @@ CC = gcc
 
 FLAGS += -DLINUX -DCOMMON -Wextra -std=gnu99
 
-LIB = -Wl,-rpath=src/runtime,-rpath=src/memory,-rpath=src/utils,-rpath=src/io,-rpath=src/concurrent,-rpath=src/genetic,-rpath=src/mutate,-rpath=src/log,-rpath=src/network,-rpath=src/file,-rpath=src/syscall,-rpath=src/probe,-rpath=src/disas,-rpath=src/crypto,-rpath=src/plugins \
+LIB = -Wl,-rpath=src/runtime,-rpath=src/memory,-rpath=src/utils,-rpath=$(ROOT_DIR)/src/io,-rpath=src/concurrent,-rpath=src/genetic,-rpath=src/mutate,-rpath=src/log,-rpath=src/network,-rpath=src/file,-rpath=src/syscall,-rpath=src/probe,-rpath=src/disas,-rpath=deps/libressl-2.4.1/crypto/.libs,-rpath=/usr/local/lib,-rpath=src/crypto,-rpath=src/plugins \
       src/memory/libnxmemory.so \
-      src/io/libnxio.so \
+      $(ROOT_DIR)/src/io/libnxio.so \
       src/runtime/libnxruntime.so \
       src/utils/libnxutils.so \
       src/crypto/libnxcrypto.so \
       src/syscall/libnxsyscall.so \
-      deps/$(LIBRESSL)/crypto/.libs/libcrypto.so \
+      deps/$(LIBRESSL)/crypto/.libs/libcrypto.so.38 \
       deps/$(CK)/src/libck.so \
       deps/sqlite/sqlite3.so \
       -lpthread \
       -ldl
 
 MAKE = make
-
-endif
-
-ifeq ($(COVERAGE), true)
-
-FLAGS += -fprofile-arcs -ftest-coverage
 
 endif
 
@@ -246,6 +240,7 @@ clean-lib:
 install:
 
 	$(INSTALL)
+	cd deps/ck-0.5.1 && make install
 
 clean:
 

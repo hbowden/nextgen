@@ -41,7 +41,7 @@ ifeq ($(OPERATING_SYSTEM), Linux)
 SILENCED_WARNINGS =
 
 FLAGS += -shared -fPIC -fstack-protector-all
-LIB = ../io/libnxio.so ../memory/libnxmemory.so \
+LIB = $(ROOT_DIR)/src/io/libnxio.so $(ROOT_DIR)/src/memory/libnxmemory.so \
       ../../deps/$(LIBRESSL)/crypto/.libs/libcrypto.so
 
 LIB_NAME = libnxcrypto.so

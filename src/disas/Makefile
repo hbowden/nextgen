@@ -27,8 +27,8 @@ ifeq ($(OPERATING_SYSTEM), Linux)
 
 FLAGS += -shared -fPIC -fstack-protector-all
 
-LIB = ../io/libnxio.so ../memory/libnxmemory.so \
-      ../file/libnxfile.so ../../deps/capstone-3.0.4/libcapstone.a
+LIB = $(ROOT_DIR)/src/io/libnxio.so $(ROOT_DIR)/src/memory/libnxmemory.so \
+      $(ROOT_DIR)/src/file/libnxfile.so ../../deps/capstone-3.0.4/libcapstone.a
 
 SILENCED_WARNINGS += -Wno-unused-parameter
 

@@ -51,8 +51,8 @@ endif
 # Linux.
 ifeq ($(OPERATING_SYSTEM), Linux)
 FLAGS += -shared -fPIC -fstack-protector-all
-LIB = ../io/libnxio.so ../memory/libnxmemory.so \
-      ../utils/libnxutils.so 
+LIB = $(ROOT_DIR)/src/io/libnxio.so $(ROOT_DIR)/src/memory/libnxmemory.so \
+      $(ROOT_DIR)/src/utils/libnxutils.so 
 SOURCES += $(ROOT_DIR)/src/probe/probe-linux.c
 LIB_NAME = libnxprobe.so
 

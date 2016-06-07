@@ -39,7 +39,7 @@ ifeq ($(OPERATING_SYSTEM), Linux)
 
 SOURCES += $(ROOT_DIR)/src/concurrent/concurrent-common.c
 FLAGS += -shared -fPIC -fstack-protector-all
-LIB = ../../deps/$(CK)/src/libck.so ../io/libnxio.so
+LIB = ../../deps/$(CK)/src/libck.so $(ROOT_DIR)/src/io/libnxio.so
 LIB_NAME = libnxconcurrent.so
 
 endif

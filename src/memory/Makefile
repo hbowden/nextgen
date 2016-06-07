@@ -12,7 +12,7 @@ SILENCED_WARNINGS = -Wno-padded -Wno-cast-qual \
                     -Wno-used-but-marked-unused
 
 FLAGS = -DFREEBSD -shared -fno-strict-aliasing -fstack-protector-all -fPIC -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
-LIB = ../io/libnxio.so
+LIB = $(ROOT_DIR)/src/io/libnxio.so
 LIB_NAME = libnxmemory.so
 
 endif
@@ -30,7 +30,7 @@ endif
 ifeq ($(OPERATING_SYSTEM), Linux)
 
 FLAGS += -shared -fPIC -fstack-protector-all
-LIB = ../io/libnxio.so
+LIB = $(ROOT_DIR)/src/io/libnxio.so
 LIB_NAME = libnxmemory.so
 
 endif

@@ -50,11 +50,11 @@ INCLUDES = -I../ -I../../deps/$(CK)/include \
            
 SILENCED_WARNINGS = -Wno-unused-function -Wno-unused-parameter
 FLAGS += -shared -fPIC
-LIB = ../io/libnxio.so ../memory/libnxmemory.so \
-      ../crypto/libnxcrypto.so ../concurrent/libnxconcurrent.so \
-      ../network/libnxnetwork.so ../utils/libnxutils.so \
-      ../probe/libnxprobe.so ../resource/libnxresource.so \
-      ../mutate/libnxmutate.so ../log/libnxlog.so \
+LIB = $(ROOT_DIR)/src/io/libnxio.so $(ROOT_DIR)/src/memory/libnxmemory.so \
+      $(ROOT_DIR)/src/crypto/libnxcrypto.so $(ROOT_DIR)/src/concurrent/libnxconcurrent.so \
+      $(ROOT_DIR)/src/network/libnxnetwork.so $(ROOT_DIR)/src/utils/libnxutils.so \
+      $(ROOT_DIR)/src/probe/libnxprobe.so $(ROOT_DIR)/src/resource/libnxresource.so \
+      $(ROOT_DIR)/src/mutate/libnxmutate.so $(ROOT_DIR)/src/log/libnxlog.so \
       ../../deps/$(CK)/src/libck.so
 
 LIB_NAME = libnxsyscall.so

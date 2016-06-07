@@ -44,8 +44,8 @@ ifeq ($(OPERATING_SYSTEM), Linux)
 SILENCED_WARNINGS = -Wno-padded
 
 FLAGS += -shared -fPIC -fstack-protector-all
-LIB = ../io/libnxio.so ../memory/libnxmemory.so \
-      ../crypto/libnxcrypto.so
+LIB = $(ROOT_DIR)/src/io/libnxio.so $(ROOT_DIR)/src/memory/libnxmemory.so \
+      $(ROOT_DIR)/src/crypto/libnxcrypto.so
 
 SOURCES += network-linux.c
 

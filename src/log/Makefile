@@ -38,7 +38,7 @@ ifeq ($(OPERATING_SYSTEM), Linux)
 
 FLAGS = -DLINUX -DCOMMON -shared -fno-strict-aliasing -fstack-protector-all -fPIC -Wall -Werror -Wextra -g -O3 -std=c99
 
-LIB = ../io/libnxio.so ../memory/libnxmemory.so $(ROOT_DIR)/deps/sqlite/sqlite3.so
+LIB = $(ROOT_DIR)/src/io/libnxio.so $(ROOT_DIR)/src/memory/libnxmemory.so $(ROOT_DIR)/deps/sqlite/sqlite3.so
       
 SOURCES += $(ROOT_DIR)/src/log/log-freebsd.c
 

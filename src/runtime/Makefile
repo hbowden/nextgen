@@ -40,13 +40,13 @@ ifeq ($(OPERATING_SYSTEM), Linux)
 
 SILENCED_WARNINGS = -Wno-unused-parameter
 FLAGS += -shared -fPIC
-LIB = ../io/libnxio.so ../memory/libnxmemory.so \
-      ../utils/libnxutils.so ../concurrent/libnxconcurrent.so \
-      ../mutate/libnxmutate.so ../log/libnxlog.so \
-      ../crypto/libnxcrypto.so ../syscall/libnxsyscall.so \
-      ../disas/libnxdisas.so ../probe/libnxprobe.so \
-      ../genetic/libnxgenetic.so ../plugins/libnxplugin.so \
-      ../resource/libnxresource.so ../file/libnxfile.so \
+LIB = $(ROOT_DIR)/src/io/libnxio.so $(ROOT_DIR)/src/memory/libnxmemory.so \
+      $(ROOT_DIR)/src/utils/libnxutils.so $(ROOT_DIR)/src/concurrent/libnxconcurrent.so \
+      $(ROOT_DIR)/src/mutate/libnxmutate.so $(ROOT_DIR)/src/log/libnxlog.so \
+      $(ROOT_DIR)/src/crypto/libnxcrypto.so $(ROOT_DIR)/src/syscall/libnxsyscall.so \
+      $(ROOT_DIR)/src/disas/libnxdisas.so $(ROOT_DIR)/src/probe/libnxprobe.so \
+      $(ROOT_DIR)/src/genetic/libnxgenetic.so $(ROOT_DIR)/src/plugins/libnxplugin.so \
+      $(ROOT_DIR)/src/resource/libnxresource.so $(ROOT_DIR)/src/file/libnxfile.so \
       ../../deps/$(CK)/src/libck.so
 
 LIB_NAME = libnxruntime.so

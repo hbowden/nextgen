@@ -34,10 +34,10 @@ endif
 ifeq ($(OPERATING_SYSTEM), Linux)
 
 FLAGS += -shared -fPIC -fstack-protector-all
-LIB = ../io/libnxio.so ../memory/libnxmemory.so \
-      ../utils/libnxutils.so ../concurrent/libnxconcurrent.so \
-      ../mutate/libnxmutate.so ../log/libnxlog.so \
-      ../crypto/libnxcrypto.so 
+LIB = $(ROOT_DIR)/src/io/libnxio.so $(ROOT_DIR)/src/memory/libnxmemory.so \
+      $(ROOT_DIR)/src/utils/libnxutils.so $(ROOT_DIR)/src/concurrent/libnxconcurrent.so \
+      $(ROOT_DIR)/src/mutate/libnxmutate.so $(ROOT_DIR)/src/log/libnxlog.so \
+      $(ROOT_DIR)/src/crypto/libnxcrypto.so 
 
 LIB_NAME = libnxfile.so
 
