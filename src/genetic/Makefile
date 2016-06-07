@@ -28,6 +28,18 @@ LIB_NAME = libnxgenetic.so
 
 endif
 
+ifeq ($(OPERATING_SYSTEM), Linux)
+           
+FLAGS = -DLINUX -DCOMMON -shared -fno-strict-aliasing -fPIC -Wall -Werror -Wextra -Wpedantic -g -O3 -std=c99
+
+LIB = ../io/libnxio.so ../memory/libnxmemory.so \
+      ../crypto/libnxcrypto.so ../syscall/libnxsyscall.so \
+      ../concurrent/libnxconcurrent.so
+
+LIB_NAME = libnxgenetic.so
+
+endif
+
 # Mac OSX build options.
 ifeq ($(OPERATING_SYSTEM), Darwin)
            
