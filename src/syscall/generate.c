@@ -43,6 +43,7 @@
 #ifdef LINUX
 
 #include <sys/vfs.h>
+#include <sys/sysmacros.h>
 
 #endif
 
@@ -679,6 +680,17 @@ int32_t generate_mount_flags(uint64_t **flag, struct child_ctx *ctx)
     uint32_t range = 5;
 
 #endif
+#ifdef LINUX
+
+    int32_t flags[] = {MS_BIND, MS_DIRSYNC, MS_MANDLOCK,
+                       MS_MOVE, MS_NOATIME, MS_NODEV,
+                       MS_NODIRATIME, MS_NOEXEC, MS_NOSUID,
+                       MS_RDONLY, MS_RELATIME, MS_REMOUNT, 
+                       MS_REMOUNT, MS_SILENT};
+
+    uint32_t range = 14;
+
+#endif
     (*flag) = mem_alloc(sizeof(uint64_t));
     if((*flag) == NULL)
     {
@@ -721,6 +733,17 @@ int32_t generate_unmount_flags(uint64_t **flag, struct child_ctx *ctx)
                        MNT_SYNCHRONOUS};
 
     uint32_t range = 5;
+
+#endif
+#ifdef LINUX
+
+    int32_t flags[] = {MS_BIND, MS_DIRSYNC, MS_MANDLOCK,
+                       MS_MOVE, MS_NOATIME, MS_NODEV,
+                       MS_NODIRATIME, MS_NOEXEC, MS_NOSUID,
+                       MS_RDONLY, MS_RELATIME, MS_REMOUNT, 
+                       MS_REMOUNT, MS_SILENT};
+
+    uint32_t range = 14;
 
 #endif
 
@@ -774,6 +797,21 @@ int32_t generate_request(uint64_t **flag, struct child_ctx *ctx)
 
     uint32_t range = 28;
 
+#endif
+#ifdef LINUX
+
+    int32_t request[] = {
+        PTRACE_TRACEME, PTRACE_PEEKTEXT,
+        PTRACE_PEEKDATA, PTRACE_PEEKUSER,
+        PTRACE_POKETEXT, PTRACE_POKEDATA,
+        PTRACE_POKEUSER, PTRACE_GETREGS,
+        PTRACE_GETFPREGS, PTRACE_GETREGSET,
+        PTRACE_SETREGS, PTRACE_SETFPREGS,
+        PTRACE_SETREGSET, PTRACE_GETSIGINFO,
+        PTRACE_PEEKSIGINFO, PTRACE_SETOPTIONS,
+    };
+
+    int32_t range = 16;
 #endif
 
     (*flag) = mem_alloc(sizeof(uint64_t));
@@ -849,7 +887,15 @@ int32_t generate_dev(uint64_t **dev, struct child_ctx *ctx)
         return (-1);
     }
 
-    dev_t device;
+#ifdef LINUX
+
+    dev_t device = makedev(10, 2);
+
+#else
+
+    dev_t device = 0;
+
+#endif
 
     memmove((*dev), &device, sizeof(dev_t));
 
@@ -1064,6 +1110,8 @@ int32_t generate_amode(uint64_t **amode, struct child_ctx *ctx)
     return (0);
 }
 
+#ifndef LINUX
+
 int32_t generate_chflags(uint64_t **flag, struct child_ctx *ctx)
 {
     int32_t rtrn = 0;
@@ -1126,3 +1174,5 @@ int32_t generate_chflags(uint64_t **flag, struct child_ctx *ctx)
 
     return (0);
 }
+
+#endif

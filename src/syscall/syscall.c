@@ -580,7 +580,7 @@ struct syscall_table *get_syscall_table(void)
     uint32_t i, ii;
 
     /* Allocate heap memory for the list of syscalls. */
-    table->sys_entry = mem_alloc(table->number_of_syscalls * sizeof(struct syscall_entry *));
+    table->sys_entry = mem_alloc(table->number_of_syscalls * sizeof(struct syscall_entry));
     if(table->sys_entry == NULL)
     {
         output(ERROR, "Can't create entry index\n");
@@ -591,10 +591,8 @@ struct syscall_table *get_syscall_table(void)
        instead of [0] on syscall_tables. */
     uint32_t offset = 1;
 
-    uint32_t loops = table->number_of_syscalls;
-
     /* Loop for each entry syscall and build a table from the on disk format. */
-    for(i = 0; i < loops; i++)
+    for(i = 0; i < table->number_of_syscalls; i++)
     {
         /* Check if the syscall is OFF, this is usually for syscalls in development. */
         if(syscall_table[i + offset].sys_entry->status == OFF)
@@ -604,48 +602,35 @@ struct syscall_table *get_syscall_table(void)
         }
 
         /* Create and intialize the const value for a syscall entry. */
-        struct syscall_entry entry_obj = {
-            .total_args =
-                syscall_table[i + offset].sys_entry->total_args,
-            .syscall_name =
-                syscall_table[i + offset].sys_entry->syscall_name
+        struct syscall_entry entry = {
+            .total_args = syscall_table[i + offset].sys_entry->total_args,
+            .syscall_name = syscall_table[i + offset].sys_entry->syscall_name
         };
 
-        struct syscall_entry *entry = NULL;
-
-        entry = mem_alloc(sizeof(struct syscall_entry));
-        if(entry == NULL)
-        {
-            output(ERROR, "Can't create syscall entry\n");
-            return (NULL);
-        }
-
-        memmove(entry, &entry_obj, sizeof(struct syscall_entry));
-
         /* Loop for each arg and set the arg array's. */
-        for(ii = 0; ii < entry->total_args; ii++)
+        for(ii = 0; ii < entry.total_args; ii++)
         {
             /* Set the get argument function pointers. */
-            entry->get_arg_array[ii] =
+            entry.get_arg_array[ii] =
                 syscall_table[i + offset].sys_entry->get_arg_array[ii];
 
             /* Set argument type context structs. */
-            entry->arg_context_array[ii] =
+            entry.arg_context_array[ii] =
                 get_arg_context((enum arg_type)syscall_table[i + 1]
                                     .sys_entry->arg_type_array[ii]);
-            if(entry->arg_context_array[ii] == NULL)
+            if(entry.arg_context_array[ii] == NULL)
             {
                 output(ERROR, "Can't get arg context\n");
                 return (NULL);
             }
         }
 
-        entry->status = ON;
+        entry.status = ON;
 
-        set_test_syscall(entry, syscall_table[i + offset].sys_entry->id);
+        set_test_syscall(&entry, syscall_table[i + offset].sys_entry->id);
 
         /* Set the newly created entry in the index. */
-        table->sys_entry[i] = (*entry);
+        memmove(&table->sys_entry[i], &entry, sizeof(struct syscall_entry));
 
     } /* End of loop. */
 

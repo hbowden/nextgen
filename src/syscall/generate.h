@@ -83,6 +83,10 @@ extern int32_t generate_socklen(uint64_t **len, struct child_ctx *ctx);
 
 extern int32_t generate_amode(uint64_t **amode, struct child_ctx *ctx);
 
+#ifndef LINUX
+
 extern int32_t generate_chflags(uint64_t **flag, struct child_ctx *ctx);
+
+#endif
 
 #endif
