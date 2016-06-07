@@ -17,7 +17,6 @@
 #define SYSCALL_H
 
 #include <stdint.h>
-#include "stdatomic.h"
 #include "context.h"
 #include "concurrent/concurrent.h"
 
@@ -59,8 +58,8 @@ extern void create_syscall_children(void);
 
 extern void kill_all_children(void);
 
-extern int32_t setup_syscall_module(atomic_int_fast32_t *stop_ptr, 
-	                                atomic_uint_fast64_t *counter,
+extern int32_t setup_syscall_module(int32_t *stop_ptr, 
+	                                uint64_t *counter,
 	                                int32_t run_mode);
 
 extern void start_main_syscall_loop(void);

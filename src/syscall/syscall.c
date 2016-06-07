@@ -120,7 +120,7 @@ static int32_t get_child_index_number(uint32_t *index_num)
     /* Walk child array until our PID matches the one in the context struct. */
     for(i = 0; i < number_of_children; i++)
     {
-        if(atomic_load(&children[i]->pid) == pid)
+        if(children[i]->pid == pid)
         {
             /* The PIDS match so set the index number and exit the function. */
             (*index_num) = i;
@@ -398,7 +398,7 @@ NX_NO_RETURN static void start_smart_syscall_child(void)
     }
 
     /* Loop until ctrl-c is pressed by the user. */
-    while(atomic_load(stop) != TRUE)
+    while((*stop) != TRUE)
     {
         struct job_ctx *job = NULL;
 
@@ -428,7 +428,7 @@ struct child_ctx *get_child_ctx_from_pid(pid_t pid)
 
     for(i = 0; i < number_of_children; i++)
     {
-        if(atomic_load(&children[i]->pid) == pid)
+        if(children[i]->pid == pid)
             return (children[i]);
     }
 
@@ -510,7 +510,7 @@ NX_NO_RETURN static void start_syscall_child(void)
     }
 
     /* Check if we should stop or continue running. */
-    while(atomic_load(stop) != TRUE)
+    while((*stop) != TRUE)
     {
         /* Randomly pick the syscall to test. */
         rtrn = pick_syscall(ctx);
@@ -656,7 +656,7 @@ void create_syscall_children(void)
     for(i = 0; i < number_of_children; i++)
     {
         /* If the child does not have a pid of EMPTY let's create a new one. */
-        if(atomic_load(&children[i]->pid) != EMPTY)
+        if(children[i]->pid != EMPTY)
             continue;
 
         msg_port_t port = 0;
@@ -897,7 +897,7 @@ void kill_all_children(void)
 
     for(i = 0; i < number_of_children; i++)
     {
-        rtrn = kill(atomic_load(&children[i]->pid), SIGKILL);
+        rtrn = kill(children[i]->pid, SIGKILL);
         if(rtrn < 0)
         {
             output(ERROR, "Can't kill child: %s\n", strerror(errno));
@@ -916,7 +916,7 @@ void start_main_syscall_loop(void)
     setup_signal_handler();
 
     /* Check if we should stop or continue running. */
-    while(atomic_load(stop) == FALSE)
+    while((*stop) == FALSE)
     {
         /* Check if we have the right number of children processes running, if not create a new ones until we do. */
         if(atomic_load(&running_children) < number_of_children)
@@ -943,7 +943,6 @@ static struct child_ctx *init_child_context(void)
 
     /* Set current arg to zero. */
     child->current_arg = 0;
-    atomic_init(&child->pid, EMPTY);
 
     /* Create the index where we store the syscall arguments. */
     child->arg_value_array = mem_alloc(ARG_LIMIT * sizeof(uint64_t *));
@@ -999,8 +998,8 @@ static struct child_ctx *init_child_context(void)
     return (child);
 }
 
-int32_t setup_syscall_module(atomic_int_fast32_t *stop_ptr,
-                             atomic_uint_fast64_t *counter, int32_t run_mode)
+int32_t setup_syscall_module(int32_t *stop_ptr,
+                             uint64_t *counter, int32_t run_mode)
 {
     uint32_t i = 0;
     int32_t rtrn = 0;
