@@ -135,6 +135,12 @@ int32_t get_core_count(uint32_t *core_count)
 
 int32_t generate_name(char **name, char *extension, enum name_type type)
 {
+    if(extension == NULL)
+    {
+        output(ERROR, "File extension is NULL\n");
+        return (-1);
+    }
+
     /* Declare some variables. */
     int32_t rtrn = 0;
     char *random_data auto_free = NULL;
