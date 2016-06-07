@@ -85,22 +85,7 @@ PLATFORM = -DLINUX
 
 CC = gcc
 
-LIB = -rpath src/runtime \
-      -rpath src/memory \
-      -rpath src/utils \
-      -rpath src/io \
-      -rpath src/concurrent \
-      -rpath src/genetic \
-      -rpath src/mutate \
-      -rpath src/log \
-      -rpath src/network \
-      -rpath src/file \
-      -rpath src/syscall \
-      -rpath src/probe \
-      -rpath src/disas \
-      -rpath src/crypto \
-      -rpath src/plugins \
-      -rpath src/resource \
+LIB = -Wl,-rpath=src/runtime,-rpath=src/memory,-rpath=src/utils,-rpath=src/io,-rpath=src/concurrent,-rpath=src/genetic,-rpath=src/mutate,-rpath=src/log,-rpath=src/network,-rpath=src/file,-rpath=src/syscall,-rpath=src/probe,-rpath=src/disas,-rpath=src/crypto,-rpath=src/plugins \
       src/memory/libnxmemory.so \
       src/io/libnxio.so \
       src/runtime/libnxruntime.so \
@@ -109,19 +94,13 @@ LIB = -rpath src/runtime \
       src/syscall/libnxsyscall.so \
       deps/$(LIBRESSL)/crypto/.libs/libcrypto.so \
       deps/$(CK)/src/libck.so \
-     -l dtrace -l proc -l ctf -l elf -l z -l rtld_db -l pthread -l util
-
-INCLUDE += -I /usr/src/cddl/compat/opensolaris/include \
-	       -I /usr/src/cddl/contrib/opensolaris/lib/libdtrace/common/ \
-	       -I /usr/src/sys/cddl/compat/opensolaris \
-	       -I /usr/src/sys/cddl/contrib/opensolaris/uts/common/
+      deps/sqlite/sqlite3.so \
+      -lpthread \
+      -ldl
 
 MAKE = make
 
-FLAGS = -DLINUX -Wall -Werror -Weverything -g -O3 -std=c99
-
-SILENCED_WARNINGS = 
-
+FLAGS = -DLINUX -DCOMMON -Wall -Werror -Wextra -g -O3 -std=c99
 
 endif
 

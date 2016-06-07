@@ -13,6 +13,16 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
+#ifdef LINUX
+
+/* We need to define _GNU_SOURCE to use
+ asprintf on Linux. We also need to place
+ _GNU_SOURCE at the top of the file before
+ any other includes for it to work properly. */
+#define _GNU_SOURCE
+
+#endif
+
 #include "nextgen.h"
 #include "crypto/crypto.h"
 #include "file/file.h"
@@ -22,7 +32,6 @@
 #include "resource/resource.h"
 #include "runtime/runtime.h"
 
-#include <dtrace.h>
 #include <errno.h>
 #include <getopt.h>
 #include <stdint.h>
@@ -293,6 +302,7 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
 
             case 'p':
                 pFlag = TRUE;
+                (void)pFlag;
                 break;
 
             case 'a':

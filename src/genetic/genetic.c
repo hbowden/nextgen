@@ -283,18 +283,17 @@ static void *god_loop(void *arg)
 }
 
 int32_t setup_genetic_module(enum genetic_mode mode, 
-                             pthread_t thread,
+                             pthread_t *thread,
                              int32_t *stop_ptr)
 {
     int32_t rtrn = 0;
 
-    rtrn = pthread_create(&thread, NULL, god_loop, NULL);
+    rtrn = pthread_create(thread, NULL, god_loop, NULL);
     if(rtrn < 0)
     {
         output(ERROR, "Can't create thread\n");
         return (-1);
     }
-
 
     run_mode = mode;
     stop = stop_ptr;

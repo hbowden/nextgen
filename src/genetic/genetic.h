@@ -24,7 +24,7 @@
 enum genetic_mode { FILE_FUZZING, SYSCALL_FUZZING, NETWORK_FUZZING };
 
 extern int32_t setup_genetic_module(enum genetic_mode mode,
-	                                pthread_t thread,
+	                                pthread_t *thread,
 	                                int32_t *stop_ptr);
 
 #endif

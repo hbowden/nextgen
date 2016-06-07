@@ -13,6 +13,16 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
+#ifdef LINUX
+
+/* We need to define _GNU_SOURCE to use
+ asprintf on Linux. We also need to place
+ _GNU_SOURCE at the top of the file before
+ any other includes for it to work properly. */
+#define _GNU_SOURCE
+
+#endif
+
 #include "runtime.h"
 #include "concurrent/concurrent.h"
 #include "crypto/crypto.h"
@@ -206,8 +216,6 @@ static int32_t setup_syscall_mode_runtime(void)
         /* Do init work specific to smart mode. */
         output(STD, "Starting syscall fuzzer in smart mode\n");
 
-        pid_t pid = 0;
-
         /* Setup the resource module. */
         rtrn = setup_resource_module(CACHE, "/tmp");
         if(rtrn < 0)
@@ -234,7 +242,7 @@ static int32_t setup_syscall_mode_runtime(void)
         }
 
         /* Start the genetic algorithm. */
-        rtrn = setup_genetic_module(SYSCALL_FUZZING, &pid, &map->stop);
+        rtrn = setup_genetic_module(SYSCALL_FUZZING, &map->gen_algo_thread, &map->stop);
         if(rtrn < 0)
         {
             output(ERROR, "Can't setup the genetic module\n");

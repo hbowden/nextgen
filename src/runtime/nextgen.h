@@ -23,6 +23,7 @@
 #include "concurrent/concurrent.h"
 #include "syscall/syscall_table.h"
 
+#include <pthread.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -64,8 +65,8 @@ struct shared_map
     /* Counter for the number of fuzz test perform. */
     uint32_t test_counter;
 
-    /* Explicit padding to silence warning on clang. */
-    const char padding[4];
+    /* The thread that the genetic algo lives in. */
+    pthread_t gen_algo_thread;
 };
 
 extern struct shared_map *map;
