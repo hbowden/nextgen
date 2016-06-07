@@ -43,8 +43,8 @@ struct shared_map
     enum crypto_method method;
 
     /* The input and output directory paths. */
-    char *path_to_in_dir;
-    char *path_to_out_dir;
+    char *input_path;
+    char *output_path;
 
     /* Path to target executable. */
     char *exec_path;
