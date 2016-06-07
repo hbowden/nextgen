@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 2.6)
-project (Nextgen)
+project (Nextgen C)
 set(CMAKE_BUILD_TYPE Release)
 
 # Check the compiler and set compiler specific options.
@@ -145,6 +145,8 @@ target_link_libraries(nxresource nxnetwork)
 target_link_libraries(nxresource nxio)
 target_link_libraries(nxresource nxmemory)
 
+link_directories(${CMAKE_SOURCE_DIR}/deps/sqlite)
+
 if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
    add_library(nxlog SHARED src/log/log.c src/log/log-freebsd.c)
    target_link_libraries(nxlog ${CMAKE_SOURCE_DIR}/deps/sqlite/sqlite3.so)
@@ -153,10 +155,8 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
    target_link_libraries(nxlog ${CMAKE_SOURCE_DIR}/deps/sqlite/libsqlite3.0.dylib)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
    add_library(nxlog SHARED src/log/log.c src/log/log-freebsd.c)
-   target_link_libraries(nxlog ${CMAKE_SOURCE_DIR}/deps/sqlite/libsqlite3.so)
+   target_link_libraries(nxlog sqlite3)
 endif()
-
-link_directories(${CMAKE_SOURCE_DIR}/deps/sqlite)
 
 target_link_libraries(nxlog nxio)
 target_link_libraries(nxlog nxmemory)
