@@ -1,3 +1,5 @@
+
+
 /**
  * Copyright (c) 2016, Harrison Bowden, Minneapolis, MN
  * 
@@ -13,13 +15,10 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#ifndef NX_DISAS_FREEBSD_H
-#define NX_DISAS_FREEBSD_H
+#include "disas.h"
 
-#include <stdint.h>
-
-extern int32_t get_load_address(uint64_t *main_addr);
-
-#endif
-
-
+int32_t get_load_address(uint64_t *main_addr)
+{ 
+	(void)main_addr;
+	return (0); 
+}

@@ -13,7 +13,7 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#include "disas-freebsd.h"
+#include "disas.h"
 #include "file/file.h"
 #include "io/io.h"
 

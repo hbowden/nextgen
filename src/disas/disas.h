@@ -18,15 +18,7 @@
 
 #include <stdint.h>
 
-#ifdef FREEBSD
-
-#include "disas-freebsd.h"
-
-#elif MAC_OSX
-
-#include "disas-mac.h"
-
-#endif
+extern int32_t get_load_address(uint64_t *main_addr);
 
 extern int32_t disas_executable_and_examine(void);
 

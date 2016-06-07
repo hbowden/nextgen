@@ -15,7 +15,7 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#include "disas-mac.h"
+#include "disas.h"
 
 int32_t get_load_address(uint64_t *main_addr)
 { 
