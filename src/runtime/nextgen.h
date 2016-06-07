@@ -55,7 +55,7 @@ struct shared_map
     /* The PID of the target app being file fuzzed. */
     int32_t target_pid;
 
-    /* An atomic value used to tell the various processes whether to run or not. */
+    /* An value used to tell the various processes whether to run or not. */
     int32_t stop;
 
     /* If this mode is FALSE then we don't use the binary feedback and genetic algorithm. */
