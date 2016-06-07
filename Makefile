@@ -4,7 +4,7 @@ ROOT_DIR = $(shell pwd)
 COVERAGE = false
 ASAN = false
 
-FLAGS = -fno-strict-aliasing -fstack-protector-all -Wall -Werror -pedantic -g -O3
+FLAGS = -fsanitize=address -fno-strict-aliasing -fstack-protector-all -Wall -Werror -pedantic -g -O3
 
 CK = ck-0.5.1
 LIBRESSL = libressl-2.4.1
