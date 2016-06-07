@@ -21,7 +21,6 @@
 #include "syscall/syscall.h"
 #include "syscall/syscall_table.h"
 
-#include <dtrace.h>
 #include <errno.h>
 #include <string.h>
 
