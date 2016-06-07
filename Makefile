@@ -232,10 +232,6 @@ test-concurrent:
 
 	./test_suite concurrent
 
-format:
-
-	$(FORMAT_SOURCE)
-
 clean-lib:
 
 	rm -rf src/runtime/libnxruntime.dylib.dSYM
