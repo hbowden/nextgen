@@ -23,7 +23,6 @@
 
 #include <errno.h>
 #include <string.h>
-#include <pthread.h>
 
 #define SPECIES_POP 1000
 
