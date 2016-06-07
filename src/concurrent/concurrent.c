@@ -33,7 +33,7 @@ void cas_loop_int32(int32_t *target, int32_t value)
     while(1)
     {
         /* Grab a snapshot of the value that needs to be updated. */
-        int32_t snapshot = atomic_load(target);
+        int32_t snapshot = (*target);
 
         /* Try swaping the variable if successful break from the loop. */
         if(ck_pr_cas_int(target, snapshot, value) == true)
@@ -48,7 +48,7 @@ void cas_loop_uint32(uint32_t *target, uint32_t value)
     while(1)
     {
         /* Grab a snapshot of the value that needs to be updated. */
-        uint32_t snapshot = atomic_load(target);
+        uint32_t snapshot = (*target);
 
         /* Try swaping the variable if successful break from the loop. */
         if(ck_pr_cas_uint(target, snapshot, value) == true)
