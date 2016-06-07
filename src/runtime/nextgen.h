@@ -56,7 +56,7 @@ struct shared_map
     int32_t target_pid;
 
     /* An atomic value used to tell the various processes whether to run or not. */
-    atomic_int_fast32_t stop;
+    int32_t stop;
 
     /* If this mode is FALSE then we don't use the binary feedback and genetic algorithm. */
     int32_t smart_mode;
