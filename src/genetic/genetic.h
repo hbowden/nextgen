@@ -19,11 +19,12 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <pthread.h>
 
 enum genetic_mode { FILE_FUZZING, SYSCALL_FUZZING, NETWORK_FUZZING };
 
 extern int32_t setup_genetic_module(enum genetic_mode mode,
-	                                pid_t *pid,
+	                                pthread_t thread,
 	                                int32_t *stop_ptr);
 
 #endif

@@ -23,6 +23,7 @@
 
 #include <errno.h>
 #include <string.h>
+#include <pthread.h>
 
 #define SPECIES_POP 1000
 
@@ -260,33 +261,17 @@ static int32_t genesis(void)
     return (0);
 }
 
-static void god_loop(msg_port_t port)
+static void *god_loop(void *arg)
 {
+    (void)arg;
     int32_t rtrn = 0;
-    msg_port_t parent_port = 0;
-
-    /* Create message port. */
-    rtrn = init_msg_port(&parent_port);
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't initialize message port\n");
-        return;
-    }
-
-    /* Send our parent our message port. */
-    rtrn = send_port(port, parent_port);
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't send parent our message port\n");
-        return;
-    }
 
     /* genesis() init's all the needed data structures and creates the first population. */
     rtrn = genesis();
     if(rtrn < 0)
     {
         output(ERROR, "Can't init ga\n");
-        return;
+        return (NULL);
     }
 
     /* Start main loop for the genetic algorithm.
@@ -295,37 +280,23 @@ static void god_loop(msg_port_t port)
     {
     }
 
-    return;
+    return (NULL);
 }
 
-static int32_t start_genetic_algo_runtime(msg_port_t port, void *arg)
-{
-    /* Start main genetic algo loop. */
-    god_loop(port);
-
-    /* Silence clang. */
-    (void)arg;
-
-    /* Exit and cleanup. */
-    _exit(0);
-}
-
-int32_t setup_genetic_module(enum genetic_mode mode, pid_t *pid,
+int32_t setup_genetic_module(enum genetic_mode mode, 
+                             pthread_t thread,
                              int32_t *stop_ptr)
 {
     int32_t rtrn = 0;
-    pid_t god_pid = 0;
-    msg_port_t port = 0;
 
-    /* Fork and create the genetic algo process. */
-    god_pid = fork_pass_port(&port, start_genetic_algo_runtime, NULL);
-    if(god_pid < 0)
+    rtrn = pthread_create(&thread, NULL, god_loop, NULL);
+    if(rtrn < 0)
     {
-        output(ERROR, "Failed to fork god process: %s\n", strerror(errno));
+        output(ERROR, "Can't create thread\n");
         return (-1);
     }
-    
-    (*pid) = god_pid;
+
+
     run_mode = mode;
     stop = stop_ptr;
 
