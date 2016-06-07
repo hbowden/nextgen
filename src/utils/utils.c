@@ -135,7 +135,7 @@ int32_t get_core_count(uint32_t *core_count)
 
 int32_t generate_name(char **name, char *extension, enum name_type type)
 {
-    if(extension == NULL)
+    if(extension == NULL && type != DIR_NAME)
     {
         output(ERROR, "File extension is NULL\n");
         return (-1);
@@ -173,7 +173,7 @@ int32_t generate_name(char **name, char *extension, enum name_type type)
         return (-1);
     }
 
-    char *pointer = strrchr(extension, '.');
+    char *pointer = NULL;
 
     switch((int32_t)type)
     {
@@ -187,6 +187,8 @@ int32_t generate_name(char **name, char *extension, enum name_type type)
             break;
 
         case FILE_NAME:
+
+            pointer = strrchr(extension, '.');
 
             /* Check for a period in the extension string passed by the user. */
             if(pointer == NULL)
