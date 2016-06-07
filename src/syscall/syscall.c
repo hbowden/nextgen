@@ -34,8 +34,6 @@
 #include <errno.h>
 #include <string.h>
 
-#include "stdatomic.h"
-
 /* The total number of children process to run. */
 uint32_t number_of_children;
 
@@ -44,10 +42,10 @@ uint32_t number_of_children;
 static struct child_ctx **children;
 
 /* The number of children processes currently running. */
-static atomic_uint_fast64_t running_children;
+static uint32_t running_children;
 
 /* Counter for number of syscall test that have been completed. */
-static atomic_uint_fast64_t *test_counter;
+static uint32_t *test_counter;
 
 /* The syscall table. */
 static struct syscall_table_shadow *sys_table;
@@ -120,7 +118,7 @@ static int32_t get_child_index_number(uint32_t *index_num)
     /* Walk child array until our PID matches the one in the context struct. */
     for(i = 0; i < number_of_children; i++)
     {
-        if(children[i]->pid == pid)
+        if(ck_pr_load_int(&children[i]->pid) == pid)
         {
             /* The PIDS match so set the index number and exit the function. */
             (*index_num) = i;
@@ -156,7 +154,7 @@ NX_NO_RETURN static void exit_child(void)
     cas_loop_int32(&ctx->pid, EMPTY);
 
     /* Decrement the running child counter. */
-    atomic_fetch_sub(&running_children, 1);
+    ck_pr_dec_uint(&running_children);
 
     /* Exit and cleanup child. */
     _exit(0);
@@ -398,7 +396,7 @@ NX_NO_RETURN static void start_smart_syscall_child(void)
     }
 
     /* Loop until ctrl-c is pressed by the user. */
-    while((*stop) != TRUE)
+    while(ck_pr_load_int(stop) != TRUE)
     {
         struct job_ctx *job = NULL;
 
@@ -614,7 +612,7 @@ static int32_t init_syscall_child(uint32_t i)
     }
 
     /* Increment the running child counter. */
-    atomic_fetch_add(&running_children, 1);
+    ck_pr_add_uint(&running_children, 1);
 
     return (0);
 }
@@ -871,7 +869,7 @@ int32_t test_syscall(struct child_ctx *ctx)
 
     /* Do the add before the syscall test because we usually crash on the syscall test
     and we don't wan't to do this in a signal handler. */
-    atomic_fetch_add(test_counter, 1);
+    ck_pr_add_uint(test_counter, 1);
 
     /* Set the time of the syscall test. */
     (void)gettimeofday(&ctx->time_of_syscall, NULL);
@@ -897,7 +895,9 @@ void kill_all_children(void)
 
     for(i = 0; i < number_of_children; i++)
     {
-        rtrn = kill(children[i]->pid, SIGKILL);
+        int32_t pid = ck_pr_load_int(&children[i]->pid);
+
+        rtrn = kill(pid, SIGKILL);
         if(rtrn < 0)
         {
             output(ERROR, "Can't kill child: %s\n", strerror(errno));
@@ -919,7 +919,7 @@ void start_main_syscall_loop(void)
     while((*stop) == FALSE)
     {
         /* Check if we have the right number of children processes running, if not create a new ones until we do. */
-        if(atomic_load(&running_children) < number_of_children)
+        if(ck_pr_load_uint(&running_children) < number_of_children)
         {
             /* Create children process. */
             create_syscall_children();
@@ -999,13 +999,14 @@ static struct child_ctx *init_child_context(void)
 }
 
 int32_t setup_syscall_module(int32_t *stop_ptr,
-                             uint64_t *counter, int32_t run_mode)
+                             uint32_t *counter, 
+                             int32_t run_mode)
 {
     uint32_t i = 0;
     int32_t rtrn = 0;
 
     /* Set running children to zero. */
-    atomic_init(&running_children, 0);
+    ck_pr_store_uint(&running_children, 0);
 
     /* Grab the core count of the machine we are on and set the number
     of syscall children to the core count. */

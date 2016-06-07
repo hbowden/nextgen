@@ -59,7 +59,7 @@ extern void create_syscall_children(void);
 extern void kill_all_children(void);
 
 extern int32_t setup_syscall_module(int32_t *stop_ptr, 
-	                                uint64_t *counter,
+	                                uint32_t *counter,
 	                                int32_t run_mode);
 
 extern void start_main_syscall_loop(void);
