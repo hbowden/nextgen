@@ -109,7 +109,7 @@ static int32_t init_world(void)
 
     uint32_t i;
 
-    for(i = 0; i < world->number_of_species; i++)
+    for(i = 0; i < world->number_of_species - 1; i++)
     {
         struct species_ctx ctx = {
 
