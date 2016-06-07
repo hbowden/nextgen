@@ -28,8 +28,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "stdatomic.h"
-
 struct parser_ctx;
 
 enum fuzz_mode { MODE_FILE, MODE_SYSCALL, MODE_NETWORK };
@@ -54,9 +52,8 @@ struct shared_map
     /* The genetic algorithm's message port. */
     msg_port_t msg_port;
 
-    /* The PID's of our helper processes. */
-    atomic_int_fast32_t god_pid;
-    atomic_int_fast32_t target_pid;
+    /* The PID of the target app being file fuzzed. */
+    int32_t target_pid;
 
     /* An atomic value used to tell the various processes whether to run or not. */
     atomic_int_fast32_t stop;
