@@ -54,7 +54,7 @@ static struct syscall_table_shadow *sys_table;
 
 /* A copy of the stop pointer. If the atomic int is 
    set to NX_YES than we stop fuzzing and exit. */
-static atomic_int_fast32_t *stop;
+static int32_t *stop;
 
 /* This variable tells us wether were in smart mode or dumb mode. */
 static int32_t mode;
