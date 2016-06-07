@@ -170,8 +170,6 @@ static int32_t init_world(void)
         world->species[i] = specie;
     }
 
-    cleanup_syscall_table(&sys_table);
-
     return (0);
 }
 
