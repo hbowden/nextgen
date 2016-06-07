@@ -31,7 +31,7 @@
 struct child_ctx
 {
     /* The child's process PID. */
-    atomic_int_fast32_t pid;
+    int32_t pid;
 
     /* A varible to store the address of where to jump back to in the child
     process on signals. */
