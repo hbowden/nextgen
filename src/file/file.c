@@ -13,6 +13,16 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
+#ifdef LINUX
+
+/* We need to define _GNU_SOURCE to use
+ asprintf on Linux. We also need to place
+ _GNU_SOURCE at the top of the file before
+ any other includes for it to work properly. */
+#define _GNU_SOURCE
+
+#endif
+
 #include "file.h"
 #include "crypto/crypto.h"
 #include "genetic/genetic.h"
@@ -282,13 +292,11 @@ int32_t initial_fuzz_run(void)
     return (0);
 }
 
-/*int32_t detect_file_type(const char *path, enum file_type *type)
+int32_t set_end_offset(uint64_t offset) 
 {
+    (void)offset; 
     return (0);
 }
-
-*/
-int32_t set_end_offset(uint64_t offset) { return (0); }
 
 void start_main_file_loop(void)
 {

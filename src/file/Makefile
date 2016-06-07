@@ -30,6 +30,21 @@ SOURCES += file-freebsd.c
 
 endif
 
+ifeq ($(OPERATING_SYSTEM), Linux)
+
+FLAGS = -DLINUX -DCOMMON -shared -fno-strict-aliasing -fPIC -Wall -Werror -Wextra -Wpedantic -g -O3
+
+LIB = ../io/libnxio.so ../memory/libnxmemory.so \
+      ../utils/libnxutils.so ../concurrent/libnxconcurrent.so \
+      ../mutate/libnxmutate.so ../log/libnxlog.so \
+      ../crypto/libnxcrypto.so 
+
+LIB_NAME = libnxfile.so
+
+SOURCES += file-freebsd.c
+
+endif
+
 # Mac OSX build options.
 ifeq ($(OPERATING_SYSTEM), Darwin)
 
