@@ -38,6 +38,4 @@ extern uint64_t get_start_addr(void);
 
 extern int32_t initial_fuzz_run(void);
 
-//extern int32_t detect_file_type(const char *path, enum file_type *type);
-
 #endif
