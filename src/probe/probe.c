@@ -41,12 +41,11 @@
 
 struct probe_ctx
 {
-    dtrace_hdl_t *dtrace_handle
+    dtrace_hdl_t *dtrace_handle;
 
-    dtrace_proginfo_t inf
+    dtrace_proginfo_t inf;
 
-    dtrace_prog_t *prog
-
+    dtrace_prog_t *prog;
 };
 
 #endif 
