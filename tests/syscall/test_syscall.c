@@ -26,23 +26,19 @@ static int32_t test_syscall_setup(void)
 {
     log_test(DECLARE, "Testing syscall module setup");
 
-    atomic_int_fast32_t stop_ptr;
-    atomic_uint_fast64_t counter;
-
-    atomic_init(&stop_ptr, FALSE);
-    atomic_init(&counter, 0);
-
     int32_t rtrn = 0;
+    int32_t stop_val = FALSE;
+    uint32_t counter = 0;
 
     /* Call the setup function. */
-    rtrn = setup_syscall_module(&stop_ptr, &counter, TRUE);
+    rtrn = setup_syscall_module(&stop_val, &counter, TRUE);
 
     /* Make sure setup_syscall_module() returns zero. */
     assert_stat(rtrn == 0);
 
     /* Make sure both atomic values are zero. */
-    assert_stat(atomic_load(&running_children) == 0);
-    assert_stat(atomic_load(&counter) == 0);
+    assert_stat(ck_pr_load_uint(&running_children) == 0);
+    assert_stat(ck_pr_load_uint(&counter) == 0);
 
     /* Make sure number of children is greater than zero. */
     assert_stat(number_of_children > 0);
@@ -73,7 +69,7 @@ static int32_t test_init_child_context(void)
 
     assert_stat(child != NULL);
     assert_stat(child->current_arg == 0);
-    assert_stat(atomic_load(&child->pid) == 0);
+    assert_stat(ck_pr_load_int(&child->pid) == 0);
     assert_stat(child->arg_value_array != NULL);
     assert_stat(child->arg_copy_array != NULL);
     assert_stat(child->arg_size_array != NULL);
@@ -431,7 +427,7 @@ int main(void)
 
     /* We need to init the resource module before using
     the syscall module. */
-    rtrn = setup_resource_module("/tmp");
+    rtrn = setup_resource_module(CACHE, "/tmp");
     if(rtrn < 0)
     {
         output(ERROR, "Can't setup resource module");
