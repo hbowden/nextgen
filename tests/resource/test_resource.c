@@ -303,7 +303,7 @@ static void *file_test_thread(void *arg)
 
         assert_stat(path != NULL);
 
-        free_filepath(&path, (uint32_t)strlen(path));
+        free_filepath(&path);
     }
 
     return (NULL);
@@ -331,7 +331,7 @@ static int32_t test_get_file(void)
         path = get_filepath();
         assert_stat(path != NULL);
 
-        free_filepath(&path, (uint32_t)strlen(path));
+        free_filepath(&path);
     }
 
     pthread_join(thread, NULL);
@@ -401,7 +401,7 @@ static int32_t test_setup_resource_module(void)
     int32_t rtrn = 0;
 
     /* Build resource pool using the user's home path as the root path. */
-    rtrn = setup_resource_module("/tmp");
+    rtrn = setup_resource_module(CACHE, "/tmp");
 
     /* setup_resource_module() should return zero on success. */
     assert(rtrn == 0);
