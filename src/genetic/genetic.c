@@ -24,11 +24,9 @@
 #include <errno.h>
 #include <string.h>
 
-#include "stdatomic.h"
-
 #define SPECIES_POP 1000
 
-static atomic_int_fast32_t *stop;
+static int32_t *stop;
 
 static enum genetic_mode run_mode;
 
@@ -316,7 +314,7 @@ static void god_loop(msg_port_t port)
 
     /* Start main loop for the genetic algorithm.
     Each loop creates a new generation. */
-    while(atomic_load(stop) != TRUE)
+    while(ck_pr_load_int(stop) != TRUE)
     {
     }
 
@@ -336,7 +334,7 @@ static int32_t start_genetic_algo_runtime(msg_port_t port, void *arg)
 }
 
 int32_t setup_genetic_module(enum genetic_mode mode, pid_t *pid,
-                             atomic_int_fast32_t *stop_ptr,
+                             int32_t *stop_ptr,
                              msg_port_t *msg_port)
 {
     int32_t rtrn = 0;

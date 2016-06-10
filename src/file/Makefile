@@ -35,7 +35,8 @@ ifeq ($(OPERATING_SYSTEM), Darwin)
 
 SILENCED_WARNINGS = -Wno-reserved-id-macro \
                     -Wno-cast-qual \
-                    -Wno-unused-parameter
+                    -Wno-unused-parameter \
+                    -Wno-used-but-marked-unused
 
 FLAGS = -dynamiclib -DMAC_OSX -fno-strict-aliasing -Wall -Werror -Weverything -Wpedantic -g -O3
 

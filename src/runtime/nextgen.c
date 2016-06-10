@@ -448,15 +448,15 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
 
 static void clean_syscall_mapping(void)
 { 
-    mem_free((void **)&map->path_to_out_dir);
+    mem_free((void **)&map->output_path);
 
     return; 
 }
 
 static void clean_file_mapping(void)
 {
-    mem_free((void **)&map->path_to_out_dir);
-    mem_free((void **)&map->path_to_in_dir);
+    mem_free((void **)&map->output_path);
+    mem_free((void **)&map->input_path);
     mem_free((void **)&map->exec_path);
 
     return;
@@ -490,12 +490,10 @@ static int32_t init_file_mapping(struct shared_map **mapping,
                                  struct parser_ctx *ctx)
 {
     /* Set the input and output directories. */
-    (*mapping)->path_to_out_dir = ctx->output_path;
-    (*mapping)->path_to_in_dir = ctx->input_path;
+    (*mapping)->output_path = ctx->output_path;
+    (*mapping)->input_path = ctx->input_path;
 
     (*mapping)->exec_path = ctx->exec_path;
-
-    atomic_init(&(*mapping)->target_pid, 0);
 
     return 0;
 }
@@ -511,15 +509,13 @@ static int32_t init_syscall_mapping(struct shared_map **mapping,
                                     struct parser_ctx *ctx)
 {
     /* Set the outpath directory. */
-    (*mapping)->path_to_out_dir = ctx->output_path;
-
-    atomic_init(&(*mapping)->god_pid, 0);
+    (*mapping)->output_path = ctx->output_path;
 
     /* Intialize socket server values.*/
     (*mapping)->socket_server_port = 0;
 
     /* Set this counter to zero. */
-    atomic_init(&(*mapping)->test_counter, 0);
+    ck_pr_store_32(&(*mapping)->test_counter, 0);
 
     return (0);
 }
@@ -541,7 +537,7 @@ int32_t init_shared_mapping(struct shared_map **mapping, struct parser_ctx *ctx)
     (*mapping)->smart_mode = ctx->smart_mode;
 
     /* Set the stop flag to FALSE, when set to TRUE all processes start their exit routines and eventually exit. */
-    atomic_init(&(*mapping)->stop, FALSE);
+    ck_pr_store_int(&(*mapping)->stop, FALSE);
 
     /* Do mode specific shared mapping setup. */
     switch((int32_t)ctx->mode)

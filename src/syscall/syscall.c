@@ -916,7 +916,7 @@ void start_main_syscall_loop(void)
     setup_signal_handler();
 
     /* Check if we should stop or continue running. */
-    while((*stop) == FALSE)
+    while(ck_pr_load_int(stop) == FALSE)
     {
         /* Check if we have the right number of children processes running, if not create a new ones until we do. */
         if(ck_pr_load_uint(&running_children) < number_of_children)

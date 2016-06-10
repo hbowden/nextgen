@@ -17,13 +17,12 @@
 #define FILE_H
 
 #include <stdint.h>
-#include "stdatomic.h"
 
 /* File type symbols. */
 enum file_type { BINARY, TEXT };
 
 /* Call this function once to start using the functions below. */
-extern int32_t setup_file_module(atomic_int_fast32_t *stop, char *exec_path, char *input);
+extern int32_t setup_file_module(int32_t *stop, char *exec_path, char *input);
 
 extern void start_main_file_loop(void);
 

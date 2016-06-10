@@ -42,19 +42,17 @@ static int32_t start_network_mode_runtime(void) { return (0); }
 
 static int32_t start_syscall_mode_runtime(void)
 {
-    int32_t status = 0;
-
     /* Start the main loop for the syscall fuzzer. This function should not 
     return except when the user set's ctrl-c or there is an unrecoverable error. */
     start_main_syscall_loop();
 
     /* If were running in smart mode wait for the genetic algorithm(god) to exit. */
-    if(map->smart_mode)
-        wait_on(&map->god_pid, &status);
+   /* if(map->smart_mode)
+        wait_on(&map->god_pid, &status); */
 
     /* Display stats for the user. */
     output(STD, "Sycall test completed: %ld\n",
-           atomic_load(&map->test_counter));
+           ck_pr_load_32(&map->test_counter));
 
     return (0);
 }
@@ -97,7 +95,7 @@ static int32_t setup_file_mode_runtime(void)
     int32_t rtrn = 0;
     uint64_t main_addr = 0;
 
-    rtrn = setup_log_module(map->path_to_out_dir, 0);
+    rtrn = setup_log_module(map->output_path, 0);
     if(rtrn < 0)
     {
         output(ERROR, "Can't setup the logging module: %s\n");
@@ -105,7 +103,7 @@ static int32_t setup_file_mode_runtime(void)
     }
 
     /* Setup the file fuzzing module. */
-    rtrn = setup_file_module(&map->stop, map->exec_path, map->path_to_in_dir);
+    rtrn = setup_file_module(&map->stop, map->exec_path, map->input_path);
     if(rtrn < 0)
     {
         output(ERROR, "Can't setup file module\n");
@@ -242,8 +240,6 @@ static int32_t setup_syscall_mode_runtime(void)
             output(ERROR, "Can't setup the genetic module\n");
             return (-1);
         }
-
-        cas_loop_int32(&map->god_pid, pid);
     }
     else
     {
@@ -276,7 +272,7 @@ static int32_t setup_syscall_mode_runtime(void)
         }
     }
 
-    rtrn = setup_log_module(map->path_to_out_dir, total_syscalls);
+    rtrn = setup_log_module(map->output_path, total_syscalls);
     if(rtrn < 0)
     {
         output(ERROR, "Can't setup the logging module: %s\n");

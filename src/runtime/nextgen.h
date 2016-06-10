@@ -65,7 +65,7 @@ struct shared_map
     uint32_t socket_server_port;
 
     /* Counter for the number of fuzz test perform. */
-    atomic_uint_fast64_t test_counter;
+    uint32_t test_counter;
 };
 
 extern struct shared_map *map;

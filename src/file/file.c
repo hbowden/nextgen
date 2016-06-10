@@ -39,7 +39,7 @@
 
 #endif
 
-static atomic_int_fast32_t *stop_ptr;
+static int32_t *stop_ptr;
 
 /* File context struct. */
 struct file_ctx
@@ -298,7 +298,7 @@ void start_main_file_loop(void)
     setup_signal_handler();
 
     /* Check if we should stop or continue running. */
-    while(atomic_load(stop_ptr) == FALSE)
+    while(ck_pr_load_int(stop_ptr) == FALSE)
     {
         /* Our variables. */
         int32_t rtrn = 0;
@@ -392,7 +392,7 @@ void start_main_file_loop(void)
     return;
 }
 
-int32_t setup_file_module(atomic_int_fast32_t *stop, char *exec_path,
+int32_t setup_file_module(int32_t *stop, char *exec_path,
                           char *input)
 {
     int32_t rtrn = 0;
