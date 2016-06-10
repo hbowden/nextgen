@@ -42,7 +42,6 @@ struct syscall_entry_shadow
     atomic_bool status;
     const bool need_alarm;
     const bool requires_root;
-
     const char padding[1];
 
     const uint32_t total_args;
@@ -78,6 +77,8 @@ struct syscall_entry
     int32_t (*get_arg_array[7])(uint64_t **, struct child_ctx *);
 
     enum test_id id;
+
+    const char padding3[4];
 };
 
 #endif
