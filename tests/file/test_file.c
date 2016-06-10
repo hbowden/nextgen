@@ -156,9 +156,7 @@ static int32_t test_setup_file_module(void)
         assert_stat(size > 0);
     }
 
-    atomic_int_fast32_t stop;
-
-    atomic_init(&stop, FALSE);
+    int32_t stop = FALSE;
 
     /* Give the file module the path of the program to test
       and the directory of input files. */
