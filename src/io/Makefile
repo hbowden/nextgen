@@ -49,13 +49,3 @@ clean:
 	rm -rf $(LIB_NAME)
 	rm -rf *.dSYM
 	rm -rf *.dylib
-
-.PHONY: format
-format:
-
-	cd $(ROOT_DIR) && clang-format -i -style=file $(SOURCES)
-
-.PHONY: list
-list:
-
-	$(SOURCES)
