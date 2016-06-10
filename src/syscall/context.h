@@ -78,7 +78,7 @@ struct child_ctx
 
     int32_t did_jump;
 
-    dtrace_hdl_t *probe_handle;
+    struct probe_ctx *probe_handle;
 
     bool need_alarm;
 
