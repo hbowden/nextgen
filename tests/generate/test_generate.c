@@ -17,7 +17,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include "test_utils.h"
-#include "platform.h"
+#include "runtime/platform.h"
 #include "resource/resource.h"
 #include "crypto/crypto.h"
 #include "syscall/generate.h"

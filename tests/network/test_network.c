@@ -14,7 +14,7 @@
  **/
 
 #include "test_utils.h"
-#include "platform.h"
+#include "runtime/platform.h"
 #include "network/network.c"
 
 static int32_t test_setup_network_module(void)
