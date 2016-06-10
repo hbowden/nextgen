@@ -303,7 +303,7 @@ static int32_t test_generate_path(void)
 	    assert_stat(fd > 0);
 	    assert_stat(child->arg_size_array[0] > 0);
 	    close(fd);
-	    free_filepath(&path, (uint32_t)child->arg_size_array[0]);
+	    free_filepath(&path);
     }
 
 	log_test(SUCCESS, "Generate path test passed");
@@ -651,7 +651,7 @@ int main(void)
     	return (-1);
     }
 
-    rtrn = setup_resource_module("/tmp");
+    rtrn = setup_resource_module(CACHE, "/tmp");
     if(rtrn < 0)
     {
     	output(ERROR, "Can't setup crypto module\n");
