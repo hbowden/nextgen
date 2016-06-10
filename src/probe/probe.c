@@ -43,12 +43,14 @@ struct probe_ctx
 {
     dtrace_hdl_t *dtrace_handle;
 
-    dtrace_proginfo_t inf;
+    dtrace_proginfo_t info;
 
     dtrace_prog_t *prog;
 };
 
-#endif 
+#endif
+
+static struct probe_ctx *ctx;
 
 static const char *target_path;
 
@@ -94,8 +96,8 @@ int32_t inject_probes(pid_t pid)
     }
 
     /* Create a dtrace handle. */
-    dtrace_handle = dtrace_open(DTRACE_VERSION, 0, &rtrn);
-    if(dtrace_handle == NULL)
+    ctx->dtrace_handle = dtrace_open(DTRACE_VERSION, 0, &rtrn);
+    if(ctx->dtrace_handle == NULL)
     {
         fprintf(stderr, "failed to initialize dtrace: %s\n",
                 dtrace_errmsg(NULL, rtrn));
@@ -103,20 +105,20 @@ int32_t inject_probes(pid_t pid)
     }
 
     /* Set dtrace options. */
-    (void)dtrace_setopt(dtrace_handle, "bufsize", "4m");
-    (void)dtrace_setopt(dtrace_handle, "aggsize", "4m");
+    (void)dtrace_setopt(ctx->dtrace_handle, "bufsize", "4m");
+    (void)dtrace_setopt(ctx->dtrace_handle, "aggsize", "4m");
 
     /* Compile the dtrace program. */
-    prog = dtrace_program_strcompile(dtrace_handle, dtrace_prog,
+    ctx->prog = dtrace_program_strcompile(ctx->dtrace_handle, dtrace_prog,
                                      DTRACE_PROBESPEC_NAME, 0, 0, NULL);
-    if(prog == NULL)
+    if(ctx->prog == NULL)
     {
         output(ERROR, "Failed to compile dtrace program\n");
         return (-1);
     }
 
     /* Send the dtrace program to the kernel and execute it. */
-    rtrn = dtrace_program_exec(dtrace_handle, prog, &info);
+    rtrn = dtrace_program_exec(ctx->dtrace_handle, ctx->prog, &ctx->info);
     if(rtrn < 0)
     {
         output(ERROR, "Failed to enable dtrace probes\n");
@@ -124,7 +126,7 @@ int32_t inject_probes(pid_t pid)
     }
 
     /* Inject and start the probes. */
-    rtrn = dtrace_go(dtrace_handle);
+    rtrn = dtrace_go(ctx->dtrace_handle);
     if(rtrn < 0)
     {
         output(ERROR, "Can't start probes\n");
@@ -132,7 +134,7 @@ int32_t inject_probes(pid_t pid)
     }
 
     /* Sleep so we don't record any information. */
-    dtrace_sleep(dtrace_handle);
+    dtrace_sleep(ctx->dtrace_handle);
     return (0);
 }
 
