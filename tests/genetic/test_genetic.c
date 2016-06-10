@@ -17,8 +17,6 @@
 #include "syscall/syscall.h"
 #include "genetic/genetic.c"
 
-#include "stdatomic.h"
-
 #include <stdint.h>
 
 static int32_t test_init_world(void)
@@ -76,11 +74,8 @@ int main(void)
         return (-1);
     }
 
-    atomic_int_fast32_t stop_flag;
-    atomic_uint_fast64_t counter;
-
-    atomic_init(&stop_flag, FALSE);
-    atomic_init(&counter, 0);
+    int32_t stop_flag = FALSE;
+    uint32_t counter = 0;
 
     /* Initialize the syscall module before using the genetic module. */
     rtrn = setup_syscall_module(&stop_flag, &counter, TRUE);
