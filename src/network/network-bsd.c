@@ -16,6 +16,12 @@
 #include "network.h"
 
 #include <stdint.h>
+#include <arpa/inet.h>
+#include <errno.h>
+#include <netdb.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 
 int32_t setup_ipv4_tcp_server(int32_t *sockFd)
 {
