@@ -42,6 +42,9 @@ int32_t setup_ipv4_tcp_server(int32_t *sockFd)
         return (-1);
     }
 
+    uint32_t ss_port;
+    get_server_port(&ss_port);
+
     address.in.sin_len = sizeof(address.in);
     address.in.sin_family = AF_INET;
     address.in.sin_port = htons(ss_port);
@@ -78,6 +81,9 @@ int32_t setup_ipv6_tcp_server(int32_t *sockFd)
         output(ERROR, "Socket ipv6: %s\n", strerror(errno));
         return (-1);
     }
+
+    uint32_t ss_port;
+    get_server_port(&ss_port);
 
     address.in6.sin6_len = sizeof(address.in6);
     address.in6.sin6_family = AF_INET6;
