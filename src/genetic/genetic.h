@@ -17,6 +17,8 @@
 #define GENETIC_H
 
 #include <stdint.h>
+#include <unistd.h>
+#include <sys/types.h>
 
 enum genetic_mode { FILE_FUZZING, SYSCALL_FUZZING, NETWORK_FUZZING };
 
