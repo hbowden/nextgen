@@ -191,30 +191,7 @@ static struct job_ctx *create_job(enum job_type type, uint32_t syscall_number)
 
 static int32_t submit_job(struct job_ctx *job)
 {
-    int32_t rtrn = 0;
-    uint32_t number = 0;
-
-    /* Randomly pick a number. */
-    rtrn = rand_range(number_of_children, &number);
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't generate random number\n");
-        return (-1);
-    }
-
-    struct child_ctx *child = NULL;
-
-    /* Grab the child context of the randomly selected child process. */
-    child = get_child_from_index(number);
-    if(child == NULL)
-    {
-        output(ERROR, "Can't get child context\n");
-        return (-1);
-    }
-
-    /* Send the job to the child's message port for processing. */
-    msg_send(child->msg_port, job, sizeof(struct job_ctx));
-
+    (void)job;
     return (0);
 }
 
