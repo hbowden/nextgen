@@ -312,8 +312,7 @@ static int32_t start_genetic_algo_runtime(msg_port_t port, void *arg)
 }
 
 int32_t setup_genetic_module(enum genetic_mode mode, pid_t *pid,
-                             int32_t *stop_ptr,
-                             msg_port_t *msg_port)
+                             int32_t *stop_ptr)
 {
     int32_t rtrn = 0;
     pid_t god_pid = 0;

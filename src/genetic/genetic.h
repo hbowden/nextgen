@@ -16,14 +16,12 @@
 #ifndef GENETIC_H
 #define GENETIC_H
 
-#include "concurrent/concurrent.h"
 #include <stdint.h>
 
 enum genetic_mode { FILE_FUZZING, SYSCALL_FUZZING, NETWORK_FUZZING };
 
 extern int32_t setup_genetic_module(enum genetic_mode mode,
 	                                pid_t *pid,
-	                                int32_t *stop_ptr,
-	                                msg_port_t *msg_port);
+	                                int32_t *stop_ptr);
 
 #endif
