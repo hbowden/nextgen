@@ -14,6 +14,7 @@
  **/
 
 #include "network.h"
+#include "io/io.h"
 
 #include <stdint.h>
 #include <arpa/inet.h>
