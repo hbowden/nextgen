@@ -325,16 +325,7 @@ int32_t setup_genetic_module(enum genetic_mode mode, pid_t *pid,
         output(ERROR, "Failed to fork god process: %s\n", strerror(errno));
         return (-1);
     }
-
-    /* Receieve message port from the genetic algo process and set it
-    to the message port passed in to this function. */
-    rtrn = recv_port(port, msg_port);
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't receieve message port from genertic algo\n");
-        return (-1);
-    }
-
+    
     (*pid) = god_pid;
     run_mode = mode;
     stop = stop_ptr;
