@@ -63,6 +63,9 @@ struct shared_map
 
     /* Counter for the number of fuzz test perform. */
     uint32_t test_counter;
+
+    /* Explicit padding to silence warning on clang. */
+    const char padding[4];
 };
 
 extern struct shared_map *map;
