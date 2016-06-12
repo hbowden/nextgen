@@ -18,7 +18,6 @@
 
 #include "ck_queue.h"
 #include "ck_spinlock.h"
-#include "stdatomic.h"
 
 #include <unistd.h>
 #include <stdint.h>
@@ -76,7 +75,7 @@ extern void cas_loop_int32(int32_t *target, int32_t value);
 extern void cas_loop_uint32(uint32_t *target, uint32_t value);
 
 /* Simple wrapper function so we can wait on atomic pid values.  */
-extern int32_t wait_on(atomic_int_fast32_t *pid, int32_t *status);
+extern int32_t wait_on(int32_t *pid, int32_t *status);
 
 /* Message IPC sending function. */
 extern int32_t msg_send(msg_port_t remote_port, void *data, uint32_t size);
