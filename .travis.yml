@@ -7,7 +7,7 @@ os:
 before_install:
   - brew update
 
-script: make
+script: chmod u+x setup.sh && ./setup.sh && make
 
 compiler:
   - clang
