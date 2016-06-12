@@ -64,9 +64,9 @@ void cas_loop_uint32(uint32_t *target, uint32_t value)
     }
 }
 
-int32_t wait_on(atomic_int_fast32_t *pid, int32_t *status)
+int32_t wait_on(int32_t *pid, int32_t *status)
 {
-    waitpid(atomic_load(pid), status, 0);
+    waitpid(ck_pr_load_int(pid), status, 0);
 
     return (0);
 }
