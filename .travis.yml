@@ -29,5 +29,4 @@ matrix:
 
 before_install:
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update && brew outdated automake || brew upgrade automake; fi
-  - if [ "$TRAVIS_OS_NAME" == "linux"]; then sudo apt-get -qq update && sudo apt-get install -y automake; fi
 script: chmod u+x setup.sh && ./setup.sh && make
