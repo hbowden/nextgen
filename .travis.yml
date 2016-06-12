@@ -1,20 +1,22 @@
 
-language: c
 
 matrix:
   include:
     - os: osx
       osx_image: xcode7.3
+      language: c
+      compiler: clang
     - os: osx
       osx_image: xcode7.1
+      language: c
+      compiler: clang
     - os: osx
       osx_image: beta-xcode6.1
+      language: c
+      compiler: clang
 
 before_install:
   - brew update
   - brew outdated automake || brew upgrade automake
 
 script: chmod u+x setup.sh && ./setup.sh && make
-
-compiler:
-  - clang
