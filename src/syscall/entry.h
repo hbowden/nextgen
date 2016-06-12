@@ -21,7 +21,6 @@
 #include "context.h"
 #include "runtime/platform.h"
 #include "arg_types.h"
-#include "stdatomic.h"
 
 #include <stdbool.h>
 
@@ -50,8 +49,6 @@ struct syscall_entry_shadow
     struct arg_context *arg_context_array[7];
 
     int32_t (*get_arg_array[7])(uint64_t **, struct child_ctx *);
-
-    atomic_uint_least64_t return_value;
 
     int32_t (*test_syscall)(int32_t, uint64_t **);
 };
