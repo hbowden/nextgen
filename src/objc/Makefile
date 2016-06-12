@@ -1,4 +1,6 @@
-SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-padded \
+SILENCED_WARNINGS = -Wno-unknown-warning-option \
+                    -Wno-reserved-id-macro \
+                    -Wno-padded \
                     -Wno-objc-interface-ivars \
                     -Wno-direct-ivar-access \
                     -Wno-unused-parameter
