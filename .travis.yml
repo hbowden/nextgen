@@ -1,6 +1,12 @@
 
 language: c
 
+os:
+  - osx
+
+before_install:
+  - brew install automake
+
 script: make
 
 compiler:
