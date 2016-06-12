@@ -13,7 +13,7 @@ matrix:
       osx_image: beta-xcode6.1
       language: c
       compiler: clang
-    - os:
+    - os: linux
       language: c
       compiler: gcc
       env:
