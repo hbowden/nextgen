@@ -186,10 +186,6 @@ CLEAN_SUITE = cd $(ROOT_DIR)/tests/crypto && $(MAKE) clean && \
 	          cd $(ROOT_DIR)/tests/generate && $(MAKE) clean && \
 	          cd $(ROOT_DIR)/tests/runtime && $(MAKE) clean
 
-BUILD_DEPS = cd $(ROOT_DIR)/deps/$(CAPSTONE) && $(MAKE) && \
-             cd $(ROOT_DIR)/deps/sqlite && $(MAKE) && \
-	         cd $(ROOT_DIR)/deps/$(LIBRESSL) && ./configure && $(MAKE);
-
 TEST_DEPS =  cd deps/$(LIBRESSL) && $(MAKE) check && \
 	         cd deps/$(CK) && $(MAKE) check && \
 	         cd deps/$(CAPSTONE) && $(MAKE) check
@@ -214,8 +210,6 @@ FORMAT_SOURCE = cd $(ROOT_DIR)/src/io && $(MAKE) format && \
 export CK LIBRESSL CAPSTONE ROOT_DIR PLATFORM FLAGS SILENCED_WARNINGS
 
 all:
-
-	$(BUILD_DEPS)
 
 	$(BUILD_NX_LIBS)
 
@@ -257,12 +251,6 @@ test-concurrent:
 format:
 
 	$(FORMAT_SOURCE)
-
-quick:
-
-	$(BUILD_NX_LIBS)
-
-	$(CC) $(FLAGS) $(SOURCES) $(LIB) $(INCLUDE) $(SILENCED_WARNINGS) -o $(PROG)
 
 clean-lib:
 
