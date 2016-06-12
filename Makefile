@@ -24,25 +24,13 @@ PLATFORM = -DFREEBSD
 
 CC = clang
 
-LIB = -rpath src/runtime \
-      -rpath src/memory \
-      -rpath src/utils \
-      -rpath src/io \
-      -rpath src/concurrent \
-      -rpath src/genetic \
-      -rpath src/mutate \
-      -rpath src/log \
-      -rpath src/network \
-      -rpath src/file \
-      -rpath src/syscall \
-      -rpath src/probe \
-      -rpath src/disas \
-      -rpath src/crypto \
-      -rpath src/plugins \
-      -rpath src/resource \
-      src/memory/libnxmemory.so \
-      src/io/libnxio.so \
-      src/runtime/libnxruntime.so \
+LIB = -rpath src/runtime -rpath src/memory -rpath src/utils \
+      -rpath src/io -rpath src/concurrent -rpath src/genetic \
+      -rpath src/mutate -rpath src/log -rpath src/network \
+      -rpath src/file -rpath src/syscall -rpath src/probe \
+      -rpath src/disas -rpath src/crypto -rpath src/plugins \
+      -rpath src/resource src/memory/libnxmemory.so \
+      src/io/libnxio.so src/runtime/libnxruntime.so \
       src/utils/libnxutils.so \
       src/crypto/libnxcrypto.so \
       src/syscall/libnxsyscall.so \
