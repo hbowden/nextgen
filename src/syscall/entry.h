@@ -32,34 +32,12 @@ enum syscall_status { ON, OFF };
 
 enum argnums { FIRST_ARG, SECOND_ARG, THIRD_ARG, FOURTH_ARG, FIFTH_ARG, SIXTH_ARG};
 
-/* In memory format. */
-struct syscall_entry_shadow
-{
-    const char *syscall_name;
-    const int32_t syscall_symbol;
-
-    atomic_bool status;
-    const bool need_alarm;
-    const bool requires_root;
-    const char padding[1];
-
-    const uint32_t total_args;
-    const uint32_t entry_number;
-
-    struct arg_context *arg_context_array[7];
-
-    int32_t (*get_arg_array[7])(uint64_t **, struct child_ctx *);
-
-    int32_t (*test_syscall)(int32_t, uint64_t **);
-};
-
-/* The on disk format. */
 struct syscall_entry
 {
     const char *syscall_name;
     const int32_t syscall_symbol;
 
-    bool status;
+    int32_t status;
     const bool need_alarm;
     const bool requires_root;
 
@@ -71,7 +49,11 @@ struct syscall_entry
 
     const char padding2[4];
 
+    struct arg_context *arg_context_array[7];
+
     int32_t (*get_arg_array[7])(uint64_t **, struct child_ctx *);
+
+    int32_t (*test_syscall)(int32_t, uint64_t **);
 
     enum test_id id;
 

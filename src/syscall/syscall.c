@@ -49,7 +49,7 @@ static uint32_t running_children;
 static uint32_t *test_counter;
 
 /* The syscall table. */
-static struct syscall_table_shadow *sys_table;
+static struct syscall_table *sys_table;
 
 /* A copy of the stop pointer. If the atomic int is 
    set to NX_YES than we stop fuzzing and exit. */
@@ -67,17 +67,17 @@ int32_t get_total_syscalls(uint32_t *total)
     return (0);
 }
 
-struct syscall_entry_shadow *get_entry(uint32_t syscall_number)
+struct syscall_entry *get_entry(uint32_t syscall_number)
 {
     /* If the syscall number passed is greater than the total number
     of syscalls return NULL. */
     if(syscall_number > sys_table->number_of_syscalls)
         return (NULL);
 
-    struct syscall_entry_shadow *entry = NULL;
+    struct syscall_entry *entry = NULL;
 
     /* Allocate a syscall entry. */
-    entry = mem_alloc(sizeof(struct syscall_entry_shadow));
+    entry = mem_alloc(sizeof(struct syscall_entry));
     if(entry == NULL)
     {
         output(ERROR, "Can't allocate syscall entry\n");
@@ -85,7 +85,7 @@ struct syscall_entry_shadow *get_entry(uint32_t syscall_number)
     }
 
     /* Set the entry to the one in the syscall table. */
-    entry = sys_table->sys_entry[syscall_number];
+    entry = &sys_table->sys_entry[syscall_number];
 
     return (entry);
 }
@@ -166,7 +166,7 @@ static int32_t free_old_arguments(struct child_ctx *ctx)
     uint32_t i;
     int32_t rtrn = 0;
     uint32_t total_args = ctx->total_args;
-    struct syscall_entry_shadow *entry = NULL;
+    struct syscall_entry *entry = NULL;
 
     /* Grab the syscall entry. */
     entry = get_entry(ctx->syscall_number);
@@ -250,10 +250,10 @@ static int32_t set_syscall(uint32_t num, struct child_ctx *ctx)
 
     /* Set syscall value's. */
     ctx->syscall_number = num;
-    ctx->syscall_symbol = sys_table->sys_entry[num]->syscall_symbol;
-    ctx->syscall_name = sys_table->sys_entry[num]->syscall_name;
-    ctx->need_alarm = sys_table->sys_entry[num]->need_alarm;
-    ctx->total_args = sys_table->sys_entry[num]->total_args;
+    ctx->syscall_symbol = sys_table->sys_entry[num].syscall_symbol;
+    ctx->syscall_name = sys_table->sys_entry[num].syscall_name;
+    ctx->need_alarm = sys_table->sys_entry[num].need_alarm;
+    ctx->total_args = sys_table->sys_entry[num].total_args;
     ctx->had_error = NX_NO;
 
     return (0);
@@ -347,7 +347,7 @@ struct child_ctx *get_child_ctx(void)
 NX_NO_RETURN static void start_syscall_child(void)
 {
     int32_t rtrn = 0;
-    struct syscall_entry_shadow *entry = NULL;
+    struct syscall_entry *entry = NULL;
     struct child_ctx *ctx = NULL;
 
     /* Get our child context. */
@@ -560,10 +560,10 @@ void create_syscall_children(void)
     }
 }
 
-struct syscall_table_shadow *get_syscall_table(void)
+struct syscall_table *get_syscall_table(void)
 {
+    struct syscall_table *table = NULL;
     struct syscall_table *syscall_table = NULL;
-    struct syscall_table_shadow *shadow_table = NULL;
 
     /* Grab a copy of the syscall table in on disk format. */
     syscall_table = get_table();
@@ -573,24 +573,23 @@ struct syscall_table_shadow *get_syscall_table(void)
         return (NULL);
     }
 
-    /* Create a shadow syscall table.*/
-    shadow_table = mem_alloc(sizeof(struct syscall_table_shadow));
-    if(shadow_table == NULL)
+    /* Create a syscall table object on the heap.*/
+    table = mem_alloc(sizeof(struct syscall_table));
+    if(table == NULL)
     {
         output(ERROR, "Can't create shadow table\n");
         return (NULL);
     }
 
     /* Set the number_of_syscalls. */
-    shadow_table->number_of_syscalls = syscall_table->number_of_syscalls;
+    table->number_of_syscalls = syscall_table->number_of_syscalls;
 
     /* Our loop incrementers. */
     uint32_t i, ii;
 
     /* Allocate heap memory for the list of syscalls. */
-    shadow_table->sys_entry = mem_alloc(shadow_table->number_of_syscalls *
-                                        sizeof(struct syscall_entry_shadow *));
-    if(shadow_table->sys_entry == NULL)
+    table->sys_entry = mem_alloc(table->number_of_syscalls * sizeof(struct syscall_entry *));
+    if(table->sys_entry == NULL)
     {
         output(ERROR, "Can't create entry index\n");
         return (NULL);
@@ -600,7 +599,7 @@ struct syscall_table_shadow *get_syscall_table(void)
        instead of [0] on syscall_tables. */
     uint32_t offset = 1;
 
-    uint32_t loops = shadow_table->number_of_syscalls;
+    uint32_t loops = table->number_of_syscalls;
 
     /* Loop for each entry syscall and build a table from the on disk format. */
     for(i = 0; i < loops; i++)
@@ -608,29 +607,28 @@ struct syscall_table_shadow *get_syscall_table(void)
         /* Check if the syscall is OFF, this is usually for syscalls in development. */
         if(syscall_table[i + offset].sys_entry->status == OFF)
         {
-            shadow_table->number_of_syscalls--;
+            table->number_of_syscalls--;
             continue;
         }
 
-        /* Create and intialize the const value for a shadow struct. */
-        struct syscall_entry_shadow entry_obj = {
-
+        /* Create and intialize the const value for a syscall entry. */
+        struct syscall_entry entry_obj = {
             .total_args =
                 syscall_table[i + offset].sys_entry->total_args,
             .syscall_name =
                 syscall_table[i + offset].sys_entry->syscall_name
         };
 
-        struct syscall_entry_shadow *entry = NULL;
+        struct syscall_entry *entry = NULL;
 
-        entry = mem_alloc(sizeof(struct syscall_entry_shadow));
+        entry = mem_alloc(sizeof(struct syscall_entry));
         if(entry == NULL)
         {
             output(ERROR, "Can't create syscall entry\n");
             return (NULL);
         }
 
-        memmove(entry, &entry_obj, sizeof(struct syscall_entry_shadow));
+        memmove(entry, &entry_obj, sizeof(struct syscall_entry));
 
         /* Loop for each arg and set the arg array's. */
         for(ii = 0; ii < entry->total_args; ii++)
@@ -650,13 +648,12 @@ struct syscall_table_shadow *get_syscall_table(void)
             }
         }
 
-        /* Init atomic value. */
-        atomic_init(&entry->status, ON);
+        entry->status = ON;
 
         set_test_syscall(entry, syscall_table[i + offset].sys_entry->id);
 
         /* Set the newly created entry in the index. */
-        shadow_table->sys_entry[i] = entry;
+        table->sys_entry[i] = (*entry);
 
     } /* End of loop. */
 
@@ -667,7 +664,7 @@ struct syscall_table_shadow *get_syscall_table(void)
         return (NULL);
     }
 
-    return (shadow_table);
+    return (table);
 }
 
 /* This function is used to randomly pick the syscall to test. */
@@ -686,12 +683,12 @@ int32_t pick_syscall(struct child_ctx *ctx)
 
     /* Set syscall value's. */
     ctx->syscall_symbol =
-        sys_table->sys_entry[ctx->syscall_number]->syscall_symbol;
+        sys_table->sys_entry[ctx->syscall_number].syscall_symbol;
     ctx->syscall_name =
-        sys_table->sys_entry[ctx->syscall_number]->syscall_name;
-    ctx->need_alarm = sys_table->sys_entry[ctx->syscall_number]->need_alarm;
+        sys_table->sys_entry[ctx->syscall_number].syscall_name;
+    ctx->need_alarm = sys_table->sys_entry[ctx->syscall_number].need_alarm;
     ctx->total_args =
-        sys_table->sys_entry[ctx->syscall_number]->total_args;
+        sys_table->sys_entry[ctx->syscall_number].total_args;
     ctx->had_error = NX_NO;
 
     return (0);
@@ -710,12 +707,12 @@ int32_t generate_arguments(struct child_ctx *ctx)
         ctx->current_arg = i;
 
         /* Generate the argument. */
-        rtrn = sys_table->sys_entry[ctx->syscall_number]->get_arg_array[i](
+        rtrn = sys_table->sys_entry[ctx->syscall_number].get_arg_array[i](
             &ctx->arg_value_array[i], ctx);
         if(rtrn < 0)
         {
             output(ERROR, "Can't generate arguments for: %s\n",
-                   sys_table->sys_entry[ctx->syscall_number]->syscall_name);
+                   sys_table->sys_entry[ctx->syscall_number].syscall_name);
             return (-1);
         }
 
@@ -741,7 +738,7 @@ int32_t test_syscall(struct child_ctx *ctx)
     if(ctx->need_alarm == NX_YES)
         alarm(1);
 
-    struct syscall_entry_shadow *entry = get_entry(ctx->syscall_number);
+    struct syscall_entry *entry = get_entry(ctx->syscall_number);
     if(entry == NULL)
     {
         output(ERROR, "Can't get syscall entry\n");

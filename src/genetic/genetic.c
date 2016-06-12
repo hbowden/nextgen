@@ -86,7 +86,7 @@ static int32_t init_world(void)
     }
 
     /* Grab a copy of the syscall table. */
-    struct syscall_table_shadow *sys_table = get_syscall_table();
+    struct syscall_table *sys_table = get_syscall_table();
     if(sys_table == NULL)
     {
         output(ERROR, "Can't get system table\n");
@@ -115,7 +115,7 @@ static int32_t init_world(void)
         struct species_ctx ctx = {
 
             /* Set species name to syscall name. */
-            .species_name = sys_table->sys_entry[i]->syscall_name,
+            .species_name = sys_table->sys_entry[i].syscall_name,
 
             /* Set population to zero. */
             .species_population = 0,
@@ -200,7 +200,7 @@ static int32_t create_first_generation(void)
     output(STD, "Creating first generation\n");
 
     /* Grab a copy of the syscall table. */
-    struct syscall_table_shadow *sys_table = get_syscall_table();
+    struct syscall_table *sys_table = get_syscall_table();
     if(sys_table == NULL)
     {
         output(ERROR, "Can't get system table\n");
@@ -217,7 +217,7 @@ static int32_t create_first_generation(void)
         {
             struct job_ctx *job = NULL;
 
-            uint32_t num = sys_table->sys_entry[i]->entry_number;
+            uint32_t num = sys_table->sys_entry[i].entry_number;
 
             job = create_job(GENESIS, num);
             if(job == NULL)

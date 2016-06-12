@@ -113,7 +113,7 @@ static int32_t test_val(int32_t symbol, uint64_t **array)
     return (syscall(symbol, (*array[0])));
 }
 
-void set_test_syscall(struct syscall_entry_shadow *entry, enum test_id id)
+void set_test_syscall(struct syscall_entry *entry, enum test_id id)
 {
     switch(id)
     {

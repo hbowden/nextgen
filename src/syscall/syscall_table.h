@@ -27,14 +27,6 @@ struct syscall_table
     struct syscall_entry *sys_entry;
 };
 
-struct syscall_table_shadow
-{
-	uint32_t number_of_syscalls;
-    const char padding[4];
-    struct syscall_entry_shadow **sys_entry;
-
-};
-
 extern struct syscall_table *get_table(void);
 
 extern struct syscall_table freebsd_syscall_table[];

@@ -20,6 +20,6 @@
 
 #include "entry.h"
 
-extern void set_test_syscall(struct syscall_entry_shadow *entry, enum test_id id);
+extern void set_test_syscall(struct syscall_entry *entry, enum test_id id);
 
 #endif

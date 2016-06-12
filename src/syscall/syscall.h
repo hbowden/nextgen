@@ -28,7 +28,7 @@ extern uint32_t number_of_children;
 
 extern int32_t get_total_syscalls(uint32_t *total);
 
-extern struct syscall_entry_shadow *get_entry(uint32_t syscall_number);
+extern struct syscall_entry *get_entry(uint32_t syscall_number);
 
 extern struct child_ctx *get_child_from_index(uint32_t i);
 
@@ -36,7 +36,7 @@ extern struct child_ctx *get_child_ctx(void);
 
 extern struct child_ctx *get_child_ctx_from_pid(pid_t pid);
 
-extern struct syscall_table_shadow *get_syscall_table(void);
+extern struct syscall_table *get_syscall_table(void);
 
 extern int32_t cleanup_syscall_table(void);
 
