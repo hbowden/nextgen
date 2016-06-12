@@ -596,7 +596,8 @@ struct syscall_table_shadow *get_syscall_table(void)
         return (NULL);
     }
 
-    /* This is the entry offset, it one because the entries start at [1] instead of [0]; */
+    /* This is the entry offset, it is one because the entries start at [1] 
+       instead of [0] on syscall_tables. */
     uint32_t offset = 1;
 
     uint32_t loops = shadow_table->number_of_syscalls;
