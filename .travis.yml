@@ -5,6 +5,21 @@ matrix:
       osx_image: xcode7.3
       language: c
       compiler: clang
+      env:
+        global:
+        # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
+        #   via the "travis encrypt" command using the project repo's public key
+          - secure: "RsA1AulD02Y8VMGZCKtfYO61cr8N8LW9OytxZD5qxjmA0P0VnxrsY59yTrJ4psLATjYDOTXq6E4KyJy8IV2N3jkgxgJgob/IalAYkGnBJDRkSWXCk8cW24KvMtMMfGMUKFCjwJ4SbzZtRq+UezsNdjKcgsj415gbgFGcr5kndRY1gsxWjnF8gD88IALrNs5Dju4zZ3+ES+Zcpowomejb4PGuKzYbP1yoZsWIs28MSzVVRx16aOUWBy+/xKNv+xHkyW3llyHsTZb+vzdRrYKAhitsT3CjOylF8SRB/MlA8jvSEkaYdJ8k5dPY/2ONj+2jUEoX7Io/lB3zuvtlfkB90bBSIff+f5a8doS1Pondk6lWqPFw8/Cz9E2ok42fg5rXAvNEQoJ+3wQIAaK3n1IABzQ0QMM2OI8+WYd05Ni3pIqMXi419bYxtU00xppJBND3XgcwtbyQRtjmjA2vYWJRwW7VGJ3pT3uuwXLYSgH5+DX3Mj3eDeude3iZ32Zft4tL7ASZOje0/RRqbmG6VP5L5UfbJD8KepHRAN96R67E1J5/zSYKIRz/Ulljn6dIm2WfonvWGS7ZySwh9OI4EZnje2rMLvGwEjN83ZwuF0UgOmE8H+BD5e3g88F9nNEhZzfsMLDD9OThxKZaGtwbFg7dgfwgFlLPz1GFYm/dLkUCWes="
+
+      addons:
+        coverity_scan:
+        project:
+        name: "2trill2spill/nextgen"
+        description: "Build submitted via Travis CI"
+        notification_email: hbowden@securelabsllc.com
+        build_command_prepend: "./setup.sh"
+        build_command:   "make -j 4"
+        branch_pattern: coverity_scan
     - os: osx
       osx_image: xcode7.1
       language: c
@@ -13,22 +28,6 @@ matrix:
       osx_image: beta-xcode6.1
       language: c
       compiler: clang
-
-env:
-  global:
-   # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
-   #   via the "travis encrypt" command using the project repo's public key
-   - secure: "QLCKHjIuLtJsvH2XUkjKzbbiKwpQMqKOLd7xLJrAJiR5oGxsc9wpjpKFiD+yzXwBDT4mOQBs2noGL4kuX+TwYdux/xD6/wA6ytLCZR4k/P5XOWhp3zqMAngP9YGhDXGuBQeGEVN9ZExJfHNE1Wttj05y+Q+oYTwSOOiNehuVG8FiaHjf4eflZDL9hxGTESCrftaqZo+upIsdZ3ssxr5Vh+RfB1lmuhnVAhQ8xC5a4WiY+Rv9CfN6A8fEcXfVC4WAOnOO+AtOQkAHpRjB5czyadBstFLv+eDcTeKcnZbUMEun39OJxPSpTCaEBJJxxIZu93aMIoJ6VRd2LxggIQHqn9XN5AsVKN8iy+vdsP+myRmL3I9rpoIKyPltEIcsMafNl9nnxzrl+qZ71iVeFKslZ3xUuP5PjyK9mYA9AIliN9uz2Y/693H9yAKcmSXXiJgKDJ/FKnmlSj7kzL6o6W3JurEiZTbWmIsaWvOSfT8T0Vq0EUYWZK77WqpRRQy3T0ucx/AjAiT5gc0ddZv4zC1QuCA35F4HI6Erbtr+ih+QLBE6OaEmjhSIqsR3cuFe9sm3/deFVVnvi6L8wP3FNbuZkzW7f72b1doHxi9x9givveDSvvlt1BQ0ZB+/YpfQ2HUK7necth3yMBUvXH8fEgnGcj2A8wgidxFQIiC+vNBb4LY="
-
-addons:
-  coverity_scan:
-    project:
-      name: "2trill2spill/nextgen"
-      description: "Build submitted via Travis CI"
-    notification_email: 2trill2spill@gmail.com
-    build_command_prepend: "./setup"
-    build_command:   "make -j 4"
-    branch_pattern: coverity_scan
 
 before_install:
   - brew update
