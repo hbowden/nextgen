@@ -5,6 +5,7 @@ os:
   - osx
 
 before_install:
+  - brew update
   - brew install automake
 
 script: make
