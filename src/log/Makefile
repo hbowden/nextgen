@@ -55,7 +55,7 @@ SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-padded \
 
 FLAGS = -dynamiclib -DMAC_OSX -fno-strict-aliasing -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
 
-LIB = ../io/libnxio.dylib ../memory/libnxmemory.dylib $(ROOT_DIR)/deps/sqlite/.libs/libsqlite3.0.dylib
+LIB = ../io/libnxio.dylib ../memory/libnxmemory.dylib $(ROOT_DIR)/deps/sqlite/libsqlite3.0.dylib
 
 SOURCES += $(ROOT_DIR)/src/log/log-mac.c
       
