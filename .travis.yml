@@ -6,6 +6,7 @@ os:
 
 before_install:
   - brew update
+  - brew outdated automake || brew upgrade automake
 
 script: chmod u+x setup.sh && ./setup.sh && make
 
