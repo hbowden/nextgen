@@ -1,4 +1,4 @@
-
+language: c
 sudo: required
 
 matrix:
@@ -18,15 +18,16 @@ matrix:
         global:
           - secure: "OkHrUyxqH+xDwJLNGFw+1huSZR7/qjTfT9R3moWGrkh+jb2Rre4EF2osmby/E3z69wAnOa0bkShFbCyPcVvK5R78qGLvkn8iUOOB6yjqwV0LopxYtqbuzhwR2ezzM2gOrI+GhHjmg+tuWzTgiPjCPPlJHeFdlkxmrdRAqYZkVyYIq2heEgMffP8S+SWro+9e0GC6PnKMdQ7XaB4bndRWbyXDO1Xj+gaJXiR90TGJ/LQ4xYl4kJYR+8SUuarnFqufIXEeWzb25FtaEUWGxyzI95lQqU8Ar8Z2xinOcHNB2K0psvpS6hiqqBD2Te+h+OFRV+XEKhs5Y7AQ8cvFoJj6mgNQ1ZAc46JTz8ooYiSZVEi8IVHZjUnnyMw66OPVPlLPqMh50yoPpXwLSF70SGqtVDh6RzKvE6KijMJq02MCTsgKEJPZb0JS52YxXkSrJA5Hj6dVGf/s0i1PZkNRYIP8aNFIBzafWkVtmF09+/y/6PtA2lMVfXC1pBhLkkTmFEE4+nujherpTPDXVO6WBk5sOVKb9JZ1StpiDz2fVBfvZGaoyTnl62oGFUw7P7eCRsfMWuCHba8zVim0OSPMSIkOK9kCtQpwPpvFWsQOEQLxkxZRUU+r2OC8/dbHgHjkny7jrVqmALlx5spnuWuMj8/BpsdCjJJfMdBZ8T/m3SOXsig="
       addons:
-        coverity_scan:
-        project:
-          name: "2trill2spill/nextgen"
-          description: "Build submitted via Travis CI"
-        notification_email: hbowden@securelabsllc.com
-        build_command_prepend: "./setup.sh"
-        build_command:   "make -j 4"
+      coverity_scan:
+      project:
+        name: "2trill2spill/nextgen"
+        description: "Build submitted via Travis CI"
+      notification_email: hbowden@securelabsllc.com
+      build_command_prepend: "./setup.sh"
+      build_command:   "make -j 4"
    
 
 before_install:
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update && brew outdated automake || brew upgrade automake; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux"]; then sudo apt-get -qq update && sudo apt-get install -y automake; fi
 script: chmod u+x setup.sh && ./setup.sh && make
