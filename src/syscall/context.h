@@ -18,7 +18,6 @@
 #ifndef CONTEXT_H
 #define CONTEXT_H
 
-#include "stdatomic.h"
 #include "concurrent/concurrent.h"
 
 #include <signal.h>
