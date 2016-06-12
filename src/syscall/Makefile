@@ -71,7 +71,8 @@ ENTRY_SOURCES := $(wildcard mac/*.c)
 INCLUDES = -I../ -I../../deps/$(CK)/include \
            -isystem ../../deps/$(CK)/include -Imac
            
-SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-padded \
+SILENCED_WARNINGS = -Wno-unknown-warning-option \
+                    -Wno-reserved-id-macro -Wno-padded \
                     -Wno-used-but-marked-unused -Wno-cast-align \
                     -Wno-missing-noreturn -Wno-unused-parameter \
                     -Wno-deprecated-declarations -Wno-undef \

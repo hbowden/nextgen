@@ -27,7 +27,8 @@ ifeq ($(OPERATING_SYSTEM), Darwin)
 
 SOURCES += $(ROOT_DIR)/src/concurrent/concurrent-common.c
 
-SILENCED_WARNINGS = -Wno-reserved-id-macro \
+SILENCED_WARNINGS = -Wno-unknown-warning-option \
+                    -Wno-reserved-id-macro \
                     -Wno-format-nonliteral \
                     -Wno-gnu-statement-expression \
                     -Wno-undef \

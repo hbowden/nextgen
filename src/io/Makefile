@@ -19,7 +19,8 @@ endif
 # Mac OSX build options.
 ifeq ($(OPERATING_SYSTEM), Darwin)
 
-SILENCED_WARNINGS = -Wno-reserved-id-macro \
+SILENCED_WARNINGS = -Wno-unknown-warning-option \
+                    -Wno-reserved-id-macro \
                     -Wno-format-nonliteral
 
 FLAGS = -DMAC_OSX -dynamiclib -Wall -fno-strict-aliasing -Werror -Weverything -Wpedantic -g -O3 -std=c99

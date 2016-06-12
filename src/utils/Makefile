@@ -40,7 +40,8 @@ endif
 # Mac OSX build options.
 ifeq ($(OPERATING_SYSTEM), Darwin)
 
-SILENCED_WARNINGS = -Wno-reserved-id-macro -Wno-padded \
+SILENCED_WARNINGS = -Wno-unknown-warning-option \
+                    -Wno-reserved-id-macro -Wno-padded \
                     -Wno-import-preprocessor-directive-pedantic \
                     -Wno-unused-parameter -Wno-unused-parameter \
                     -Wno-pedantic -Wno-deprecated-declarations
