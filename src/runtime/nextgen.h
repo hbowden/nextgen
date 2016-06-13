@@ -65,6 +65,8 @@ struct shared_map
     /* Counter for the number of fuzz test perform. */
     uint32_t test_counter;
 
+    const char padding[4];
+
     /* The thread that the genetic algo lives in. */
     pthread_t gen_algo_thread;
 };
