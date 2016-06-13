@@ -39,16 +39,6 @@
 #include <string.h>
 #include <sys/stat.h>
 
-#ifdef FREEBSD
-
-#include "file-freebsd.h"
-
-#elif MAC_OSX
-
-#include "file-mac.h"
-
-#endif
-
 static int32_t *stop_ptr;
 
 /* File context struct. */
