@@ -1,10 +1,15 @@
 # nextgen
 A Genetic File, Sycall and Network Fuzzer for Unix systems.
 
+<a href="https://scan.coverity.com/projects/2trill2spill-nextgen">
+  <img alt="Coverity Scan Build Status"
+       src="https://scan.coverity.com/projects/9072/badge.svg"/>
+</a>
+
 Real README.md coming soon, I just need to fix a few bugs and add a few features!
 I will start adding the missing features and known bugs to the issue tracker.
 
-In the mean time `FreeBSD` and `OSX` users can build and "use" nextgen.
+In the mean time `FreeBSD`, `Linux` and `OSX` users can build and "use" nextgen.
 
 # Install-freebsd
 To install `nextgen` on `FreeBSD` you will need to install a few dependencies and have the `FreeBSD` source tree installed at `/usr/src` as well. Use the command below to install the needed dependencies.
