@@ -791,6 +791,7 @@ static struct child_ctx *init_child_context(void)
     if(child->arg_value_array == NULL)
     {
         output(ERROR, "Can't create arg value index: %s\n", strerror(errno));
+        mem_free((void **)&child);
         return (NULL);
     }
 
@@ -799,6 +800,8 @@ static struct child_ctx *init_child_context(void)
     if(child->arg_size_array == NULL)
     {
         output(ERROR, "Can't create arg size index: %s\n", strerror(errno));
+        mem_free((void **)&child->arg_value_array);
+        mem_free((void **)&child);
         return (NULL);
     }
 
@@ -806,6 +809,9 @@ static struct child_ctx *init_child_context(void)
     if(child->arg_copy_array == NULL)
     {
         output(ERROR, "Can't create arg copy index: %s\n", strerror(errno));
+        mem_free((void **)&child->arg_size_array);
+        mem_free((void **)&child->arg_value_array);
+        mem_free((void **)&child);
         return (NULL);
     }
 
@@ -814,6 +820,10 @@ static struct child_ctx *init_child_context(void)
     if(child->err_value == NULL)
     {
         output(ERROR, "err_value: %s\n", strerror(errno));
+        mem_free((void **)&child->arg_copy_array);
+        mem_free((void **)&child->arg_size_array);
+        mem_free((void **)&child->arg_value_array);
+        mem_free((void **)&child);
         return (NULL);
     }
 
@@ -826,6 +836,13 @@ static struct child_ctx *init_child_context(void)
         if(child->arg_value_array[i] == NULL)
         {
             output(ERROR, "Can't create arg value\n");
+            /* Still potentially leaking memory from the indicies
+             in the arg_value_array, ie if malloc fails on the second
+             or higher iteration. */
+            mem_free((void **)&child->arg_copy_array);
+            mem_free((void **)&child->arg_size_array);
+            mem_free((void **)&child->arg_value_array);
+            mem_free((void **)&child);
             return (NULL);
         }
 
@@ -833,6 +850,13 @@ static struct child_ctx *init_child_context(void)
         if(child->arg_copy_array[i] == NULL)
         {
             output(ERROR, "Can't create arg copy value\n");
+            /* Still potentially leaking memory from the indicies
+             in the arg_copy_array, ie if malloc fails on the second
+             or higher iteration. */
+            mem_free((void **)&child->arg_copy_array);
+            mem_free((void **)&child->arg_size_array);
+            mem_free((void **)&child->arg_value_array);
+            mem_free((void **)&child);
             return (NULL);
         }
     }
