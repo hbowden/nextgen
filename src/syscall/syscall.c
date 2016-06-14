@@ -318,30 +318,18 @@ struct child_ctx *get_child_ctx_from_pid(pid_t pid)
 struct child_ctx *get_child_ctx(void)
 {
     int32_t rtrn = 0;
-    uint32_t child_number = 0;
-    struct child_ctx *child = NULL;
+    uint32_t offset = 0;
 
-    /* Allocate a child context object. */
-    child = mem_alloc(sizeof(struct child_ctx));
-    if(child == NULL)
-    {
-        output(ERROR, "Can't allocate child context\n");
-        return (NULL);
-    }
-
-    /* Grab the child_ctx index number for this child process. */
-    rtrn = get_child_index_number(&child_number);
+    /* Lookup our child's context object's offset in the child array. */
+    rtrn = get_child_index_number(&offset);
     if(rtrn < 0)
     {
         output(ERROR, "Can't grab child number\n");
         return (NULL);
     }
 
-    /* Grab child context. */
-    child = children[child_number];
-
-    /* Return our child context. */
-    return (child);
+    /* Return the actual child context pointer. */
+    return (children[offset]);
 }
 
 /**
