@@ -85,9 +85,11 @@ struct syscall_entry *get_entry(uint32_t syscall_number)
         return (NULL);
     }
 
-    /* Set the entry to the one in the syscall table. */
-    entry = &sys_table->sys_entry[syscall_number];
+    /* Create a copy of the entry found in the table. */
+    memcpy(entry, &sys_table->sys_entry[syscall_number], 
+           sizeof(struct syscall_entry));
 
+    /* Return the copy we just created. */
     return (entry);
 }
 
