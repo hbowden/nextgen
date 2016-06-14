@@ -419,6 +419,7 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
     if(fFlag != TRUE && nFlag != TRUE && sFlag != TRUE)
     {
         output(STD, "Specify a fuzzing mode\n");
+        mem_free(ctx);
         return NULL;
     }
 
