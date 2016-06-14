@@ -570,6 +570,7 @@ int32_t count_files_directory(uint32_t *count, char *dir)
         if(rtrn < 0)
         {
             output(ERROR, "Can't get file stats: %s\n", strerror(errno));
+            closedir(directory);
             return (-1);
         }
 
