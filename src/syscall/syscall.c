@@ -859,15 +859,7 @@ int32_t setup_syscall_module(int32_t *stop_ptr,
         return (-1);
     }
 
-    /* Allocate the system call table as shared memory. */
-    sys_table = mem_alloc(sizeof(struct syscall_table));
-    if(sys_table == NULL)
-    {
-        output(ERROR, "Can't allocate syscall table\n");
-        return (-1);
-    }
-
-    /* Build and set the syscall table for the system we are on. */
+    /* Grab the syscall table for the system we are on. */
     sys_table = get_syscall_table();
     if(sys_table == NULL)
     {
