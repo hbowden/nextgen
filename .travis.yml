@@ -1,18 +1,21 @@
 language: c
-sudo: required
 
 matrix:
  include:
     - os: osx
+      sudo: required
       compiler: clang
       osx_image: xcode7.3
     - os: osx
+      sudo: required
       osx_image: xcode7.1
       compiler: clang
     - os: osx
+      sudo: required
       osx_image: beta-xcode6.1
       compiler: clang
     - os: linux
+      sudo: required
       dist: trusty
       compiler: gcc
       env:
@@ -31,4 +34,4 @@ matrix:
 before_install:
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update && brew outdated automake || brew upgrade automake; fi
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ./get-aclocal.sh; fi
-script: cd deps/capstone-3.0.4 && sudo make install && chmod u+x setup.sh && ./setup.sh && make && make build-tests && make test-all
+script: cd deps/capstone-3.0.4 && sudo make install && cd ../../ && chmod u+x setup.sh && ./setup.sh && make && make build-tests && make test-all
