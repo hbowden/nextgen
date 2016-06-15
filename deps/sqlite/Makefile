@@ -11,8 +11,9 @@ ifeq ($(OPERATING_SYSTEM), Linux)
 
 COMMAND = cc -shared -ldl -fPIC -O3 -o sqlite3.so sqlite3.c
 
+endif
 
-else
+ifeq ($(OPERATING_SYSTEM), FreeBSD)
 
 COMMAND = cc -shared -fPIC -O3 -o sqlite3.so sqlite3.c
 
