@@ -45,7 +45,7 @@ SILENCED_WARNINGS = -Wno-padded \
 FLAGS = -DLINUX -DCOMMON -shared -fno-strict-aliasing -fPIC -Wall -Werror -Wextra -Wpedantic -g -O3 -std=c99
 
 LIB = ../io/libnxio.so ../memory/libnxmemory.so \
-      ../utils/libnxutils.so -dl
+      ../utils/libnxutils.so -ldl
       
 LIB_NAME = libnxplugin.so
 
