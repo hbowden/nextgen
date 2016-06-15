@@ -5,10 +5,6 @@ CK = ck-0.5.1
 LIBRESSL = libressl-2.4.1
 CAPSTONE = capstone-3.0.4
 
-TEST_LIB = $(ROOT_DIR)/src/io/libnxio.dylib \
-           $(ROOT_DIR)/src/memory/libnxmemory.dylib \
-           $(ROOT_DIR)/src/utils/libnxutils.dylib
-
 INCLUDE = -isystem deps/$(CAPSTONE)/include \
           -isystem deps/$(CK)/include \
           -Isrc
@@ -140,10 +136,6 @@ CLEAN_NX_LIBS += cd $(ROOT_DIR)/src/io && $(MAKE) clean && \
                  cd $(ROOT_DIR)/src/disas && $(MAKE) clean && \
                  cd $(ROOT_DIR)/src/runtime && $(MAKE) clean
 
-TEST_DEPS =  cd deps/$(LIBRESSL) && $(MAKE) check && \
-	         cd deps/$(CK) && $(MAKE) check && \
-	         cd deps/$(CAPSTONE) && $(MAKE) check
-
 export CK LIBRESSL CAPSTONE ROOT_DIR PLATFORM FLAGS SILENCED_WARNINGS
 
 all:
@@ -151,39 +143,6 @@ all:
 	$(BUILD_NX_LIBS)
 
 	$(CC) $(FLAGS) $(SOURCES) $(LIB) $(INCLUDE) $(SILENCED_WARNINGS) -o $(PROG)
-
-test-quick:
-
-	./test_suite
-
-test:
-
-	$(TEST_DEPS)
-	./test_suite
-
-test-runtime:
-
-	./test_suite runtime
-
-test-syscall:
-
-	./test_suite syscall
-
-test-genetic:
-
-	./test_suite genetic
-
-test-resource:
-
-	./test_suite resource
-
-test-memory:
-
-	./test_suite memory
-
-test-concurrent:
-
-	./test_suite concurrent
 
 clean-lib:
 
@@ -261,22 +220,6 @@ install:
 	cp -f deps/$(CAPSTONE)/libcapstone.dylib /usr/local/lib
 	cp -f deps/$(CK)/src/libck.so /usr/local/lib/libck.0.dylib
 
-	cp -f src/runtime/runtime.h /usr/local/include
-	cp -f src/io/io.h /usr/local/include
-	cp -f src/utils/utils.h /usr/local/include
-	cp -f src/memory/memory.h /usr/local/include
-	cp -f src/concurrent/concurrent.h /usr/local/include
-	cp -f src/crypto/crypto.h /usr/local/include
-
-build-test:
-
-	$(TEST_SUITE)
-	$(CC) $(FLAGS) $(TEST_LIB) -Wno-sign-conversion tests/tests.c tests/test_utils.c $(INCLUDE) $(SILENCED_WARNINGS) -o test_suite
-
-clean-test:
-
-	$(CLEAN_SUITE)
-
 clean:
 
 	cd deps/$(LIBRESSL) && $(MAKE) clean;
@@ -287,4 +230,12 @@ clean:
 	rm -rf nextgen
 	rm -rf test_suite
 
+build-tests:
+	cd tests && $(MAKE) build
+
+test:
+	cd tests && $(MAKE) test
+
+test-all:
+	cd tests && $(MAKE) test-all
 
