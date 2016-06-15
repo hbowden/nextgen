@@ -80,25 +80,8 @@ int32_t msg_send(msg_port_t remote_port, void *data, uint32_t size)
 
 void *msg_recv(msg_port_t recv_port)
 {
-	ssize_t ret = 0;
-	struct message_ctx *msg = NULL;
-	size_t msg_len = sizeof(struct message_ctx);
-
-    msg = mem_alloc(msg_len);
-    if(msg == NULL)
-    {
-        output(ERROR, "Can't allocate message\n");
-        return (NULL);
-    }
-
-    ret = read(recv_port.port[0], &msg, msg_len);
-    if(ret < (ssize_t)msg_len)
-    {
-    	output(ERROR, "Can't read message: %s\n", strerror(errno));
-    	return (NULL);
-    }
-
-    return (msg->data);
+	(void)recv_port;
+    return (NULL);
 }
 
 int32_t fork_pass_port(msg_port_t *pass_port, int32_t (*proc_start)(msg_port_t port, void *arg), void *arg)
