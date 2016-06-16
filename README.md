@@ -13,7 +13,7 @@ I will start adding the missing features and known bugs to the issue tracker.
 In the mean time `FreeBSD`, `Linux` and `OSX` users can build and "use" nextgen.
 
 # Build-FreeBSD
-To install `nextgen` on `FreeBSD` you will need to install a few dependencies and have the `FreeBSD` source tree installed at `/usr/src` as well. Use the command below to install the needed dependencies.
+To build `nextgen` on `FreeBSD` you will need to install a few dependencies and have the `FreeBSD` source tree installed at `/usr/src` as well. Use the command below to install the needed dependencies.
 
     sudo pkg install gmake autotools
     
@@ -31,7 +31,7 @@ Now you can build nextgen with `gmake`.
 
 # Build-Linux
 
-To install nextgen on `Linux` you will first need to install `aclocal-1.15`. If your distributions packgage manager dosen't
+To build nextgen on `Linux` you will first need to install `aclocal-1.15`. If your distributions packgage manager dosen't
 have `aclocal-1.15`, the easiest way to get it is to run the get-aclocal script that comes packaged with nextgen. This script
 needs to be run with root privileges and installs the `automake-1.15` package to `/usr/local/bin/` and includes `aclocal-1.15`.
 
