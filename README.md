@@ -12,7 +12,7 @@ I will start adding the missing features and known bugs to the issue tracker.
 
 In the mean time `FreeBSD`, `Linux` and `OSX` users can build and "use" nextgen.
 
-# Install-freebsd
+# Build-FreeBSD
 To install `nextgen` on `FreeBSD` you will need to install a few dependencies and have the `FreeBSD` source tree installed at `/usr/src` as well. Use the command below to install the needed dependencies.
 
     sudo pkg install gmake autotools
@@ -21,17 +21,32 @@ Use the command below if you don't have the `FreeBSD` source tree installed. The
 
     sudo svnlite co https://svn0.us-west.freebsd.org/base/release/10.3.0/ /usr/src
 
-Due to a regression in `concurrencykit` a `nextgen` dependency you will have to go into `deps` and build `concurrencykit` manually. Run `./configure && gmake` in the `ck-0.5.1` directory to build `concurrencykit`.
+Next run the setup script, this will build any dependencies needed for nextgen on `FreeBSD`.
 
-Now that your done building `concurrencykit`, run `gmake` to build the rest of `nextgen`.
+    ./setup.sh
 
-Use `gmake quick` if you don't wan't to build the dependencies and only want to build nextgen, note you will have to build the dependencies at least once.
+Now you can build nextgen with `gmake`.
 
-`gmake build-test` will build the test suite.
+    gmake
 
-Use `gmake test` to test nextgen and it's dependencies otherwise use `gmake test-quick` to only test nextgen.
+# Build-Linux
 
-Install nextgen with `sudo make install`. This will install the required dynamic libraries built earlier.
+To install nextgen on `Linux` you will first need to install `aclocal-1.15`. If your distributions packgage manager dosen't
+have `aclocal-1.15`, the easiest way to get it is to run the get-aclocal script that comes packaged with nextgen.
+
+    ./get-aclocal.sh
+    
+Next run the setup script, this will build any dependencies needed for nextgen on `Linux`.
+
+     ./setup.sh
+     
+Now you can build nextgen with `make`.
+
+    make
+
+# Install
+
+Finally after building nextgen for your platform you can install nextgen with `sudo make install`. This will install the required dynamic libraries built earlier.
 
 To run nextgen use the binary in the nextgen directory, if you run nextgen outside it's directory, nextgen won't find it's plugin directory. This limitation will be fixed later.
 
@@ -44,5 +59,4 @@ To use the syscall fuzzer without probes and the genetic algo pass --dumb.
 
 `sudo ./nextgen --syscall --dumb --out /file/path/to/create/output/directory`
 
-Nextgen will be ported to other operating systems besides `FreeBSD` and `OSX` and will be implemented in this order `illumos`, `Linux`, `OpenBSD`, and finally `NetBSD`. Porting `Nextgen` is mainly a matter of having a working libdtrace available on your platform. 
-
+Nextgen will be ported to other operating systems besides `FreeBSD`, `Linux` and `OSX` and will be implemented in this order `illumos`, `OpenBSD`, and finally `NetBSD`. Porting `Nextgen` is mainly a matter of having a working libdtrace available on your platform. 
