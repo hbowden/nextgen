@@ -420,6 +420,7 @@ NX_NO_RETURN static void start_syscall_child(void)
         if(rtrn < 0)
         {
             output(ERROR, "Can't log arguments\n");
+            mem_free((void **)&entry);
             exit_child();
         }
 
@@ -429,6 +430,7 @@ NX_NO_RETURN static void start_syscall_child(void)
         if(rtrn < 0)
         {
             output(ERROR, "Syscall call failed\n");
+            mem_free((void **)&entry);
             exit_child();
         }
 
@@ -436,8 +438,11 @@ NX_NO_RETURN static void start_syscall_child(void)
         if(rtrn < 0)
         {
             output(ERROR, "Can't log test results\n");
+            mem_free((void **)&entry);
             exit_child();
         }
+
+        mem_free((void **)&entry);
 
         /* If we didn't crash, cleanup are mess. If we don't do this the generate
         functions will crash in a hard to understand way. */
