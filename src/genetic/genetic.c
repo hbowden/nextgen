@@ -155,6 +155,7 @@ static int32_t init_world(void)
             if(organism->chromosome == NULL)
             {
                 output(ERROR, "Can't allocate chromosome context\n");
+                mem_free((void **)&organism);
                 return (-1);
             }
 
@@ -165,6 +166,8 @@ static int32_t init_world(void)
 
         world->species[i] = specie;
     }
+
+    cleanup_syscall_table(&sys_table);
 
     return (0);
 }
