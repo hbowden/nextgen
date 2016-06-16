@@ -94,24 +94,15 @@ struct syscall_entry *get_entry(uint32_t syscall_number)
 }
 
 /* Don't use inside of the syscall module. This function is for 
-Other modules like the reaper or genetic module to get child processes. */
+Other modules to get child processes. */
 struct child_ctx *get_child_from_index(uint32_t i)
 {
+    /* Make sure the array offset is in bounds. */
     if(i > number_of_children)
         return (NULL);
 
-    struct child_ctx *child = NULL;
-
-    child = mem_alloc(sizeof(struct child_ctx));
-    if(child == NULL)
-    {
-        output(ERROR, "Can't allocate child context\n");
-        return (NULL);
-    }
-
-    child = children[i];
-
-    return (child);
+    /* Return the child's context object pointer. */
+    return (children[i]);
 }
 
 static int32_t get_child_index_number(uint32_t *index_num)
