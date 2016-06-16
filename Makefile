@@ -18,8 +18,6 @@ ifeq ($(OPERATING_SYSTEM), FreeBSD)
 
 SOURCES = src/main.c
 
-PLATFORM = -DFREEBSD
-
 CC = clang
 
 LIB = -rpath src/runtime -rpath src/memory -rpath src/utils \
@@ -54,8 +52,6 @@ ifeq ($(OPERATING_SYSTEM), Darwin)
 
 SOURCES = src/main.m
 
-PLATFORM = -DMAC_OSX
-
 CC = clang
 
 MAKE = make
@@ -78,8 +74,6 @@ endif
 ifeq ($(OPERATING_SYSTEM), Linux)
 
 SOURCES = src/main.c
-
-PLATFORM = -DLINUX
 
 CC = gcc
 
