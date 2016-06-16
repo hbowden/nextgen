@@ -111,14 +111,7 @@ static int32_t get_socket_nocached(void)
 {
     int32_t rtrn = 0;
     uint32_t num = 0;
-    int32_t *sock = NULL;
-
-    sock = mem_alloc(sizeof(int32_t));
-    if(sock == NULL)
-    {
-        output(ERROR, "Can't allocate socket\n");
-        return (-1);
-    }
+    int32_t sock = 0;
 
     rtrn = rand_range(1, &num);
     if(rtrn < 0)
@@ -130,11 +123,11 @@ static int32_t get_socket_nocached(void)
     switch(num)
     {
         case 0:
-            connect_ipv6(sock);
+            connect_ipv6(&sock);
             break;
 
         case 1:
-            connect_ipv4(sock);
+            connect_ipv4(&sock);
             break;
 
         default:
@@ -142,7 +135,7 @@ static int32_t get_socket_nocached(void)
             return (-1);
     }
 
-    return ((*sock));
+    return (sock);
 }
 
 static int32_t get_desc_nocached(void)
