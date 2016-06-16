@@ -106,7 +106,7 @@ ifeq ($(COVERAGE), true)
 
 FLAGS += -fprofile-arcs -ftest-coverage
 
-else
+endif
 
 PROG = nextgen
 
