@@ -319,6 +319,7 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
                 if(rtrn < 0)
                 {
                     output(ERROR, "Can't set exec path\n");
+                    mem_free((void **)&ctx);
                     return (NULL);
                 }
 
@@ -331,6 +332,7 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
                 if(rtrn < 0)
                 {
                     output(ERROR, "Can't set input path\n");
+                    mem_free((void **)&ctx);
                     return (NULL);
                 }
 
@@ -344,6 +346,7 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
                 if(rtrn < 0)
                 {
                     output(ERROR, "Can't set output path\n");
+                    mem_free((void **)&ctx);
                     return (NULL);
                 }
 
@@ -356,6 +359,7 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
                 if(rtrn < 0)
                 {
                     output(ERROR, "Can't set fuzz mode\n");
+                    mem_free((void **)&ctx);
                     return (NULL);
                 }
                 break;
@@ -366,6 +370,7 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
                 if(rtrn < 0)
                 {
                     output(ERROR, "Can't set fuzz mode\n");
+                    mem_free((void **)&ctx);
                     return (NULL);
                 }
                 break;
@@ -376,6 +381,7 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
                 if(rtrn < 0)
                 {
                     output(ERROR, "Can't set fuzz mode\n");
+                    mem_free((void **)&ctx);
                     return (NULL);
                 }
                 break;
@@ -387,6 +393,7 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
                 if(rtrn < 0)
                 {
                     output(ERROR, "Can't set crypto method\n");
+                    mem_free((void **)&ctx);
                     return (NULL);
                 }
                 break;
@@ -405,12 +412,14 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
                 if(rtrn < 0)
                 {
                     output(ERROR, "asprintf: %s\n", strerror(errno));
+                    mem_free((void **)&ctx);
                     return (NULL);
                 }
                 break;
 
             default:
                 output(ERROR, "Unknown option\n");
+                mem_free((void **)&ctx);
                 return (NULL);
         }
     }
@@ -429,6 +438,7 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
         if(iFlag == FALSE || oFlag == FALSE || eFlag == FALSE)
         {
             output(STD, "Pass --exec , --in and --out for file mode\n");
+            mem_free((void **)&ctx);
             return NULL;
         }
     }
@@ -439,6 +449,7 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
         {
             output(STD, "Pass --address , --port, --protocol, and --out for "
                         "network mode\n");
+            mem_free((void **)&ctx);
             return NULL;
         }
     }
@@ -450,6 +461,7 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
         if(oFlag != TRUE)
         {
             output(STD, "Pass --out for syscall mode\n");
+            mem_free((void **)&ctx);
             return NULL;
         }
     }
