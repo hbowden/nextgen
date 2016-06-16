@@ -13,7 +13,8 @@ ifeq ($(OPERATING_SYSTEM), FreeBSD)
 SILENCED_WARNINGS = -Wno-padded -Wno-cast-qual \
                     -Wno-unused-parameter -Wno-pedantic \
                     -Wno-unknown-pragmas -Wno-sign-conversion \
-                    -Wno-incompatible-pointer-types-discards-qualifiers
+                    -Wno-incompatible-pointer-types-discards-qualifiers \
+                    -Wno-used-but-marked-unused
 
 INCLUDES += -I/usr/src/cddl/compat/opensolaris/include \
             -I/usr/src/cddl/contrib/opensolaris/lib/libdtrace/common \

@@ -17,7 +17,7 @@ SILENCED_WARNINGS = -Wno-padded \
 
 FLAGS = -DFREEBSD -shared -fno-strict-aliasing -fPIC -Wall -Werror -Weverything -g -O3 -std=c99
 
-LIB = ../io/libnxio.so ../memory/libnxmemory.so
+LIB = ../io/libnxio.so ../memory/libnxmemory.so $(ROOT_DIR)/deps/sqlite/sqlite3.so
       
 SOURCES += $(ROOT_DIR)/src/log/log-freebsd.c
 
