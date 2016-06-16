@@ -77,7 +77,7 @@ SOURCES = src/main.c
 
 CC = gcc
 
-FLAGS = -DLINUX -DCOMMON -fno-strict-aliasing -Wall -Werror -Wextra -g -O3 -std-gnu99
+FLAGS = -DLINUX -DCOMMON -fno-strict-aliasing -Wall -Werror -Wextra -g -O3 -std=gnu99
 
 LIB = -Wl,-rpath=src/runtime,-rpath=src/memory,-rpath=src/utils,-rpath=src/io,-rpath=src/concurrent,-rpath=src/genetic,-rpath=src/mutate,-rpath=src/log,-rpath=src/network,-rpath=src/file,-rpath=src/syscall,-rpath=src/probe,-rpath=src/disas,-rpath=src/crypto,-rpath=src/plugins \
       src/memory/libnxmemory.so \
