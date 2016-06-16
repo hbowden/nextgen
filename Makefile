@@ -1,7 +1,7 @@
 # Set the root directory path, ie the path to the nextgen directory.
 ROOT_DIR = $(shell pwd)
 
-COVERAGE
+COVERAGE = false
 
 CK = ck-0.5.1
 LIBRESSL = libressl-2.4.1
