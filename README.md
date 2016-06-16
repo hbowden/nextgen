@@ -32,9 +32,10 @@ Now you can build nextgen with `gmake`.
 # Build-Linux
 
 To install nextgen on `Linux` you will first need to install `aclocal-1.15`. If your distributions packgage manager dosen't
-have `aclocal-1.15`, the easiest way to get it is to run the get-aclocal script that comes packaged with nextgen.
+have `aclocal-1.15`, the easiest way to get it is to run the get-aclocal script that comes packaged with nextgen. This script
+needs to be run with root privileges and installs the `automake-1.15` package to `/usr/local/bin/` and includes `aclocal-1.15`.
 
-    ./get-aclocal.sh
+    sudo ./get-aclocal.sh
     
 Next run the setup script, this will build any dependencies needed for nextgen on `Linux`.
 
