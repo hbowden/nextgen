@@ -132,20 +132,22 @@ static int32_t setup_socket_server(int32_t *sockFd4, int *sockFd6)
     return (0);
 }
 
-static int accept_client(int listenFd)
+static int32_t accept_client(int listenFd)
 {
     struct sockaddr_storage addr;
     socklen_t addr_len = sizeof(addr);
-    int clientFd;
+    int32_t clientFd = 0;
 
     clientFd = accept(listenFd, (struct sockaddr *)&addr, &addr_len);
     if(clientFd < 0)
     {
         output(ERROR, "accept: %s\n", strerror(errno));
-        return -1;
+        return (-1);
     }
 
-    return 0;
+    close(clientFd);
+
+    return (0);
 }
 
 static void *accept_thread_start(void *obj)
