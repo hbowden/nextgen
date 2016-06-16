@@ -71,7 +71,7 @@ static int32_t rand_range_crypto(uint32_t range, uint32_t *number)
     }
 
     range1 = BN_new();
-    if(random == NULL)
+    if(range1 == NULL)
     {
         output(ERROR, "Can't init bignum struct\n");
         return (-1);
