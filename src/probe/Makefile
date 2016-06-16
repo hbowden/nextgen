@@ -50,18 +50,10 @@ endif
 
 # Linux.
 ifeq ($(OPERATING_SYSTEM), Linux)
-
-SILENCED_WARNINGS = 
-
-INCLUDES += 
-
-FLAGS = -DLINUX -DCOMMON -shared -fno-strict-aliasing -fPIC -Wall -Werror -Wextra -Wpedantic -g -O3 -std=c99
-
+FLAGS += -shared -fPIC
 LIB = ../io/libnxio.so ../memory/libnxmemory.so \
       ../utils/libnxutils.so 
-
 SOURCES += $(ROOT_DIR)/src/probe/probe-linux.c
-
 LIB_NAME = libnxprobe.so
 
 endif

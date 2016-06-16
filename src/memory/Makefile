@@ -29,7 +29,7 @@ endif
 
 ifeq ($(OPERATING_SYSTEM), Linux)
 
-FLAGS = -DLINUX -DCOMMON -shared -fno-strict-aliasing -fPIC -Wall -Werror -Wextra -Wpedantic -g -O3 -std=gnu99
+FLAGS += -shared -fPIC
 LIB = ../io/libnxio.so
 LIB_NAME = libnxmemory.so
 

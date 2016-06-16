@@ -33,8 +33,7 @@ endif
 
 ifeq ($(OPERATING_SYSTEM), Linux)
 
-FLAGS = -DLINUX -DCOMMON -shared -fno-strict-aliasing -fPIC -Wall -Werror -Wextra -Wpedantic -g -O3
-
+FLAGS += -shared -fPIC
 LIB = ../io/libnxio.so ../memory/libnxmemory.so \
       ../utils/libnxutils.so ../concurrent/libnxconcurrent.so \
       ../mutate/libnxmutate.so ../log/libnxlog.so \

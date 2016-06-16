@@ -27,9 +27,7 @@ ifeq ($(OPERATING_SYSTEM), Linux)
 SILENCED_WARNINGS = -Wno-padded \
                     -Wno-unused-parameter \
                     -Wno-pedantic
-
-FLAGS = -DLINUX -DCOMMON -shared -fno-strict-aliasing -fPIC -Wall -Werror -Wextra -g -O3 -std=gnu99
-
+FLAGS += -shared -fPIC
 LIB = ../io/libnxio.so ../memory/libnxmemory.so \
       ../crypto/libnxcrypto.so
 

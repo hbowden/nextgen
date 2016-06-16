@@ -54,8 +54,7 @@ SILENCED_WARNINGS = -Wno-unknown-warning-option \
                     -Wno-unused-parameter -Wno-unused-parameter \
                     -Wno-unused-variable
 
-FLAGS = -dynamiclib -DMAC_OSX -fno-strict-aliasing -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
-
+FLAGS += -shared -fPIC
 LIB = ../io/libnxio.dylib ../memory/libnxmemory.dylib $(ROOT_DIR)/deps/sqlite/libsqlite3.0.dylib
 
 SOURCES += $(ROOT_DIR)/src/log/log-mac.c

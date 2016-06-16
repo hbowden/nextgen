@@ -1,6 +1,8 @@
 # Set the root directory path, ie the path to the nextgen directory.
 ROOT_DIR = $(shell pwd)
 
+COVERAGE
+
 CK = ck-0.5.1
 LIBRESSL = libressl-2.4.1
 CAPSTONE = capstone-3.0.4
@@ -80,6 +82,16 @@ SOURCES = src/main.c
 PLATFORM = -DLINUX
 
 CC = gcc
+
+ifeq ($(COVERAGE), true)
+
+FLAGS = -DLINUX -DCOMMON -fno-strict-aliasing -Wall -Werror -Wextra -g -fprofile-arcs -ftest-coverage -std-gnu99
+
+else
+
+FLAGS = -DLINUX -DCOMMON -fno-strict-aliasing -Wall -Werror -Wextra -g -O3 -std-gnu99
+
+endif
 
 LIB = -Wl,-rpath=src/runtime,-rpath=src/memory,-rpath=src/utils,-rpath=src/io,-rpath=src/concurrent,-rpath=src/genetic,-rpath=src/mutate,-rpath=src/log,-rpath=src/network,-rpath=src/file,-rpath=src/syscall,-rpath=src/probe,-rpath=src/disas,-rpath=src/crypto,-rpath=src/plugins \
       src/memory/libnxmemory.so \

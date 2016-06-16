@@ -43,8 +43,7 @@ ifeq ($(OPERATING_SYSTEM), Linux)
 
 SILENCED_WARNINGS = -Wno-padded
 
-FLAGS = -DLINUX -DCOMMON -shared -fno-strict-aliasing -fPIC -Wall -Werror -Wextra -Wpedantic -g -O3 -std=c99
-
+FLAGS += -shared -fPIC
 LIB = ../io/libnxio.so ../memory/libnxmemory.so \
       ../crypto/libnxcrypto.so
 

@@ -52,8 +52,7 @@ SILENCED_WARNINGS = -Wno-padded \
                     -Wno-unused-variable -Wno-pedantic \
                     -Wno-unknown-pragmas -Wno-sign-conversion
 
-FLAGS = -DLINUX -DCOMMON -shared -fno-strict-aliasing -fPIC -Wall -Werror -Wextra -g -O3 -std=c99
-
+FLAGS += -shared -fPIC
 INCLUDES += -I/usr/src/cddl/compat/opensolaris/include \
             -I/usr/src/cddl/contrib/opensolaris/lib/libdtrace/common \
             -I/usr/src/sys/cddl/compat/opensolaris \

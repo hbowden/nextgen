@@ -29,11 +29,7 @@ endif
 
 # Linux build options.
 ifeq ($(OPERATING_SYSTEM), Linux)
-
-SILENCED_WARNINGS = 
-
-FLAGS = -DLINUX -shared -fPIC -Wall -Wextra -fno-strict-aliasing -Werror -Wpedantic -g -O3 -std=c99
-
+FLAGS += -shared -fPIC
 LIB_NAME = libnxio.so
 
 endif

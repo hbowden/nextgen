@@ -25,7 +25,7 @@ endif
 
 ifeq ($(OPERATING_SYSTEM), Linux)
 
-FLAGS = -DLINUX -DCOMMON -shared -fno-strict-aliasing -fPIC -Wall -Werror -Wextra -Wpedantic -g -O3 -std=c99
+FLAGS += -shared -fPIC
 
 LIB = ../io/libnxio.so ../memory/libnxmemory.so \
       ../file/libnxfile.so ../../deps/capstone-3.0.4/libcapstone.a
