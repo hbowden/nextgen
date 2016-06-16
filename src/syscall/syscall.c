@@ -239,6 +239,8 @@ static int32_t free_old_arguments(struct child_ctx *ctx)
         }
     }
 
+    mem_free((void **)&entry);
+
     return (0);
 }
 
