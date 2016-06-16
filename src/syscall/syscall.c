@@ -59,7 +59,13 @@ static int32_t *stop;
 /* This variable tells us wether were in smart mode or dumb mode. */
 static int32_t mode;
 
-int32_t cleanup_syscall_table(void) { return (0); }
+void cleanup_syscall_table(struct syscall_table **table)
+{
+    mem_free((void **)&(*table)->sys_entry);
+    mem_free((void **)table);
+
+    return; 
+}
 
 int32_t get_total_syscalls(uint32_t *total)
 {
@@ -623,6 +629,7 @@ struct syscall_table *get_syscall_table(void)
     if(i == 0)
     {
         output(ERROR, "Empty syscall table\n");
+        cleanup_syscall_table(&table);
         return (NULL);
     }
 

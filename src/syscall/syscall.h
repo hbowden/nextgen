@@ -38,7 +38,7 @@ extern struct child_ctx *get_child_ctx_from_pid(pid_t pid);
 
 extern struct syscall_table *get_syscall_table(void);
 
-extern int32_t cleanup_syscall_table(void);
+extern void cleanup_syscall_table(struct syscall_table **table);
 
 extern int32_t pick_syscall(struct child_ctx *ctx);
 
