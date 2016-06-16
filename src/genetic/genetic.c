@@ -225,6 +225,7 @@ static int32_t create_first_generation(void)
             if(job == NULL)
             {
                 output(ERROR, "Can't create job\n");
+                cleanup_syscall_table(&sys_table);
                 return (-1);
             }
 
@@ -232,10 +233,13 @@ static int32_t create_first_generation(void)
             if(rtrn < 0)
             {
                 output(ERROR, "Can't submit job\n");
+                cleanup_syscall_table(&sys_table);
                 return (-1);
             }
         }
     }
+
+    cleanup_syscall_table(&sys_table);
 
     return (0);
 }
