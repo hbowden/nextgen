@@ -721,8 +721,16 @@ int32_t test_syscall(struct child_ctx *ctx)
     /* Set the time of the syscall test. */
     (void)gettimeofday(&ctx->time_of_syscall, NULL);
 
+    /* Keep a reference of test syscall so we can cleanup entry before
+     running test_syscall(). test_syscall() may crash so this allows us
+     to free the syscall entry before and avoid a memory leak. */
+    ctx->test_syscall = entry->test_syscall;
+
+    /* Free entry. */
+    mem_free((void **)&entry);
+
     /* Call the syscall with the args generated. */
-    ctx->ret_value = entry->test_syscall(ctx->syscall_symbol, ctx->arg_value_array);
+    ctx->ret_value = ctx->test_syscall(ctx->syscall_symbol, ctx->arg_value_array);
     if(check_for_failure(ctx->ret_value) < 0)
     {
         /* If we got here, we had an error, so grab the error string. */
