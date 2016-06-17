@@ -149,7 +149,7 @@ int32_t copy_file_to(char *src, char *dst)
 {
     int32_t rtrn = 0;
     uint64_t file_size = 0;
-    char *file_buffer = NULL;
+    char *file_buffer auto_free = NULL;
     int32_t file auto_close = 0;
 
     file = open(src, O_RDONLY);
