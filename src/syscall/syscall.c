@@ -707,6 +707,8 @@ int32_t test_syscall(struct child_ctx *ctx)
     if(ctx->need_alarm == NX_YES)
         alarm(1);
 
+    /* Get a copy of the syscall entry for the syscall we are testing.
+       We need this to lookup the test_syscall() function. */
     struct syscall_entry *entry = get_entry(ctx->syscall_number);
     if(entry == NULL)
     {
