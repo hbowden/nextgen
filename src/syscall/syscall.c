@@ -612,6 +612,7 @@ struct syscall_table *get_syscall_table(void)
             if(entry.arg_context_array[ii] == NULL)
             {
                 output(ERROR, "Can't get arg context\n");
+                cleanup_syscall_table(&table);
                 return (NULL);
             }
         }
