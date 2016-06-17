@@ -103,7 +103,7 @@ static int32_t init_world(void)
     if(world->species == NULL)
     {
         output(ERROR, "Can't create species index\n");
-        cleanup_syscall_table(&table);
+        cleanup_syscall_table(&sys_table);
         return (-1);
     }
 
@@ -133,7 +133,7 @@ static int32_t init_world(void)
         if(specie == NULL)
         {
             output(ERROR, "Can't allocate species_ctx\n");
-            cleanup_syscall_table(&table);
+            cleanup_syscall_table(&sys_table);
             return (-1);
         }
 
@@ -149,7 +149,7 @@ static int32_t init_world(void)
             if(organism == NULL)
             {
                 output(ERROR, "Can't allocate organism context\n");
-                cleanup_syscall_table(&table);
+                cleanup_syscall_table(&sys_table);
                 return (-1);
             }
 
@@ -158,7 +158,7 @@ static int32_t init_world(void)
             {
                 output(ERROR, "Can't allocate chromosome context\n");
                 mem_free((void **)&organism);
-                cleanup_syscall_table(&table);
+                cleanup_syscall_table(&sys_table);
                 return (-1);
             }
 
@@ -172,31 +172,6 @@ static int32_t init_world(void)
 
     cleanup_syscall_table(&sys_table);
 
-    return (0);
-}
-
-static struct job_ctx *create_job(enum job_type type, uint32_t syscall_number)
-{
-    struct job_ctx *job = NULL;
-
-    /* Allocate job context. */
-    job = mem_alloc(sizeof(struct job_ctx));
-    if(job == NULL)
-    {
-        output(ERROR, "Can't allocate job context\n");
-        return NULL;
-    }
-
-    /* Set job values. */
-    job->type = type;
-    job->syscall_number = syscall_number;
-
-    return (job);
-}
-
-static int32_t submit_job(struct job_ctx *job)
-{
-    (void)job;
     return (0);
 }
 
@@ -223,22 +198,6 @@ static int32_t create_first_generation(void)
             struct job_ctx *job = NULL;
 
             uint32_t num = sys_table->sys_entry[i].entry_number;
-
-            job = create_job(GENESIS, num);
-            if(job == NULL)
-            {
-                output(ERROR, "Can't create job\n");
-                cleanup_syscall_table(&sys_table);
-                return (-1);
-            }
-
-            rtrn = submit_job(job);
-            if(rtrn < 0)
-            {
-                output(ERROR, "Can't submit job\n");
-                cleanup_syscall_table(&sys_table);
-                return (-1);
-            }
         }
     }
 
