@@ -429,6 +429,7 @@ struct _Unity
     UNITY_COUNTER_TYPE CurrentTestFailed;
     UNITY_COUNTER_TYPE CurrentTestIgnored;
     jmp_buf AbortFrame;
+    const char padding[4];
 };
 
 extern struct _Unity Unity;
