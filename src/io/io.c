@@ -101,7 +101,7 @@ int32_t map_file_in(int32_t fd, char **buf, uint64_t *size, int32_t perm)
 
 int32_t map_file_out(char *path, char *buf, uint64_t size)
 {
-    int32_t fd = 0;
+    int32_t fd auto_close = 0;
 
     fd = open(path, O_RDWR | O_CREAT | O_TRUNC, 0777);
     if(fd < 0)
@@ -123,8 +123,7 @@ int32_t map_file_out(char *path, char *buf, uint64_t size)
         return (-1);
     }
 
-    char *dst =
-        mmap(0, (unsigned long)size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    char *dst = mmap(0, (unsigned long)size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if(dst == MAP_FAILED)
     {
         output(ERROR, "mmap: %s\n", strerror(errno));
@@ -132,15 +131,7 @@ int32_t map_file_out(char *path, char *buf, uint64_t size)
     }
 
     memcpy(dst, buf, (unsigned long)size);
-
     munmap(dst, (unsigned long)size);
-
-    int32_t rtrn = close(fd);
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't close file\n");
-        return (-1);
-    }
 
     return (0);
 }
