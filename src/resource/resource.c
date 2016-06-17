@@ -915,6 +915,7 @@ static struct mem_pool_shared *create_socket_pool(void)
         if(rtrn < 0)
         {
             output(ERROR, "Can't create socket\n");
+            mem_free((void **)&sock);
             return (NULL);
         }
 
