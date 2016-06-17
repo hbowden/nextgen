@@ -188,16 +188,13 @@ static int32_t create_first_generation(void)
     }
 
     uint32_t i, ii;
-    int32_t rtrn = 0;
 
     /* Loop for each syscall in the syscall table. */
     for(i = 0; i < sys_table->number_of_syscalls; i++)
     {
         for(ii = 0; ii < SPECIES_POP; ii++)
         {
-            struct job_ctx *job = NULL;
 
-            uint32_t num = sys_table->sys_entry[i].entry_number;
         }
     }
 

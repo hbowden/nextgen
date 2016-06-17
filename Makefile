@@ -11,6 +11,27 @@ INCLUDE = -isystem deps/$(CAPSTONE)/include \
           -isystem deps/$(CK)/include \
           -Isrc
 
+INSTALL = cp -f src/runtime/libnxruntime.so /usr/local/lib && \
+	      cp -f src/io/libnxio.so /usr/local/lib && \
+	      cp -f src/memory/libnxmemory.so /usr/local/lib && \
+	      cp -f src/concurrent/libnxconcurrent.so /usr/local/lib && \
+	      cp -f src/crypto/libnxcrypto.so /usr/local/lib && \
+	      cp -f src/utils/libnxutils.so /usr/local/lib && \
+	      cp -f src/probe/libnxprobe.so /usr/local/lib && \
+	      cp -f src/network/libnxnetwork.so /usr/local/lib && \
+	      cp -f src/plugins/libnxplugin.so /usr/local/lib && \
+	      cp -f src/mutate/libnxmutate.so /usr/local/lib && \
+	      cp -f src/resource/libnxresource.so /usr/local/lib && \
+	      cp -f src/log/libnxlog.so /usr/local/lib && \
+	      cp -f src/syscall/libnxsyscall.so /usr/local/lib && \
+	      cp -f src/genetic/libnxgenetic.so /usr/local/lib && \
+	      cp -f src/file/libnxfile.so /usr/local/lib && \
+	      cp -f src/disas/libnxdisas.so /usr/local/lib && \
+	      cp -f deps/$(CAPSTONE)/libcapstone.so /usr/local/lib && \
+	      cp -f deps/$(CK)/src/libck.so /usr/local/lib/ && \
+	      cp -f deps/$(LIBRESSL)/crypto/.libs/libcrypto.so.38 /usr/local/lib
+
+
 OPERATING_SYSTEM = $(shell uname)
 
 # FreeBSD build options.
@@ -55,6 +76,42 @@ SOURCES = src/main.m
 CC = clang
 
 MAKE = make
+
+INSTALL = cp -rf src/runtime/libnxruntime.dylib.dSYM /usr/local/lib && \
+	      cp -rf src/io/libnxio.dylib.dSYM /usr/local/lib && \
+	      cp -rf src/objc/libnxobjcutils.dylib.dSYM /usr/local/lib && \
+	      cp -rf src/memory/libnxmemory.dylib.dSYM /usr/local/lib && \
+	      cp -rf src/concurrent/libnxconcurrent.dylib.dSYM /usr/local/lib && \
+	      cp -rf src/crypto/libnxcrypto.dylib.dSYM /usr/local/lib && \
+	      cp -rf src/probe/libnxprobe.dylib.dSYM /usr/local/lib && \
+	      cp -rf src/network/libnxnetwork.dylib.dSYM /usr/local/lib && \
+	      cp -rf src/plugins/libnxplugin.dylib.dSYM /usr/local/lib && \
+	      cp -rf src/mutate/libnxmutate.dylib.dSYM /usr/local/lib && \
+	      cp -rf src/resource/libnxresource.dylib.dSYM /usr/local/lib && \
+	      cp -rf src/log/libnxlog.dylib.dSYM /usr/local/lib && \
+	      cp -rf src/syscall/libnxsyscall.dylib.dSYM /usr/local/lib && \
+	      cp -rf src/genetic/libnxgenetic.dylib.dSYM /usr/local/lib && \
+	      cp -rf src/file/libnxfile.dylib.dSYM /usr/local/lib && \
+	      cp -rf src/disas/libnxdisas.dylib.dSYM /usr/local/lib && \
+	      cp -f src/runtime/libnxruntime.dylib /usr/local/lib && \
+	      cp -f src/io/libnxio.dylib /usr/local/lib && \
+	      cp -f src/objc/libnxobjcutils.dylib /usr/local/lib && \
+	      cp -f src/memory/libnxmemory.dylib /usr/local/lib && \
+	      cp -f src/concurrent/libnxconcurrent.dylib /usr/local/lib && \
+	      cp -f src/crypto/libnxcrypto.dylib /usr/local/lib && \
+	      cp -f src/utils/libnxutils.dylib /usr/local/lib && \
+	      cp -f src/probe/libnxprobe.dylib /usr/local/lib && \
+	      cp -f src/network/libnxnetwork.dylib /usr/local/lib && \
+	      cp -f src/plugins/libnxplugin.dylib /usr/local/lib && \
+	      cp -f src/mutate/libnxmutate.dylib /usr/local/lib && \
+	      cp -f src/resource/libnxresource.dylib /usr/local/lib && \
+	      cp -f src/log/libnxlog.dylib /usr/local/lib && \
+	      cp -f src/syscall/libnxsyscall.dylib /usr/local/lib && \
+	      cp -f src/genetic/libnxgenetic.dylib /usr/local/lib && \
+	      cp -f src/file/libnxfile.dylib /usr/local/lib && \
+	      cp -f src/disas/libnxdisas.dylib /usr/local/lib && \
+	      cp -f deps/$(CAPSTONE)/libcapstone.dylib /usr/local/lib && \
+	      cp -f deps/$(CK)/src/libck.so /usr/local/lib/libck.0.dylib
 
 LIB = src/runtime/libnxruntime.dylib src/memory/libnxmemory.dylib \
       src/utils/libnxutils.dylib src/io/libnxio.dylib src/objc/libnxobjcutils.dylib
@@ -185,42 +242,7 @@ clean-lib:
 
 install:
 
-	cp -rf src/runtime/libnxruntime.dylib.dSYM /usr/local/lib
-	cp -rf src/io/libnxio.dylib.dSYM /usr/local/lib
-	cp -rf src/objc/libnxobjcutils.dylib.dSYM /usr/local/lib
-	cp -rf src/memory/libnxmemory.dylib.dSYM /usr/local/lib
-	cp -rf src/concurrent/libnxconcurrent.dylib.dSYM /usr/local/lib
-	cp -rf src/crypto/libnxcrypto.dylib.dSYM /usr/local/lib 
-	cp -rf src/probe/libnxprobe.dylib.dSYM /usr/local/lib 
-	cp -rf src/network/libnxnetwork.dylib.dSYM /usr/local/lib 
-	cp -rf src/plugins/libnxplugin.dylib.dSYM /usr/local/lib 
-	cp -rf src/mutate/libnxmutate.dylib.dSYM /usr/local/lib 
-	cp -rf src/resource/libnxresource.dylib.dSYM /usr/local/lib 
-	cp -rf src/log/libnxlog.dylib.dSYM /usr/local/lib 
-	cp -rf src/syscall/libnxsyscall.dylib.dSYM /usr/local/lib 
-	cp -rf src/genetic/libnxgenetic.dylib.dSYM /usr/local/lib 
-	cp -rf src/file/libnxfile.dylib.dSYM /usr/local/lib 
-	cp -rf src/disas/libnxdisas.dylib.dSYM /usr/local/lib 
-
-	cp -f src/runtime/libnxruntime.dylib /usr/local/lib
-	cp -f src/io/libnxio.dylib /usr/local/lib
-	cp -f src/objc/libnxobjcutils.dylib /usr/local/lib
-	cp -f src/memory/libnxmemory.dylib /usr/local/lib
-	cp -f src/concurrent/libnxconcurrent.dylib /usr/local/lib
-	cp -f src/crypto/libnxcrypto.dylib /usr/local/lib 
-	cp -f src/utils/libnxutils.dylib /usr/local/lib
-	cp -f src/probe/libnxprobe.dylib /usr/local/lib 
-	cp -f src/network/libnxnetwork.dylib /usr/local/lib 
-	cp -f src/plugins/libnxplugin.dylib /usr/local/lib 
-	cp -f src/mutate/libnxmutate.dylib /usr/local/lib 
-	cp -f src/resource/libnxresource.dylib /usr/local/lib 
-	cp -f src/log/libnxlog.dylib /usr/local/lib 
-	cp -f src/syscall/libnxsyscall.dylib /usr/local/lib 
-	cp -f src/genetic/libnxgenetic.dylib /usr/local/lib 
-	cp -f src/file/libnxfile.dylib /usr/local/lib 
-	cp -f src/disas/libnxdisas.dylib /usr/local/lib 
-	cp -f deps/$(CAPSTONE)/libcapstone.dylib /usr/local/lib
-	cp -f deps/$(CK)/src/libck.so /usr/local/lib/libck.0.dylib
+	$(INSTALL)
 
 clean:
 
