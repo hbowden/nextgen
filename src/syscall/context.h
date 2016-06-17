@@ -77,7 +77,9 @@ struct child_ctx
 
     bool need_alarm;
 
-    const char padding2[7];
+    int32_t (*test_syscall)(int32_t, uint64_t **);
+
+    const char padding[3];
 };
 
 #endif
