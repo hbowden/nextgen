@@ -298,6 +298,7 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
             /* Display banner and exit. */
             case 'h':
                 display_help_banner();
+                mem_free((void **)&ctx);
                 return (NULL);
 
             case 'p':
