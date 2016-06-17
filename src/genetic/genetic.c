@@ -99,11 +99,11 @@ static int32_t init_world(void)
     world->current_generation = 0;
 
     /* Allocate index of species context pointers. */
-    world->species =
-        mem_alloc((world->number_of_species) * sizeof(struct species_ctx *));
+    world->species = mem_alloc((world->number_of_species) * sizeof(struct species_ctx *));
     if(world->species == NULL)
     {
         output(ERROR, "Can't create species index\n");
+        cleanup_syscall_table(&table);
         return (-1);
     }
 
@@ -133,7 +133,8 @@ static int32_t init_world(void)
         if(specie == NULL)
         {
             output(ERROR, "Can't allocate species_ctx\n");
-            return -1;
+            cleanup_syscall_table(&table);
+            return (-1);
         }
 
         memmove(specie, &ctx, sizeof(struct species_ctx));
@@ -148,6 +149,7 @@ static int32_t init_world(void)
             if(organism == NULL)
             {
                 output(ERROR, "Can't allocate organism context\n");
+                cleanup_syscall_table(&table);
                 return (-1);
             }
 
@@ -156,6 +158,7 @@ static int32_t init_world(void)
             {
                 output(ERROR, "Can't allocate chromosome context\n");
                 mem_free((void **)&organism);
+                cleanup_syscall_table(&table);
                 return (-1);
             }
 
