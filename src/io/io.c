@@ -155,7 +155,6 @@ int32_t copy_file_to(char *src, char *dst)
     if(rtrn < 0)
     {
         output(ERROR, "Can't read file to memory\n");
-        free(file_buffer);
         return (-1);
     }
 
@@ -163,7 +162,6 @@ int32_t copy_file_to(char *src, char *dst)
     if(rtrn < 0)
     {
         output(ERROR, "Can't write file to disk\n");
-        free(file_buffer);
         munmap(file_buffer, (size_t)file_size);
         return (-1);
     }
@@ -172,12 +170,10 @@ int32_t copy_file_to(char *src, char *dst)
     if(rtrn < 0)
     {
         output(ERROR, "Can't sync file on disk\n");
-        free(file_buffer);
         munmap(file_buffer, (size_t)file_size);
         return (-1);
     }
 
-    free(file_buffer);
     munmap(file_buffer, (size_t)file_size);
 
     return (0);
