@@ -219,7 +219,7 @@ static int32_t create_arg_entry_table(void)
     rtrn = asprintf(&sql, "CREATE TABLE IF NOT EXISTS arg_entry(id INT NOT NULL, val BLOB NOT NULL);");
     if(rtrn < 0)
     {
-        output(ERROR, "Can't create  SQL statement: %s\n", strerror(errno));
+        output(ERROR, "Can't create SQL statement: %s\n", strerror(errno));
         return (-1);
     }
 
@@ -245,7 +245,7 @@ static int32_t create_syscall_entry_table(void)
     rtrn = asprintf(&sql, "CREATE TABLE IF NOT EXISTS syscall_entry(id INT NOT NULL, num INT NOT NULL, name );");
     if(rtrn < 0)
     {
-        output(ERROR, "Can't create  SQL statement: %s\n", strerror(errno));
+        output(ERROR, "Can't create SQL statement: %s\n", strerror(errno));
         return (-1);
     }
 
