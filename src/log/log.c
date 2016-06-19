@@ -209,15 +209,14 @@ int32_t log_results(int32_t had_error, int32_t ret_value, char *err_value)
     return 0;
 }
 
-static int32_t setup_tables(void)
+static int32_t create_arg_entry_table(void)
 {
     char *err;
     int32_t rtrn = 0;
-    char *sql1 auto_free = NULL;
-    char *sql2 auto_free = NULL;
+    char *sql auto_free = NULL;
 
     /* Create SQL statement. */
-    rtrn = asprintf(&sql1, "CREATE TABLE IF NOT EXISTS arg_entry(id INT NOT NULL, val BLOB NOT NULL);");
+    rtrn = asprintf(&sql, "CREATE TABLE IF NOT EXISTS arg_entry(id INT NOT NULL, val BLOB NOT NULL);");
     if(rtrn < 0)
     {
         output(ERROR, "Can't create  SQL statement: %s\n", strerror(errno));
@@ -225,7 +224,7 @@ static int32_t setup_tables(void)
     }
 
     /* Store the syscall argument. */
-    rtrn = sqlite3_exec(db, sql1, NULL, NULL, &err);
+    rtrn = sqlite3_exec(db, sql, NULL, NULL, &err);
     if(rtrn != SQLITE_OK)
     {
         output(ERROR, "Can't create argument entry table: %s\n", err);
@@ -233,8 +232,17 @@ static int32_t setup_tables(void)
         return (-1);
     }
 
+    return (0);
+}
+
+static int32_t create_syscall_entry_table(void)
+{
+    char *err;
+    int32_t rtrn = 0;
+    char *sql auto_free = NULL;
+
     /* Create SQL statement. */
-    rtrn = asprintf(&sql2, "CREATE TABLE IF NOT EXISTS syscall_entry(id INT NOT NULL, num INT NOT NULL, name );");
+    rtrn = asprintf(&sql, "CREATE TABLE IF NOT EXISTS syscall_entry(id INT NOT NULL, num INT NOT NULL, name );");
     if(rtrn < 0)
     {
         output(ERROR, "Can't create  SQL statement: %s\n", strerror(errno));
@@ -242,11 +250,32 @@ static int32_t setup_tables(void)
     }
 
     /* Store the syscall argument. */
-    rtrn = sqlite3_exec(db, sql2, NULL, NULL, &err);
+    rtrn = sqlite3_exec(db, sql, NULL, NULL, &err);
     if(rtrn != SQLITE_OK)
     {
-        output(ERROR, "Can't create syscall entry table: %s\n", err);
+        output(ERROR, "Can't create argument entry table: %s\n", err);
         sqlite3_free(err);
+        return (-1);
+    }
+
+    return (0);
+}
+
+static int32_t setup_tables(void)
+{
+    int32_t rtrn = 0;
+
+    rtrn = create_arg_entry_table();
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't create argument entry table\n");
+        return (-1);
+    }
+
+    rtrn = create_syscall_entry_table();
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't create syscall entry table\n");
         return (-1);
     }
 
