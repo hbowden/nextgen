@@ -129,7 +129,6 @@ int32_t write_arguments_to_log(uint32_t total_args,
     if(rtrn != SQLITE_OK)
     {
         output(ERROR, "Can't insert syscall values into db: %s\n", err);
-        sqlite3_free(err);
         return (-1);
     }
 
