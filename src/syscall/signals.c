@@ -125,72 +125,21 @@ static void child_signal_handler(int sig)
     {
         /* An alarm we set for a blocking syscall has gone off. */
         case SIGALRM:
-
-            /* Set the had error flag to no. */
             child->had_error = NX_NO;
-
-            /* Set return value to zero. */
             child->ret_value = 0;
-
             child->did_jump = NX_YES;
-            
-            /* Jump back to child's main loop. */
-            longjmp(child->return_jump, 1); 
-
-        case SIGSEGV:
-
-            /* Set the had error flag to YES. */
-            child->had_error = NX_YES;
-
-            /* Set return value to -1. */
-            child->ret_value = -1;
-
-            child->did_jump = NX_YES;
-
-            /* Set err value. */
-            memmove(child->err_value, "SIGSEGV", 7);
-
-            child->err_value[7] = '\0';
-
-            /* Jump back to child's main loop. */
-            longjmp(child->return_jump, 1);
-
-        case SIGBUS:
-
-            /* Set the had error flag to YES. */
-            child->had_error = NX_YES;
-
-            /* Set return value to -1. */
-            child->ret_value = -1;
-
-            child->did_jump = NX_YES;
-
-            /* Set err value. */
-            memmove(child->err_value, "SIGBUS", 6);
-
-            child->err_value[6] = '\0';
-
-            /* Jump back to child's main loop. */
-            longjmp(child->return_jump, 1);
+            break;
 
         default:
-
-            /* Set the had error flag to YES. */
             child->had_error = NX_YES;
-
-            child->did_jump = NX_YES;
-
-            /* Set return value to -1. */
             child->ret_value = -1;
-
-            /* Set err value. */
-            memmove(child->err_value, "SIGNAL", 6);
-
-            child->err_value[6] = '\0';
-
-            /* Jump back to child's main loop. */
-            longjmp(child->return_jump, 1);
+            child->did_jump = NX_YES;
+            child->sig_num = sig;
+            break;
     }
+
+    /* Jump back to child's main loop. */
+    longjmp(child->return_jump, 1);
 }
 
 int32_t setup_child_signal_handler(void)
