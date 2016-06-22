@@ -360,7 +360,7 @@ NX_NO_RETURN static void start_syscall_child(void)
     if(ctx->did_jump == NX_YES)
     {
         /* Log the results of the last fuzz test. */
-        rtrn = log_results(ctx->had_error, ctx->ret_value, ctx->err_value);
+        rtrn = log_results(ctx->had_error, ctx->ret_value, strsignal(ctx->sig_num));
         if(rtrn < 0)
         {
             output(ERROR, "Can't log test results\n");
@@ -433,7 +433,7 @@ NX_NO_RETURN static void start_syscall_child(void)
             exit_child();
         }
 
-        rtrn = log_results(ctx->had_error, ctx->ret_value, ctx->err_value);
+        rtrn = log_results(ctx->had_error, ctx->ret_value, strsignal(ctx->sig_num));
         if(rtrn < 0)
         {
             output(ERROR, "Can't log test results\n");
@@ -736,9 +736,6 @@ int32_t test_syscall(struct child_ctx *ctx)
     ctx->ret_value = ctx->test_syscall(ctx->syscall_symbol, ctx->arg_value_array);
     if(check_for_failure(ctx->ret_value) < 0)
     {
-        /* If we got here, we had an error, so grab the error string. */
-        ctx->err_value = strerror(errno);
-
         /* Set the error flag so the logging system knows we had an error. */
         ctx->had_error = NX_YES;
     }
@@ -825,18 +822,6 @@ static struct child_ctx *init_child_context(void)
     if(child->arg_copy_array == NULL)
     {
         output(ERROR, "Can't create arg copy index: %s\n", strerror(errno));
-        mem_free((void **)&child->arg_size_array);
-        mem_free((void **)&child->arg_value_array);
-        mem_free((void **)&child);
-        return (NULL);
-    }
-
-    /* This is where we store the error string on each syscall test. */
-    child->err_value = mem_alloc(1024);
-    if(child->err_value == NULL)
-    {
-        output(ERROR, "err_value: %s\n", strerror(errno));
-        mem_free((void **)&child->arg_copy_array);
         mem_free((void **)&child->arg_size_array);
         mem_free((void **)&child->arg_value_array);
         mem_free((void **)&child);
