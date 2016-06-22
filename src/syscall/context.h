@@ -68,8 +68,7 @@ struct child_ctx
     /* If this is set we know the syscall failed. */
     int32_t had_error;
 
-    /* The string value of errno if the syscall test failed. */
-    char *err_value;
+    int32_t sig_num;
 
     int32_t did_jump;
 
