@@ -95,7 +95,7 @@ struct child_ctx
 };
 
 /* The total number of children process to run. */
-uint32_t number_of_children;
+static uint32_t total_children;
 
 /* An array of child context structures. These structures track variables
    local to the child process. */
@@ -201,7 +201,7 @@ Other modules to get child processes. */
 struct child_ctx *get_child_from_index(uint32_t i)
 {
     /* Make sure the array offset is in bounds. */
-    if(i > number_of_children)
+    if(i > total_children)
         return (NULL);
 
     /* Return the child's context object pointer. */
@@ -214,7 +214,7 @@ static int32_t get_child_index_number(uint32_t *index_num)
     pid_t pid = getpid();
 
     /* Walk child array until our PID matches the one in the context struct. */
-    for(i = 0; i < number_of_children; i++)
+    for(i = 0; i < total_children; i++)
     {
         if(ck_pr_load_int(&children[i]->pid) == pid)
         {
@@ -402,7 +402,7 @@ struct child_ctx *get_child_ctx_from_pid(pid_t pid)
 {
     uint32_t i;
 
-    for(i = 0; i < number_of_children; i++)
+    for(i = 0; i < total_children; i++)
     {
         if(children[i]->pid == pid)
             return (children[i]);
@@ -615,7 +615,7 @@ void create_syscall_children(void)
     uint32_t i = 0;
 
     /* Walk the child structure array and find the first empty child slot. */
-    for(i = 0; i < number_of_children; i++)
+    for(i = 0; i < total_children; i++)
     {
         /* If the child does not have a pid of EMPTY let's create a new one. */
         if(children[i]->pid != EMPTY)
@@ -845,7 +845,7 @@ void kill_all_children(void)
     uint32_t i = 0;
     int32_t rtrn = 0;
 
-    for(i = 0; i < number_of_children; i++)
+    for(i = 0; i < total_children; i++)
     {
         int32_t pid = ck_pr_load_int(&children[i]->pid);
 
@@ -871,7 +871,7 @@ void start_main_syscall_loop(void)
     while(ck_pr_load_int(stop) == FALSE)
     {
         /* Check if we have the right number of children processes running, if not create a new ones until we do. */
-        if(ck_pr_load_uint(&running_children) < number_of_children)
+        if(ck_pr_load_uint(&running_children) < total_children)
         {
             /* Create children process. */
             create_syscall_children();
@@ -974,7 +974,7 @@ int32_t setup_syscall_module(int32_t *stop_ptr,
 
     /* Grab the core count of the machine we are on and set the number
     of syscall children to the core count. */
-    rtrn = get_core_count(&number_of_children);
+    rtrn = get_core_count(&total_children);
     if(rtrn < 0)
     {
         output(ERROR, "Can't get core count\n");
@@ -990,7 +990,7 @@ int32_t setup_syscall_module(int32_t *stop_ptr,
     }
 
     /* Create the child process structures. */
-    children = mem_alloc(number_of_children * sizeof(struct child_ctx *));
+    children = mem_alloc(total_children * sizeof(struct child_ctx *));
     if(children == NULL)
     {
         output(ERROR, "Can't create children index.\n");
@@ -998,7 +998,7 @@ int32_t setup_syscall_module(int32_t *stop_ptr,
     }
 
     /* Loop for each child and allocate the child context object. */
-    for(i = 0; i < number_of_children; i++)
+    for(i = 0; i < total_children; i++)
     {
         struct child_ctx *child = NULL;
 
