@@ -18,7 +18,7 @@
 #ifndef ENTRY_H
 #define ENTRY_H
 
-#include "context.h"
+#include "syscall.h"
 #include "runtime/platform.h"
 #include "arg_types.h"
 

@@ -47,7 +47,7 @@
 
 #endif
 
-int32_t generate_fd(uint64_t **fd, struct child_ctx *ctx)
+int32_t generate_fd(uint64_t **fd, struct child_ctx *child)
 {
     /* Allocate the descriptor. */
     (*fd) = mem_alloc(sizeof(int32_t));
@@ -68,12 +68,12 @@ int32_t generate_fd(uint64_t **fd, struct child_ctx *ctx)
     memmove((*fd), &desc, sizeof(int32_t));
 
     /* Set the argument size. */
-    ctx->arg_size_array[ctx->current_arg] = sizeof(int32_t);
+    set_arg_size(child, sizeof(int32_t));
 
     return (0);
 }
 
-int32_t generate_socket(uint64_t **sock, struct child_ctx *ctx)
+int32_t generate_socket(uint64_t **sock, struct child_ctx *child)
 {
     (*sock) = mem_alloc(sizeof(int32_t));
     if((*sock) == NULL)
@@ -93,12 +93,12 @@ int32_t generate_socket(uint64_t **sock, struct child_ctx *ctx)
 
     memmove((*sock), &sock_fd, sizeof(int32_t));
 
-    ctx->arg_size_array[ctx->current_arg] = sizeof(int32_t);
+    set_arg_size(child, sizeof(int32_t));
 
     return (0);
 }
 
-int32_t generate_buf(uint64_t **buf, struct child_ctx *ctx)
+int32_t generate_buf(uint64_t **buf, struct child_ctx *child)
 {
     int32_t rtrn = 0;
     uint32_t number = 0;
@@ -159,19 +159,19 @@ int32_t generate_buf(uint64_t **buf, struct child_ctx *ctx)
             return (-1);
     }
 
-    ctx->arg_size_array[ctx->current_arg] = nbytes;
+    set_arg_size(child, nbytes);
 
     return (0);
 }
 
-int32_t generate_length(uint64_t **length, struct child_ctx *ctx)
+int32_t generate_length(uint64_t **length, struct child_ctx *child)
 {
     uint32_t last_arg = 0;
 
-    if(ctx->current_arg == 0)
+    if(get_current_arg(child) == 0)
         last_arg = 0;
     else
-        last_arg = ctx->current_arg - 1;
+        last_arg = get_current_arg(child) - 1;
 
     /* Allocate the length buffer */
     (*length) = mem_alloc(sizeof(uint64_t));
@@ -181,16 +181,25 @@ int32_t generate_length(uint64_t **length, struct child_ctx *ctx)
         return (-1);
     }
 
+    uint64_t arg_size = 0;
+
+    int32_t rtrn = get_arg_size(child, last_arg, &arg_size);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't get argument size.\n");
+        return (-1);
+    }
+
     /* Set the length to the length of the last syscall argument. */
-    memcpy((*length), &ctx->arg_size_array[last_arg], sizeof(uint64_t));
+    memcpy((*length), &arg_size, sizeof(uint64_t));
 
     /* Set this argument's length. */
-    ctx->arg_size_array[ctx->current_arg] = sizeof(uint64_t);
+    set_arg_size(child, sizeof(uint64_t));
 
     return (0);
 }
 
-int32_t generate_path(uint64_t **path, struct child_ctx *ctx)
+int32_t generate_path(uint64_t **path, struct child_ctx *child)
 {
     (*path) = (uint64_t *)get_filepath();
     if((*path) == NULL)
@@ -199,12 +208,12 @@ int32_t generate_path(uint64_t **path, struct child_ctx *ctx)
         return (-1);
     }
 
-    ctx->arg_size_array[ctx->current_arg] = strlen((char *)(*path));
+    set_arg_size(child, strlen((char *)(*path)));
 
     return (0);
 }
 
-int32_t generate_open_flag(uint64_t **flag, struct child_ctx *ctx)
+int32_t generate_open_flag(uint64_t **flag, struct child_ctx *child)
 {
     int32_t rtrn = 0;
     uint32_t number = 0;
@@ -262,12 +271,12 @@ int32_t generate_open_flag(uint64_t **flag, struct child_ctx *ctx)
             return (-1);
     }
 
-    ctx->arg_size_array[ctx->current_arg] = sizeof(int64_t);
+    set_arg_size(child, sizeof(int64_t));
 
     return (0);
 }
 
-int32_t generate_mode(uint64_t **mode, struct child_ctx *ctx)
+int32_t generate_mode(uint64_t **mode, struct child_ctx *child)
 {
     int32_t rtrn = 0;
     uint32_t number = 0;
@@ -377,12 +386,12 @@ int32_t generate_mode(uint64_t **mode, struct child_ctx *ctx)
             return (-1);
     }
 
-    ctx->arg_size_array[ctx->current_arg] = sizeof(int64_t);
+    set_arg_size(child, sizeof(int64_t));
 
     return (0);
 }
 
-int32_t generate_fs_stat(uint64_t **stat, struct child_ctx *ctx)
+int32_t generate_fs_stat(uint64_t **stat, struct child_ctx *child)
 {
     struct statfs *stat_buf = mem_alloc(sizeof(struct statfs));
     if(stat_buf == NULL)
@@ -393,15 +402,15 @@ int32_t generate_fs_stat(uint64_t **stat, struct child_ctx *ctx)
 
     (*stat) = (uint64_t *)stat_buf;
 
-    ctx->arg_size_array[ctx->current_arg] = sizeof(struct statfs);
+    set_arg_size(child, sizeof(struct statfs));
 
     return (0);
 }
 
-/* Don't compile on Linux. */
+/* Don't compile on Linux. Move to generate-linux.c shim in the future. */
 #ifndef LINUX
 
-int32_t generate_fs_stat_flag(uint64_t **flag, struct child_ctx *ctx)
+int32_t generate_fs_stat_flag(uint64_t **flag, struct child_ctx *child)
 {
     int32_t rtrn = 0;
     uint32_t number = 0;
@@ -435,14 +444,14 @@ int32_t generate_fs_stat_flag(uint64_t **flag, struct child_ctx *ctx)
             return (-1);
     }
 
-    ctx->arg_size_array[ctx->current_arg] = sizeof(int64_t);
+    set_arg_size(child, sizeof(int64_t));
 
     return (0);
 }
 
 #endif
 
-int32_t generate_pid(uint64_t **pid, struct child_ctx *ctx)
+int32_t generate_pid(uint64_t **pid, struct child_ctx *child)
 {
     (*pid) = mem_alloc(sizeof(unsigned long));
     if((*pid) == NULL)
@@ -453,12 +462,12 @@ int32_t generate_pid(uint64_t **pid, struct child_ctx *ctx)
 
     (**pid) = (uint64_t)getpid();
 
-    ctx->arg_size_array[ctx->current_arg] = sizeof(int64_t);
+    set_arg_size(child, sizeof(int64_t));
 
     return (0);
 }
 
-int32_t generate_int(uint64_t **integer, struct child_ctx *ctx)
+int32_t generate_int(uint64_t **integer, struct child_ctx *child)
 {
     uint32_t number;
     int32_t rtrn = 0;
@@ -479,12 +488,12 @@ int32_t generate_int(uint64_t **integer, struct child_ctx *ctx)
 
     (**integer) = (uint64_t)number;
 
-    ctx->arg_size_array[ctx->current_arg] = sizeof(int64_t);
+    set_arg_size(child, sizeof(int64_t));
 
     return (0);
 }
 
-int32_t generate_rusage(uint64_t **usage, struct child_ctx *ctx)
+int32_t generate_rusage(uint64_t **usage, struct child_ctx *child)
 {
     struct rusage *buf = NULL;
 
@@ -497,12 +506,12 @@ int32_t generate_rusage(uint64_t **usage, struct child_ctx *ctx)
 
     (*usage) = (uint64_t *)buf;
 
-    ctx->arg_size_array[ctx->current_arg] = sizeof(struct rusage);
+    set_arg_size(child, sizeof(struct rusage));
 
     return (0);
 }
 
-int32_t generate_wait_option(uint64_t **option, struct child_ctx *ctx)
+int32_t generate_wait_option(uint64_t **option, struct child_ctx *child)
 {
     int32_t rtrn = 0;
     uint32_t number = 0;
@@ -536,12 +545,12 @@ int32_t generate_wait_option(uint64_t **option, struct child_ctx *ctx)
             return (-1);
     }
 
-    ctx->arg_size_array[ctx->current_arg] = sizeof(int64_t);
+    set_arg_size(child, sizeof(int64_t));
 
     return (0);
 }
 
-int32_t generate_whence(uint64_t **whence, struct child_ctx *ctx)
+int32_t generate_whence(uint64_t **whence, struct child_ctx *child)
 {
     int32_t rtrn = 0;
     uint32_t number = 0;
@@ -606,12 +615,12 @@ int32_t generate_whence(uint64_t **whence, struct child_ctx *ctx)
             return (-1);
     }
 
-    ctx->arg_size_array[ctx->current_arg] = sizeof(int64_t);
+    set_arg_size(child, sizeof(int64_t));
 
     return (0);
 }
 
-int32_t generate_offset(uint64_t **offset, struct child_ctx *ctx)
+int32_t generate_offset(uint64_t **offset, struct child_ctx *child)
 {
     int32_t rtrn = 0;
 
@@ -629,23 +638,23 @@ int32_t generate_offset(uint64_t **offset, struct child_ctx *ctx)
         return (-1);
     }
 
-    ctx->arg_size_array[ctx->current_arg] = sizeof(uint64_t);
+    set_arg_size(child, sizeof(uint64_t));
 
     return (0);
 }
 
-int32_t generate_mountpath(uint64_t **path, struct child_ctx *ctx)
+int32_t generate_mountpath(uint64_t **path, struct child_ctx *child)
 {
     return (0);
 }
 
-int32_t generate_mount_type(uint64_t **type, struct child_ctx *ctx)
+int32_t generate_mount_type(uint64_t **type, struct child_ctx *child)
 {
 
     return (0);
 }
 
-int32_t generate_dirpath(uint64_t **dirpath, struct child_ctx *ctx)
+int32_t generate_dirpath(uint64_t **dirpath, struct child_ctx *child)
 {
     (*dirpath) = (uint64_t *)get_dirpath();
     if((*dirpath) == NULL)
@@ -654,12 +663,12 @@ int32_t generate_dirpath(uint64_t **dirpath, struct child_ctx *ctx)
         return (-1);
     }
 
-    ctx->arg_size_array[ctx->current_arg] = strlen((char *)(*dirpath));
+    set_arg_size(child, strlen((char *)(*dirpath)));
 
     return (0);
 }
 
-int32_t generate_mount_flags(uint64_t **flag, struct child_ctx *ctx)
+int32_t generate_mount_flags(uint64_t **flag, struct child_ctx *child)
 {
     int32_t rtrn = 0;
     uint32_t number = 0;
@@ -691,7 +700,7 @@ int32_t generate_mount_flags(uint64_t **flag, struct child_ctx *ctx)
     uint32_t range = 14;
 
 #endif
-    (*flag) = mem_alloc(sizeof(uint64_t));
+    (*flag) = mem_alloc(sizeof(int32_t));
     if((*flag) == NULL)
     {
         output(ERROR, "Can't alloc mount flags\n");
@@ -709,12 +718,12 @@ int32_t generate_mount_flags(uint64_t **flag, struct child_ctx *ctx)
     memcpy((*flag), &flags[number], sizeof(int32_t));
 
     /* Set argument size. */
-    ctx->arg_size_array[ctx->current_arg] = sizeof(uint32_t);
+    set_arg_size(child, sizeof(int32_t));
 
     return (0);
 }
 
-int32_t generate_unmount_flags(uint64_t **flag, struct child_ctx *ctx)
+int32_t generate_unmount_flags(uint64_t **flag, struct child_ctx *child)
 {
     int32_t rtrn = 0;
     uint32_t number = 0;
@@ -765,12 +774,12 @@ int32_t generate_unmount_flags(uint64_t **flag, struct child_ctx *ctx)
     memcpy((*flag), &flags[number], sizeof(flags[number]));
 
     /* Set arg size. */
-    ctx->arg_size_array[ctx->current_arg] = sizeof(flags[number]);
+    set_arg_size(child, sizeof(int32_t));
 
     return (0);
 }
 
-int32_t generate_request(uint64_t **flag, struct child_ctx *ctx)
+int32_t generate_request(uint64_t **flag, struct child_ctx *child)
 {
     int32_t rtrn = 0;
     uint32_t number = 0;
@@ -814,7 +823,7 @@ int32_t generate_request(uint64_t **flag, struct child_ctx *ctx)
     int32_t range = 16;
 #endif
 
-    (*flag) = mem_alloc(sizeof(uint64_t));
+    (*flag) = mem_alloc(sizeof(int32_t));
     if((*flag) == NULL)
     {
         output(ERROR, "Can't alloc mount flags\n");
@@ -830,17 +839,17 @@ int32_t generate_request(uint64_t **flag, struct child_ctx *ctx)
 
     memcpy((*flag), &request[number], sizeof(int32_t));
 
-    ctx->arg_size_array[ctx->current_arg] = sizeof(int32_t);
+    set_arg_size(child, sizeof(int32_t));
 
     return (0);
 }
 
-int32_t generate_recv_flags(uint64_t **flag, struct child_ctx *ctx)
+int32_t generate_recv_flags(uint64_t **flag, struct child_ctx *child)
 {
     int32_t rtrn = 0;
     uint32_t number = 0;
 
-    (*flag) = mem_alloc(sizeof(uint64_t));
+    (*flag) = mem_alloc(sizeof(uint32_t));
     if((*flag) == NULL)
     {
         output(ERROR, "Can't alloc mount flags\n");
@@ -873,12 +882,12 @@ int32_t generate_recv_flags(uint64_t **flag, struct child_ctx *ctx)
             return (-1);
     }
 
-    ctx->arg_size_array[ctx->current_arg] = sizeof(uint64_t);
+    set_arg_size(child, sizeof(uint32_t));
 
     return (0);
 }
 
-int32_t generate_dev(uint64_t **dev, struct child_ctx *ctx)
+int32_t generate_dev(uint64_t **dev, struct child_ctx *child)
 {
     (*dev) = mem_alloc(sizeof(dev_t));
     if((*dev) == NULL)
@@ -899,12 +908,12 @@ int32_t generate_dev(uint64_t **dev, struct child_ctx *ctx)
 
     memmove((*dev), &device, sizeof(dev_t));
 
-    ctx->arg_size_array[ctx->current_arg] = sizeof(dev_t);
+    set_arg_size(child, sizeof(dev_t));
 
     return (0);
 }
 
-int32_t generate_message(uint64_t **msg, struct child_ctx *ctx)
+int32_t generate_message(uint64_t **msg, struct child_ctx *child)
 {
     (*msg) = mem_alloc(sizeof(struct msghdr));
     if((*msg) == NULL)
@@ -948,12 +957,12 @@ int32_t generate_message(uint64_t **msg, struct child_ctx *ctx)
 
     memmove((*msg), &message, sizeof(struct msghdr));
 
-    ctx->arg_size_array[ctx->current_arg] = sizeof(struct msghdr);
+    set_arg_size(child, sizeof(struct msghdr));
 
     return (0);
 }
 
-int32_t generate_send_flags(uint64_t **flag, struct child_ctx *ctx)
+int32_t generate_send_flags(uint64_t **flag, struct child_ctx *child)
 {
     int32_t rtrn = 0;
     uint32_t number = 0;
@@ -989,12 +998,12 @@ int32_t generate_send_flags(uint64_t **flag, struct child_ctx *ctx)
             return (-1);
     }
 
-    ctx->arg_size_array[ctx->current_arg] = sizeof(uint64_t);
+    set_arg_size(child, sizeof(uint64_t));
 
     return (0);
 }
 
-int32_t generate_sockaddr(uint64_t **addr, struct child_ctx *ctx)
+int32_t generate_sockaddr(uint64_t **addr, struct child_ctx *child)
 {
     int32_t rtrn = 0;
     struct sockaddr_in in;
@@ -1020,19 +1029,19 @@ int32_t generate_sockaddr(uint64_t **addr, struct child_ctx *ctx)
 
     memmove((*addr), &port, sizeof(struct sockaddr_in));
 
-    ctx->arg_size_array[ctx->current_arg] = sizeof(struct sockaddr_in);
+    set_arg_size(child, sizeof(struct sockaddr_in));
 
     return (0);
 }
 
-int32_t generate_socklen(uint64_t **len, struct child_ctx *ctx)
+int32_t generate_socklen(uint64_t **len, struct child_ctx *child)
 {
     uint32_t last_arg = 0;
 
-    if(ctx->current_arg == 0)
+    if(get_current_arg(child) == 0)
         last_arg = 0;
     else
-        last_arg = ctx->current_arg - 1;
+        last_arg = get_current_arg(child) - 1;
 
     /* Allocate the length buffer */
     (*len) = mem_alloc(sizeof(socklen_t));
@@ -1042,21 +1051,30 @@ int32_t generate_socklen(uint64_t **len, struct child_ctx *ctx)
         return (-1);
     }
 
+    uint64_t arg_size = 0;
+
+    int32_t rtrn = get_arg_size(child, last_arg, &arg_size);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't get argument size.\n");
+        return (-1);
+    }
+
     /* Set the socklen to the length of the last syscall argument. */
-    memcpy((*len), &ctx->arg_size_array[last_arg], sizeof(socklen_t));
+    memcpy((*len), &arg_size, sizeof(socklen_t));
 
     /* Set this argument's length. */
-    ctx->arg_size_array[ctx->current_arg] = sizeof(socklen_t);
+    set_arg_size(child, sizeof(socklen_t));
 
     return (0);
 }
 
-int32_t generate_amode(uint64_t **amode, struct child_ctx *ctx)
+int32_t generate_amode(uint64_t **amode, struct child_ctx *child)
 {
     int32_t rtrn = 0;
     uint32_t number = 0;
 
-    (*amode) = mem_alloc(sizeof(uint64_t));
+    (*amode) = mem_alloc(sizeof(uint32_t));
     if((*amode) == NULL)
     {
         output(ERROR, "Can't allocate amode\n");
@@ -1105,19 +1123,19 @@ int32_t generate_amode(uint64_t **amode, struct child_ctx *ctx)
             return (-1);
     }
 
-    ctx->arg_size_array[ctx->current_arg] = sizeof(uint64_t);
+    set_arg_size(child, sizeof(uint32_t));
 
     return (0);
 }
 
 #ifndef LINUX
 
-int32_t generate_chflags(uint64_t **flag, struct child_ctx *ctx)
+int32_t generate_chflags(uint64_t **flag, struct child_ctx *child)
 {
     int32_t rtrn = 0;
     uint32_t number = 0;
 
-    (*flag) = mem_alloc(sizeof(uint64_t));
+    (*flag) = mem_alloc(sizeof(uint32_t));
     if((*flag) == NULL)
     {
         output(ERROR, "Can't allocate flag\n");
@@ -1170,7 +1188,7 @@ int32_t generate_chflags(uint64_t **flag, struct child_ctx *ctx)
             return (-1);
     }
 
-    ctx->arg_size_array[ctx->current_arg] = sizeof(uint64_t);
+    set_arg_size(child, sizeof(uint32_t));
 
     return (0);
 }

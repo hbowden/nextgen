@@ -17,7 +17,6 @@
 #include "io/io.h"
 #include "runtime/nextgen.h"
 #include "runtime/runtime.h"
-#include "syscall/context.h"
 #include "syscall/syscall.h"
 
 #include <signal.h>
@@ -25,6 +24,7 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <setjmp.h>
 
 static void child_exit_handler(int sig)
 {
@@ -35,16 +35,16 @@ static void child_exit_handler(int sig)
     {
         if(WIFEXITED(status))
         {
-            struct child_ctx *ctx = NULL;
+            struct child_ctx *child = NULL;
 
-            ctx = get_child_ctx_from_pid(pid);
-            if(ctx == NULL)
+            child = get_child_ctx_from_pid(pid);
+            if(child == NULL)
             {
                 output(ERROR, "Can't get child context\n");
                 return;
             }
 
-            cas_loop_int32(&ctx->pid, EMPTY);
+            set_child_pid(child, EMPTY);
         }
     }
 
@@ -125,21 +125,24 @@ static void child_signal_handler(int sig)
     {
         /* An alarm we set for a blocking syscall has gone off. */
         case SIGALRM:
-            child->had_error = NX_NO;
-            child->ret_value = 0;
-            child->did_jump = NX_YES;
+            //child->had_error = NX_NO;
+            //child->ret_value = 0;
+            //child->did_jump = NX_YES;
             break;
 
         default:
-            child->had_error = NX_YES;
-            child->ret_value = -1;
-            child->did_jump = NX_YES;
-            child->sig_num = sig;
+            //child->had_error = NX_YES;
+            //child->ret_value = -1;
+            //child->did_jump = NX_YES;
+            //child->sig_num = sig;
             break;
     }
 
+    jmp_buf jmp;
+    get_return_jump(child, &jmp);
+
     /* Jump back to child's main loop. */
-    longjmp(child->return_jump, 1);
+    longjmp(jmp, 1);
 }
 
 int32_t setup_child_signal_handler(void)

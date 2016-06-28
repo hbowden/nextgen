@@ -34,7 +34,65 @@
 #include <errno.h>
 #include <string.h>
 #include <sys/types.h>
+#include <setjmp.h>
 #include <signal.h>
+
+struct child_ctx
+{
+    /* The child's process PID. */
+    int32_t pid;
+
+    /* A varible to store the address of where to jump back to in the child
+    process on signals. */
+    jmp_buf return_jump;
+
+    /* This is the number used to identify and choose the syscall that's going to be tested. */
+    uint32_t syscall_number;
+
+    /* Symbolized syscall number. */
+    int32_t syscall_symbol;
+
+    /* The argument were currently generating. */
+    uint32_t current_arg;
+
+    /* The number of args for the syscall were testing. */
+    uint32_t total_args;
+
+    /* The name of the syscall were testing. */
+    const char *syscall_name;
+
+    /* This array is where we store the arguments we generate. */
+    uint64_t **arg_value_array;
+
+    /* This array is a copy of the value array. */
+    uint64_t **arg_copy_array;
+
+    /* This index tracks the size of the arguments.*/
+    uint64_t *arg_size_array;
+
+    /* Time that we made the syscall fuzz test. */
+    struct timeval time_of_syscall;
+
+    /* The return value of the last syscall called. */
+    int32_t ret_value;
+
+    /* If this is set we know the syscall failed. */
+    int32_t had_error;
+
+    int32_t status;
+
+    int32_t sig_num;
+
+    int32_t did_jump;
+
+    struct probe_ctx *probe_handle;
+
+    bool need_alarm;
+
+    int32_t (*test_syscall)(int32_t, uint64_t **);
+
+    const char padding[3];
+};
 
 /* The total number of children process to run. */
 uint32_t number_of_children;
@@ -58,6 +116,45 @@ static int32_t *stop;
 
 /* This variable tells us wether were in smart mode or dumb mode. */
 static int32_t mode;
+
+void get_return_jump(struct child_ctx *child, jmp_buf *jmp)
+{
+    memcpy((jmp), child->return_jump, sizeof(jmp_buf));
+
+    return;
+}
+
+void set_child_pid(struct child_ctx *child, int32_t pid)
+{
+    cas_loop_int32(&child->pid, pid);
+
+    return;
+}
+
+int32_t get_arg_size(struct child_ctx *child, uint32_t arg_num, uint64_t *size)
+{
+    /* Make sure the argument number requested is in bounds. */
+    if(arg_num > ARG_LIMIT)
+    {
+        output(ERROR, "Arg number is greater than the arg limit.\n");
+        return (-1);
+    }
+
+    (*size) = child->arg_size_array[arg_num];
+
+    return (0);
+}
+
+uint32_t get_current_arg(struct child_ctx *child)
+{
+    return (child->current_arg);
+}
+
+void set_arg_size(struct child_ctx *child, uint64_t size)
+{
+
+    return;
+}
 
 void cleanup_syscall_table(struct syscall_table **table)
 {

@@ -16,11 +16,12 @@
 #ifndef SYSCALL_H
 #define SYSCALL_H
 
-#include "context.h"
-
 #include <unistd.h>
 #include <sys/types.h>
 #include <stdint.h>
+#include <setjmp.h>
+
+struct child_ctx;
 
 enum child_state {EMPTY};
 
@@ -47,6 +48,16 @@ extern int32_t generate_arguments(struct child_ctx *ctx);
 extern int32_t test_syscall(struct child_ctx *ctx);
 
 extern void create_syscall_children(void);
+
+extern void get_return_jump(struct child_ctx *child, jmp_buf *jmp);
+
+extern void set_child_pid(struct child_ctx *child, int32_t pid);
+
+extern void set_arg_size(struct child_ctx *child, uint64_t size);
+
+extern int32_t get_arg_size(struct child_ctx *child, uint32_t arg_num, uint64_t *size);
+
+extern uint32_t get_current_arg(struct child_ctx *child);
 
 extern void kill_all_children(void);
 
