@@ -216,7 +216,7 @@ static int32_t get_child_index_number(uint32_t *index_num)
     /* Walk child array until our PID matches the one in the context struct. */
     for(i = 0; i < total_children; i++)
     {
-        if(ck_pr_load_int(&children[i]->pid) == pid)
+        if(atomic_load_int32(&children[i]->pid) == pid)
         {
             /* The PIDS match so set the index number and exit the function. */
             (*index_num) = i;
@@ -252,7 +252,7 @@ NX_NO_RETURN static void exit_child(void)
     cas_loop_int32(&ctx->pid, EMPTY);
 
     /* Decrement the running child counter. */
-    ck_pr_dec_uint(&running_children);
+    atomic_dec_uint32(&running_children);
 
     /* Exit and cleanup child. */
     _exit(0);
@@ -390,7 +390,7 @@ NX_NO_RETURN static void start_smart_syscall_child(void)
     }
 
     /* Loop until ctrl-c is pressed by the user. */
-    while(ck_pr_load_int(stop) != TRUE)
+    while(atomic_load_int32(stop) != TRUE)
     {
         
     }
@@ -424,8 +424,8 @@ struct child_ctx *get_child_ctx(void)
         return (NULL);
     }
 
-    /* Return the actual child context pointer. */
-    return (children[offset]);
+    /* Load and return the actual child context pointer. */
+    return (atomic_load_ptr(&children[offset]));
 }
 
 /**
@@ -584,7 +584,7 @@ static int32_t init_syscall_child(uint32_t i)
     }
 
     /* Increment the running child counter. */
-    ck_pr_add_uint(&running_children, 1);
+    atomic_add_uint32(&running_children, 1);
 
     return (0);
 }
@@ -816,7 +816,7 @@ int32_t test_syscall(struct child_ctx *ctx)
 
     /* Do the add before the syscall test because we usually crash on the syscall test
     and we don't wan't to do this in a signal handler. */
-    ck_pr_add_uint(test_counter, 1);
+    atomic_add_uint32(test_counter, 1);
 
     /* Set the time of the syscall test. */
     (void)gettimeofday(&ctx->time_of_syscall, NULL);
@@ -847,7 +847,7 @@ void kill_all_children(void)
 
     for(i = 0; i < total_children; i++)
     {
-        int32_t pid = ck_pr_load_int(&children[i]->pid);
+        int32_t pid = atomic_load_int32(&children[i]->pid);
 
         rtrn = kill(pid, SIGKILL);
         if(rtrn < 0)
@@ -868,10 +868,10 @@ void start_main_syscall_loop(void)
     setup_signal_handler();
 
     /* Check if we should stop or continue running. */
-    while(ck_pr_load_int(stop) == FALSE)
+    while(atomic_load_int32(stop) == FALSE)
     {
         /* Check if we have the right number of children processes running, if not create a new ones until we do. */
-        if(ck_pr_load_uint(&running_children) < total_children)
+        if(atomic_load_uint32(&running_children) < total_children)
         {
             /* Create children process. */
             create_syscall_children();
@@ -886,7 +886,7 @@ static struct child_ctx *init_child_context(void)
     struct child_ctx *child = NULL;
 
     /* Allocate the child context object. */
-    child = mem_alloc(sizeof(struct child_ctx));
+    child = mem_alloc_shared(sizeof(struct child_ctx));
     if(child == NULL)
     {
         output(ERROR, "Can't create child context\n");
@@ -897,31 +897,31 @@ static struct child_ctx *init_child_context(void)
     child->current_arg = 0;
 
     /* Create the index where we store the syscall arguments. */
-    child->arg_value_array = mem_alloc(ARG_LIMIT * sizeof(uint64_t *));
+    child->arg_value_array = mem_alloc_shared(ARG_LIMIT * sizeof(uint64_t *));
     if(child->arg_value_array == NULL)
     {
         output(ERROR, "Can't create arg value index: %s\n", strerror(errno));
-        mem_free((void **)&child);
+        mem_free_shared((void **)&child, sizeof(struct child_ctx));
         return (NULL);
     }
 
     /* This index tracks the size of the argument generated.  */
-    child->arg_size_array = mem_alloc(ARG_LIMIT * sizeof(uint64_t));
+    child->arg_size_array = mem_alloc_shared(ARG_LIMIT * sizeof(uint64_t));
     if(child->arg_size_array == NULL)
     {
         output(ERROR, "Can't create arg size index: %s\n", strerror(errno));
-        mem_free((void **)&child->arg_value_array);
-        mem_free((void **)&child);
+        mem_free_shared((void **)&child->arg_value_array, ARG_LIMIT * sizeof(uint64_t *));
+        mem_free_shared((void **)&child, sizeof(struct child_ctx));
         return (NULL);
     }
 
-    child->arg_copy_array = mem_alloc(ARG_LIMIT * sizeof(uint64_t *));
+    child->arg_copy_array = mem_alloc_shared(ARG_LIMIT * sizeof(uint64_t *));
     if(child->arg_copy_array == NULL)
     {
         output(ERROR, "Can't create arg copy index: %s\n", strerror(errno));
-        mem_free((void **)&child->arg_size_array);
-        mem_free((void **)&child->arg_value_array);
-        mem_free((void **)&child);
+        mem_free_shared((void **)&child->arg_size_array, ARG_LIMIT * sizeof(uint64_t));
+        mem_free_shared((void **)&child->arg_value_array, ARG_LIMIT * sizeof(uint64_t *));
+        mem_free_shared((void **)&child, sizeof(struct child_ctx));
         return (NULL);
     }
 
@@ -930,31 +930,31 @@ static struct child_ctx *init_child_context(void)
     /* Loop and create the various arrays in the child struct. */
     for(i = 0; i < ARG_LIMIT; i++)
     {
-        child->arg_value_array[i] = mem_alloc(ARG_BUF_LEN);
+        child->arg_value_array[i] = mem_alloc_shared(ARG_BUF_LEN);
         if(child->arg_value_array[i] == NULL)
         {
             output(ERROR, "Can't create arg value\n");
             /* Still potentially leaking memory from the indicies
              in the arg_value_array, ie if malloc fails on the second
              or higher iteration. */
-            mem_free((void **)&child->arg_copy_array);
-            mem_free((void **)&child->arg_size_array);
-            mem_free((void **)&child->arg_value_array);
-            mem_free((void **)&child);
+            mem_free_shared((void **)&child->arg_copy_array, ARG_LIMIT * sizeof(uint64_t *));
+            mem_free_shared((void **)&child->arg_size_array, ARG_LIMIT * sizeof(uint64_t));
+            mem_free_shared((void **)&child->arg_value_array, ARG_LIMIT * sizeof(uint64_t *));
+            mem_free_shared((void **)&child, sizeof(struct child_ctx));
             return (NULL);
         }
 
-        child->arg_copy_array[i] = mem_alloc(ARG_BUF_LEN);
+        child->arg_copy_array[i] = mem_alloc_shared(ARG_BUF_LEN);
         if(child->arg_copy_array[i] == NULL)
         {
             output(ERROR, "Can't create arg copy value\n");
             /* Still potentially leaking memory from the indicies
              in the arg_copy_array, ie if malloc fails on the second
              or higher iteration. */
-            mem_free((void **)&child->arg_copy_array);
-            mem_free((void **)&child->arg_size_array);
-            mem_free((void **)&child->arg_value_array);
-            mem_free((void **)&child);
+            mem_free_shared((void **)&child->arg_copy_array, ARG_LIMIT * sizeof(uint64_t *));
+            mem_free_shared((void **)&child->arg_size_array, ARG_LIMIT * sizeof(uint64_t));
+            mem_free_shared((void **)&child->arg_value_array, ARG_LIMIT * sizeof(uint64_t *));
+            mem_free_shared((void **)&child, sizeof(struct child_ctx));
             return (NULL);
         }
     }
@@ -970,7 +970,7 @@ int32_t setup_syscall_module(int32_t *stop_ptr,
     int32_t rtrn = 0;
 
     /* Set running children to zero. */
-    ck_pr_store_uint(&running_children, 0);
+    atomic_store_uint32(&running_children, 0);
 
     /* Grab the core count of the machine we are on and set the number
     of syscall children to the core count. */
