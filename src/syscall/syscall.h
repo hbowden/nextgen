@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  * 
  * Permission to use, copy, modify, and/or distribute this software for any purpose
@@ -13,6 +13,13 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
+/**
+*     @file syscall.h
+*     @brief This file is the interface to the syscall module.
+*
+*     @author Harrison Bowden
+*/
+
 #ifndef SYSCALL_H
 #define SYSCALL_H
 
@@ -25,6 +32,12 @@ struct child_ctx;
 
 enum child_state {EMPTY};
 
+/**
+*    This function places the total number of syscalls available
+*    on the current platform in the parameter total. This includes 
+*    syscalls that have been turned off.
+*    @param total The variable to store the total number of syscalls.
+*/
 extern int32_t get_total_syscalls(uint32_t *total);
 
 extern struct syscall_entry *get_entry(uint32_t syscall_number);
