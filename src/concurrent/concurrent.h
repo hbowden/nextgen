@@ -18,6 +18,7 @@
 
 #include "ck_queue.h"
 #include "ck_spinlock.h"
+#include "ck_pr.h"
 
 #include <unistd.h>
 #include <stdint.h>
@@ -69,25 +70,33 @@ typedef ck_spinlock_t nx_spinlock_t;
  *    Function like macro for atomically adding the uint32 variable pointed to by var.
  *    @param var A pointer to a uint32 variable.
  */
-#define atomic_add_uint32(var, val) ck_pr_add_uint32(var, val)
+#define atomic_add_uint32(var, val) ck_pr_add_32(var, val)
 
 /**
  *    Function like macro for atomically decrementing the uint32 variable pointed to by var.
  *    @param var A pointer to a uint32 variable.
  */
-#define atomic_dec_uint32(var, val) ck_pr_dec_uint32(var, val)
+#define atomic_dec_uint32(var) ck_pr_dec_32(var)
 
 /**
  *    Function like macro for atomically loading the value of the int32 pointed to by var and return the result.
  *    @param var A pointer to a int32 variable to atomically load/read the value from.
  */
-#define atomic_load_int32(var) ck_pr_load_int32(var)
+#define atomic_load_int32(var) ck_pr_load_int(var)
 
 /**
  *    Function like macro for atomically loading the value of the uint32 pointed to by var and return the result.
  *    @param var A pointer to a uint32 variable to atomically load/read the value from.
  */
-#define atomic_load_uint32(var) ck_pr_load_int32(var)
+#define atomic_load_uint32(var) ck_pr_load_uint(var)
+
+/**
+ *    Function like macro for atomically storing the value val to the the variable
+ *    var.
+ *    @param var A pointer to uint32 variable to atomically load/read from.
+ *    @param val The value to store in the variable var.
+ */
+#define atomic_store_uint32(var, val) ck_pr_store_32(var, val)
 
 #define NX_LIST_HEAD(name,type) 
 #define NX_LIST_ENTRY(x) CK_LIST_ENTRY(x) list_entry
