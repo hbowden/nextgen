@@ -51,7 +51,15 @@ Finally after building nextgen for your platform you can install nextgen with `s
 
 To run nextgen use the binary in the nextgen directory, if you run nextgen outside it's directory, nextgen won't find it's plugin directory. This limitation will be fixed later.
 
-#Example
+# Documentation
+
+To build the documentation for nextgen you will need `doxygen` installed on your system, then just run...
+
+    doxygen Doxyfile
+    
+Then you can open the file index.html in the newly generated folder html in your browser.
+
+# Example
 Below is an example of running nextgen as a syscall fuzzer.
 
 `sudo ./nextgen --syscall --out /file/path/to/create/output/directory`
