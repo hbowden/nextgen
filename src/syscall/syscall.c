@@ -740,8 +740,7 @@ int32_t pick_syscall(struct child_ctx *ctx)
     /* Use rand_range to pick a number between 0 and the number_of_syscalls. The minus one
     is a hack, get_syscall_table() returns an array - 1 the size of number of syscalls 
     and should be fixed. */
-    int32_t rtrn =
-        rand_range(sys_table->number_of_syscalls - 1, &ctx->syscall_number);
+    int32_t rtrn = rand_range(sys_table->number_of_syscalls - 1, &ctx->syscall_number);
     if(rtrn < 0)
     {
         output(ERROR, "Can't generate random number\n");
