@@ -116,6 +116,14 @@ typedef ck_epoch_record_t epoch_record;
  */
 #define epoch_init(epoch) ck_epoch_init(epoch)
 
+/**
+ *    Function like macro for registering a threads epoch_record
+ *    with the global epoch.
+ *    @param epoch A pointer to the epoch object to register the thread with.
+ *    @param record A pointer to the record to register.   
+ */
+#define epoch_register(epoch, record) ck_epoch_register(epoch, record)
+
 #define NX_LIST_HEAD(name,type) 
 #define NX_LIST_ENTRY(x) CK_LIST_ENTRY(x) list_entry
 #define NX_SLIST_ENTRY(x) CK_SLIST_ENTRY(x) list_entry
