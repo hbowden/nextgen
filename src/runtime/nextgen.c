@@ -560,6 +560,9 @@ int32_t init_shared_mapping(struct shared_map **mapping, struct parser_ctx *ctx)
     /* Set intelligence mode. */
     (*mapping)->smart_mode = ctx->smart_mode;
 
+    /* Initialize the epoch object. */
+    epoch_init(&(*mapping)->epoch);
+
     /* Set the stop flag to FALSE, when set to TRUE all processes start their exit routines and eventually exit. */
     ck_pr_store_int(&(*mapping)->stop, FALSE);
 
