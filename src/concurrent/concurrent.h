@@ -127,10 +127,9 @@ typedef ck_epoch_record_t epoch_record;
 /**
  *    Function like macro for unregistering a threads epoch_record
  *    with the global epoch.
- *    @param epoch A pointer to the epoch object to register the thread with.
- *    @param record A pointer to the record to register.   
+ *    @param record A pointer to the record to unregister.   
  */
-#define epoch_unregister(epoch, record) ck_epoch_unregister(epoch, record)
+#define epoch_unregister(record) ck_epoch_unregister(epoch, record)
 
 #define NX_LIST_HEAD(name,type) 
 #define NX_LIST_ENTRY(x) CK_LIST_ENTRY(x) list_entry
