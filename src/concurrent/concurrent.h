@@ -48,6 +48,8 @@ typedef struct msg_port msg_port_t;
 
 typedef ck_spinlock_t nx_spinlock_t;
 
+typedef ck_epoch_t epoch_ctx;
+
 /**
  *    Function like macro for initializing a spinlock at compile time.
  *    Alternativly you can use nx_spinlock_init at runtime to initialize
