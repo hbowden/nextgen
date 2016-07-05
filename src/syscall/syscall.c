@@ -22,6 +22,7 @@
 #include "log/log.h"
 #include "memory/memory.h"
 #include "mutate/mutate.h"
+#include "runtime/nextgen.h"
 #include "runtime/platform.h"
 #include "probe/probe.h"
 #include "resource/resource.h"
@@ -232,18 +233,18 @@ static int32_t get_child_index_number(uint32_t *index_num)
 NX_NO_RETURN static void exit_child(void)
 {
     int32_t rtrn = 0;
-    struct child_ctx *ctx = NULL;
+    struct child_ctx *child = NULL;
 
     /* Get our childs context object. */
-    ctx = get_child_ctx();
-    if(ctx == NULL)
+    child = get_child_ctx();
+    if(child == NULL)
     {
         output(ERROR, "Can't get child context\n");
         _exit(-1);
     }
 
     /* Clean up kernel probes. */
-    rtrn = cleanup_kernel_probes(ctx->probe_handle);
+    rtrn = cleanup_kernel_probes(child->probe_handle);
     if(rtrn < 0)
     {
         output(ERROR, "Can't clean up kernel probes");
@@ -251,10 +252,13 @@ NX_NO_RETURN static void exit_child(void)
     }
 
     /* Set the PID as empty. */
-    cas_loop_int32(&ctx->pid, EMPTY);
+    cas_loop_int32(&child->pid, EMPTY);
 
     /* Decrement the running child counter. */
     atomic_dec_uint32(&running_children);
+
+    /* Unregister the thread with the epoch. */
+    epoch_unregister(&child->record);
 
     /* Exit and cleanup child. */
     _exit(0);
@@ -584,6 +588,10 @@ static int32_t init_syscall_child(uint32_t i)
             return (-1);
         }
     }
+
+    /* Register the child process's main thread with the epoch
+       object in the global shared mapping. */
+    epoch_register(&map->epoch, &children[i]->record);
 
     /* Increment the running child counter. */
     atomic_add_uint32(&running_children, 1);
