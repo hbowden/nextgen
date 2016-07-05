@@ -18,6 +18,7 @@
 
 #include "ck_queue.h"
 #include "ck_spinlock.h"
+#include "ck_epoch.h"
 #include "ck_pr.h"
 
 #include <unistd.h>
@@ -104,6 +105,12 @@ typedef ck_spinlock_t nx_spinlock_t;
  *    @param val The value to store in the variable var.
  */
 #define atomic_load_ptr(ptr) ck_pr_load_ptr(ptr)
+
+/**
+ *    Function like macro for initializing a epoch object.
+ *    @param epoch A pointer to the epoch object to initialize.   
+ */
+#define epoch_init(epoch) ck_epoch_init(epoch)
 
 #define NX_LIST_HEAD(name,type) 
 #define NX_LIST_ENTRY(x) CK_LIST_ENTRY(x) list_entry
