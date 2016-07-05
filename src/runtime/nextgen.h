@@ -67,6 +67,10 @@ struct shared_map
 
     const char padding[4];
 
+    /* The epoch object used for coordinating 
+      reclamation of shared memory objects.  */
+    epoch_ctx epoch;
+
     /* The thread that the genetic algo lives in. */
     pthread_t gen_algo_thread;
 };
