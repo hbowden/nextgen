@@ -129,7 +129,7 @@ typedef ck_epoch_record_t epoch_record;
  *    with the global epoch.
  *    @param record A pointer to the record to unregister.   
  */
-#define epoch_unregister(record) ck_epoch_unregister(epoch, record)
+#define epoch_unregister(record) ck_epoch_unregister(record)
 
 #define NX_LIST_HEAD(name,type) 
 #define NX_LIST_ENTRY(x) CK_LIST_ENTRY(x) list_entry
