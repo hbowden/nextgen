@@ -50,6 +50,8 @@ typedef ck_spinlock_t nx_spinlock_t;
 
 typedef ck_epoch_t epoch_ctx;
 
+typedef ck_epoch_record_t epoch_record;
+
 /**
  *    Function like macro for initializing a spinlock at compile time.
  *    Alternativly you can use nx_spinlock_init at runtime to initialize
