@@ -92,6 +92,8 @@ struct child_ctx
     int32_t (*test_syscall)(int32_t, uint64_t **);
 
     const char padding[3];
+
+    epoch_record record;
 };
 
 /* The total number of children process to run. */
@@ -158,8 +160,8 @@ void set_arg_size(struct child_ctx *child, uint64_t size)
 
 void cleanup_syscall_table(struct syscall_table **table)
 {
-    mem_free((void **)&(*table)->sys_entry);
-    mem_free((void **)table);
+    mem_free_shared((void **)&(*table)->sys_entry, sizeof(struct syscall_entry));
+    mem_free_shared((void **)table, sizeof(struct syscall_table));
 
     return; 
 }
@@ -654,7 +656,7 @@ struct syscall_table *get_syscall_table(void)
     }
 
     /* Create a syscall table object on the heap.*/
-    table = mem_alloc(sizeof(struct syscall_table));
+    table = mem_alloc_shared(sizeof(struct syscall_table));
     if(table == NULL)
     {
         output(ERROR, "Can't create shadow table\n");
@@ -668,7 +670,7 @@ struct syscall_table *get_syscall_table(void)
     uint32_t i, ii;
 
     /* Allocate heap memory for the list of syscalls. */
-    table->sys_entry = mem_alloc(table->number_of_syscalls * sizeof(struct syscall_entry));
+    table->sys_entry = mem_alloc_shared(table->number_of_syscalls * sizeof(struct syscall_entry));
     if(table->sys_entry == NULL)
     {
         output(ERROR, "Can't create entry index\n");
