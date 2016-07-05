@@ -12,7 +12,7 @@ ifeq ($(OPERATING_SYSTEM), FreeBSD)
 
 SILENCED_WARNINGS =
 
-FLAGS = -DFREEBSD -shared -fno-strict-aliasing -fPIC -Wall -Werror -Weverything -g -O3 -Wpedantic -std=c99
+FLAGS = -DFREEBSD -shared -fno-strict-aliasing -fstack-protector-all -fPIC -Wall -Werror -Weverything -g -O3 -Wpedantic -std=c99
 
 LIB = ../io/libnxio.so ../memory/libnxmemory.so \
       ../../deps/$(LIBRESSL)/crypto/.libs/libcrypto.so
@@ -27,7 +27,7 @@ ifeq ($(OPERATING_SYSTEM), Darwin)
 SILENCED_WARNINGS = -Wno-unknown-warning-option \
                     -Wno-reserved-id-macro
 
-FLAGS = -dynamiclib -DMAC_OSX -fno-strict-aliasing -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
+FLAGS = -dynamiclib -DMAC_OSX -fno-strict-aliasing -fstack-protector-all -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
 
 LIB = ../io/libnxio.dylib ../memory/libnxmemory.dylib \
       ../../deps/$(LIBRESSL)/crypto/.libs/libcrypto.a
@@ -40,7 +40,7 @@ ifeq ($(OPERATING_SYSTEM), Linux)
 
 SILENCED_WARNINGS =
 
-FLAGS += -shared -fPIC
+FLAGS += -shared -fPIC -fstack-protector-all
 LIB = ../io/libnxio.so ../memory/libnxmemory.so \
       ../../deps/$(LIBRESSL)/crypto/.libs/libcrypto.so
 

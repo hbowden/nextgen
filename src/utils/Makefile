@@ -13,7 +13,7 @@ SILENCED_WARNINGS = -Wno-padded \
                     -Wno-unused-parameter \
                     -Wno-pedantic
 
-FLAGS = -DFREEBSD -shared -fno-strict-aliasing -fPIC -Wall -Werror -Weverything -g -O3 -std=c99
+FLAGS = -DFREEBSD -shared -fno-strict-aliasing -fstack-protector-all -fPIC -Wall -Werror -Weverything -g -O3 -std=c99
 
 LIB = ../io/libnxio.so ../memory/libnxmemory.so \
       ../crypto/libnxcrypto.so
@@ -46,7 +46,7 @@ SILENCED_WARNINGS = -Wno-unknown-warning-option \
 
 SOURCES += $(ROOT_DIR)/src/utils/SetProcessName.c
 
-FLAGS = -dynamiclib -DMAC_OSX -fno-strict-aliasing -Wall -Werror -Weverything -g -O3 -std=c99
+FLAGS = -dynamiclib -DMAC_OSX -fno-strict-aliasing -fstack-protector-all -Wall -Werror -Weverything -g -O3 -std=c99
 
 LIB = ../io/libnxio.dylib ../memory/libnxmemory.dylib \
       ../crypto/libnxcrypto.dylib -framework CoreFoundation \

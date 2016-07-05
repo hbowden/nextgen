@@ -18,7 +18,7 @@ INCLUDES += -I/usr/src/cddl/compat/opensolaris/include \
             -I/usr/src/sys/cddl/compat/opensolaris \
             -I/usr/src/sys/cddl/contrib/opensolaris/uts/common
 
-FLAGS = -DFREEBSD -shared -fno-strict-aliasing -fPIC -Wall -Werror -Weverything -Wpedantic -g -O3
+FLAGS = -DFREEBSD -shared -fno-strict-aliasing -fstack-protector-all -fPIC -Wall -Werror -Weverything -Wpedantic -g -O3
 
 LIB = ../io/libnxio.so ../memory/libnxmemory.so \
       ../utils/libnxutils.so ../concurrent/libnxconcurrent.so \
@@ -33,7 +33,7 @@ endif
 
 ifeq ($(OPERATING_SYSTEM), Linux)
 
-FLAGS += -shared -fPIC
+FLAGS += -shared -fPIC -fstack-protector-all
 LIB = ../io/libnxio.so ../memory/libnxmemory.so \
       ../utils/libnxutils.so ../concurrent/libnxconcurrent.so \
       ../mutate/libnxmutate.so ../log/libnxlog.so \
@@ -54,7 +54,7 @@ SILENCED_WARNINGS = -Wno-unknown-warning-option \
                     -Wno-unused-parameter \
                     -Wno-used-but-marked-unused
 
-FLAGS = -dynamiclib -DMAC_OSX -fno-strict-aliasing -Wall -Werror -Weverything -Wpedantic -g -O3
+FLAGS = -dynamiclib -DMAC_OSX -fno-strict-aliasing -fstack-protector-all -Wall -Werror -Weverything -Wpedantic -g -O3
 
 LIB = -lobjc ../io/libnxio.dylib ../memory/libnxmemory.dylib \
       ../utils/libnxutils.dylib ../concurrent/libnxconcurrent.dylib \

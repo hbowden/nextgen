@@ -10,7 +10,7 @@ OPERATING_SYSTEM = $(shell uname)
 # FreeBSD build options.
 ifeq ($(OPERATING_SYSTEM), FreeBSD)
 
-FLAGS = -DFREEBSD -shared -fno-strict-aliasing -fPIC -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
+FLAGS = -DFREEBSD -shared -fno-strict-aliasing -fstack-protector-all -fPIC -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
 
 LIB = ../io/libnxio.so ../memory/libnxmemory.so \
       ../file/libnxfile.so ../../deps/capstone-3.0.4/libcapstone.a
@@ -25,7 +25,7 @@ endif
 
 ifeq ($(OPERATING_SYSTEM), Linux)
 
-FLAGS += -shared -fPIC
+FLAGS += -shared -fPIC -fstack-protector-all
 
 LIB = ../io/libnxio.so ../memory/libnxmemory.so \
       ../file/libnxfile.so ../../deps/capstone-3.0.4/libcapstone.a
@@ -41,7 +41,7 @@ endif
 # Mac OSX build options.
 ifeq ($(OPERATING_SYSTEM), Darwin)
 
-FLAGS = -dynamiclib -DMAC_OSX -fno-strict-aliasing -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
+FLAGS = -dynamiclib -DMAC_OSX -fno-strict-aliasing -fstack-protector-all -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
 
 LIB = ../io/libnxio.dylib ../memory/libnxmemory.dylib \
       ../file/libnxfile.dylib

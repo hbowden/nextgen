@@ -26,7 +26,7 @@ INCLUDES += -I/usr/src/cddl/compat/opensolaris/include \
             -I/usr/src/sys/cddl/compat/opensolaris \
             -I/usr/src/sys/cddl/contrib/opensolaris/uts/common
 
-FLAGS = -DFREEBSD -shared -fno-strict-aliasing -fPIC -Wall -Werror -Weverything -g -O3 -std=c99
+FLAGS = -DFREEBSD -shared -fno-strict-aliasing -fstack-protector-all -fPIC -Wall -Werror -Weverything -g -O3 -std=c99
 
 LIB = ../io/libnxio.so ../memory/libnxmemory.so \
       ../crypto/libnxcrypto.so ../concurrent/libnxconcurrent.so \

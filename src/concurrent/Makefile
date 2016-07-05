@@ -13,7 +13,7 @@ SOURCES += $(ROOT_DIR)/src/concurrent/concurrent-common.c
 SILENCED_WARNINGS += -Wno-format-nonliteral -Wno-gnu-statement-expression -Wno-undef \
                      -Wno-used-but-marked-unused
 
-FLAGS = -DCOMMON -shared -fno-strict-aliasing -fPIC -Wall -Werror -Weverything -g -O3 -std=c99
+FLAGS = -DCOMMON -shared -fno-strict-aliasing -fstack-protector-all -fPIC -Wall -Werror -Weverything -g -O3 -std=c99
 LIB = ../../deps/$(CK)/src/libck.so ../io/libnxio.so
 LIB_NAME = libnxconcurrent.so
 
@@ -27,7 +27,7 @@ SILENCED_WARNINGS += -Wno-format-nonliteral \
                      -Wno-gnu-statement-expression \
                      -Wno-undef
 
-FLAGS = -DCOMMON -dynamiclib -fno-strict-aliasing -Wall -Werror -Weverything -g -O3 -std=c99
+FLAGS = -DCOMMON -dynamiclib -fno-strict-aliasing -fstack-protector-all -Wall -Werror -Weverything -g -O3 -std=c99
 LIB = ../../deps/$(CK)/src/libck.so \
       ../io/libnxio.dylib \
       ../memory/libnxmemory.dylib
@@ -38,7 +38,7 @@ endif
 ifeq ($(OPERATING_SYSTEM), Linux)
 
 SOURCES += $(ROOT_DIR)/src/concurrent/concurrent-common.c
-FLAGS += -shared -fPIC
+FLAGS += -shared -fPIC -fstack-protector-all
 LIB = ../../deps/$(CK)/src/libck.so ../io/libnxio.so
 LIB_NAME = libnxconcurrent.so
 

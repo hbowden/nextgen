@@ -11,7 +11,7 @@ ifeq ($(OPERATING_SYSTEM), FreeBSD)
 SILENCED_WARNINGS = -Wno-padded \
                     -Wno-unused-parameter -Wno-cast-qual 
 
-FLAGS = -DFREEBSD -shared -fno-strict-aliasing -fPIC -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
+FLAGS = -DFREEBSD -shared -fno-strict-aliasing -fstack-protector-all -fPIC -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
 
 LIB = ../io/libnxio.so ../memory/libnxmemory.so \
       ../utils/libnxutils.so
@@ -27,7 +27,7 @@ SILENCED_WARNINGS = -Wno-unknown-warning-option \
                     -Wno-reserved-id-macro -Wno-padded \
                     -Wno-unused-parameter -Wno-cast-qual 
 
-FLAGS = -dynamiclib -DMAC_OSX -fno-strict-aliasing -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
+FLAGS = -dynamiclib -DMAC_OSX -fno-strict-aliasing -fstack-protector-all -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
 
 LIB = ../io/libnxio.dylib ../memory/libnxmemory.dylib \
       ../utils/libnxutils.dylib
@@ -42,7 +42,7 @@ SILENCED_WARNINGS = -Wno-padded \
                     -Wno-unused-parameter \
                     -Wno-cast-qual 
 
-FLAGS = -DLINUX -DCOMMON -shared -fno-strict-aliasing -fPIC -Wall -Werror -Wextra -Wpedantic -g -O3 -std=c99
+FLAGS = -DLINUX -DCOMMON -shared -fno-strict-aliasing -fstack-protector-all -fPIC -Wall -Werror -Wextra -Wpedantic -g -O3 -std=c99
 
 LIB = ../io/libnxio.so ../memory/libnxmemory.so \
       ../utils/libnxutils.so -ldl

@@ -10,7 +10,7 @@ ifeq ($(OPERATING_SYSTEM), FreeBSD)
 
 SILENCED_WARNINGS = -Wno-padded -Wno-used-but-marked-unused
 
-FLAGS = -DFREEBSD -shared -fno-strict-aliasing -fPIC -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
+FLAGS = -DFREEBSD -shared -fno-strict-aliasing -fstack-protector-all -fPIC -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
 
 LIB = ../io/libnxio.so ../memory/libnxmemory.so \
       ../crypto/libnxcrypto.so
@@ -28,7 +28,7 @@ SILENCED_WARNINGS = -Wno-unknown-warning-option \
                     -Wno-reserved-id-macro -Wno-padded \
                     -Wno-used-but-marked-unused
 
-FLAGS = -dynamiclib -DMAC_OSX -fno-strict-aliasing -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
+FLAGS = -dynamiclib -DMAC_OSX -fno-strict-aliasing -fstack-protector-all -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
 
 LIB = ../io/libnxio.dylib ../memory/libnxmemory.dylib \
       ../crypto/libnxcrypto.dylib
@@ -43,7 +43,7 @@ ifeq ($(OPERATING_SYSTEM), Linux)
 
 SILENCED_WARNINGS = -Wno-padded
 
-FLAGS += -shared -fPIC
+FLAGS += -shared -fPIC -fstack-protector-all
 LIB = ../io/libnxio.so ../memory/libnxmemory.so \
       ../crypto/libnxcrypto.so
 

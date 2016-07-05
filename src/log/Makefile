@@ -15,7 +15,7 @@ SILENCED_WARNINGS = -Wno-padded \
                     -Wno-unused-variable \
                     -Wno-pedantic
 
-FLAGS = -DFREEBSD -shared -fno-strict-aliasing -fPIC -Wall -Werror -Weverything -g -O3 -std=c99
+FLAGS = -DFREEBSD -shared -fno-strict-aliasing -fstack-protector-all -fPIC -Wall -Werror -Weverything -g -O3 -std=c99
 
 LIB = ../io/libnxio.so ../memory/libnxmemory.so $(ROOT_DIR)/deps/sqlite/sqlite3.so
       
@@ -36,7 +36,7 @@ endif
 
 ifeq ($(OPERATING_SYSTEM), Linux)
 
-FLAGS = -DLINUX -DCOMMON -shared -fno-strict-aliasing -fPIC -Wall -Werror -Wextra -g -O3 -std=c99
+FLAGS = -DLINUX -DCOMMON -shared -fno-strict-aliasing -fstack-protector-all -fPIC -Wall -Werror -Wextra -g -O3 -std=c99
 
 LIB = ../io/libnxio.so ../memory/libnxmemory.so $(ROOT_DIR)/deps/sqlite/sqlite3.so
       
@@ -54,7 +54,7 @@ SILENCED_WARNINGS = -Wno-unknown-warning-option \
                     -Wno-unused-parameter -Wno-unused-parameter \
                     -Wno-unused-variable
 
-FLAGS += -shared -fPIC
+FLAGS += -shared -fPIC -fstack-protector-all
 LIB = ../io/libnxio.dylib ../memory/libnxmemory.dylib $(ROOT_DIR)/deps/sqlite/libsqlite3.0.dylib
 
 SOURCES += $(ROOT_DIR)/src/log/log-mac.c

@@ -10,7 +10,7 @@ ifeq ($(OPERATING_SYSTEM), FreeBSD)
 
 SILENCED_WARNINGS = -Wno-format-nonliteral 
 
-FLAGS = -DFREEBSD -shared -fno-strict-aliasing -fPIC -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
+FLAGS = -DFREEBSD -shared -fno-strict-aliasing -fstack-protector-all -fPIC -Wall -Werror -Weverything -Wpedantic -g -O3 -std=c99
 
 LIB_NAME = libnxio.so
 
@@ -21,7 +21,7 @@ ifeq ($(OPERATING_SYSTEM), Darwin)
 
 SILENCED_WARNINGS += -Wno-format-nonliteral
 
-FLAGS = -DMAC_OSX -dynamiclib -Wall -fno-strict-aliasing -Werror -Weverything -Wpedantic -g -O3 -std=c99
+FLAGS = -DMAC_OSX -dynamiclib -Wall -fno-strict-aliasing -fstack-protector-all -Werror -Weverything -Wpedantic -g -O3 -std=c99
 
 LIB_NAME = libnxio.dylib
 
@@ -29,7 +29,7 @@ endif
 
 # Linux build options.
 ifeq ($(OPERATING_SYSTEM), Linux)
-FLAGS += -shared -fPIC
+FLAGS += -shared -fPIC -fstack-protector-all
 LIB_NAME = libnxio.so
 
 endif
