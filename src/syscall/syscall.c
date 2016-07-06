@@ -438,13 +438,62 @@ struct child_ctx *get_child_ctx(void)
     return (atomic_load_ptr(&children[offset]));
 }
 
+static int32_t generate_test_case(struct child_ctx *child)
+{
+    int32_t rtrn = 0;
+    struct syscall_entry *entry = NULL;
+
+    /* Randomly pick the syscall to test. */
+    rtrn = pick_syscall(child);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't pick syscall to test\n");
+        exit_child();
+    }
+ 
+    /* Generate arguments for the syscall selected. */
+    rtrn = generate_arguments(child);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't generate arguments\n");
+        exit_child();
+    }
+
+    /* Mutate the arguments randomly. */
+    rtrn = mutate_arguments(child->arg_value_array, child->arg_size_array);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't mutate arguments\n");
+        exit_child();
+    }
+
+    /* Grab the syscall entry for the syscall we picked. */
+    entry = get_entry(child->syscall_number);
+    if(entry == NULL)
+    {
+        output(ERROR, "Can't get syscall entry\n");
+        exit_child();
+    }
+
+    /* Log the arguments before we use them, in case we cause a
+       kernel panic, so we know what caused the panic. */
+    rtrn = log_arguments(child->total_args, child->syscall_name,
+                         child->arg_value_array, entry->arg_context_array);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Can't log arguments\n");
+        exit_child();
+    }
+
+    return (0);
+}
+
 /**
  * This is the fuzzing loop for syscall fuzzing in dumb mode.
  */
 NX_NO_RETURN static void start_syscall_child(void)
 {
     int32_t rtrn = 0;
-    struct syscall_entry *entry = NULL;
     struct child_ctx *ctx = NULL;
 
     /* Get our child context. */
@@ -486,47 +535,11 @@ NX_NO_RETURN static void start_syscall_child(void)
     /* Check if we should stop or continue running. */
     while(atomic_load_int32(stop) != TRUE)
     {
-        /* Randomly pick the syscall to test. */
-        rtrn = pick_syscall(ctx);
+        /* Generate mutated syscall arguments for a randomly chosen syscall. */
+        rtrn = generate_test_case(ctx);
         if(rtrn < 0)
         {
-            output(ERROR, "Can't pick syscall to test\n");
-            exit_child();
-        }
- 
-        /* Generate arguments for the syscall selected. */
-        rtrn = generate_arguments(ctx);
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't generate arguments\n");
-            exit_child();
-        }
-
-        /* Mutate the arguments randomly. */
-        rtrn = mutate_arguments(ctx->arg_value_array,
-                                ctx->arg_size_array);
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't mutate arguments\n");
-            exit_child();
-        }
-
-        /* Grab the syscall entry for the syscall we picked. */
-        entry = get_entry(ctx->syscall_number);
-        if(entry == NULL)
-        {
-            output(ERROR, "Can't get syscall entry\n");
-            exit_child();
-        }
-
-        /* Log the arguments before we use them, in case we cause a
-        kernel panic, so we know what caused the panic. */
-        rtrn = log_arguments(ctx->total_args, ctx->syscall_name,
-                             ctx->arg_value_array, entry->arg_context_array);
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't log arguments\n");
-            mem_free((void **)&entry);
+            output(ERROR, "Syscall call failed\n");
             exit_child();
         }
 
@@ -536,7 +549,6 @@ NX_NO_RETURN static void start_syscall_child(void)
         if(rtrn < 0)
         {
             output(ERROR, "Syscall call failed\n");
-            mem_free((void **)&entry);
             exit_child();
         }
 
@@ -544,11 +556,8 @@ NX_NO_RETURN static void start_syscall_child(void)
         if(rtrn < 0)
         {
             output(ERROR, "Can't log test results\n");
-            mem_free((void **)&entry);
             exit_child();
         }
-
-        mem_free((void **)&entry);
 
         /* If we didn't crash, cleanup are mess. If we don't do this the generate
         functions will crash in a hard to understand way. */
