@@ -32,7 +32,8 @@ LIB = ../io/libnxio.so ../memory/libnxmemory.so \
       ../crypto/libnxcrypto.so ../concurrent/libnxconcurrent.so \
       ../network/libnxnetwork.so ../utils/libnxutils.so \
       ../probe/libnxprobe.so ../resource/libnxresource.so \
-      ../mutate/libnxmutate.so ../log/libnxlog.so 
+      ../mutate/libnxmutate.so ../log/libnxlog.so \
+      ../../deps/$(CK)/src/libck.so
 
 LIB_NAME = libnxsyscall.so
 
@@ -53,7 +54,8 @@ LIB = ../io/libnxio.so ../memory/libnxmemory.so \
       ../crypto/libnxcrypto.so ../concurrent/libnxconcurrent.so \
       ../network/libnxnetwork.so ../utils/libnxutils.so \
       ../probe/libnxprobe.so ../resource/libnxresource.so \
-      ../mutate/libnxmutate.so ../log/libnxlog.so 
+      ../mutate/libnxmutate.so ../log/libnxlog.so \
+      ../../deps/$(CK)/src/libck.so
 
 LIB_NAME = libnxsyscall.so
 
@@ -67,7 +69,7 @@ ifeq ($(OPERATING_SYSTEM), Darwin)
 ENTRY_SOURCES := $(wildcard mac/*.c)
 
 INCLUDES = -I../ -I../../deps/$(CK)/include \
-           -isystem ../../deps/$(CK)/include -Imac
+           -isystem ../../deps/$(CK)/include -Imac 
            
 SILENCED_WARNINGS = -Wno-unknown-warning-option \
                     -Wno-reserved-id-macro -Wno-padded \
@@ -82,7 +84,8 @@ LIB = ../io/libnxio.dylib ../memory/libnxmemory.dylib \
       ../crypto/libnxcrypto.dylib ../concurrent/libnxconcurrent.dylib \
       ../network/libnxnetwork.dylib ../utils/libnxutils.dylib \
       ../probe/libnxprobe.dylib ../resource/libnxresource.dylib \
-      ../mutate/libnxmutate.dylib ../log/libnxlog.dylib 
+      ../mutate/libnxmutate.dylib ../log/libnxlog.dylib \
+      ../../deps/$(CK)/src/libck.so 
 
 LIB_NAME = libnxsyscall.dylib
 
