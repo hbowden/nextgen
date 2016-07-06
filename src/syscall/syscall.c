@@ -120,6 +120,8 @@ static int32_t *stop;
 /* This variable tells us wether were in smart mode or dumb mode. */
 static int32_t mode;
 
+static int8_t table_set;
+
 static epoch_ctx *epoch;
 
 void get_return_jump(struct child_ctx *child, jmp_buf *jmp)
@@ -654,6 +656,14 @@ void create_syscall_children(void)
 
 struct syscall_table *get_syscall_table(void)
 {
+    if(table_set == TRUE)
+    {
+        /* If the sys_table pointer has already been set just
+          return that, so we don't have different versions of
+          the syscall table floating around. */
+        return (atomic_load_ptr(&sys_table));
+    }
+
     struct syscall_table *table = NULL;
     struct syscall_table *syscall_table = NULL;
 
@@ -1031,6 +1041,9 @@ int32_t setup_syscall_module(int32_t *stop_ptr,
     mode = run_mode;
     epoch = e;
     test_counter = counter;
+
+    /* Now set the table set flag. */
+    table_set = TRUE;
 
     return (0);
 }
