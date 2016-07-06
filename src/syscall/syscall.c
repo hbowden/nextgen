@@ -654,16 +654,8 @@ void create_syscall_children(void)
     }
 }
 
-struct syscall_table *get_syscall_table(void)
+static struct syscall_table *build_syscall_table(void)
 {
-    if(table_set == TRUE)
-    {
-        /* If the sys_table pointer has already been set just
-          return that, so we don't have different versions of
-          the syscall table floating around. */
-        return (atomic_load_ptr(&sys_table));
-    }
-
     struct syscall_table *table = NULL;
     struct syscall_table *syscall_table = NULL;
 
@@ -754,6 +746,20 @@ struct syscall_table *get_syscall_table(void)
     }
 
     return (table);
+}
+
+struct syscall_table *get_syscall_table(void)
+{
+    if(table_set == TRUE)
+    {
+        /* If the sys_table pointer has already been set just
+          return that, so we don't have different versions of
+          the syscall table floating around. */
+        return (atomic_load_ptr(&sys_table));
+    }
+
+    /* Build the syscall table and return it. */
+    return (build_syscall_table());
 }
 
 /* This function is used to randomly pick the syscall to test. */
