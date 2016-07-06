@@ -120,6 +120,8 @@ static int32_t *stop;
 /* This variable tells us wether were in smart mode or dumb mode. */
 static int32_t mode;
 
+static epoch_ctx *epoch;
+
 void get_return_jump(struct child_ctx *child, jmp_buf *jmp)
 {
     memcpy((jmp), child->return_jump, sizeof(jmp_buf));
@@ -591,7 +593,7 @@ static int32_t init_syscall_child(uint32_t i)
 
     /* Register the child process's main thread with the epoch
        object in the global shared mapping. */
-    epoch_register(&map->epoch, &children[i]->record);
+    epoch_register(epoch, &children[i]->record);
 
     /* Increment the running child counter. */
     atomic_add_uint32(&running_children, 1);
@@ -973,7 +975,8 @@ static struct child_ctx *init_child_context(void)
 
 int32_t setup_syscall_module(int32_t *stop_ptr,
                              uint32_t *counter, 
-                             int32_t run_mode)
+                             int32_t run_mode,
+                             epoch_ctx *e)
 {
     uint32_t i = 0;
     int32_t rtrn = 0;
@@ -1026,6 +1029,7 @@ int32_t setup_syscall_module(int32_t *stop_ptr,
     /* Set file scope variables. */
     stop = stop_ptr;
     mode = run_mode;
+    epoch = e;
     test_counter = counter;
 
     return (0);

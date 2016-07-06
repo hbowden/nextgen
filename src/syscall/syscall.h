@@ -23,6 +23,8 @@
 #ifndef SYSCALL_H
 #define SYSCALL_H
 
+#include "concurrent/concurrent.h"
+
 #include <unistd.h>
 #include <sys/types.h>
 #include <stdint.h>
@@ -74,7 +76,8 @@ extern void kill_all_children(void);
 
 extern int32_t setup_syscall_module(int32_t *stop_ptr, 
 	                                uint32_t *counter,
-	                                int32_t run_mode);
+	                                int32_t run_mode,
+	                                epoch_ctx *e);
 
 extern void start_main_syscall_loop(void);
 

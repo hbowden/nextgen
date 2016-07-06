@@ -227,7 +227,8 @@ static int32_t setup_syscall_mode_runtime(void)
         /* Setup the syscall module. */
         rtrn = setup_syscall_module(&map->stop, 
                                     &map->test_counter, 
-                                    map->smart_mode);
+                                    map->smart_mode,
+                                    &map->epoch);
         if(rtrn < 0)
         {
             output(ERROR, "Can't create syscall module\n");
@@ -265,7 +266,8 @@ static int32_t setup_syscall_mode_runtime(void)
         /* Setup the syscall module. */
         rtrn = setup_syscall_module(&map->stop, 
                                     &map->test_counter, 
-                                    map->smart_mode);
+                                    map->smart_mode,
+                                    &map->epoch);
         if(rtrn < 0)
         {
             output(ERROR, "Can't create syscall module\n");
