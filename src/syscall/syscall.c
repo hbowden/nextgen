@@ -484,7 +484,7 @@ NX_NO_RETURN static void start_syscall_child(void)
     }
 
     /* Check if we should stop or continue running. */
-    while((*stop) != TRUE)
+    while(atomic_load_int32(stop) != TRUE)
     {
         /* Randomly pick the syscall to test. */
         rtrn = pick_syscall(ctx);
