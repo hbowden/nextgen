@@ -171,11 +171,10 @@ void cleanup_syscall_table(struct syscall_table **table)
     return; 
 }
 
-int32_t get_total_syscalls(uint32_t *total)
+void get_total_syscalls(uint32_t *total)
 {
     (*total) = sys_table->number_of_syscalls;
-
-    return (0);
+    return;
 }
 
 struct syscall_entry *get_entry(uint32_t syscall_number)

@@ -235,13 +235,8 @@ static int32_t setup_syscall_mode_runtime(void)
             return (-1);
         }
 
-        rtrn = get_total_syscalls(&total_syscalls);
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't get total syscalls\n");
-            return (-1);
-        }
-
+        get_total_syscalls(&total_syscalls);
+        
         /* Start the genetic algorithm. */
         rtrn = setup_genetic_module(SYSCALL_FUZZING, &map->gen_algo_thread, &map->stop);
         if(rtrn < 0)
@@ -274,12 +269,7 @@ static int32_t setup_syscall_mode_runtime(void)
             return (-1);
         }
 
-        rtrn = get_total_syscalls(&total_syscalls);
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't get total syscalls\n");
-            return (-1);
-        }
+        get_total_syscalls(&total_syscalls);
     }
 
     rtrn = setup_log_module(map->output_path, total_syscalls);

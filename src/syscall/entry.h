@@ -18,8 +18,8 @@
 #ifndef ENTRY_H
 #define ENTRY_H
 
-#include "syscall.h"
 #include "runtime/platform.h"
+#include "syscall.h"
 #include "arg_types.h"
 
 #include <stdbool.h>

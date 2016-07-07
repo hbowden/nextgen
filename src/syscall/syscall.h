@@ -40,9 +40,7 @@ enum child_state {EMPTY};
 *    syscalls that have been turned off.
 *    @param total The variable to store the total number of syscalls.
 */
-extern int32_t get_total_syscalls(uint32_t *total);
-
-extern struct syscall_entry *get_entry(uint32_t syscall_number);
+extern void get_total_syscalls(uint32_t *total);
 
 extern struct child_ctx *get_child_from_index(uint32_t i);
 
@@ -73,6 +71,8 @@ extern int32_t get_arg_size(struct child_ctx *child, uint32_t arg_num, uint64_t 
 extern uint32_t get_current_arg(struct child_ctx *child);
 
 extern void kill_all_children(void);
+
+extern struct syscall_entry *get_entry(uint32_t syscall_number);
 
 extern int32_t setup_syscall_module(int32_t *stop_ptr, 
 	                                uint32_t *counter,
