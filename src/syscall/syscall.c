@@ -184,9 +184,7 @@ struct syscall_entry *get_entry(uint32_t syscall_number)
     if(syscall_number > sys_table->total_syscalls)
         return (NULL);
 
-   //return(atomic_load_ptr(&sys_table->sys_entry[syscall_number]));
-
-   return (NULL);
+   return(atomic_load_ptr(&sys_table->sys_entry[syscall_number]));
 }
 
 /* Don't use inside of the syscall module. This function is for 
@@ -328,8 +326,6 @@ static int32_t free_old_arguments(struct child_ctx *ctx)
                 break;
         }
     }
-
-    mem_free((void **)&entry);
 
     return (0);
 }
@@ -530,8 +526,8 @@ NX_NO_RETURN static void start_syscall_child(void)
         }
 
         /* Run the syscall we selected with the arguments we generated and mutated. This call usually
-        crashes and causes us to jumb back to the setjmp call above.*/
-        rtrn = test_syscall(ctx);
+        crashes and causes us to jumb back to the setjmp call above.
+        rtrn = test_syscall(ctx); */
         if(rtrn < 0)
         {
             output(ERROR, "Syscall call failed\n");
