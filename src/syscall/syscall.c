@@ -198,7 +198,7 @@ struct child_ctx *get_child_from_index(uint32_t i)
         return (NULL);
 
     /* Return the child's context object pointer. */
-    return (children[i]);
+    return (atomic_load_ptr(&children[i]));
 }
 
 static int32_t get_child_index_number(uint32_t *index_num)
