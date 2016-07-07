@@ -684,14 +684,6 @@ static struct syscall_table *build_syscall_table(void)
     /* Our loop incrementers. */
     uint32_t i, ii;
 
-    /* Allocate heap memory for the list of syscalls.
-    table->sys_entry = mem_alloc_shared(table->total_syscalls * sizeof(struct syscall_entry *));
-    if(table->sys_entry == NULL)
-    {
-        output(ERROR, "Can't create entry index\n");
-        return (NULL);
-    } */
-
     /* Loop for each entry syscall and build a table from the on disk format. */
     for(i = 0; i < table->total_syscalls; i++)
     {
