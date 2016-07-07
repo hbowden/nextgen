@@ -2,6 +2,9 @@
 ROOT_DIR = $(shell pwd)
 
 COVERAGE = false
+ASAN = false
+
+FLAGS = -fno-strict-aliasing -fstack-protector-all -Wall -Werror -pedantic -g -O3
 
 CK = ck-0.5.1
 LIBRESSL = libressl-2.4.1
@@ -62,7 +65,7 @@ INCLUDE += -I /usr/src/cddl/compat/opensolaris/include \
 
 MAKE = gmake
 
-FLAGS = -DFREEBSD -Wall -Werror -Weverything -g -O3 -std=c99
+FLAGS += -DFREEBSD -Weverything -std=c99
 
 SILENCED_WARNINGS = -Wno-sign-conversion -Wno-unknown-pragmas -Wno-pedantic -Wno-padded 
 
@@ -116,7 +119,7 @@ INSTALL = cp -rf src/runtime/libnxruntime.dylib.dSYM /usr/local/lib && \
 LIB = src/runtime/libnxruntime.dylib src/memory/libnxmemory.dylib \
       src/utils/libnxutils.dylib src/io/libnxio.dylib src/objc/libnxobjcutils.dylib
 
-FLAGS = -DMAC_OSX -fno-strict-aliasing -Wall -Werror -Weverything -pedantic -g -O3 -std=c99
+FLAGS += -DMAC_OSX -Weverything -std=c99
 
 SILENCED_WARNINGS = -Wno-unknown-warning-option \
                     -Wno-reserved-id-macro \
@@ -134,7 +137,7 @@ SOURCES = src/main.c
 
 CC = gcc
 
-FLAGS = -DLINUX -DCOMMON -fno-strict-aliasing -Wall -Werror -Wextra -g -O3 -std=gnu99
+FLAGS += -DLINUX -DCOMMON -Wextra -std=gnu99
 
 LIB = -Wl,-rpath=src/runtime,-rpath=src/memory,-rpath=src/utils,-rpath=src/io,-rpath=src/concurrent,-rpath=src/genetic,-rpath=src/mutate,-rpath=src/log,-rpath=src/network,-rpath=src/file,-rpath=src/syscall,-rpath=src/probe,-rpath=src/disas,-rpath=src/crypto,-rpath=src/plugins \
       src/memory/libnxmemory.so \
