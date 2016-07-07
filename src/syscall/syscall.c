@@ -670,7 +670,7 @@ static struct syscall_table *build_syscall_table(void)
         return (NULL);
     }
 
-    /* Create a syscall table object on the heap.*/
+    /* Create a syscall table object with shared memory.*/
     table = mem_alloc_shared(sizeof(struct syscall_table));
     if(table == NULL)
     {
