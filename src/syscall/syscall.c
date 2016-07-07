@@ -224,12 +224,14 @@ NX_NO_RETURN static void exit_child(void)
     struct child_ctx *child = NULL;
 
     /* Get our childs context object. */
-    child = get_child_ctx();
+    child = get_child();
     if(child == NULL)
     {
         output(ERROR, "Can't get child context\n");
         _exit(-1);
     }
+
+    epoch_begin(&child->record, NULL);
 
     /* Clean up kernel probes. */
     rtrn = cleanup_kernel_probes(child->probe_handle);
@@ -241,6 +243,8 @@ NX_NO_RETURN static void exit_child(void)
 
     /* Set the PID as empty. */
     cas_loop_int32(&child->pid, EMPTY);
+
+    epoch_end(&child->record, NULL);
 
     /* Decrement the running child counter. */
     atomic_dec_uint32(&running_children);
@@ -360,26 +364,30 @@ static struct job_ctx *get_job(struct child_ctx *ctx)
 NX_NO_RETURN static void start_smart_syscall_child(void)
 {
     int32_t rtrn = 0;
-    struct child_ctx *ctx = NULL;
+    struct child_ctx *child = NULL;
 
-    /* Grab our context object. */
-    ctx = get_child_ctx();
-    if(ctx == NULL)
+    /* Grab our child context object. */
+    child = get_child();
+    if(child == NULL)
     {
         output(ERROR, "Can't get child context\n");
         exit_child();
     }
 
+    epoch_begin(&child->record, NULL);
+
     /* Set the return jump so that we can try fuzzing again on a signal. This 
     is required on some operating systems because they can't clean up old 
     processes fast enough for us. It also alows us to do PRNG seeding and
     probe injection and teardown less often. */
-    rtrn = setjmp(ctx->return_jump);
+    rtrn = setjmp(child->return_jump);
     if(rtrn < 0)
     {
         output(ERROR, "Can't set return jump\n");
         exit_child();
     }
+
+    epoch_end(&child->record, NULL);
 
     /* Loop until ctrl-c is pressed by the user. */
     while(atomic_load_int32(stop) != TRUE)
@@ -403,7 +411,7 @@ struct child_ctx *get_child_ctx_from_pid(pid_t pid)
     return (NULL);
 }
 
-struct child_ctx *get_child_ctx(void)
+struct child_ctx *get_child(void)
 {
     int32_t rtrn = 0;
     uint32_t offset = 0;
@@ -476,18 +484,20 @@ static int32_t generate_test_case(struct child_ctx *child)
 NX_NO_RETURN static void start_syscall_child(void)
 {
     int32_t rtrn = 0;
-    struct child_ctx *ctx = NULL;
+    struct child_ctx *child = NULL;
 
     /* Get our child context. */
-    ctx = get_child_ctx();
-    if(ctx == NULL)
+    child = get_child();
+    if(child == NULL)
     {
         output(ERROR, "Can't get child context\n");
         exit_child();
     }
 
+    epoch_begin(&child->record, NULL);
+
     /* Set the return jump so that we can try fuzzing again on a signal. */
-    rtrn = setjmp(ctx->return_jump);
+    rtrn = setjmp(child->return_jump);
     if(rtrn < 0)
     {
         output(ERROR, "Can't set return jump\n");
@@ -495,10 +505,10 @@ NX_NO_RETURN static void start_syscall_child(void)
     }
 
     /* Check to see if we jumped back from the signal handler. */
-    if(ctx->did_jump == NX_YES)
+    if(child->did_jump == NX_YES)
     {
         /* Log the results of the last fuzz test. */
-        rtrn = log_results(ctx->had_error, ctx->ret_value, strsignal(ctx->sig_num));
+        rtrn = log_results(child->had_error, child->ret_value, strsignal(child->sig_num));
         if(rtrn < 0)
         {
             output(ERROR, "Can't log test results\n");
@@ -506,7 +516,7 @@ NX_NO_RETURN static void start_syscall_child(void)
         }
 
         /* Clean up our old mess. */
-        rtrn = free_old_arguments(ctx);
+        rtrn = free_old_arguments(child);
         if(rtrn < 0)
         {
             output(ERROR, "Can't cleanup old arguments\n");
@@ -518,23 +528,25 @@ NX_NO_RETURN static void start_syscall_child(void)
     while(atomic_load_int32(stop) != TRUE)
     {
         /* Generate mutated syscall arguments for a randomly chosen syscall. */
-        rtrn = generate_test_case(ctx);
+        rtrn = generate_test_case(child);
         if(rtrn < 0)
         {
             output(ERROR, "Syscall call failed\n");
             exit_child();
         }
+
+        epoch_end(&child->record, NULL);
 
         /* Run the syscall we selected with the arguments we generated and mutated. This call usually
-        crashes and causes us to jumb back to the setjmp call above.
-        rtrn = test_syscall(ctx); */
+        crashes and causes us to jumb back to the setjmp call above. */
+        rtrn = test_syscall(child);
         if(rtrn < 0)
         {
             output(ERROR, "Syscall call failed\n");
             exit_child();
         }
 
-        rtrn = log_results(ctx->had_error, ctx->ret_value, strsignal(ctx->sig_num));
+        rtrn = log_results(child->had_error, child->ret_value, strsignal(child->sig_num));
         if(rtrn < 0)
         {
             output(ERROR, "Can't log test results\n");
@@ -543,7 +555,7 @@ NX_NO_RETURN static void start_syscall_child(void)
 
         /* If we didn't crash, cleanup are mess. If we don't do this the generate
         functions will crash in a hard to understand way. */
-        free_old_arguments(ctx);
+        free_old_arguments(child);
     }
 
     /* We should not get here, but if we do, exit so we can be restarted. */

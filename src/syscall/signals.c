@@ -113,12 +113,14 @@ int32_t setup_signal_handler(void)
 static void child_signal_handler(int sig)
 {
     /* Grab our child's context object. */
-    struct child_ctx *child = get_child_ctx();
+    struct child_ctx *child = get_child();
     if(child == NULL)
     {
         output(ERROR, "Can't get child context\n");
         return;
     }
+
+    //epoch_begin(&child->record, NULL);
 
     /* Check what kind of signal got us here. */
     switch(sig)
@@ -140,6 +142,8 @@ static void child_signal_handler(int sig)
 
     jmp_buf jmp;
     get_return_jump(child, &jmp);
+
+    //epoch_end(&child->record, NULL);
 
     /* Jump back to child's main loop. */
     longjmp(jmp, 1);

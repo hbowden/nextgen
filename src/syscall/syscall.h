@@ -44,7 +44,7 @@ extern void get_total_syscalls(uint32_t *total);
 
 extern struct child_ctx *get_child_from_index(uint32_t i);
 
-extern struct child_ctx *get_child_ctx(void);
+extern struct child_ctx *get_child(void);
 
 extern struct child_ctx *get_child_ctx_from_pid(pid_t pid);
 
