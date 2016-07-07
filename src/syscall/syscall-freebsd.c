@@ -18,5 +18,5 @@
 
 struct syscall_table *get_table(void)
 {
-	return (freebsd_syscall_table);
+	return (&freebsd_syscall_table);
 }

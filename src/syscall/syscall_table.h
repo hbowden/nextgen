@@ -22,15 +22,17 @@
 
 struct syscall_table
 {
-    uint32_t number_of_syscalls;
+    uint32_t total_syscalls;
     const char padding[4];
-    struct syscall_entry *sys_entry;
+    struct syscall_entry *sys_entry[56];
 };
 
 extern struct syscall_table *get_table(void);
 
-extern struct syscall_table freebsd_syscall_table[];
+extern struct syscall_table freebsd_syscall_table;
 
-extern struct syscall_table mac_osx_syscall_table[];
+extern struct syscall_table mac_osx_syscall_table;
+
+extern struct syscall_table linux_syscall_table;
 
 #endif

@@ -21,10 +21,10 @@
 #include "syscall_list.h"
 #include "syscall_table.h"
 
-struct syscall_table linux_syscall_table[] = {
+struct syscall_table linux_syscall_table = {
     
-    { .number_of_syscalls = 1 },
-    { .sys_entry = &entry_read },
+    .total_syscalls = 1,
+    .sys_entry[0] = &entry_read,
 };
 
 #endif

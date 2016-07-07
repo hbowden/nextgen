@@ -18,4 +18,4 @@
 #include "syscall_table.h"
 #include "mac_osx_syscall_table.h"
 
-struct syscall_table *get_table(void) { return (mac_osx_syscall_table); }
+struct syscall_table *get_table(void) { return (&mac_osx_syscall_table); }

@@ -18,5 +18,5 @@
 
 struct syscall_table *get_table(void)
 {
-	return (linux_syscall_table);
+	return (&linux_syscall_table);
 }

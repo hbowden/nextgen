@@ -93,7 +93,7 @@ static int32_t init_world(void)
     }
 
     /* Set the number of species to the number of syscalls. */
-    world->number_of_species = sys_table->number_of_syscalls;
+    world->number_of_species = sys_table->total_syscalls;
 
     /* Set current generation to zero because we haven't created one yet. */
     world->current_generation = 0;
@@ -114,7 +114,7 @@ static int32_t init_world(void)
         struct species_ctx ctx = {
 
             /* Set species name to syscall name. */
-            .species_name = sys_table->sys_entry[i].syscall_name,
+            .species_name = sys_table->sys_entry[i]->syscall_name,
 
             /* Set population to zero. */
             .species_population = 0,
@@ -190,7 +190,7 @@ static int32_t create_first_generation(void)
     uint32_t i, ii;
 
     /* Loop for each syscall in the syscall table. */
-    for(i = 0; i < sys_table->number_of_syscalls; i++)
+    for(i = 0; i < sys_table->total_syscalls; i++)
     {
         for(ii = 0; ii < SPECIES_POP; ii++)
         {
