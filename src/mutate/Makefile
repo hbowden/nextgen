@@ -58,8 +58,8 @@ INCLUDES += -I/usr/src/cddl/compat/opensolaris/include \
             -I/usr/src/sys/cddl/compat/opensolaris \
             -I/usr/src/sys/cddl/contrib/opensolaris/uts/common
 
-LIB = ../io/libnxio.so ../memory/libnxmemory.so \
-      ../crypto/libnxcrypto.so ../plugins/libnxplugin.so
+LIB = $(ROOT_DIR)/src/io/libnxio.so $(ROOT_DIR)/src/memory/libnxmemory.so \
+      $(ROOT_DIR)/src/crypto/libnxcrypto.so $(ROOT_DIR)/src/plugins/libnxplugin.so
 
 LIB_NAME = libnxmutate.so
 

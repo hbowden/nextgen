@@ -15,7 +15,7 @@ SILENCED_WARNINGS = -Wno-padded \
 
 FLAGS = -DFREEBSD -shared -fno-strict-aliasing -fstack-protector-all -fPIC -Wall -Werror -Weverything -g -O3 -std=c99
 
-LIB = ../io/libnxio.so ../memory/libnxmemory.so \
+LIB = $(ROOT_DIR)/src/io/libnxio.so ../memory/libnxmemory.so \
       ../crypto/libnxcrypto.so
 
 LIB_NAME = libnxutils.so
@@ -28,8 +28,8 @@ SILENCED_WARNINGS = -Wno-padded \
                     -Wno-unused-parameter \
                     -Wno-pedantic
 FLAGS += -shared -fPIC
-LIB = ../io/libnxio.so ../memory/libnxmemory.so \
-      ../crypto/libnxcrypto.so
+LIB = $(ROOT_DIR)/src/io/libnxio.so $(ROOT_DIR)/src/memory/libnxmemory.so \
+      $(ROOT_DIR)/src/crypto/libnxcrypto.so
 
 LIB_NAME = libnxutils.so
 

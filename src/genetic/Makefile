@@ -31,9 +31,9 @@ endif
 ifeq ($(OPERATING_SYSTEM), Linux)
            
 FLAGS += -shared -fPIC -fstack-protector-all
-LIB = ../io/libnxio.so ../memory/libnxmemory.so \
-      ../crypto/libnxcrypto.so ../syscall/libnxsyscall.so \
-      ../concurrent/libnxconcurrent.so
+LIB = $(ROOT_DIR)/src/io/libnxio.so $(ROOT_DIR)/src/memory/libnxmemory.so \
+      $(ROOT_DIR)/src/crypto/libnxcrypto.so $(ROOT_DIR)/src/syscall/libnxsyscall.so \
+      $(ROOT_DIR)/src/concurrent/libnxconcurrent.so
 
 LIB_NAME = libnxgenetic.so
 
