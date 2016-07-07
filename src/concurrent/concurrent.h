@@ -131,6 +131,18 @@ typedef ck_epoch_record_t epoch_record;
  */
 #define epoch_unregister(record) ck_epoch_unregister(record)
 
+/**
+ * 
+ *
+ */
+#define epoch_begin(record, section) ck_epoch_begin(record, section)
+
+/**
+ * 
+ *
+ */
+#define epoch_end(record, section) ck_epoch_end(record, section)
+
 #define NX_LIST_HEAD(name,type) 
 #define NX_LIST_ENTRY(x) CK_LIST_ENTRY(x) list_entry
 #define NX_SLIST_ENTRY(x) CK_SLIST_ENTRY(x) list_entry
