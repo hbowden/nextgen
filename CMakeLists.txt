@@ -22,7 +22,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     add_library(nxconcurrent SHARED src/concurrent/concurrent.c src/concurrent/concurrent-mac.c)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    add_library(nxconcurrent SHARED src/concurrent/concurrent.c src/concurrent/concurrent-linux.c)
+    add_library(nxconcurrent SHARED src/concurrent/concurrent.c src/concurrent/concurrent-common.c)
 endif()
 
 target_link_libraries(nxconcurrent nxio)
