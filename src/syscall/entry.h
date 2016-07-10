@@ -41,13 +41,13 @@ struct syscall_entry
     const bool need_alarm;
     const bool requires_root;
 
-    const char padding[1];
+    const char padding[2];
     int32_t arg_type_array[7];
 
     const uint32_t total_args;
     const uint32_t entry_number;
 
-    const char padding2[4];
+    const char padding2[8];
 
     struct arg_context *arg_context_array[7];
 

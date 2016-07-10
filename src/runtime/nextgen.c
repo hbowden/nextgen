@@ -525,6 +525,8 @@ static int32_t init_file_mapping(struct shared_map **mapping,
 static int32_t init_network_mapping(struct shared_map **mapping,
                                     struct parser_ctx *ctx)
 {
+    (void)mapping;
+    (void)ctx;
 
     return 0;
 }

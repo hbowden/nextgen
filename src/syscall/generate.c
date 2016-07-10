@@ -645,11 +645,15 @@ int32_t generate_offset(uint64_t **offset, struct child_ctx *child)
 
 int32_t generate_mountpath(uint64_t **path, struct child_ctx *child)
 {
+    (void)path;
+    (void)child;
     return (0);
 }
 
 int32_t generate_mount_type(uint64_t **type, struct child_ctx *child)
 {
+    (void)type;
+    (void)child;
 
     return (0);
 }

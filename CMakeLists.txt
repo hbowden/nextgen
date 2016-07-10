@@ -2,20 +2,49 @@ cmake_minimum_required (VERSION 2.6)
 project (Nextgen)
 set(CMAKE_BUILD_TYPE Release)
 
-add_definitions("-Wall -fstack-protector-all -fno-strict-aliasing -g -Wno-unused-function -Werror -Wno-unknown-warning-option -Wno-reserved-id-macro -Wno-incompatible-pointer-types-discards-qualifiers -Wno-used-but-marked-unused -Wno-unknown-pragmas -Wno-deprecated-declarations -Wno-unused-variable")
+# Check the compiler and set compiler specific options.
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  # using Clang
+  add_definitions("-Weverything -std=c99")
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  # using GCC
+  add_definitions("-Wextra -std=gnu99")
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+  # using Intel C++
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+  # using Visual Studio C++
+endif()
+
+add_definitions("-Wall -fstack-protector-all -fno-strict-aliasing -g -Werror -Wno-unknown-warning-option -Wno-pedantic -Wno-deprecated-declarations -Wno-used-but-marked-unused")
+
+set_source_files_properties(src/io/io.c PROPERTIES COMPILE_FLAGS -Wno-format-nonliteral)
+
+set_source_files_properties(src/plugins/plugin.c PROPERTIES COMPILE_FLAGS -Wno-cast-qual)
+
+set_source_files_properties(src/syscall/set_test.c PROPERTIES COMPILE_FLAGS -Wno-unused-function)
+
+set_source_files_properties(src/syscall/generate.c PROPERTIES COMPILE_FLAGS -Wno-cast-align)
+
+set_source_files_properties(src/file/file.c PROPERTIES COMPILE_FLAGS -Wno-cast-qual)
+
+set_source_files_properties(src/main.m PROPERTIES COMPILE_FLAGS -Wno-incompatible-pointer-types-discards-qualifiers)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     add_definitions(-DFREEBSD)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     add_definitions(-DMAC_OSX)
+    add_definitions(-Wno-direct-ivar-access)
+    set_source_files_properties(src/objc/AppDelegate.m PROPERTIES COMPILE_FLAGS -Wno-unused-parameter)
+    set_source_files_properties(src/utils/SetProcessName.c PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations)
+    add_definitions(-Wno-objc-interface-ivars)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     add_definitions(-DLINUX)
     add_definitions(-DCOMMON)
 endif() 
 
 include_directories(src)
-include_directories(deps/libressl-2.4.1/include)
-include_directories(deps/ck-0.5.1/include)
+include_directories(SYSTEM deps/libressl-2.4.1/include)
+include_directories(SYSTEM deps/ck-0.5.1/include SYSTEM)
 
 add_library(nxio SHARED src/io/io.c)
 add_library(nxmemory SHARED src/memory/memory.c)
@@ -172,7 +201,7 @@ target_link_libraries(nxfile nxsyscall)
 target_link_libraries(nxfile nxio)
 target_link_libraries(nxfile nxmemory)
 
-include_directories(${CMAKE_SOURCE_DIR}/deps/capstone-3.0.4/include)
+include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/deps/capstone-3.0.4/include SYSTEM)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     add_library(nxdisas SHARED src/disas/disas.c src/disas/disas-freebsd.c)

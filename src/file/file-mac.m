@@ -38,12 +38,14 @@ static id self_ref;
 
 - (void)startup_handler:(NSNotification *)not
 {
+    (void)not;
     NSLog(@"Notification arrived");
 }
 @end
 
 int32_t run_test_case(char *exec_path, char *file_path, char *file_extension)
 {
+    (void)file_extension;
     NSNotificationCenter *notification;
     NSString *target_path = cstring_to_nsstring(exec_path);
     NSString *test_case_path = cstring_to_nsstring(file_path);

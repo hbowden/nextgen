@@ -31,6 +31,8 @@ static void child_exit_handler(int sig)
     pid_t pid = 0;
     int32_t status = 0;
 
+    (void)sig;
+
     while((pid = waitpid(-1, &status, WNOHANG)) > 0)
     {
         if(WIFEXITED(status))

@@ -86,13 +86,18 @@ struct child_ctx
 
     int32_t did_jump;
 
+    const char padding1[4];
+
     struct probe_ctx *probe_handle;
 
     bool need_alarm;
 
+    const char padding2[7];
+
     int32_t (*test_syscall)(int32_t, uint64_t **);
 
-    const char padding[3];
+    /* God knows why this is so large, will have to investigate. */
+    const char padding3[56];
 
     epoch_record record;
 };
@@ -159,6 +164,8 @@ uint32_t get_current_arg(struct child_ctx *child)
 
 void set_arg_size(struct child_ctx *child, uint64_t size)
 {
+    (void)child;
+    (void)size;
 
     return;
 }
@@ -332,33 +339,6 @@ static int32_t free_old_arguments(struct child_ctx *ctx)
     }
 
     return (0);
-}
-
-static int32_t set_syscall(uint32_t num, struct child_ctx *ctx)
-{
-    /* Make sure number passed is in bounds. */
-    if(num > sys_table->total_syscalls - 1)
-    {
-        output(ERROR, "Syscall number passed is out of bounds\n");
-        return (-1);
-    }
-
-    /* Set syscall value's. */
-    ctx->syscall_number = num;
-    ctx->syscall_symbol = sys_table->sys_entry[num]->syscall_symbol;
-    ctx->syscall_name = sys_table->sys_entry[num]->syscall_name;
-    ctx->need_alarm = sys_table->sys_entry[num]->need_alarm;
-    ctx->total_args = sys_table->sys_entry[num]->total_args;
-    ctx->had_error = NX_NO;
-
-    return (0);
-}
-
-static struct job_ctx *get_job(struct child_ctx *ctx)
-{
-    struct job_ctx *job = NULL;
-    (void)ctx;
-    return (job);
 }
 
 NX_NO_RETURN static void start_smart_syscall_child(void)

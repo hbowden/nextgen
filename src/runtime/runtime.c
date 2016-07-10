@@ -69,6 +69,7 @@ static int32_t start_syscall_mode_runtime(void)
 
 static void *file_mode_thread_start(void *arg)
 {
+    (void)arg;
 #ifdef MAC_OSX
 
     sleep(3);
@@ -308,7 +309,7 @@ int32_t setup_runtime(struct shared_map *mapping)
     int32_t rtrn = 0;
 
     /* This function sets up the crypto functions and crypto library.  */
-    rtrn = setup_crypto_module(map->method);
+    rtrn = setup_crypto_module(mapping->method);
     if(rtrn < 0)
     {
         output(ERROR, "Can't set up crypto\n");
@@ -318,7 +319,7 @@ int32_t setup_runtime(struct shared_map *mapping)
     setup_main_signal_handler();
 
     /* We are done doing common init work now we call the specific init routines. */
-    switch((int32_t)map->mode)
+    switch((int32_t)mapping->mode)
     {
         case MODE_FILE:
             rtrn = setup_file_mode_runtime();
