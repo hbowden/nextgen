@@ -65,7 +65,12 @@ static int32_t flip_bit_mutator(char **file, uint64_t *file_size)
     return (0);
 }
 
-static int32_t xor_mutator(char **file, uint64_t *file_size) { return (0); }
+static int32_t xor_mutator(char **file, uint64_t *file_size)
+{ 
+    (void)file;
+    (void)file_size;
+    return (0); 
+}
 
 static uint32_t number_of_mutators = 3;
 
@@ -94,7 +99,7 @@ int32_t mutate_file(char **file, const char *file_extension,
                     uint64_t *file_size)
 {
     int32_t rtrn = 0;
-    bool understand_file_format = FALSE;
+    //bool understand_file_format = FALSE;
     uint32_t plugin_offset = 0;
     uint32_t number_of_features = 0;
     uint32_t feature = 0;
@@ -163,4 +168,9 @@ int32_t mutate_file(char **file, const char *file_extension,
     return (0);
 }
 
-int32_t mutate_arguments(uint64_t **args, uint64_t *size) { return (0); }
+int32_t mutate_arguments(uint64_t **args, uint64_t *size)
+{ 
+    (void)args;
+    (void)size;
+    return (0);
+}
