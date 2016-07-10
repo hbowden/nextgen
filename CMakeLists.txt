@@ -186,11 +186,11 @@ link_directories(${CMAKE_SOURCE_DIR}/deps/capstone-3.0.4)
 target_link_libraries(nxdisas nxio)
 target_link_libraries(nxdisas nxfile)
 target_link_libraries(nxdisas nxmemory)
-target_link_libraries(nxdisas capstone)
+target_link_libraries(nxdisas ${CMAKE_SOURCE_DIR}/deps/capstone-3.0.4/libcapstone.dylib)
 
 add_library(nxruntime SHARED src/runtime/runtime.c src/runtime/nextgen.c)
 
-target_link_libraries(nxruntime ck)
+target_link_libraries(nxruntime ${CMAKE_SOURCE_DIR}/deps/ck-0.5.1/src/libck.so)
 target_link_libraries(nxruntime nxio)
 target_link_libraries(nxruntime nxmemory)
 target_link_libraries(nxruntime nxconcurrent)
