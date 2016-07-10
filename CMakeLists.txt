@@ -115,6 +115,8 @@ target_link_libraries(nxlog nxio)
 target_link_libraries(nxlog nxmemory)
 target_link_libraries(nxlog sqlite3)
 
+link_directories(${CMAKE_SOURCE_DIR}/deps/ck-0.5.1/src)
+
 if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     AUX_SOURCE_DIRECTORY(src/syscall/freebsd ENTRY_SOURCES) 
     add_library(nxsyscall SHARED src/syscall/syscall.c src/syscall/syscall-freebsd.c src/syscall/signals.c src/syscall/set_test.c src/syscall/generate.c src/syscall/arg_types.c ${ENTRY_SOURCES})
@@ -129,8 +131,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     include_directories(src/syscall/linux)
 endif()
 
-link_directories(${CMAKE_SOURCE_DIR}/deps/ck-0.5.1/src)
-target_link_libraries(nxsyscall ck)
+target_link_libraries(nxsyscall ${CMAKE_SOURCE_DIR}/deps/ck-0.5.1/src/libck.so)
 target_link_libraries(nxsyscall nxio)
 target_link_libraries(nxsyscall nxmemory)
 target_link_libraries(nxsyscall nxconcurrent)
