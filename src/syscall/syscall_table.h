@@ -29,10 +29,18 @@ struct syscall_table
 
 extern struct syscall_table *get_table(void);
 
+#ifdef FREEBSD
+
 extern struct syscall_table freebsd_syscall_table;
 
+#elif MAC_OSX
+
 extern struct syscall_table mac_osx_syscall_table;
+
+#elif LINUX
 
 extern struct syscall_table linux_syscall_table;
 
 #endif
+
+#endif /* End of header file. */

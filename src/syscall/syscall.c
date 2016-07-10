@@ -504,6 +504,8 @@ NX_NO_RETURN static void start_syscall_child(void)
         exit_child();
     }
 
+    output(STD, "num1: %u\n", atomic_load_uint32(&running_children));
+
     /* Check to see if we jumped back from the signal handler. */
     if(child->did_jump == NX_YES)
     {
@@ -527,6 +529,8 @@ NX_NO_RETURN static void start_syscall_child(void)
     /* Check if we should stop or continue running. */
     while(atomic_load_int32(stop) != TRUE)
     {
+        output(STD, "num: %u\n", atomic_load_uint32(&running_children));
+
         /* Generate mutated syscall arguments for a randomly chosen syscall. */
         rtrn = generate_test_case(child);
         if(rtrn < 0)
