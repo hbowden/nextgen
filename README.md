@@ -15,7 +15,7 @@ In the mean time `FreeBSD`, `Linux` and `OSX` users can build and "use" nextgen.
 # Build-FreeBSD
 To build `nextgen` on `FreeBSD` you will need to install a few dependencies and have the `FreeBSD` source tree installed at `/usr/src` as well. Use the command below to install the needed dependencies.
 
-    sudo pkg install gmake autotools
+    sudo pkg install gmake autotools cmake
     
 Use the command below if you don't have the `FreeBSD` source tree installed. The command below assumes your running `FreeBSD` 10.3, if you are not change the command accordingly.
 
@@ -25,9 +25,17 @@ Next run the setup script, this will build any dependencies needed for nextgen o
 
     ./setup.sh
 
-Now you can build nextgen with `gmake`.
+Create a directory called build and change to it.
 
-    gmake
+    mkdir build && cd build
+    
+Run `cmake` and pass the path to the main source directory.
+
+    cmake ..
+    
+Finally use `make` or `gmake` to build `nextgen`.
+
+    make
 
 # Build-Linux
 
@@ -41,7 +49,15 @@ Next run the setup script, this will build any dependencies needed for nextgen o
 
      ./setup.sh
      
-Now you can build nextgen with `make`.
+Create a directory called build and change to it.
+
+    mkdir build && cd build
+    
+Run `cmake` and pass the path to the main source directory.
+
+    cmake ..
+    
+Finally use `make` to build `nextgen`.
 
     make
 
