@@ -41,6 +41,8 @@ static struct plugin_ctx **plugins;
 
 int32_t supported_file(const char *file_extension, unsigned int *plugin_offset)
 {
+    (void)file_extension;
+    (void)plugin_offset;
 
     return (0);
 }
@@ -84,12 +86,16 @@ static int32_t count_plugins(uint32_t *count)
 int32_t features_supported(unsigned int offset,
                            unsigned int *number_of_features)
 {
+    (void)offset;
+    (void)number_of_features;
     return 0;
 }
 
 int32_t feature_constraints(unsigned int offset,
                             struct feature_constraints *constraints)
 {
+    (void)offset;
+    (void)constraints;
 
     return 0;
 }
