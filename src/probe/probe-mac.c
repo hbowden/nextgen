@@ -114,9 +114,9 @@ int32_t start_and_pause_target(char *path, pid_t *target_pid)
 
 int32_t inject_fork_server(uint64_t main_address)
 {
+    (void)main_address;
     task_t target_task;
     kern_return_t kr = 0;
-    pointer_t op;
 
     /* Grab target process's task port. */
     kr = task_for_pid(mach_task_self(), pid, &target_task);
