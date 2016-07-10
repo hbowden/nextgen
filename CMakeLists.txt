@@ -269,6 +269,8 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     add_executable(nextgen src/main.m)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     add_executable(nextgen src/main.c)
+    target_link_libraries(nextgen pthread)
+    target_link_libraries(nextgen dl)
 endif()
 
 target_link_libraries(nextgen nxutils)
