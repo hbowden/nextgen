@@ -393,6 +393,8 @@ int32_t create_random_file(char *root, char *ext, char **path, uint64_t *size)
 int32_t binary_to_ascii(char *input, char **out, uint64_t input_len,
                         uint64_t *out_len)
 {
+    (void)input;
+
     if(input_len == 0)
     {
         output(ERROR, "Input length is zero\n");
@@ -603,6 +605,8 @@ int32_t count_files_directory(uint32_t *count, char *dir)
 
 int32_t create_random_directory(char *root, char **path)
 {
+    (void)root;
+    (void)path;
     
-    return (0);
+    return (-1);
 }

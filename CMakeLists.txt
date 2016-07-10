@@ -2,6 +2,8 @@ cmake_minimum_required (VERSION 2.6)
 project (Nextgen)
 set(CMAKE_BUILD_TYPE Release)
 
+add_definitions("-Wall -fstack-protector-all -fno-strict-aliasing -g -Wno-unused-function -Werror -Wno-unknown-warning-option -Wno-reserved-id-macro -Wno-incompatible-pointer-types-discards-qualifiers -Wno-used-but-marked-unused -Wno-unknown-pragmas -Wno-deprecated-declarations -Wno-unused-variable")
+
 if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     add_definitions(-DFREEBSD)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -174,11 +176,14 @@ include_directories(${CMAKE_SOURCE_DIR}/deps/capstone-3.0.4/include)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     add_library(nxdisas SHARED src/disas/disas.c src/disas/disas-freebsd.c)
+    target_link_libraries(nxdisas ${CMAKE_SOURCE_DIR}/deps/capstone-3.0.4/libcapstone.so)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     add_library(nxdisas SHARED src/disas/disas.c src/disas/disas-mac.c)
     target_link_libraries(nxfile objc)
+    target_link_libraries(nxdisas ${CMAKE_SOURCE_DIR}/deps/capstone-3.0.4/libcapstone.dylib)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     add_library(nxdisas SHARED src/disas/disas.c src/disas/disas-linux.c)
+    target_link_libraries(nxdisas ${CMAKE_SOURCE_DIR}/deps/capstone-3.0.4/libcapstone.so)
 endif()
 
 link_directories(${CMAKE_SOURCE_DIR}/deps/capstone-3.0.4)
@@ -186,7 +191,6 @@ link_directories(${CMAKE_SOURCE_DIR}/deps/capstone-3.0.4)
 target_link_libraries(nxdisas nxio)
 target_link_libraries(nxdisas nxfile)
 target_link_libraries(nxdisas nxmemory)
-target_link_libraries(nxdisas ${CMAKE_SOURCE_DIR}/deps/capstone-3.0.4/libcapstone.dylib)
 
 add_library(nxruntime SHARED src/runtime/runtime.c src/runtime/nextgen.c)
 
