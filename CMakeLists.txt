@@ -8,6 +8,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     add_definitions(-DMAC_OSX)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     add_definitions(-DLINUX)
+    add_definitions(-DCOMMON)
 endif() 
 
 include_directories(src)
