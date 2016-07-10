@@ -12,6 +12,7 @@ endif()
 
 include_directories(src)
 include_directories(deps/libressl-2.4.1/include)
+include_directories(deps/ck-0.5.1/include)
 
 add_library(nxio SHARED src/io/io.c)
 add_library(nxmemory SHARED src/memory/memory.c)
