@@ -17,10 +17,10 @@ matrix:
       compiler: gcc
 
 before_install:
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update && brew outdated automake || brew upgrade automake; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update && brew outdated automake || brew upgrade automake && brew outdated cmake || brew upgrade cmake; fi
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ./get-aclocal.sh && pip install --user cpp-coveralls; fi
 script: 
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then chmod u+x setup.sh && ./setup.sh && make && make build-tests && make test-all; fi
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then chmod u+x setup.sh && ./setup.sh && make COVERAGE=true && make COVERAGE=true build-tests && make test-all; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then chmod u+x setup.sh && ./setup.sh && mkdir build && cd build && cmake ../ && make; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then chmod u+x setup.sh && ./setup.sh && mkdir build && cd build && cmake ../ && make; fi
 after_success:
    - if [ "$TRAVIS_OS_NAME" == "linux" ]; then coveralls --exclude lib --exclude tests --gcov-options '\-lp'; fi
