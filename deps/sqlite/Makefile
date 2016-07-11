@@ -9,7 +9,7 @@ endif
 
 ifeq ($(OPERATING_SYSTEM), Linux)
 
-COMMAND = cc -shared -ldl -fPIC -O3 -o libsqlite3.so sqlite3.c
+COMMAND = cc -shared -ldl -lpthread -fPIC -O3 -o libsqlite3.so sqlite3.c
 
 endif
 
