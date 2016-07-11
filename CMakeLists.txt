@@ -1,5 +1,17 @@
 cmake_minimum_required (VERSION 2.6)
 project (Nextgen C)
+if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
+    add_definitions(-DFREEBSD)
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    add_definitions(-DMAC_OSX)
+    add_definitions(-Wno-direct-ivar-access)
+    set_source_files_properties(src/objc/AppDelegate.m PROPERTIES COMPILE_FLAGS -Wno-unused-parameter)
+    set_source_files_properties(src/utils/SetProcessName.c PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations)
+    add_definitions(-Wno-objc-interface-ivars)
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    add_definitions(-DLINUX)
+    add_definitions(-DCOMMON)
+endif() 
 set(CMAKE_BUILD_TYPE Release)
 
 # Check the compiler and set compiler specific options.
