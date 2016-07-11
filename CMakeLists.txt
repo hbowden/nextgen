@@ -120,6 +120,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
    add_library(nxnetwork SHARED src/network/network.c  src/network/network-bsd.c)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     add_library(nxnetwork SHARED src/network/network.c  src/network/network-linux.c)
+    target_link_libraries(nxnetwork pthread)
 endif()
 
 target_link_libraries(nxnetwork nxcrypto)
@@ -127,6 +128,9 @@ target_link_libraries(nxnetwork nxio)
 target_link_libraries(nxnetwork nxmemory)
 
 add_library(nxplugin SHARED src/plugins/plugin.c)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    target_link_libraries(nxplugin dl)
+endif()
 target_link_libraries(nxplugin nxutils)
 target_link_libraries(nxplugin nxio)
 target_link_libraries(nxplugin nxmemory)
@@ -237,6 +241,10 @@ target_link_libraries(nxdisas nxfile)
 target_link_libraries(nxdisas nxmemory)
 
 add_library(nxruntime SHARED src/runtime/runtime.c src/runtime/nextgen.c)
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    target_link_libraries(nxruntime pthread)
+endif()
 
 target_link_libraries(nxruntime ${CMAKE_SOURCE_DIR}/deps/ck-0.5.1/src/libck.so)
 target_link_libraries(nxruntime nxio)
