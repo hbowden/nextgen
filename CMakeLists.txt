@@ -1,5 +1,6 @@
 cmake_minimum_required (VERSION 2.6)
 project (Nextgen C)
+enable_testing()
 if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     add_definitions(-DFREEBSD)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -20,6 +21,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   add_definitions("-Weverything -std=c99")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   # using GCC
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage")
   add_definitions("-Wextra -std=gnu99")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
   # using Intel C++
@@ -27,7 +29,7 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   # using Visual Studio C++
 endif()
 
-add_definitions("-Wall -fstack-protector-all -fno-strict-aliasing -g -Werror -Wno-unknown-warning-option -Wno-pedantic -Wno-deprecated-declarations -Wno-used-but-marked-unused -Wno-padded")
+add_definitions("-Wall -fstack-protector-all -fno-strict-aliasing -Werror -Wno-unknown-warning-option -Wno-pedantic -Wno-deprecated-declarations -Wno-used-but-marked-unused -Wno-padded")
 
 set_source_files_properties(src/io/io.c PROPERTIES COMPILE_FLAGS -Wno-format-nonliteral)
 
@@ -65,21 +67,23 @@ endif()
 include_directories(src)
 include_directories(SYSTEM deps/sqlite)
 include_directories(SYSTEM deps/libressl-2.4.1/include)
-include_directories(SYSTEM deps/ck-0.5.1/include SYSTEM)
+include_directories(SYSTEM deps/ck-0.5.1/include)
 
 add_library(nxio SHARED src/io/io.c)
 add_library(nxmemory SHARED src/memory/memory.c)
 target_link_libraries(nxmemory nxio)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
-    add_library(nxconcurrent SHARED src/concurrent/concurrent.c src/concurrent/concurrent-freebsd.c)
+    add_library(nxconcurrent SHARED src/concurrent/concurrent.c src/concurrent/thread.c src/concurrent/concurrent-freebsd.c)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    add_library(nxconcurrent SHARED src/concurrent/concurrent.c src/concurrent/concurrent-mac.c)
+    add_library(nxconcurrent SHARED src/concurrent/concurrent.c src/concurrent/thread.c src/concurrent/concurrent-mac.c)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    add_library(nxconcurrent SHARED src/concurrent/concurrent.c src/concurrent/concurrent-common.c)
+    add_library(nxconcurrent SHARED src/concurrent/concurrent.c src/concurrent/thread.c src/concurrent/concurrent-common.c)
 endif()
 
 target_link_libraries(nxconcurrent nxio)
+target_link_libraries(nxconcurrent nxmemory)
+target_link_libraries(nxconcurrent ${CMAKE_SOURCE_DIR}/deps/ck-0.5.1/src/libck.so)
 
 link_directories(${CMAKE_SOURCE_DIR}/deps/libressl-2.4.1/crypto/.libs)
 add_library(nxcrypto SHARED src/crypto/crypto.c)
@@ -304,3 +308,47 @@ install(TARGETS nextgen nxio nxmemory nxconcurrent nxcrypto nxutils nxprobe nxne
         ARCHIVE DESTINATION lib/static)
 
 install(CODE "execute_process(COMMAND \"../install.sh\")")
+add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND})
+
+include_directories(deps/Unity-master/src)
+
+add_executable(concurrent-unit-test EXCLUDE_FROM_ALL tests/concurrent/unit/tests.c deps/Unity-master/src/unity.c)
+target_link_libraries(concurrent-unit-test nxconcurrent)
+target_link_libraries(concurrent-unit-test nxmemory)
+target_link_libraries(concurrent-unit-test ${CMAKE_SOURCE_DIR}/deps/ck-0.5.1/src/libck.so)
+
+add_executable(memory-unit-test EXCLUDE_FROM_ALL tests/memory/unit/tests.c deps/Unity-master/src/unity.c)
+target_link_libraries(memory-unit-test nxconcurrent)
+target_link_libraries(memory-unit-test nxmemory)
+target_link_libraries(memory-unit-test ${CMAKE_SOURCE_DIR}/deps/ck-0.5.1/src/libck.so)
+
+add_executable(memory-intergration-test EXCLUDE_FROM_ALL tests/memory/unit/tests.c deps/Unity-master/src/unity.c)
+target_link_libraries(memory-intergration-test nxconcurrent)
+target_link_libraries(memory-intergration-test nxmemory)
+target_link_libraries(memory-intergration-test ${CMAKE_SOURCE_DIR}/deps/ck-0.5.1/src/libck.so)
+
+add_executable(crypto-unit-test EXCLUDE_FROM_ALL tests/crypto/unit/tests.c deps/Unity-master/src/unity.c)
+target_link_libraries(crypto-unit-test nxconcurrent)
+target_link_libraries(crypto-unit-test nxmemory)
+target_link_libraries(crypto-unit-test nxcrypto)
+target_link_libraries(crypto-unit-test crypto)
+target_link_libraries(crypto-unit-test ${CMAKE_SOURCE_DIR}/deps/ck-0.5.1/src/libck.so)
+
+add_executable(utils-unit-test EXCLUDE_FROM_ALL tests/utils/unit/tests.c deps/Unity-master/src/unity.c)
+target_link_libraries(utils-unit-test nxconcurrent)
+target_link_libraries(utils-unit-test nxmemory)
+target_link_libraries(utils-unit-test nxutils)
+target_link_libraries(utils-unit-test nxcrypto)
+target_link_libraries(utils-unit-test crypto)
+target_link_libraries(utils-unit-test ${CMAKE_SOURCE_DIR}/deps/ck-0.5.1/src/libck.so)
+
+add_test(utils-unit-test utils-unit-test)
+add_test(memory-unit-test memory-unit-test)
+add_test(memory-intergration-test memory-intergration-test)
+add_test(crypto-unit-test crypto-unit-test)
+add_test(concurrent-unit-test concurrent-unit-test)
+add_dependencies(check memory-intergration-test)
+add_dependencies(check utils-unit-test)
+add_dependencies(check memory-unit-test)
+add_dependencies(check crypto-unit-test)
+add_dependencies(check concurrent-unit-test)
