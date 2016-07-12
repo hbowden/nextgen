@@ -90,6 +90,10 @@ Run `cmake` and pass the path to the main source directory.
 Finally use `make` to build `nextgen`.
 
     make
+    
+On some distributions of `Linux` such as ubuntu you will have to raise the ulimit on your system because it is set low.
+    
+    ulimit -n 15743
 
 # Install
 
