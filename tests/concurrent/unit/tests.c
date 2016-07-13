@@ -19,21 +19,19 @@
 void test_get_record(void)
 {
 	/* We need an initialized epoch context object
-	  to initialize a thread context object. 
+	  to initialize a thread context object. */
 	epoch_ctx epoch;
 	epoch_init(&epoch);
 	TEST_ASSERT_NOT_NULL(&epoch);
 
-     Initialize a thread context object and make sure it's not NULL.
+    /* Initialize a thread context object and make sure it's not NULL. */
 	struct thread_ctx *thread = NULL;
 	thread = init_thread(&epoch);
 	TEST_ASSERT_NOT_NULL(thread);
 
-	 Make sure the epoch record returned is not NULL.
+	/* Make sure the epoch record returned is not NULL. */
 	epoch_record *record = get_record(thread);
 	TEST_ASSERT_NOT_NULL(record);
-
-	*/
 
 	return;
 }
