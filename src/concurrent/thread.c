@@ -38,8 +38,15 @@ struct thread_ctx *init_thread(epoch_ctx *epoch)
 		return (NULL);
 	}
 
+	thread->record = mem_alloc(sizeof(epoch_record));
+	if(thread->record == NULL)
+	{
+		output(ERROR, "Epoch record allocation failed\n");
+		return (NULL);
+	}
+
     /* Initialize the epoch record. */
-	//epoch_register(epoch, thread->record);
+	epoch_register(epoch, thread->record);
 
 	return (thread);
 }
