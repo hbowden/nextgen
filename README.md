@@ -37,6 +37,36 @@ Finally use `make` or `gmake` to build `nextgen`.
 
     make
 
+# Build-OSX
+
+To build nextgen on `OSX` or `macOS` you will need to install command line tools if they are not already installed on your system. Run the command below in terminal to install the command line tools. Note this command only works for `OSX` 10.9 and later.
+
+    xcode-select --install
+    
+Now you will need to install a few dependencies before building nextgen. The recommended way to get these dependencies is to use homebrew. To install homebrew use.
+
+    /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+    
+Next install cmake and automake using homebrew.
+
+    brew install cmake automake
+    
+Run the setup script to build the nextgen dependencies.
+
+    ./setup.sh
+
+Create a directory called build and change to it.
+
+    mkdir build && cd build
+    
+Run `cmake` and pass the path to the main source directory.
+
+    cmake ..
+    
+Finally use `make` or `gmake` to build `nextgen`.
+
+    make
+
 # Build-Linux
 
 To build nextgen on `Linux` you will first need to install `aclocal-1.15`. If your distributions packgage manager dosen't
@@ -60,6 +90,10 @@ Run `cmake` and pass the path to the main source directory.
 Finally use `make` to build `nextgen`.
 
     make
+    
+On some distributions of `Linux` such as ubuntu you will have to raise the ulimit on your system because it is set low.
+    
+    ulimit -n 15743
 
 # Install
 
