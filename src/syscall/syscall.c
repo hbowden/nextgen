@@ -610,7 +610,7 @@ NX_NO_RETURN static void start_child(uint32_t i)
     start_child_loop();
 }
 
-void create_syscall_children(void)
+void create_syscall_children(struct thread_ctx *thread)
 {
     pid_t pid = 0;
     uint32_t i = 0;
@@ -618,9 +618,27 @@ void create_syscall_children(void)
     /* Walk the child structure array and find the first empty child slot. */
     for(i = 0; i < total_children; i++)
     {
+        /* Get our epoch record so we can make a protected read. */
+        epoch_record *record = get_record(thread);
+        if(record == NULL)
+        {
+            output(ERROR, "Get record failed\n");
+            return;
+        }
+
+        /* Start epoch protected section. */
+        epoch_start(thread);
+
         /* If the child does not have a pid of EMPTY let's create a new one. */
         if(children[i]->pid != EMPTY)
+        {
+            /* End the epoch protected section. */
+            epoch_stop(thread);
             continue;
+        }
+
+        /* End the epoch protected section. */
+        epoch_stop(thread);
 
         /* Fork and create child process. */
         pid = fork();
@@ -856,7 +874,7 @@ void kill_all_children(void)
     return;
 }
 
-void start_main_syscall_loop(void)
+void start_main_syscall_loop(struct thread_ctx *thread)
 {
     output(STD, "Starting fuzzer\n");
 
@@ -870,7 +888,7 @@ void start_main_syscall_loop(void)
         if(atomic_load_uint32(&running_children) < total_children)
         {
             /* Create children process. */
-            create_syscall_children();
+            create_syscall_children(thread);
         }
     }
 

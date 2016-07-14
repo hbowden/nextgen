@@ -18,7 +18,6 @@
 
 #include "ck_queue.h"
 #include "ck_spinlock.h"
-#include "ck_epoch.h"
 #include "ck_pr.h"
 
 #include <unistd.h>
@@ -47,12 +46,6 @@ typedef struct msg_port msg_port_t;
 #endif
 
 typedef ck_spinlock_t nx_spinlock_t;
-
-typedef ck_epoch_t epoch_ctx;
-
-typedef ck_epoch_record_t epoch_record;
-
-typedef ck_epoch_section_t epoch_section;
 
 /**
  *    Function like macro for initializing a spinlock at compile time.
@@ -111,39 +104,6 @@ typedef ck_epoch_section_t epoch_section;
  *    @param val The value to store in the variable var.
  */
 #define atomic_load_ptr(ptr) ck_pr_load_ptr(ptr)
-
-/**
- *    Function like macro for initializing a epoch object.
- *    @param epoch A pointer to the epoch object to initialize.   
- */
-#define epoch_init(epoch) ck_epoch_init(epoch)
-
-/**
- *    Function like macro for registering a threads epoch_record
- *    with the global epoch.
- *    @param epoch A pointer to the epoch object to register the thread with.
- *    @param record A pointer to the record to register.   
- */
-#define epoch_register(epoch, record) ck_epoch_register(epoch, record)
-
-/**
- *    Function like macro for unregistering a threads epoch_record
- *    with the global epoch.
- *    @param record A pointer to the record to unregister.   
- */
-#define epoch_unregister(record) ck_epoch_unregister(record)
-
-/**
- * 
- *
- */
-#define epoch_begin(record, section) ck_epoch_begin(record, section)
-
-/**
- * 
- *
- */
-#define epoch_end(record, section) ck_epoch_end(record, section)
 
 #define NX_LIST_HEAD(name,type) 
 #define NX_LIST_ENTRY(x) CK_LIST_ENTRY(x) list_entry

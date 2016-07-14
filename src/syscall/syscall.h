@@ -24,6 +24,7 @@
 #define SYSCALL_H
 
 #include "concurrent/concurrent.h"
+#include "concurrent/epoch.h"
 
 #include <unistd.h>
 #include <sys/types.h>
@@ -58,7 +59,7 @@ extern int32_t generate_arguments(struct child_ctx *ctx);
 
 extern int32_t test_syscall(struct child_ctx *ctx);
 
-extern void create_syscall_children(void);
+extern void create_syscall_children(struct thread_ctx *thread);
 
 extern void get_return_jump(struct child_ctx *child, jmp_buf *jmp);
 
@@ -79,6 +80,6 @@ extern int32_t setup_syscall_module(int32_t *stop_ptr,
 	                                int32_t run_mode,
 	                                epoch_ctx *e);
 
-extern void start_main_syscall_loop(void);
+extern void start_main_syscall_loop(struct thread_ctx *thread);
 
 #endif
