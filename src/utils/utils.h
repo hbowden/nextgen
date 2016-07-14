@@ -76,5 +76,7 @@ extern int32_t count_files_directory(uint32_t *count, char *dir);
 /* Call set_process_name() to set the name of the process. */
 extern void set_process_name(char *name);
 
+extern void *reallocarray(void *optr, size_t nmemb, size_t size);
+
 /* End of header. */
 #endif
