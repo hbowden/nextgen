@@ -17,6 +17,8 @@
 #include "io/io.h"
 #include "memory/memory.h"
 
+static int32_t section_buf_size = 8;
+
 struct thread_ctx
 {
 	epoch_record *record;
@@ -38,6 +40,14 @@ struct thread_ctx *init_thread(epoch_ctx *epoch)
 		return (NULL);
 	}
 
+    /* Allocate an array of epoch section pointers. */
+	thread->section = mem_alloc(section_buf_size * sizeof(epoch_section *));
+	if(thread->section == NULL)
+	{
+		output(ERROR, "Epoch section allocation failed\n");
+		return (NULL);
+	}
+
 	thread->record = mem_alloc(sizeof(epoch_record));
 	if(thread->record == NULL)
 	{
@@ -47,6 +57,9 @@ struct thread_ctx *init_thread(epoch_ctx *epoch)
 
     /* Initialize the epoch record. */
 	epoch_register(epoch, thread->record);
+
+    /* Set section count to zero. */
+	thread->section_count = 0;
 
 	return (thread);
 }
