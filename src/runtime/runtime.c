@@ -52,17 +52,25 @@ static int32_t start_network_mode_runtime(void) { return (0); }
 
 static int32_t start_syscall_mode_runtime(void)
 {
+    /* Create a thread context object so we can synchronize this
+       thread and other thread's access to shared state. */
+    struct thread_ctx *thread = init_thread(&map->epoch);
+    if(thread == NULL)
+    {
+        output(ERROR, "Thread context initialization failed\n");
+        return (-1);
+    }
+
     /* Start the main loop for the syscall fuzzer. This function should not 
     return except when the user set's ctrl-c or there is an unrecoverable error. */
-    start_main_syscall_loop();
+    start_main_syscall_loop(thread);
 
     /* If were running in smart mode wait for the genetic algorithm(god) to exit. */
    /* if(map->smart_mode)
         wait_on(&map->god_pid, &status); */
 
     /* Display stats for the user. */
-    output(STD, "Sycall test completed: %ld\n",
-           ck_pr_load_32(&map->test_counter));
+    output(STD, "Sycall test completed: %ld\n", atomic_load_uint32(&map->test_counter));
 
     return (0);
 }
