@@ -13,7 +13,7 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include "thread.h"
+#include "epoch.h"
 #include "io/io.h"
 #include "memory/memory.h"
 
@@ -54,4 +54,14 @@ struct thread_ctx *init_thread(epoch_ctx *epoch)
 epoch_record *get_record(struct thread_ctx *thread)
 {
 	return (thread->record);
+}
+
+void epoch_start(struct thread_ctx *thread)
+{
+	return;
+}
+
+void epoch_stop(struct thread_ctx *thread)
+{
+	return;
 }
