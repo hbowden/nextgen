@@ -65,10 +65,6 @@ static int32_t start_syscall_mode_runtime(void)
     return except when the user set's ctrl-c or there is an unrecoverable error. */
     start_main_syscall_loop(thread);
 
-    /* If were running in smart mode wait for the genetic algorithm(god) to exit. */
-   /* if(map->smart_mode)
-        wait_on(&map->god_pid, &status); */
-
     /* Display stats for the user. */
     output(STD, "Sycall test completed: %ld\n", atomic_load_uint32(&map->test_counter));
 
@@ -203,9 +199,6 @@ static int32_t setup_file_mode_runtime(void)
         }
     }
 
-    /* Lets set up the signal handler for the main process. */
-    setup_signal_handler();
-
     return (0);
 }
 
@@ -288,24 +281,7 @@ static int32_t setup_syscall_mode_runtime(void)
         return (-1);
     }
 
-    /* Set up the signal handler for the main process. */
-    setup_signal_handler();
-
     return (0);
-}
-
-static void ctrlc_handler(int sig)
-{
-    (void)sig;
-    shutdown();
-    return;
-}
-
-static void setup_main_signal_handler(void)
-{
-    (void)signal(SIGINT, ctrlc_handler);
-
-    return;
 }
 
 int32_t setup_runtime(struct shared_map *mapping)
@@ -323,8 +299,6 @@ int32_t setup_runtime(struct shared_map *mapping)
         output(ERROR, "Can't set up crypto\n");
         return (-1);
     }
-
-    setup_main_signal_handler();
 
     /* We are done doing common init work now we call the specific init routines. */
     switch((int32_t)mapping->mode)

@@ -112,40 +112,32 @@ int32_t setup_signal_handler(void)
     return (0);
 }
 
-static void child_signal_handler(int sig)
+static void child_signal_handler(int sig, siginfo_t *info, void *context)
 {
-    /* Grab our child's context object. */
-    struct child_ctx *child = get_child();
-    if(child == NULL)
-    {
-        output(ERROR, "Can't get child context\n");
-        return;
-    }
-
-    //epoch_begin(&child->record, NULL);
+    struct child_ctx *child = NULL;
+    child = get_child_ctx_from_pid(info->si_pid);
 
     /* Check what kind of signal got us here. */
     switch(sig)
     {
         /* An alarm we set for a blocking syscall has gone off. */
         case SIGALRM:
-            //child->had_error = NX_NO;
-            //child->ret_value = 0;
-            //child->did_jump = NX_YES;
+            set_had_error(child, NX_NO);
+            set_ret_value(child, 0);
+            set_did_jump(child, NX_YES);
+            set_sig_num(child, sig);
             break;
 
         default:
-            //child->had_error = NX_YES;
-            //child->ret_value = -1;
-            //child->did_jump = NX_YES;
-            //child->sig_num = sig;
+            set_had_error(child, NX_YES);
+            set_ret_value(child, -1);
+            set_did_jump(child, NX_YES);
+            set_sig_num(child, sig);
             break;
     }
 
     jmp_buf jmp;
     get_return_jump(child, &jmp);
-
-    //epoch_end(&child->record, NULL);
 
     /* Jump back to child's main loop. */
     longjmp(jmp, 1);
@@ -165,7 +157,8 @@ int32_t setup_child_signal_handler(void)
     struct sigaction sa;
     
     /* Set the child signal handler. */
-    sa.sa_handler = &child_signal_handler;
+    sa.sa_sigaction = &child_signal_handler;
+    sa.sa_flags |= SA_SIGINFO;
 
     /* Block every signal during the handler */
     sigfillset(&sa.sa_mask);

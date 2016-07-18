@@ -95,12 +95,18 @@ struct child_ctx
     const char padding2[7];
 
     int32_t (*test_syscall)(int32_t, uint64_t **);
-
-    /* God knows why this is so large, will have to investigate. */
-    const char padding3[56];
-
-    epoch_record record;
 };
+
+struct global_state
+{
+    /* The number of children processes currently running. */
+    uint32_t running_children;
+
+    /* Counter for number of syscall test that have been completed. */
+    uint32_t *test_counter;
+};
+
+static struct global_state *state;
 
 /* The total number of children process to run. */
 static uint32_t total_children;
@@ -108,12 +114,6 @@ static uint32_t total_children;
 /* An array of child context structures. These structures track variables
    local to the child process. */
 static struct child_ctx **children;
-
-/* The number of children processes currently running. */
-static uint32_t running_children;
-
-/* Counter for number of syscall test that have been completed. */
-static uint32_t *test_counter;
 
 /* The syscall table. */
 static struct syscall_table *sys_table;
@@ -128,6 +128,26 @@ static int32_t mode;
 static int8_t table_set;
 
 static epoch_ctx *epoch;
+
+void set_had_error(struct child_ctx *child, int32_t val)
+{
+    child->had_error = val;
+}
+
+void set_ret_value(struct child_ctx *child, int32_t val)
+{
+    child->ret_value = val;
+}
+
+void set_sig_num(struct child_ctx *child, int32_t num)
+{
+    child->sig_num = num;
+}
+
+void set_did_jump(struct child_ctx *child, int32_t val)
+{
+    child->did_jump = val;
+}
 
 void get_return_jump(struct child_ctx *child, jmp_buf *jmp)
 {
@@ -225,10 +245,12 @@ static int32_t get_child_index_number(uint32_t *index_num)
     return (-1);
 }
 
-NX_NO_RETURN static void exit_child(void)
+NX_NO_RETURN static void exit_child(struct thread_ctx *thread)
 {
     int32_t rtrn = 0;
     struct child_ctx *child = NULL;
+
+    epoch_start(thread);
 
     /* Get our childs context object. */
     child = get_child();
@@ -237,8 +259,6 @@ NX_NO_RETURN static void exit_child(void)
         output(ERROR, "Can't get child context\n");
         _exit(-1);
     }
-
-    epoch_begin(&child->record, NULL);
 
     /* Clean up kernel probes. */
     rtrn = cleanup_kernel_probes(child->probe_handle);
@@ -251,13 +271,17 @@ NX_NO_RETURN static void exit_child(void)
     /* Set the PID as empty. */
     cas_loop_int32(&child->pid, EMPTY);
 
-    epoch_end(&child->record, NULL);
+    /* We may be in a nested epoch section, so clean all current
+    epoch sections before exiting. */
+    stop_all_sections(thread);
+
+    /* Clean the thread context object. */
+    clean_thread(&thread);
 
     /* Decrement the running child counter. */
-    atomic_dec_uint32(&running_children);
+    atomic_dec_uint32(&state->running_children);
 
-    /* Unregister the thread with the epoch. */
-    epoch_unregister(&child->record);
+    output(STD, "Exiting child\n");
 
     /* Exit and cleanup child. */
     _exit(0);
@@ -341,20 +365,20 @@ static int32_t free_old_arguments(struct child_ctx *ctx)
     return (0);
 }
 
-NX_NO_RETURN static void start_smart_syscall_child(void)
+NX_NO_RETURN static void start_smart_syscall_child(struct thread_ctx *thread)
 {
     int32_t rtrn = 0;
     struct child_ctx *child = NULL;
+
+    epoch_start(thread);
 
     /* Grab our child context object. */
     child = get_child();
     if(child == NULL)
     {
         output(ERROR, "Can't get child context\n");
-        exit_child();
+        exit_child(thread);
     }
-
-    epoch_begin(&child->record, NULL);
 
     /* Set the return jump so that we can try fuzzing again on a signal. This 
     is required on some operating systems because they can't clean up old 
@@ -364,10 +388,10 @@ NX_NO_RETURN static void start_smart_syscall_child(void)
     if(rtrn < 0)
     {
         output(ERROR, "Can't set return jump\n");
-        exit_child();
+        exit_child(thread);
     }
 
-    epoch_end(&child->record, NULL);
+    epoch_stop(thread);
 
     /* Loop until ctrl-c is pressed by the user. */
     while(atomic_load_int32(stop) != TRUE)
@@ -375,7 +399,7 @@ NX_NO_RETURN static void start_smart_syscall_child(void)
         
     }
 
-    exit_child();
+    exit_child(thread);
 }
 
 struct child_ctx *get_child_ctx_from_pid(pid_t pid)
@@ -408,7 +432,7 @@ struct child_ctx *get_child(void)
     return (atomic_load_ptr(&children[offset]));
 }
 
-static int32_t generate_test_case(struct child_ctx *child)
+static int32_t generate_test_case(struct child_ctx *child, struct thread_ctx *thread)
 {
     int32_t rtrn = 0;
     struct syscall_entry *entry = NULL;
@@ -418,15 +442,15 @@ static int32_t generate_test_case(struct child_ctx *child)
     if(rtrn < 0)
     {
         output(ERROR, "Can't pick syscall to test\n");
-        exit_child();
+        exit_child(thread);
     }
- 
+
     /* Generate arguments for the syscall selected. */
     rtrn = generate_arguments(child);
     if(rtrn < 0)
     {
         output(ERROR, "Can't generate arguments\n");
-        exit_child();
+        exit_child(thread);
     }
 
     /* Mutate the arguments randomly. */
@@ -434,7 +458,7 @@ static int32_t generate_test_case(struct child_ctx *child)
     if(rtrn < 0)
     {
         output(ERROR, "Can't mutate arguments\n");
-        exit_child();
+        exit_child(thread);
     }
 
     /* Grab the syscall entry for the syscall we picked. */
@@ -442,7 +466,7 @@ static int32_t generate_test_case(struct child_ctx *child)
     if(entry == NULL)
     {
         output(ERROR, "Can't get syscall entry\n");
-        exit_child();
+        exit_child(thread);
     }
 
     /* Log the arguments before we use them, in case we cause a
@@ -452,7 +476,7 @@ static int32_t generate_test_case(struct child_ctx *child)
     if(rtrn < 0)
     {
         output(ERROR, "Can't log arguments\n");
-        exit_child();
+        exit_child(thread);
     }
 
     return (0);
@@ -461,65 +485,69 @@ static int32_t generate_test_case(struct child_ctx *child)
 /**
  * This is the fuzzing loop for syscall fuzzing in dumb mode.
  */
-NX_NO_RETURN static void start_syscall_child(void)
+NX_NO_RETURN static void start_syscall_child(struct thread_ctx *thread)
 {
     int32_t rtrn = 0;
     struct child_ctx *child = NULL;
+
+    epoch_start(thread);
 
     /* Get our child context. */
     child = get_child();
     if(child == NULL)
     {
         output(ERROR, "Can't get child context\n");
-        exit_child();
+        exit_child(thread);
     }
-
-    epoch_begin(&child->record, NULL);
 
     /* Set the return jump so that we can try fuzzing again on a signal. */
     rtrn = setjmp(child->return_jump);
     if(rtrn < 0)
     {
         output(ERROR, "Can't set return jump\n");
-        exit_child();
+        exit_child(thread);
     }
-
-    output(STD, "num1: %u\n", atomic_load_uint32(&running_children));
 
     /* Check to see if we jumped back from the signal handler. */
     if(child->did_jump == NX_YES)
     {
+        epoch_start(thread);
+
         /* Log the results of the last fuzz test. */
         rtrn = log_results(child->had_error, child->ret_value, strsignal(child->sig_num));
         if(rtrn < 0)
         {
             output(ERROR, "Can't log test results\n");
-            exit_child();
+            exit_child(thread);
         }
 
-        /* Clean up our old mess. */
+        /* Clean up our old mess.
         rtrn = free_old_arguments(child);
         if(rtrn < 0)
         {
             output(ERROR, "Can't cleanup old arguments\n");
-            exit_child();
-        }
+            exit_child(thread);
+        } */
+
+        epoch_stop(thread);
     }
+
+    epoch_stop(thread);
 
     /* Check if we should stop or continue running. */
     while(atomic_load_int32(stop) != TRUE)
     {
-        output(STD, "num: %u\n", atomic_load_uint32(&running_children));
+        epoch_start(thread);
 
         /* Generate mutated syscall arguments for a randomly chosen syscall. */
-        rtrn = generate_test_case(child);
+        rtrn = generate_test_case(child, thread);
         if(rtrn < 0)
         {
             output(ERROR, "Syscall call failed\n");
-            exit_child();
+            exit_child(thread);
         }
 
-        epoch_end(&child->record, NULL);
+        epoch_stop(thread);
 
         /* Run the syscall we selected with the arguments we generated and mutated. This call usually
         crashes and causes us to jumb back to the setjmp call above. */
@@ -527,14 +555,14 @@ NX_NO_RETURN static void start_syscall_child(void)
         if(rtrn < 0)
         {
             output(ERROR, "Syscall call failed\n");
-            exit_child();
+            exit_child(thread);
         }
 
         rtrn = log_results(child->had_error, child->ret_value, strsignal(child->sig_num));
         if(rtrn < 0)
         {
             output(ERROR, "Can't log test results\n");
-            exit_child();
+            exit_child(thread);
         }
 
         /* If we didn't crash, cleanup are mess. If we don't do this the generate
@@ -543,30 +571,32 @@ NX_NO_RETURN static void start_syscall_child(void)
     }
 
     /* We should not get here, but if we do, exit so we can be restarted. */
-    exit_child();
+    exit_child(thread);
 }
 
-static int32_t init_syscall_child(uint32_t i)
+static int32_t init_syscall_child(uint32_t i, struct thread_ctx *thread)
 {
     int32_t rtrn = 0;
-
-    /* Set the child pid. */
-    cas_loop_int32(&children[i]->pid, getpid());
 
     /* Set up the child signal handlers. */
     setup_child_signal_handler();
 
-    /* If were using a software PRNG we need to seed the PRNG. */
-    if(using_hardware_prng() == FALSE)
+    /* Get our epoch record so we can make a protected read. */
+    epoch_record *record = get_record(thread);
+    if(record == NULL)
     {
-        /* We got to seed the prng so that the child process trys different syscalls. */
-        rtrn = seed_prng();
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't init syscall\n");
-            return (-1);
-        }
+        output(ERROR, "Get record failed\n");
+        _exit(-1);
     }
+
+    if(epoch_start(thread) == -1)
+    {
+        output(ERROR, "Can't start epoch protected section\n");
+        _exit(-1);
+    }
+
+    /* Set the child pid. */
+    cas_loop_int32(&children[i]->pid, getpid());
 
     /* Check if we are in smart mode. */
     if(mode == TRUE)
@@ -580,34 +610,60 @@ static int32_t init_syscall_child(uint32_t i)
         }
     }
 
-    /* Register the child process's main thread with the epoch
-       object in the global shared mapping. */
-    epoch_register(epoch, &children[i]->record);
+    epoch_stop(thread);
+
+    /* If were using a software PRNG we need to seed the PRNG. */
+    if(using_hardware_prng() == FALSE)
+    {
+        /* We got to seed the prng so that the child process trys different syscalls. */
+        rtrn = seed_prng();
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't init syscall\n");
+            return (-1);
+        }
+    }
 
     /* Increment the running child counter. */
-    atomic_add_uint32(&running_children, 1);
+    atomic_add_uint32(&state->running_children, 1);
 
     return (0);
 }
 
-NX_NO_RETURN static void start_child_loop(void)
+NX_NO_RETURN static void start_child_loop(struct thread_ctx *thread)
 {
     /* If were in dumb mode start the dumb syscall loop. */
     if(mode != TRUE)
     {
-        start_syscall_child();
+        start_syscall_child(thread);
     }
 
-    start_smart_syscall_child();
+    start_smart_syscall_child(thread);
 }
 
 NX_NO_RETURN static void start_child(uint32_t i)
 {
+    struct thread_ctx *thread = NULL;
+
+    thread = init_thread(epoch);
+    if(thread == NULL)
+    {
+        output(ERROR, "Thread initialization failed\n");
+       _exit(-1);
+    }
+
+    epoch_record *record = get_record(thread);
+    if(record == NULL)
+    {
+        output(ERROR, "Can't get epoch record\n");
+        _exit(-1);
+    }
+
     /* Initialize the new syscall child. */
-    init_syscall_child(i);
+    init_syscall_child(i, thread);
 
     /* Start the newly created syscall child's main loop. */
-    start_child_loop();
+    start_child_loop(thread);
 }
 
 void create_syscall_children(struct thread_ctx *thread)
@@ -627,10 +683,13 @@ void create_syscall_children(struct thread_ctx *thread)
         }
 
         /* Start epoch protected section. */
-        epoch_start(thread);
+        if(epoch_start(thread) == -1)
+        {
+            output(ERROR, "Can't start protected section\n");
+            return;
+        }
 
-        /* If the child does not have a pid of EMPTY let's create a new one. */
-        if(children[i]->pid != EMPTY)
+        if(atomic_load_int32(&children[i]->pid) != EMPTY)
         {
             /* End the epoch protected section. */
             epoch_stop(thread);
@@ -680,59 +739,29 @@ static struct syscall_table *build_syscall_table(void)
         return (NULL);
     }
 
-    /* Set the number_of_syscalls. */
-    table->total_syscalls = syscall_table->total_syscalls;
+    /* Move the system call table into shared memory. */ 
+    memmove(table, syscall_table, sizeof(struct syscall_table));
 
-    /* Our loop incrementers. */
-    uint32_t i, ii;
+    uint32_t i, counter;
 
-    /* Loop for each entry syscall and build a table from the on disk format. */
     for(i = 0; i < table->total_syscalls; i++)
     {
-        /* Check if the syscall is OFF, this is usually for syscalls in development. */
-        if(syscall_table->sys_entry[i]->status == OFF)
+        struct syscall_entry *entry = table->sys_entry[i];
+        uint32_t total_args = entry->total_args;
+        set_test_syscall(entry, entry->id);
+        entry->status = ON;
+
+        for(counter = 0; counter < total_args; counter++)
         {
-            table->total_syscalls--;
-            continue;
-        }
+            int32_t type = entry->arg_type_array[counter];
 
-        /* Create and intialize the const value for a syscall entry. */
-        struct syscall_entry entry = {
-            .total_args = syscall_table->sys_entry[i]->total_args,
-            .syscall_name = syscall_table->sys_entry[i]->syscall_name
-        };
-
-        /* Loop for each arg and set the arg array's. */
-        for(ii = 0; ii < entry.total_args; ii++)
-        {
-            /* Set the get argument function pointers. */
-            entry.get_arg_array[ii] = syscall_table->sys_entry[i]->get_arg_array[ii];
-
-            /* Set argument type context structs. */
-            entry.arg_context_array[ii] = get_arg_context((enum arg_type)syscall_table->sys_entry[i]->arg_type_array[ii]);
-            if(entry.arg_context_array[ii] == NULL)
+            entry->arg_context_array[counter] = get_arg_context((enum arg_type)type);
+            if(entry->arg_context_array[counter] == NULL)
             {
-                output(ERROR, "Can't get arg context\n");
-                cleanup_syscall_table(&table);
+                output(ERROR, "Can't get argument context\n");
                 return (NULL);
             }
         }
-
-        entry.status = ON;
-
-        set_test_syscall(&entry, syscall_table->sys_entry[i]->id);
-
-        /* Set the newly created entry in the index. */
-        memmove(&table->sys_entry[i], &entry, sizeof(struct syscall_entry));
-
-    } /* End of loop. */
-
-    /* Check if we have a empty syscall table. */
-    if(i == 0)
-    {
-        output(ERROR, "Empty syscall table\n");
-        cleanup_syscall_table(&table);
-        return (NULL);
     }
 
     return (table);
@@ -787,12 +816,18 @@ int32_t generate_arguments(struct child_ctx *ctx)
         /* Set the current argument number. */
         ctx->current_arg = i;
 
+        struct syscall_entry *entry = get_entry(ctx->syscall_number);
+        if(entry == NULL)
+        {
+            output(ERROR, "Can't get entry\n");
+            return (-1);
+        }
+
         /* Generate the argument. */
-        rtrn = sys_table->sys_entry[ctx->syscall_number]->get_arg_array[i](&ctx->arg_value_array[i], ctx);
+        rtrn = entry->get_arg_array[i](&ctx->arg_value_array[i], ctx);
         if(rtrn < 0)
         {
-            output(ERROR, "Can't generate arguments for: %s\n", 
-                   sys_table->sys_entry[ctx->syscall_number]->syscall_name);
+            output(ERROR, "Can't generate arguments for: %s\n", entry->syscall_name);
             return (-1);
         }
 
@@ -830,7 +865,7 @@ int32_t test_syscall(struct child_ctx *ctx)
 
     /* Do the add before the syscall test because we usually crash on the syscall test
     and we don't wan't to do this in a signal handler. */
-    atomic_add_uint32(test_counter, 1);
+    atomic_add_uint32(state->test_counter, 1);
 
     /* Set the time of the syscall test. */
     (void)gettimeofday(&ctx->time_of_syscall, NULL);
@@ -839,9 +874,6 @@ int32_t test_syscall(struct child_ctx *ctx)
      running test_syscall(). test_syscall() may crash so this allows us
      to free the syscall entry before and avoid a memory leak. */
     ctx->test_syscall = entry->test_syscall;
-
-    /* Free entry. */
-    mem_free((void **)&entry);
 
     /* Call the syscall with the args generated. */
     ctx->ret_value = ctx->test_syscall(ctx->syscall_symbol, ctx->arg_value_array);
@@ -885,7 +917,7 @@ void start_main_syscall_loop(struct thread_ctx *thread)
     while(atomic_load_int32(stop) == FALSE)
     {
         /* Check if we have the right number of children processes running, if not create a new ones until we do. */
-        if(atomic_load_uint32(&running_children) < total_children)
+        if(atomic_load_uint32(&state->running_children) < total_children)
         {
             /* Create children process. */
             create_syscall_children(thread);
@@ -984,9 +1016,6 @@ int32_t setup_syscall_module(int32_t *stop_ptr,
     uint32_t i = 0;
     int32_t rtrn = 0;
 
-    /* Set running children to zero. */
-    atomic_store_uint32(&running_children, 0);
-
     /* Grab the core count of the machine we are on and set the number
     of syscall children to the core count. */
     rtrn = get_core_count(&total_children);
@@ -1004,8 +1033,18 @@ int32_t setup_syscall_module(int32_t *stop_ptr,
         return (-1);
     }
 
+    state = mem_alloc_shared(sizeof(struct global_state));
+    if(state == NULL)
+    {
+        output(ERROR, "Global state allocation failed\n");
+        return (-1);
+    }
+
+     /* Set running children to zero. */
+    atomic_store_uint32(&state->running_children, 0);
+
     /* Create the child process structures. */
-    children = mem_alloc(total_children * sizeof(struct child_ctx *));
+    children = mem_alloc_shared(total_children * sizeof(struct child_ctx *));
     if(children == NULL)
     {
         output(ERROR, "Can't create children index.\n");
@@ -1033,7 +1072,7 @@ int32_t setup_syscall_module(int32_t *stop_ptr,
     stop = stop_ptr;
     mode = run_mode;
     epoch = e;
-    test_counter = counter;
+    state->test_counter = counter;
 
     /* Now set the table set flag. */
     table_set = TRUE;

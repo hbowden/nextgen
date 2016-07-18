@@ -59,6 +59,10 @@ typedef ck_epoch_section_t epoch_section;
 extern struct thread_ctx *init_thread(epoch_ctx *epoch);
 extern epoch_record *get_record(struct thread_ctx *thread);
 
-extern void epoch_start(struct thread_ctx *thread);
+extern int32_t epoch_start(struct thread_ctx *thread);
 extern void epoch_stop(struct thread_ctx *thread);
+
+extern void stop_all_sections(struct thread_ctx *thread);
+
+extern void clean_thread(struct thread_ctx **thread);
 

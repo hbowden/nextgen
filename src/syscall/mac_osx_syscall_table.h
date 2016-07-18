@@ -22,7 +22,6 @@
 #include "syscall_table.h"
 
 struct syscall_table mac_osx_syscall_table = {
-    
     .total_syscalls = 21,
     .sys_entry[0] = &entry_read,
     .sys_entry[1] = &entry_write,

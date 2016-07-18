@@ -65,6 +65,14 @@ extern void get_return_jump(struct child_ctx *child, jmp_buf *jmp);
 
 extern void set_child_pid(struct child_ctx *child, int32_t pid);
 
+extern void set_had_error(struct child_ctx *child, int32_t val);
+
+extern void set_ret_value(struct child_ctx *child, int32_t val);
+
+extern void set_sig_num(struct child_ctx *child, int32_t num);
+
+extern void set_did_jump(struct child_ctx *child, int32_t val);
+
 extern void set_arg_size(struct child_ctx *child, uint64_t size);
 
 extern int32_t get_arg_size(struct child_ctx *child, uint32_t arg_num, uint64_t *size);
