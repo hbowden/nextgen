@@ -65,6 +65,9 @@ static int32_t start_syscall_mode_runtime(void)
     return except when the user set's ctrl-c or there is an unrecoverable error. */
     start_main_syscall_loop(thread);
 
+    /* Clean up our mess. */
+    clean_thread(thread);
+
     /* Display stats for the user. */
     output(STD, "Sycall test completed: %ld\n", atomic_load_uint32(&map->test_counter));
 
