@@ -1,6 +1,8 @@
 cmake_minimum_required (VERSION 2.6)
 project (Nextgen C)
 enable_testing()
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/deps/sanitizers-cmake/cmake" ${CMAKE_MODULE_PATH})
+find_package(Sanitizers)
 if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     add_definitions(-DFREEBSD)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -21,7 +23,6 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   add_definitions("-Weverything -std=c99")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   # using GCC
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage")
   add_definitions("-Wextra -std=gnu99")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
   # using Intel C++
@@ -29,7 +30,7 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   # using Visual Studio C++
 endif()
 
-add_definitions("-Wall -fstack-protector-all -fno-strict-aliasing -Werror -Wno-unknown-warning-option -Wno-pedantic -Wno-deprecated-declarations -Wno-used-but-marked-unused -Wno-padded")
+add_definitions("-Wall -g -fstack-protector-all -fno-strict-aliasing -Werror -Wno-unknown-warning-option -Wno-pedantic -Wno-deprecated-declarations -Wno-used-but-marked-unused -Wno-padded")
 
 set_source_files_properties(src/io/io.c PROPERTIES COMPILE_FLAGS -Wno-format-nonliteral)
 
@@ -74,24 +75,6 @@ add_library(nxmemory SHARED src/memory/memory.c)
 target_link_libraries(nxmemory nxio)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
-    add_library(nxconcurrent SHARED src/concurrent/concurrent.c src/concurrent/epoch.c src/concurrent/concurrent-freebsd.c)
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    add_library(nxconcurrent SHARED src/concurrent/concurrent.c src/concurrent/epoch.c src/concurrent/concurrent-mac.c)
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    add_library(nxconcurrent SHARED src/concurrent/concurrent.c src/concurrent/epoch.c src/concurrent/concurrent-common.c)
-endif()
-
-target_link_libraries(nxconcurrent nxio)
-target_link_libraries(nxconcurrent nxmemory)
-target_link_libraries(nxconcurrent ${CMAKE_SOURCE_DIR}/deps/ck-0.5.1/src/libck.so)
-
-link_directories(${CMAKE_SOURCE_DIR}/deps/libressl-2.4.1/crypto/.libs)
-add_library(nxcrypto SHARED src/crypto/crypto.c)
-target_link_libraries(nxcrypto crypto)
-target_link_libraries(nxcrypto nxio)
-target_link_libraries(nxcrypto nxmemory)
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
    add_library(nxutils SHARED src/utils/utils.c src/utils/reallocarray.c)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     FIND_LIBRARY(CARBON Carbon)
@@ -106,6 +89,25 @@ endif()
 target_link_libraries(nxutils nxcrypto)
 target_link_libraries(nxutils nxio)
 target_link_libraries(nxutils nxmemory)
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
+    add_library(nxconcurrent SHARED src/concurrent/concurrent.c src/concurrent/epoch.c src/concurrent/concurrent-freebsd.c)
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    add_library(nxconcurrent SHARED src/concurrent/concurrent.c src/concurrent/epoch.c src/concurrent/concurrent-mac.c)
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    add_library(nxconcurrent SHARED src/concurrent/concurrent.c src/concurrent/epoch.c src/concurrent/concurrent-common.c)
+endif()
+
+target_link_libraries(nxconcurrent nxio)
+target_link_libraries(nxconcurrent nxmemory)
+target_link_libraries(nxconcurrent nxutils)
+target_link_libraries(nxconcurrent ${CMAKE_SOURCE_DIR}/deps/ck-0.5.1/src/libck.so)
+
+link_directories(${CMAKE_SOURCE_DIR}/deps/libressl-2.4.1/crypto/.libs)
+add_library(nxcrypto SHARED src/crypto/crypto.c)
+target_link_libraries(nxcrypto crypto)
+target_link_libraries(nxcrypto nxio)
+target_link_libraries(nxcrypto nxmemory)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     include_directories(SYSTEM /usr/src/cddl/compat/opensolaris/include)
@@ -291,6 +293,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     target_link_libraries(nextgen util)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     add_executable(nextgen src/main.m)
+    add_sanitizers(nextgen)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     add_executable(nextgen src/main.c)
     target_link_libraries(nextgen pthread)
@@ -308,7 +311,7 @@ install(TARGETS nextgen nxio nxmemory nxconcurrent nxcrypto nxutils nxprobe nxne
         ARCHIVE DESTINATION lib/static)
 
 install(CODE "execute_process(COMMAND \"../install.sh\")")
-add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND})
+add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --verbose)
 
 include_directories(deps/Unity-master/src)
 
