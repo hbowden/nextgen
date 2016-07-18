@@ -90,7 +90,7 @@ int32_t epoch_start(struct thread_ctx *thread)
 	{
 		thread->section = reallocarray(thread->section, 
 			                           thread->buf_size * 2, 
-			                           sizeof(epoch_section));
+			                           sizeof(epoch_section *));
 		if(thread->section == NULL)
 		{
 			output(ERROR, "Can't reallocate epoch section array\n");
