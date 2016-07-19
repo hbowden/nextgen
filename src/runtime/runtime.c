@@ -66,7 +66,7 @@ static int32_t start_syscall_mode_runtime(void)
     start_main_syscall_loop(thread);
 
     /* Clean up our mess. */
-    clean_thread(thread);
+    clean_thread(&thread);
 
     /* Display stats for the user. */
     output(STD, "Sycall test completed: %ld\n", atomic_load_uint32(&map->test_counter));
