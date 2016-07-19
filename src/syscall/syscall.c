@@ -521,13 +521,13 @@ NX_NO_RETURN static void start_syscall_child(struct thread_ctx *thread)
             exit_child(thread);
         }
 
-        /* Clean up our old mess.
+        /* Clean up our old mess. */
         rtrn = free_old_arguments(child);
         if(rtrn < 0)
         {
             output(ERROR, "Can't cleanup old arguments\n");
             exit_child(thread);
-        } */
+        }
 
         epoch_stop(thread);
     }
