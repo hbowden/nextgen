@@ -131,27 +131,27 @@ static epoch_ctx *epoch;
 
 void set_had_error(struct child_ctx *child, int32_t val)
 {
-    child->had_error = val;
+    atomic_store_int32(&child->had_error, val);
 }
 
 void set_ret_value(struct child_ctx *child, int32_t val)
 {
-    child->ret_value = val;
+    atomic_store_int32(&child->ret_value, val);
 }
 
 void set_sig_num(struct child_ctx *child, int32_t num)
 {
-    child->sig_num = num;
+    atomic_store_int32(&child->sig_num, num);
 }
 
 void set_did_jump(struct child_ctx *child, int32_t val)
 {
-    child->did_jump = val;
+    atomic_store_int32(&child->did_jump, val);
 }
 
-void get_return_jump(struct child_ctx *child, jmp_buf *jmp)
+void jump(struct child_ctx *child)
 {
-    memcpy((jmp), child->return_jump, sizeof(jmp_buf));
+    longjmp(child->return_jump, 0);
 
     return;
 }

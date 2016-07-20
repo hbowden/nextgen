@@ -61,7 +61,7 @@ extern int32_t test_syscall(struct child_ctx *ctx);
 
 extern void create_syscall_children(struct thread_ctx *thread);
 
-extern void get_return_jump(struct child_ctx *child, jmp_buf *jmp);
+extern void jump(struct child_ctx *child);
 
 extern void set_child_pid(struct child_ctx *child, int32_t pid);
 
