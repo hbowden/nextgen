@@ -64,6 +64,7 @@ static int32_t setup_ctrlc_handler(void)
 {
     int32_t rtrn = 0;
     struct sigaction sa;
+    memset(&sa, 0, sizeof(struct sigaction));
     
     /* Set the SIGINT or ctrlc signal handling function. */
     sa.sa_handler = &ctrlc_handler;
@@ -94,6 +95,7 @@ int32_t setup_signal_handler(void)
     }
 
     struct sigaction sa;
+    memset(&sa, 0, sizeof(struct sigaction));
     
     /* Set the child exit handler. */
     sa.sa_handler = &child_exit_handler;
@@ -155,6 +157,7 @@ int32_t setup_child_signal_handler(void)
     }
 
     struct sigaction sa;
+    memset(&sa, 0, sizeof(struct sigaction));
     
     /* Set the child signal handler. */
     sa.sa_sigaction = &child_signal_handler;
