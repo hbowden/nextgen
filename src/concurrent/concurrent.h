@@ -99,6 +99,14 @@ typedef ck_spinlock_t nx_spinlock_t;
 #define atomic_store_uint32(var, val) ck_pr_store_32(var, val)
 
 /**
+ *    Function like macro for atomically storing the value val to the the variable
+ *    var.
+ *    @param var A pointer to int32 variable to atomically load/read from.
+ *    @param val The value to store in the variable var.
+ */
+#define atomic_store_int32(var, val) ck_pr_store_int(var, val)
+
+/**
  *    Function like macro for atomically loading a pointer.
  *    @param var A pointer to uint32 variable to atomically load/read from.
  *    @param val The value to store in the variable var.
