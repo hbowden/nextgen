@@ -45,6 +45,7 @@ struct thread_ctx *init_thread(epoch_ctx *epoch)
 	if(thread->record == NULL)
 	{
 		output(ERROR, "Epoch record allocation failed\n");
+		mem_free((void **)&thread);
 		return (NULL);
 	}
 
@@ -55,6 +56,8 @@ struct thread_ctx *init_thread(epoch_ctx *epoch)
 	if(thread->section == NULL)
 	{
 		output(ERROR, "Epoch section array allocation failed\n");
+		mem_free((void **)&thread);
+		mem_free((void **)&thread->record);
 		return (NULL);
 	}
 
