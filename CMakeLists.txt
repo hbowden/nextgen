@@ -1,8 +1,17 @@
 cmake_minimum_required (VERSION 2.6)
+
+# Project name and programming language.
 project (Nextgen C)
+
+# Turn on testing.
 enable_testing()
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/deps/sanitizers-cmake/cmake" ${CMAKE_MODULE_PATH})
+
+# Set the cmake module path to deps/cmake_modules.
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/deps/cmake_modules" ${CMAKE_MODULE_PATH})
+
+# Look for the compiler sanitizers cmake module.
 find_package(Sanitizers)
+
 if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     add_definitions(-DFREEBSD)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -20,7 +29,7 @@ set(CMAKE_BUILD_TYPE Release)
 # Check the compiler and set compiler specific options.
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   # using Clang
-  add_definitions("-Weverything -std=c99")
+  add_definitions("-Weverything -std=c11")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   # using GCC
   add_definitions("-Wextra -std=gnu99")
