@@ -138,11 +138,8 @@ static void child_signal_handler(int sig, siginfo_t *info, void *context)
             break;
     }
 
-    jmp_buf jmp;
-    get_return_jump(child, &jmp);
-
     /* Jump back to child's main loop. */
-    longjmp(jmp, 1);
+    jump(child);
 }
 
 int32_t setup_child_signal_handler(void)
