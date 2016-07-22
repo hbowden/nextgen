@@ -38,8 +38,8 @@ struct syscall_entry
     const int32_t syscall_symbol;
 
     int32_t status;
-    const bool need_alarm;
-    const bool requires_root;
+    const int32_t need_alarm;
+    const int32_t requires_root;
 
     const char padding[2];
     int32_t arg_type_array[7];
