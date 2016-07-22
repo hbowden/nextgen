@@ -90,7 +90,7 @@ struct child_ctx
 
     struct probe_ctx *probe_handle;
 
-    bool need_alarm;
+    int32_t need_alarm;
 
     const char padding2[7];
 
@@ -787,7 +787,10 @@ int32_t pick_syscall(struct child_ctx *child)
     /* Use rand_range to pick a number between 0 and the number_of_syscalls. The minus one
     is a hack, get_syscall_table() returns an array - 1 the size of number of syscalls 
     and should be fixed. */
-    int32_t rtrn = rand_range(sys_table->total_syscalls - 1, &child->syscall_number);
+
+    uint32_t num = 0;
+
+    int32_t rtrn = rand_range(sys_table->total_syscalls - 1, &num);
     if(rtrn < 0)
     {
         output(ERROR, "Can't generate random number\n");
@@ -795,11 +798,12 @@ int32_t pick_syscall(struct child_ctx *child)
     }
 
     /* Set syscall value's. */
-    child->syscall_symbol = sys_table->sys_entry[child->syscall_number]->syscall_symbol;
-    child->syscall_name = sys_table->sys_entry[child->syscall_number]->syscall_name;
-    child->need_alarm = sys_table->sys_entry[child->syscall_number]->need_alarm;
-    child->total_args = sys_table->sys_entry[child->syscall_number]->total_args;
-    child->had_error = NX_NO;
+    child->syscall_name = sys_table->sys_entry[num]->syscall_name;
+    atomic_store_uint32(&child->syscall_number, num);
+    atomic_store_uint32(&child->total_args, sys_table->sys_entry[num]->total_args);
+    atomic_store_int32(&child->syscall_symbol, sys_table->sys_entry[num]->syscall_symbol);
+    atomic_store_int32(&child->need_alarm, sys_table->sys_entry[num]->need_alarm);
+    atomic_store_int32(&child->had_error, NX_NO);
 
     return (0);
 }
