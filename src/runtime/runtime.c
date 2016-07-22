@@ -38,7 +38,6 @@
 #include "plugins/plugin.h"
 #include "probe/probe.h"
 #include "resource/resource.h"
-#include "syscall/signals.h"
 #include "syscall/syscall.h"
 #include "utils/utils.h"
 
