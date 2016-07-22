@@ -113,6 +113,13 @@ typedef ck_spinlock_t nx_spinlock_t;
  */
 #define atomic_load_ptr(ptr) ck_pr_load_ptr(ptr)
 
+/**
+ *    Function like macro for atomically loading a pointer.
+ *    @param var A pointer to uint32 variable to atomically load/read from.
+ *    @param val The value to store in the variable var.
+ */
+#define atomic_store_ptr(var, ptr) ck_pr_store_ptr(var, ptr)
+
 #define NX_LIST_HEAD(name,type) 
 #define NX_LIST_ENTRY(x) CK_LIST_ENTRY(x) list_entry
 #define NX_SLIST_ENTRY(x) CK_SLIST_ENTRY(x) list_entry
