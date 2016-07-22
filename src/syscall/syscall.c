@@ -914,8 +914,15 @@ void start_main_syscall_loop(struct thread_ctx *thread)
 {
     output(STD, "Starting fuzzer\n");
 
+    int32_t rtrn = 0;
+
     /* Set up signal handler. */
-    setup_signal_handler();
+    rtrn = setup_signal_handler();
+    if(rtrn < 0)
+    {
+        output(ERROR, "Signal handler setup failed\n");
+        return;
+    }
 
     /* Check if we should stop or continue running. */
     while(atomic_load_int32(stop) == FALSE)
