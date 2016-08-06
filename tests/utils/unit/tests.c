@@ -53,7 +53,7 @@ static void test_delete_directory(void)
     rtrn = asprintf(&dir, "/tmp/%s\n", name);
     TEST_ASSERT(rtrn > -1);
 
-    /* Let's make a directory in /temp for testing delete_directory(). */
+    /* Let's make a directory in /tmp for testing delete_directory(). */
     rtrn = mkdir(dir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     TEST_ASSERT(rtrn == 0);
 
