@@ -46,8 +46,6 @@ struct organism_ctx
 
 struct species_ctx
 {
-    const char *species_name;
-
     uint32_t species_population;
 
     const char padding[4];
@@ -59,7 +57,7 @@ struct species_ctx
 
 struct world_population
 {
-    uint32_t number_of_species;
+    uint32_t total_species;
 
     const char padding[4];
 
@@ -84,7 +82,7 @@ static int32_t init_world(void)
         return (-1);
     }
 
-    /* Grab a copy of the syscall table. */
+    /* Grab a reference of the syscall table. */
     struct syscall_table *sys_table = get_syscall_table();
     if(sys_table == NULL)
     {
@@ -93,13 +91,13 @@ static int32_t init_world(void)
     }
 
     /* Set the number of species to the number of syscalls. */
-    world->number_of_species = sys_table->total_syscalls;
+    world->total_species = sys_table->total_syscalls;
 
     /* Set current generation to zero because we haven't created one yet. */
     world->current_generation = 0;
 
     /* Allocate index of species context pointers. */
-    world->species = mem_alloc((world->number_of_species) * sizeof(struct species_ctx *));
+    world->species = mem_alloc((world->total_species) * sizeof(struct species_ctx *));
     if(world->species == NULL)
     {
         output(ERROR, "Can't create species index\n");
@@ -109,12 +107,9 @@ static int32_t init_world(void)
 
     uint32_t i;
 
-    for(i = 0; i < world->number_of_species - 1; i++)
+    for(i = 0; i < world->total_species - 1; i++)
     {
         struct species_ctx ctx = {
-
-            /* Set species name to syscall name. */
-            .species_name = sys_table->sys_entry[i]->syscall_name,
 
             /* Set population to zero. */
             .species_population = 0,
@@ -133,7 +128,6 @@ static int32_t init_world(void)
         if(specie == NULL)
         {
             output(ERROR, "Can't allocate species_ctx\n");
-            cleanup_syscall_table(&sys_table);
             return (-1);
         }
 
@@ -149,7 +143,6 @@ static int32_t init_world(void)
             if(organism == NULL)
             {
                 output(ERROR, "Can't allocate organism context\n");
-                cleanup_syscall_table(&sys_table);
                 return (-1);
             }
 
@@ -158,7 +151,6 @@ static int32_t init_world(void)
             {
                 output(ERROR, "Can't allocate chromosome context\n");
                 mem_free((void **)&organism);
-                cleanup_syscall_table(&sys_table);
                 return (-1);
             }
 
