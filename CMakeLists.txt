@@ -368,7 +368,6 @@ add_sanitizers(memory-intergration-test)
 add_sanitizers(crypto-unit-test)
 add_sanitizers(concurrent-unit-test)
 add_sanitizers(resource-integration-test)
-add_sanitizers(genetic-integration-test)
 
 add_test(resource-integration-test resource-integration-test)
 add_test(utils-unit-test utils-unit-test)
