@@ -895,7 +895,12 @@ static int32_t create_child(struct thread_ctx *thread)
             atomic_add_uint32(&state->running_children, 1);
 
             /* Let the parent process know it's safe to continue. */
-            (void)write(fd[1], "!", 1);
+            size_t ret = write(fd[1], "!", 1);
+            if(ret < 1)
+            {
+                output(ERROR, "Write: %s\n", strerror(errno));
+                return (-1);
+            }
 
             /* Start child process's loop. */
             start_child(i);
@@ -905,7 +910,12 @@ static int32_t create_child(struct thread_ctx *thread)
             char *buf[1] = {0};
 
             /* Wait for a byte from the child saying it's safe to return. */
-            (void)read(fd[0], buf, 1);
+            size_t ret = read(fd[0], buf, 1);
+            if(ret < 1)
+            {
+                output(ERROR, "Read: %s\n", strerror(errno));
+                return (-1);
+            }
 
             /* Clean up pipe descriptors. */
             (void)close(fd[0]);
