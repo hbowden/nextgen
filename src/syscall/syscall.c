@@ -901,6 +901,10 @@ static int32_t create_child(struct thread_ctx *thread)
             /* Wait for a byte from the child saying it's safe to return. */
             read(fd[0], buf, 1);
 
+            /* Clean up pipe descriptors. */
+            close(fd[0]);
+            close(fd[1]);
+
             return (0);
         }
         else
