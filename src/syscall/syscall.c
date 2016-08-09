@@ -574,62 +574,6 @@ NX_NO_RETURN static void start_syscall_child(struct thread_ctx *thread)
     exit_child(thread);
 }
 
-static int32_t init_syscall_child(uint32_t i, struct thread_ctx *thread)
-{
-    int32_t rtrn = 0;
-
-    /* Set up the child signal handlers. */
-    setup_child_signal_handler();
-
-    /* Get our epoch record so we can make a protected read. */
-    epoch_record *record = get_record(thread);
-    if(record == NULL)
-    {
-        output(ERROR, "Get record failed\n");
-        _exit(-1);
-    }
-
-    if(epoch_start(thread) == -1)
-    {
-        output(ERROR, "Can't start epoch protected section\n");
-        _exit(-1);
-    }
-
-    /* Set the child pid. */
-    cas_loop_int32(&children[i]->pid, getpid());
-
-    /* Check if we are in smart mode. */
-    if(mode == TRUE)
-    {
-        /* Inject probes into the kernel. */
-        rtrn = inject_kernel_probes(children[i]->probe_handle);
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't init child probes\n");
-            return (-1);
-        }
-    }
-
-    epoch_stop(thread);
-
-    /* If were using a software PRNG we need to seed the PRNG. */
-    if(using_hardware_prng() == FALSE)
-    {
-        /* We got to seed the prng so that the child process trys different syscalls. */
-        rtrn = seed_prng();
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't init syscall\n");
-            return (-1);
-        }
-    }
-
-    /* Increment the running child counter. */
-    atomic_add_uint32(&state->running_children, 1);
-
-    return (0);
-}
-
 NX_NO_RETURN static void start_child_loop(struct thread_ctx *thread)
 {
     /* If were in dumb mode start the dumb syscall loop. */
@@ -831,6 +775,62 @@ void kill_all_children(void)
     }
 
     return;
+}
+
+static int32_t init_syscall_child(uint32_t i, struct thread_ctx *thread)
+{
+    int32_t rtrn = 0;
+
+    /* Set up the child signal handlers. */
+    setup_child_signal_handler();
+
+    /* Get our epoch record so we can make a protected read. */
+    epoch_record *record = get_record(thread);
+    if(record == NULL)
+    {
+        output(ERROR, "Get record failed\n");
+        _exit(-1);
+    }
+
+    if(epoch_start(thread) == -1)
+    {
+        output(ERROR, "Can't start epoch protected section\n");
+        _exit(-1);
+    }
+
+    /* Set the child pid. */
+    cas_loop_int32(&children[i]->pid, getpid());
+
+    /* Check if we are in smart mode. */
+    if(mode == TRUE)
+    {
+        /* Inject probes into the kernel. */
+        rtrn = inject_kernel_probes(children[i]->probe_handle);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't init child probes\n");
+            return (-1);
+        }
+    }
+
+    epoch_stop(thread);
+
+    /* If were using a software PRNG we need to seed the PRNG. */
+    if(using_hardware_prng() == FALSE)
+    {
+        /* We got to seed the prng so that the child process trys different syscalls. */
+        rtrn = seed_prng();
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't init syscall\n");
+            return (-1);
+        }
+    }
+
+    /* Increment the running child counter. */
+    atomic_add_uint32(&state->running_children, 1);
+
+    return (0);
 }
 
 NX_NO_RETURN static void start_child(uint32_t i)
