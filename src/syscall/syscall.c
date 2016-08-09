@@ -781,7 +781,7 @@ static int32_t init_syscall_child(uint32_t i, struct thread_ctx *thread)
 {
     int32_t rtrn = 0;
 
-    /* Set up the child signal handlers. */
+    /* Set up the child signal handler. */
     setup_child_signal_handler();
 
     /* Get our epoch record so we can make a protected read. */
