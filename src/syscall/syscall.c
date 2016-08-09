@@ -666,58 +666,6 @@ NX_NO_RETURN static void start_child(uint32_t i)
     start_child_loop(thread);
 }
 
-void create_syscall_children(struct thread_ctx *thread)
-{
-    pid_t pid = 0;
-    uint32_t i = 0;
-
-    /* Walk the child structure array and find the first empty child slot. */
-    for(i = 0; i < total_children; i++)
-    {
-        /* Get our epoch record so we can make a protected read. */
-        epoch_record *record = get_record(thread);
-        if(record == NULL)
-        {
-            output(ERROR, "Get record failed\n");
-            return;
-        }
-
-        /* Start epoch protected section. */
-        if(epoch_start(thread) == -1)
-        {
-            output(ERROR, "Can't start protected section\n");
-            return;
-        }
-
-        if(atomic_load_int32(&children[i]->pid) != EMPTY)
-        {
-            /* End the epoch protected section. */
-            epoch_stop(thread);
-            continue;
-        }
-
-        /* End the epoch protected section. */
-        epoch_stop(thread);
-
-        /* Fork and create child process. */
-        pid = fork();
-        if(pid == 0)
-        {
-            /* Start child process's loop. */
-            start_child(i);
-        }
-        else if(pid > 0)
-        {
-            return;
-        }
-        else
-        {
-            output(ERROR, "Can't create child proc: %s\n", strerror(errno));
-            return;
-        }
-    }
-}
-
 static struct syscall_table *build_syscall_table(void)
 {
     struct syscall_table *table = NULL;
@@ -910,6 +858,60 @@ void kill_all_children(void)
     return;
 }
 
+static int32_t create_syscall_children(struct thread_ctx *thread)
+{
+    pid_t pid = 0;
+    uint32_t i = 0;
+
+    /* Walk the child structure array and find the first empty child slot. */
+    for(i = 0; i < total_children; i++)
+    {
+        /* Get our epoch record so we can make a protected read. */
+        epoch_record *record = get_record(thread);
+        if(record == NULL)
+        {
+            output(ERROR, "Get record failed\n");
+            return (-1);
+        }
+
+        /* Start epoch protected section. */
+        if(epoch_start(thread) == -1)
+        {
+            output(ERROR, "Can't start protected section\n");
+            return (-1);
+        }
+
+        if(atomic_load_int32(&children[i]->pid) != EMPTY)
+        {
+            /* End the epoch protected section. */
+            epoch_stop(thread);
+            continue;
+        }
+
+        /* End the epoch protected section. */
+        epoch_stop(thread);
+
+        /* Fork and create child process. */
+        pid = fork();
+        if(pid == 0)
+        {
+            /* Start child process's loop. */
+            start_child(i);
+        }
+        else if(pid > 0)
+        {
+            return (0);
+        }
+        else
+        {
+            output(ERROR, "Can't create child proc: %s\n", strerror(errno));
+            return (-1);
+        }
+    }
+
+    return (0);
+}
+
 void start_main_syscall_loop(struct thread_ctx *thread)
 {
     output(STD, "Starting fuzzer\n");
@@ -931,7 +933,12 @@ void start_main_syscall_loop(struct thread_ctx *thread)
         if(atomic_load_uint32(&state->running_children) < total_children)
         {
             /* Create children process. */
-            create_syscall_children(thread);
+            rtrn = create_syscall_children(thread);
+            if(rtrn < 0)
+            {
+                output(ERROR, "Can't create syscall child\n");
+                return;
+            }
         }
     }
 
