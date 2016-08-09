@@ -858,7 +858,7 @@ void kill_all_children(void)
     return;
 }
 
-static int32_t create_syscall_children(struct thread_ctx *thread)
+static int32_t create_child(struct thread_ctx *thread)
 {
     pid_t pid = 0;
     uint32_t i = 0;
@@ -933,10 +933,10 @@ void start_main_syscall_loop(struct thread_ctx *thread)
         if(atomic_load_uint32(&state->running_children) < total_children)
         {
             /* Create children process. */
-            rtrn = create_syscall_children(thread);
+            rtrn = create_child(thread);
             if(rtrn < 0)
             {
-                output(ERROR, "Can't create syscall child\n");
+                output(ERROR, "Can't create child\n");
                 return;
             }
         }
