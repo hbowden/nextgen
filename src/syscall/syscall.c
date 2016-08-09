@@ -248,8 +248,10 @@ static int32_t get_child_index_number(uint32_t *index_num)
 NX_NO_RETURN static void exit_child(struct thread_ctx *thread)
 {
     int32_t rtrn = 0;
+    int32_t ret_val = 0;
     struct child_ctx *child = NULL;
 
+    /* Start epoch protected section. */
     epoch_start(thread);
 
     /* Get our childs context object. */
@@ -257,7 +259,8 @@ NX_NO_RETURN static void exit_child(struct thread_ctx *thread)
     if(child == NULL)
     {
         output(ERROR, "Can't get child context\n");
-        _exit(-1);
+        ret_val = -1;
+        goto exit;
     }
 
     /* Clean up kernel probes. */
@@ -265,12 +268,11 @@ NX_NO_RETURN static void exit_child(struct thread_ctx *thread)
     if(rtrn < 0)
     {
         output(ERROR, "Can't clean up kernel probes");
-        _exit(-1);
+        ret_val = -1;
+        goto exit;
     }
 
-    /* Set the PID as empty. */
-    cas_loop_int32(&child->pid, EMPTY);
-
+exit:
     /* We may be in a nested epoch section, so clean all current
     epoch sections before exiting. */
     stop_all_sections(thread);
@@ -278,13 +280,14 @@ NX_NO_RETURN static void exit_child(struct thread_ctx *thread)
     /* Clean the thread context object. */
     clean_thread(&thread);
 
+    /* Set the PID as empty. */
+    cas_loop_int32(&child->pid, EMPTY);
+
     /* Decrement the running child counter. */
     atomic_dec_uint32(&state->running_children);
 
-    output(STD, "Exiting child\n");
-
     /* Exit and cleanup child. */
-    _exit(0);
+    _exit(ret_val);
 }
 
 static int32_t free_old_arguments(struct child_ctx *ctx)
