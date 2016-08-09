@@ -704,8 +704,9 @@ NX_NO_RETURN static void start_syscall_child(struct thread_ctx *thread)
     }
 
     /* Check to see if we jumped back from the signal handler. */
-    if(child->did_jump == NX_YES)
+    if(atomic_load_int32(&child->did_jump) == NX_YES)
     {
+        /* Start an epoch protected section. */
         epoch_start(thread);
 
         /* Log the results of the last fuzz test. */
@@ -899,7 +900,7 @@ static int32_t create_child(struct thread_ctx *thread)
             if(ret < 1)
             {
                 output(ERROR, "Write: %s\n", strerror(errno));
-                exit_child();
+                exit_child(thread);
             }
 
             /* Start child process's loop. */
