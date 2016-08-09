@@ -821,9 +821,6 @@ static int32_t init_syscall_child(uint32_t i, struct thread_ctx *thread)
         }
     }
 
-    /* Increment the running child counter. */
-    atomic_add_uint32(&state->running_children, 1);
-
     return (0);
 }
 
@@ -883,6 +880,9 @@ static int32_t create_child(struct thread_ctx *thread)
         pid = fork();
         if(pid == 0)
         {
+            /* Increment the running child counter. */
+            atomic_add_uint32(&state->running_children, 1);
+
             /* Start child process's loop. */
             start_child(i);
         }
