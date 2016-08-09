@@ -780,7 +780,7 @@ void kill_all_children(void)
     return;
 }
 
-static int32_t init_syscall_child(uint32_t i, struct thread_ctx *thread)
+static void init_syscall_child(uint32_t i, struct thread_ctx *thread)
 {
     int32_t rtrn = 0;
 
@@ -791,7 +791,7 @@ static int32_t init_syscall_child(uint32_t i, struct thread_ctx *thread)
     if(epoch_start(thread) == -1)
     {
         output(ERROR, "Can't start epoch protected section\n");
-        _exit(-1);
+        exit_child(thread);
     }
 
     /* Check if we are in smart mode. */
@@ -802,7 +802,7 @@ static int32_t init_syscall_child(uint32_t i, struct thread_ctx *thread)
         if(rtrn < 0)
         {
             output(ERROR, "Can't init child probes\n");
-            return (-1);
+            exit_child(thread);
         }
     }
 
@@ -817,11 +817,11 @@ static int32_t init_syscall_child(uint32_t i, struct thread_ctx *thread)
         if(rtrn < 0)
         {
             output(ERROR, "Can't init syscall\n");
-            return (-1);
+            exit_child(thread);
         }
     }
 
-    return (0);
+    return;
 }
 
 NX_NO_RETURN static void start_child(uint32_t i)
@@ -833,9 +833,7 @@ NX_NO_RETURN static void start_child(uint32_t i)
     if(thread == NULL)
     {
         output(ERROR, "Thread initialization failed\n");
-        /* Don't use exit_child() because exit_child() cleans
-        up data structures that don't exist yet. */
-       _exit(-1);
+        exit_child(thread);
     }
 
     /* Initialize the new child. */
