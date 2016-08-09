@@ -791,9 +791,6 @@ static int32_t init_syscall_child(uint32_t i, struct thread_ctx *thread)
         _exit(-1);
     }
 
-    /* Set the child pid. */
-    cas_loop_int32(&children[i]->pid, getpid());
-
     /* Check if we are in smart mode. */
     if(mode == TRUE)
     {
@@ -870,18 +867,40 @@ static int32_t create_child(struct thread_ctx *thread)
         /* End the epoch protected section. */
         epoch_stop(thread);
 
+        /* Create a pipe so we can avoid a race on child creation.
+        We don't wan't the parent to try creating a child on a child
+        it's already created, but hasn't set it's pid to something not
+        EMPTY. Use the pipe to message the parent when it's safe to continue. */
+        int32_t fd[2];
+        int32_t rtrn = pipe(fd);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Message pipe creation failed\n");
+            return (-1);
+        }
+
         /* Fork and create child process. */
         pid = fork();
         if(pid == 0)
         {
-            /* Increment the running child counter. */
+            /* Set the child pid and increment the running child counter. Do this 
+            right away so we can let the parent continue as soon as possible. */
+            cas_loop_int32(&children[i]->pid, getpid());
             atomic_add_uint32(&state->running_children, 1);
+
+            /* Let the parent process know it's safe to continue. */
+            write(fd[1], "!", 1);
 
             /* Start child process's loop. */
             start_child(i);
         }
         else if(pid > 0)
         {
+            char *buf[1] = {0};
+
+            /* Wait for a byte from the child saying it's safe to return. */
+            read(fd[0], buf, 1);
+
             return (0);
         }
         else
