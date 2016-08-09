@@ -577,17 +577,6 @@ NX_NO_RETURN static void start_syscall_child(struct thread_ctx *thread)
     exit_child(thread);
 }
 
-NX_NO_RETURN static void start_child_loop(struct thread_ctx *thread)
-{
-    /* If were in dumb mode start the dumb syscall loop. */
-    if(mode != TRUE)
-    {
-        start_syscall_child(thread);
-    }
-
-    start_smart_syscall_child(thread);
-}
-
 static struct syscall_table *build_syscall_table(void)
 {
     struct syscall_table *table = NULL;
@@ -778,6 +767,18 @@ void kill_all_children(void)
     }
 
     return;
+}
+
+NX_NO_RETURN static void start_child_loop(struct thread_ctx *thread)
+{
+    /* If were in dumb mode start the dumb syscall loop. */
+    if(mode != TRUE)
+    {
+        start_syscall_child(thread);
+        exit_child(thread);
+    }
+
+    start_smart_syscall_child(thread);
 }
 
 static void init_syscall_child(uint32_t i, struct thread_ctx *thread)
