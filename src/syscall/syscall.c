@@ -883,7 +883,9 @@ static int32_t create_child(struct thread_ctx *thread)
             return (-1);
         }
 
-        /* Fork and create child process. */
+        /* Fork and create child process. Don't use the variable 
+        thread inside the child because it belongs to the parent. 
+        The child has to create it's own thread ctx. */
         pid = fork();
         if(pid == 0)
         {
