@@ -899,7 +899,7 @@ static int32_t create_child(struct thread_ctx *thread)
             if(ret < 1)
             {
                 output(ERROR, "Write: %s\n", strerror(errno));
-                return (-1);
+                exit_child();
             }
 
             /* Start child process's loop. */
