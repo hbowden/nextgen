@@ -851,14 +851,6 @@ static int32_t create_child(struct thread_ctx *thread)
     /* Walk the child structure array and find the first empty child slot. */
     for(i = 0; i < total_children; i++)
     {
-        /* Get our epoch record so we can make a protected read. */
-        epoch_record *record = get_record(thread);
-        if(record == NULL)
-        {
-            output(ERROR, "Get record failed\n");
-            return (-1);
-        }
-
         /* Start epoch protected section. */
         if(epoch_start(thread) == -1)
         {
@@ -866,6 +858,8 @@ static int32_t create_child(struct thread_ctx *thread)
             return (-1);
         }
 
+        /* Check if the child pid is not set to empty, skip 
+          and continue if the pid is valid, ie not EMPTY. */
         if(atomic_load_int32(&children[i]->pid) != EMPTY)
         {
             /* End the epoch protected section. */
