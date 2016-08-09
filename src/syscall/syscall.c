@@ -641,31 +641,6 @@ NX_NO_RETURN static void start_child_loop(struct thread_ctx *thread)
     start_smart_syscall_child(thread);
 }
 
-NX_NO_RETURN static void start_child(uint32_t i)
-{
-    struct thread_ctx *thread = NULL;
-
-    thread = init_thread(epoch);
-    if(thread == NULL)
-    {
-        output(ERROR, "Thread initialization failed\n");
-       _exit(-1);
-    }
-
-    epoch_record *record = get_record(thread);
-    if(record == NULL)
-    {
-        output(ERROR, "Can't get epoch record\n");
-        _exit(-1);
-    }
-
-    /* Initialize the new syscall child. */
-    init_syscall_child(i, thread);
-
-    /* Start the newly created syscall child's main loop. */
-    start_child_loop(thread);
-}
-
 static struct syscall_table *build_syscall_table(void)
 {
     struct syscall_table *table = NULL;
@@ -856,6 +831,33 @@ void kill_all_children(void)
     }
 
     return;
+}
+
+NX_NO_RETURN static void start_child(uint32_t i)
+{
+    struct thread_ctx *thread = NULL;
+
+    /* Register the child's main thread with the global epoch. */
+    thread = init_thread(epoch);
+    if(thread == NULL)
+    {
+        output(ERROR, "Thread initialization failed\n");
+       _exit(-1);
+    }
+
+    /* Get our thread local epoch data or record. */
+    epoch_record *record = get_record(thread);
+    if(record == NULL)
+    {
+        output(ERROR, "Can't get epoch record\n");
+        _exit(-1);
+    }
+
+    /* Initialize the new child. */
+    init_syscall_child(i, thread);
+
+    /* Start the newly created syscall child's main loop. */
+    start_child_loop(thread);
 }
 
 static int32_t create_child(struct thread_ctx *thread)
