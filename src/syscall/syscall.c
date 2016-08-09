@@ -845,14 +845,6 @@ NX_NO_RETURN static void start_child(uint32_t i)
        _exit(-1);
     }
 
-    /* Get our thread local epoch data or record. */
-    epoch_record *record = get_record(thread);
-    if(record == NULL)
-    {
-        output(ERROR, "Can't get epoch record\n");
-        _exit(-1);
-    }
-
     /* Initialize the new child. */
     init_syscall_child(i, thread);
 
