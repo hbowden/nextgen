@@ -830,6 +830,8 @@ NX_NO_RETURN static void start_child(uint32_t i)
     if(thread == NULL)
     {
         output(ERROR, "Thread initialization failed\n");
+        /* Don't use exit_child() because exit_child() cleans
+        up data structures that don't exist yet. */
        _exit(-1);
     }
 
