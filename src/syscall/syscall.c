@@ -784,14 +784,7 @@ static int32_t init_syscall_child(uint32_t i, struct thread_ctx *thread)
     /* Set up the child signal handler. */
     setup_child_signal_handler();
 
-    /* Get our epoch record so we can make a protected read. */
-    epoch_record *record = get_record(thread);
-    if(record == NULL)
-    {
-        output(ERROR, "Get record failed\n");
-        _exit(-1);
-    }
-
+    /* Start an epoch protected section. */
     if(epoch_start(thread) == -1)
     {
         output(ERROR, "Can't start epoch protected section\n");
@@ -813,6 +806,7 @@ static int32_t init_syscall_child(uint32_t i, struct thread_ctx *thread)
         }
     }
 
+    /* End epoch protected section. */
     epoch_stop(thread);
 
     /* If were using a software PRNG we need to seed the PRNG. */
