@@ -24,7 +24,14 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     add_definitions(-DLINUX)
     add_definitions(-DCOMMON)
 endif() 
+
+INCLUDE(CodeCoverage)
+
 set(CMAKE_BUILD_TYPE Release)
+SET(CMAKE_CXX_FLAGS "-g -O0 -fprofile-arcs -ftest-coverage")
+SET(CMAKE_C_FLAGS "-g -O0 -fprofile-arcs -ftest-coverage")
+
+SETUP_TARGET_FOR_COVERAGE(coverage ctest coverage)
 
 # Check the compiler and set compiler specific options.
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
@@ -369,15 +376,14 @@ add_sanitizers(crypto-unit-test)
 add_sanitizers(concurrent-unit-test)
 add_sanitizers(resource-integration-test)
 
-add_test(resource-integration-test resource-integration-test)
 add_test(utils-unit-test utils-unit-test)
 add_test(memory-unit-test memory-unit-test)
 add_test(memory-intergration-test memory-intergration-test)
 add_test(crypto-unit-test crypto-unit-test)
 add_test(concurrent-unit-test concurrent-unit-test)
-add_dependencies(check resource-integration-test)
+
 add_dependencies(check memory-intergration-test)
-add_dependencies(check utils-unit-test)
+
 add_dependencies(check memory-unit-test)
 add_dependencies(check crypto-unit-test)
 add_dependencies(check concurrent-unit-test)
