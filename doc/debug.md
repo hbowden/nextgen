@@ -1,6 +1,9 @@
 
 # Debug
 
+## Code Coverage
+
+To generate code coverage for `nextgen` use `make coverage`. If none of the test fail a code coverage report will be placed in the newly created directory called coverage. 
 
 ## Sanitizers
 
