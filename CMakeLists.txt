@@ -96,7 +96,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     add_library(nxlog SHARED src/log/log.c src/log/log-freebsd.c)
     target_link_libraries(nxlog ${CMAKE_SOURCE_DIR}/deps/sqlite/sqlite3.so)
 
-    AUX_SOURCE_DIRECTORY(src/syscall/freebsd ENTRY_SOURCES) 
+    AUX_SOURCE_DIRECTORY(src/syscall/freebsd ENTRY_SOURCES)
     add_library(nxsyscall SHARED src/syscall/syscall.c src/syscall/syscall-freebsd.c src/syscall/signals.c src/syscall/set_test.c src/syscall/generate.c src/syscall/arg_types.c ${ENTRY_SOURCES})
     include_directories(src/syscall/freebsd)
 
@@ -157,7 +157,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     add_library(nxlog SHARED src/log/log.c src/log/log-mac.c)
     target_link_libraries(nxlog ${CMAKE_SOURCE_DIR}/deps/sqlite/libsqlite3.0.dylib)
 
-    AUX_SOURCE_DIRECTORY(src/syscall/mac ENTRY_SOURCES) 
+    AUX_SOURCE_DIRECTORY(src/syscall/mac ENTRY_SOURCES)
     add_library(nxsyscall SHARED src/syscall/syscall.c src/syscall/syscall-mac.c src/syscall/signals.c src/syscall/set_test.c src/syscall/generate.c src/syscall/arg_types.c ${ENTRY_SOURCES})
     include_directories(src/syscall/mac)
 
@@ -178,6 +178,8 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     target_link_libraries(nxdisas ${CMAKE_SOURCE_DIR}/deps/capstone-3.0.4/libcapstone.dylib)
 
     add_library(nxruntime SHARED src/runtime/runtime.c src/runtime/nextgen.c)
+
+    add_library(nxemu SHARED src/emu/emu.c)
 
     add_executable(nextgen src/main.m)
     add_sanitizers(nextgen)
@@ -201,7 +203,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     add_library(nxlog SHARED src/log/log.c src/log/log-freebsd.c)
     target_link_libraries(nxlog sqlite3)
 
-    AUX_SOURCE_DIRECTORY(src/syscall/linux ENTRY_SOURCES) 
+    AUX_SOURCE_DIRECTORY(src/syscall/linux ENTRY_SOURCES)
     add_library(nxsyscall SHARED src/syscall/syscall.c src/syscall/syscall-linux.c src/syscall/signals.c src/syscall/set_test.c src/syscall/generate.c src/syscall/arg_types.c ${ENTRY_SOURCES})
     include_directories(src/syscall/linux)
 
