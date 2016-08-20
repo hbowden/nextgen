@@ -18,4 +18,27 @@
 
 struct emulator_ctx;
 
+/**
+ * Allocates and returns a new emulator context object. This object
+ * represents one instance of a emulator. The emulator object
+ * should be freed with free_emulator(), when you are done with
+ * it.
+ */
+extern struct emulator_ctx *init_emulator(void);
+
+/**
+ * Frees resources tied to the emulator object.
+ *
+ * @param emu A pointer to a emulator object pointer to be freed.
+ */
+extern void free_emulator(struct emulator_ctx **);
+
+
+/**
+ * Loads the file at the path passed into memory.
+ *
+ *
+ */
+extern int32_t load_file(struct emulator_ctx *, const char *);
+
 #endif
