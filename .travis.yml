@@ -11,9 +11,9 @@ matrix:
       compiler: gcc
 
 before_install:
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update && brew outdated automake || brew upgrade automake; fi
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ./get-aclocal.sh && pip install --user cpp-coveralls; fi
-script: 
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update && brew outdated automake || brew upgrade automake && brew outdated lcov || brew upgrade lcov fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ./get-aclocal.sh && pip install --user cpp-coveralls && sudo apt-get install lcov; fi
+script:
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then chmod u+x setup.sh && ./setup.sh && mkdir build && cd build && cmake ../ && make; fi
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then chmod u+x setup.sh && ./setup.sh && mkdir build && cd build && cmake ../ && make; fi
 after_success:
