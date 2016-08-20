@@ -253,7 +253,14 @@ static void test_get_extension(void)
 
 int main(void)
 {
+    /* We have to setup the crypto module before using
+     some utils module api/functions. */
     setup_crypto_module(CRYPTO);
+
+    /* Delete the contents of temp before testing.
+    If we don't clear the contents some test may fail. */
+    delete_dir_contents("/tmp");
+
 	test_check_root();
     test_get_file_size();
     test_get_core_count();
