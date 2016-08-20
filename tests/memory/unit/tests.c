@@ -66,6 +66,31 @@ static void test_mem_alloc(void)
     return;
 }
 
+static void test_mem_calloc(void)
+{
+    char *buf = NULL;
+
+    /* Make sure mem_calloc() fails when passed a zero size. */
+    buf = mem_calloc(0);
+    TEST_ASSERT_NULL(buf);
+
+    buf = mem_calloc(10);
+    TEST_ASSERT_NOT_NULL(buf);
+
+    uint32_t i;
+
+    /* Make sure the memory was set to zero. */
+    for(i = 0; i < 10; i++)
+    {
+        TEST_ASSERT(buf[i] == 0);
+    }
+
+    mem_free((void **)&buf);
+    TEST_ASSERT_NULL(buf);
+
+    return;
+}
+
 static void test_mem_alloc_shared(void)
 {
     char *buf = NULL;
@@ -121,6 +146,7 @@ int main(void)
     test_mem_free_shared();
     test_mem_alloc();
     test_mem_free();
+    test_mem_calloc();
 
 	return (0);
 }
