@@ -464,7 +464,7 @@ static void test_init_resource_ctx(void)
 
 static void test_cached(void)
 {
-	test_setup_resource_module(CACHE);
+	  test_setup_resource_module(CACHE);
     test_get_file();
     test_get_fd();
     test_get_dirpath();
@@ -496,7 +496,7 @@ static void test_no_cached(void)
 
 int main(void)
 {
-	int32_t rtrn = 0;
+    int32_t rtrn = 0;
 
     /* We have to init the crypto module first before using the resource module. */
     rtrn = setup_crypto_module(CRYPTO);
@@ -510,5 +510,5 @@ int main(void)
     test_cached();
     test_no_cached();
 
-	_exit(0);
+	  _exit(0);
 }
