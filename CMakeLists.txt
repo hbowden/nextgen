@@ -344,6 +344,9 @@ target_link_libraries(resource-integration-test nxcrypto)
 target_link_libraries(resource-integration-test crypto)
 
 add_executable(emu-unit-test EXCLUDE_FROM_ALL tests/emu/unit/tests.c deps/Unity-master/src/unity.c)
+target_link_libraries(emu-unit-test nxmemory)
+target_link_libraries(emu-unit-test nxio)
+target_link_libraries(emu-unit-test nxconcurrent)
 
 add_sanitizers(emu-unit-test)
 add_sanitizers(utils-unit-test)
