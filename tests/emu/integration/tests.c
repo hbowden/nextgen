@@ -33,6 +33,10 @@ static void test_load_file(void)
    rtrn = load_file(emu, NULL);
    TEST_ASSERT(rtrn == -1);
 
+   /* Load_file() should fail if the given file path is not a valid executable. */
+   rtrn = load_file(emu, "../tests/emu/helper_files/test.txt");
+   TEST_ASSERT(rtrn == -1);
+
    /* Load_file() should return zero when given a valid executable. */
    rtrn = load_file(emu, "../tests/emu/helper_files/test");
    TEST_ASSERT(rtrn == 0);
