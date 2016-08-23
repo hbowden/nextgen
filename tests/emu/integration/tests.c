@@ -18,36 +18,37 @@
 /* Include the C source file so we can test opaque structs. */
 #include "../../../src/emu/emu.c"
 
-static void test_free_emulator(void)
+static void test_load_file(void)
 {
-    struct emulator_ctx *emu = NULL;
+   struct emulator_ctx *emu = NULL;
 
-    emu = init_emulator();
-    TEST_ASSERT_NOT_NULL(emu);
+   emu = init_emulator();
+   TEST_ASSERT_NOT_NULL(emu);
 
-    free_emulator(&emu);
+   /* Load_file() should fail when given a bad file path. */
+   int32_t rtrn = load_file(emu, "bogus/file/path");
+   TEST_ASSERT(rtrn == -1);
 
-    /* Should be set to NULL after calling free_emulator(). */
-    TEST_ASSERT_NULL(emu);
+   /* Load_file() should fail when given a NULL path. */
+   rtrn = load_file(emu, NULL);
+   TEST_ASSERT(rtrn == -1);
 
-    return;
-}
+   /* Load_file() should return zero when given a valid executable. */
+   rtrn = load_file(emu, "../tests/emu/helper_files/test");
+   TEST_ASSERT(rtrn == 0);
+   TEST_ASSERT_NOT_NULL(emu->program_data);
 
-static void test_init_emulator(void)
-{
-    struct emulator_ctx *emu = NULL;
+   free_emulator(&emu);
 
-    emu = init_emulator();
-    TEST_ASSERT_NOT_NULL(emu);
-    TEST_ASSERT_NOT_NULL(&emu->epoch);
+   /* Should be set to NULL after calling free_emulator(). */
+   TEST_ASSERT_NULL(emu);
 
-    return;
+   return;
 }
 
 int main(void)
 {
-    test_init_emulator();
-    test_free_emulator();
+    test_load_file();
 
     return (0);
 }
