@@ -26,10 +26,23 @@
 #include <pthread.h>
 #include <sys/stat.h>
 
+/* An opaque object the holds an executables header information. */
+struct program_header;
+
+/* */
+struct program_ctx
+{
+    /* Contains information extracted from
+    the executable's header. */
+    struct prog_header *header;
+
+};
+
 struct emulator_ctx
 {
-    /* The program to be emulated's memory buffer. */
-    void *program_data;
+    /* This object tracks information related to the program being
+       emulated. This object is replaced on each call to load_file(). */
+    struct program_ctx *prog;
 
     /* Epoch object, tracks emulator thread states,
     to implement a epoch based memory reclamation scheme. */
@@ -59,6 +72,51 @@ void free_emulator(struct emulator_ctx **emu)
     return;
 }
 
+static uint32_t read_magic(FILE *fp)
+{
+    uint32_t magic;
+    fseek(fp, 0, SEEK_SET);
+    fread(&magic, sizeof(uint32_t), 1, fp);
+    return (magic);
+}
+
+static struct program_ctx *init_program_ctx(void)
+{
+    struct program_ctx *prog = NULL;
+
+    prog = mem_calloc(sizeof(struct program_ctx));
+    if(prog == NULL)
+    {
+        output(ERROR, "Program context allocation failed\n");
+        return (NULL);
+    }
+
+    prog->header = mem_calloc(sizeof(struct prog_header));
+    if(prog->header == NULL)
+    {
+        output(ERROR, "Program header allocation failed\n");
+        return (NULL);
+    }
+
+    return (0);
+}
+
+static int32_t parse_macho_fp(struct emulator_ctx *emu, FILE *fp)
+{
+    /* Create a new program context object. */
+    emu->prog = init_program_ctx();
+    if(emu->prog == NULL)
+    {
+        output(ERROR, "Program context initialization failed");
+        return (-1);
+    }
+
+    /* Grab the magic number so we can determine  */
+    emu->prog->header->magic = read_magic(fp);
+
+    return (0);
+}
+
 int32_t load_file(struct emulator_ctx *emu, const char *path)
 {
     if(path == NULL)
@@ -67,13 +125,15 @@ int32_t load_file(struct emulator_ctx *emu, const char *path)
         return (-1);
     }
 
-    int32_t fd auto_close = 0;
-    fd = open(path, O_RDONLY);
-    if(fd < 0)
+    FILE *fp auto_close_fp = NULL;
+    fp = fopen(path, "r");
+    if(fp == NULL)
     {
         output(ERROR, "Failed to open file: %s\n", strerror(errno));
         return (-1);
     }
+
+    parse_macho_fp(fp);
 
     struct stat stbuf;
     if(fstat(fd, &stbuf) != 0)
