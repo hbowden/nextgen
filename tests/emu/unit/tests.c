@@ -17,6 +17,7 @@
 
 /* Include the C source file so we can test opaque structs. */
 #include "../../../src/emu/emu.c"
+#include "../../../src/emu/emu-macos.c"
 
 static void test_free_emulator(void)
 {
