@@ -52,7 +52,7 @@
 
 static inline void close_fd(int *fd)
 {
-    if(*fd == 0)
+    if((*fd) == 0)
         return;
 
     close((*fd));
@@ -60,7 +60,7 @@ static inline void close_fd(int *fd)
 
 static inline void close_dir(DIR **dir)
 {
-    if(*dir == NULL)
+    if((*dir) == NULL)
         return;
 
     closedir((*dir));
@@ -68,7 +68,7 @@ static inline void close_dir(DIR **dir)
 
 static inline void close_fp(FILE **fp)
 {
-    if(fp == NULL)
+    if((*fp) == NULL)
         return;
 
     fclose((*fp));
