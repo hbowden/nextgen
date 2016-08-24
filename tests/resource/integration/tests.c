@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2016, Harrison Bowden, Minneapolis, MN
- * 
+ *
  * Permission to use, copy, modify, and/or distribute this software for any purpose
- * with or without fee is hereby granted, provided that the above copyright notice 
+ * with or without fee is hereby granted, provided that the above copyright notice
  * and this permission notice appear in all copies.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH 
- * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY 
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, 
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
  * WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
@@ -43,7 +43,7 @@ static void test_clean_file_pool(void)
     int32_t rtrn = 0;
     char **paths = NULL;
 
-    /* Create an array of char pointers. */ 
+    /* Create an array of char pointers. */
     paths = mem_alloc(sizeof(char *) * POOL_SIZE);
     TEST_ASSERT_NOT_NULL(paths);
 
@@ -256,7 +256,7 @@ static void test_get_dirpath(void)
     TEST_ASSERT(rtrn > -1);
 
     uint32_t i;
-    
+
     for(i = 0; i < iterations; i++)
     {
         dirpath = get_dirpath();
@@ -300,7 +300,7 @@ static void test_get_file(void)
     TEST_ASSERT(rtrn > -1);
 
     uint32_t i;
-    
+
     for(i = 0; i < iterations; i++)
     {
         path = get_filepath();
@@ -343,7 +343,7 @@ static void test_get_fd(void)
     TEST_ASSERT(rtrn > -1);
 
     uint32_t i;
-    
+
     for(i = 0; i < iterations; i++)
     {
         fd = get_desc();
@@ -433,7 +433,7 @@ static void test_create_dirpath_pool(void)
 }
 
 static void test_create_fd_pool(void)
-{   
+{
     struct mem_pool_shared *pool = NULL;
 
     pool = create_fd_pool("/tmp");
@@ -464,7 +464,7 @@ static void test_init_resource_ctx(void)
 
 static void test_cached(void)
 {
-	test_setup_resource_module(CACHE);
+	  test_setup_resource_module(CACHE);
     test_get_file();
     test_get_fd();
     test_get_dirpath();
@@ -474,13 +474,13 @@ static void test_cached(void)
     test_clean_fd_pool();
     test_clean_dirpath_pool();
     test_clean_socket_pool();
-    
+
 	return;
 }
 
 static void test_no_cached(void)
 {
-	test_setup_resource_module(NO_CACHE);
+	  test_setup_resource_module(NO_CACHE);
     test_get_file();
     test_get_fd();
     test_get_dirpath();
@@ -491,12 +491,12 @@ static void test_no_cached(void)
     test_clean_dirpath_pool();
     test_clean_socket_pool();
 
-	return;
+    return;
 }
 
 int main(void)
 {
-	int32_t rtrn = 0;
+    int32_t rtrn = 0;
 
     /* We have to init the crypto module first before using the resource module. */
     rtrn = setup_crypto_module(CRYPTO);
@@ -510,5 +510,5 @@ int main(void)
     test_cached();
     test_no_cached();
 
-	_exit(0);
+	  _exit(0);
 }

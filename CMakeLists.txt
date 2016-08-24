@@ -26,6 +26,7 @@ set(GENERATE_IGNORE_WARNINGS "-Wno-deprecated-declarations -Wno-cast-align")
 
 # Ignore deprecated ptrace symbols because we need to test ptrace.
 set_source_files_properties(src/syscall/generate.c PROPERTIES COMPILE_FLAGS ${GENERATE_IGNORE_WARNINGS})
+set_source_files_properties(src/syscall/generate-macos.c PROPERTIES COMPILE_FLAGS ${GENERATE_IGNORE_WARNINGS})
 
 set_source_files_properties(src/io/io.c PROPERTIES COMPILE_FLAGS -Wno-format-nonliteral)
 set_source_files_properties(src/plugins/plugin.c PROPERTIES COMPILE_FLAGS -Wno-cast-qual)
@@ -65,6 +66,7 @@ link_directories(${CMAKE_SOURCE_DIR}/deps/capstone-3.0.4)
 # Build and link libraries that don't need os specific build instructions.
 add_library(nxio SHARED src/io/io.c)
 add_library(nxmemory SHARED src/memory/memory.c)
+add_library(nxconcurrent SHARED src/concurrent/concurrent.c src/concurrent/epoch.c)
 target_link_libraries(nxmemory nxio)
 
 # Check the operating system and set flags that are os specific.
@@ -73,8 +75,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     add_definitions(-DFREEBSD)
 
     add_library(nxutils SHARED src/utils/utils.c src/utils/reallocarray.c)
-
-    add_library(nxconcurrent SHARED src/concurrent/concurrent.c src/concurrent/epoch.c src/concurrent/concurrent-freebsd.c)
 
     add_library(nxcrypto SHARED src/crypto/crypto.c)
 
@@ -122,7 +122,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
     # We need this to conditionally compile freebsd only sources.
-    add_definitions(-DMAC_OSX)
+    add_definitions(-DMAC_OS)
 
     # We currently need a deprecated carbon function to set a process name on OSX.
     set_source_files_properties(src/utils/SetProcessName.c PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations)
@@ -140,8 +140,6 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     target_link_libraries(nxutils ${CORE_FOUNDATION})
     target_link_libraries(nxutils ${CARBON})
 
-    add_library(nxconcurrent SHARED src/concurrent/concurrent.c src/concurrent/epoch.c src/concurrent/concurrent-mac.c)
-
     add_library(nxcrypto SHARED src/crypto/crypto.c)
 
     add_library(nxprobe SHARED src/probe/probe.c src/probe/probe-mac.c)
@@ -158,7 +156,9 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     target_link_libraries(nxlog ${CMAKE_SOURCE_DIR}/deps/sqlite/libsqlite3.0.dylib)
 
     AUX_SOURCE_DIRECTORY(src/syscall/mac ENTRY_SOURCES)
-    add_library(nxsyscall SHARED src/syscall/syscall.c src/syscall/syscall-mac.c src/syscall/signals.c src/syscall/set_test.c src/syscall/generate.c src/syscall/arg_types.c ${ENTRY_SOURCES})
+
+    add_library(nxsyscall SHARED src/syscall/syscall.c src/syscall/syscall-mac.c src/syscall/signals.c src/syscall/set_test.c src/syscall/generate.c src/syscall/generate-macos.c src/syscall/arg_types.c ${ENTRY_SOURCES})
+
     include_directories(src/syscall/mac)
 
     add_library(nxgenetic SHARED src/genetic/genetic.c)
@@ -189,8 +189,6 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     add_definitions(-DCOMMON)
 
     add_library(nxutils SHARED src/utils/utils.c src/utils/reallocarray.c)
-
-    add_library(nxconcurrent SHARED src/concurrent/concurrent.c src/concurrent/epoch.c src/concurrent/concurrent-common.c)
     add_library(nxcrypto SHARED src/crypto/crypto.c)
     add_library(nxprobe SHARED src/probe/probe.c src/probe/probe-linux.c)
     add_library(nxnetwork SHARED src/network/network.c src/network/network-linux.c)
