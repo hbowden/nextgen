@@ -26,6 +26,7 @@ set(GENERATE_IGNORE_WARNINGS "-Wno-deprecated-declarations -Wno-cast-align")
 
 # Ignore deprecated ptrace symbols because we need to test ptrace.
 set_source_files_properties(src/syscall/generate.c PROPERTIES COMPILE_FLAGS ${GENERATE_IGNORE_WARNINGS})
+set_source_files_properties(src/syscall/generate-macos.c PROPERTIES COMPILE_FLAGS ${GENERATE_IGNORE_WARNINGS})
 
 set_source_files_properties(src/io/io.c PROPERTIES COMPILE_FLAGS -Wno-format-nonliteral)
 set_source_files_properties(src/plugins/plugin.c PROPERTIES COMPILE_FLAGS -Wno-cast-qual)
@@ -155,7 +156,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     target_link_libraries(nxlog ${CMAKE_SOURCE_DIR}/deps/sqlite/libsqlite3.0.dylib)
 
     AUX_SOURCE_DIRECTORY(src/syscall/mac ENTRY_SOURCES)
-    add_library(nxsyscall SHARED src/syscall/syscall.c src/syscall/syscall-mac.c src/syscall/signals.c src/syscall/set_test.c src/syscall/generate.c src/syscall/arg_types.c ${ENTRY_SOURCES})
+    add_library(nxsyscall SHARED src/syscall/syscall.c src/syscall/syscall-mac.c src/syscall/signals.c src/syscall/set_test.c src/syscall/generate.c src/syscall/generate-macos.c src/syscall/arg_types.c ${ENTRY_SOURCES})
     include_directories(src/syscall/mac)
 
     add_library(nxgenetic SHARED src/genetic/genetic.c)
