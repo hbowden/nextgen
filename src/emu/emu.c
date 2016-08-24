@@ -25,13 +25,13 @@
 #include <pthread.h>
 #include <sys/stat.h>
 
-/* */
+/* This object/struct represents a loaded program to be emulated or
+  is currently being emulated. */
 struct program_ctx
 {
     /* Contains information extracted from
     the executable's header. */
     struct program_header *header;
-
 };
 
 struct emulator_ctx
