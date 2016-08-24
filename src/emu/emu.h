@@ -16,9 +16,14 @@
 #ifndef EMU_H
 #define EMU_H
 
+#include <stdio.h>
 #include <stdint.h>
+#include "utils/private.h" // So we can use private compiler attribute.
 
 struct emulator_ctx;
+
+/* An opaque object the holds an executables header information. */
+struct program_header;
 
 /**
  * Allocates and returns a new emulator context object. This object
@@ -42,5 +47,18 @@ extern void free_emulator(struct emulator_ctx **);
  *
  */
 extern int32_t load_file(struct emulator_ctx *, const char *);
+
+/**
+ * Creates, initializes, and returns a program header object.
+ */
+private extern struct program_header *init_header(void);
+
+/**
+ * Parse the file for it's magic number.
+ *
+ * @param fp The file pointer of the executable to parse.
+ * @param magic The magic number if found will be placed in this variable.
+ */
+private extern int32_t get_magic_number(FILE *, uint32_t *);
 
 #endif

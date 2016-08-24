@@ -14,8 +14,7 @@
  **/
 
 #include "emu.h"
-#include "io/io.h" // Needed for output().
-#include "utils/utils.h"  // Used for auto_close attribute.
+#include "io/io.h" // Needed for output(), and auto_close.
 #include "memory/memory.h" // Needed for mem_calloc(), and mem_free().
 #include "concurrent/epoch.h" // Needed for epoch symbols.
 
@@ -26,15 +25,12 @@
 #include <pthread.h>
 #include <sys/stat.h>
 
-/* An opaque object the holds an executables header information. */
-struct program_header;
-
 /* */
 struct program_ctx
 {
     /* Contains information extracted from
     the executable's header. */
-    struct prog_header *header;
+    struct program_header *header;
 
 };
 
@@ -72,14 +68,6 @@ void free_emulator(struct emulator_ctx **emu)
     return;
 }
 
-static uint32_t read_magic(FILE *fp)
-{
-    uint32_t magic;
-    fseek(fp, 0, SEEK_SET);
-    fread(&magic, sizeof(uint32_t), 1, fp);
-    return (magic);
-}
-
 static struct program_ctx *init_program_ctx(void)
 {
     struct program_ctx *prog = NULL;
@@ -91,14 +79,14 @@ static struct program_ctx *init_program_ctx(void)
         return (NULL);
     }
 
-    prog->header = mem_calloc(sizeof(struct prog_header));
+    prog->header = init_header();
     if(prog->header == NULL)
     {
-        output(ERROR, "Program header allocation failed\n");
+        output(ERROR, "Program header initialization failed\n");
         return (NULL);
     }
 
-    return (0);
+    return (prog);
 }
 
 static int32_t parse_macho_fp(struct emulator_ctx *emu, FILE *fp)
@@ -111,8 +99,16 @@ static int32_t parse_macho_fp(struct emulator_ctx *emu, FILE *fp)
         return (-1);
     }
 
+    int32_t rtrn = 0;
+    uint32_t magic = 0;
+
     /* Grab the magic number so we can determine  */
-    emu->prog->header->magic = read_magic(fp);
+    rtrn = get_magic_number(fp, &magic);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Failed to get the magic number\n");
+        return (-1);
+    }
 
     return (0);
 }
@@ -133,17 +129,17 @@ int32_t load_file(struct emulator_ctx *emu, const char *path)
         return (-1);
     }
 
-    parse_macho_fp(fp);
+    parse_macho_fp(emu, fp);
 
     struct stat stbuf;
-    if(fstat(fd, &stbuf) != 0)
+    if(fstat(fileno(fp), &stbuf) != 0)
     {
         output(ERROR, "fstat failed: %s\n", strerror(errno));
         return (-1);
     }
 
-    emu->program_data = mmap(NULL, stbuf.st_size, PROT_READ, MAP_FILE|MAP_PRIVATE, fd, 0);
-    if(emu->program_data == MAP_FAILED)
+    void *data = mmap(NULL, stbuf.st_size, PROT_READ, MAP_FILE|MAP_PRIVATE, fileno(fp), 0);
+    if(data == MAP_FAILED)
     {
         output(ERROR, "mmap: %s\n", strerror(errno));
         return (-1);

@@ -14,11 +14,13 @@
  **/
 
 #include "emu.h"
+#include "io/io.h"
+#include "memory/memory.h"
 #include <stdint.h>
 #include <mach-o/loader.h>
 #include <mach-o/swap.h>
 
-struct prog_header
+struct program_header
 {
     uint32_t      magic;
     cpu_type_t    cputype;
@@ -29,17 +31,30 @@ struct prog_header
     uint32_t      flags;
 };
 
-struct segment_command
+static uint32_t read_magic(FILE *fp)
 {
-    uint32_t  cmd;
-    uint32_t  cmdsize;
-    char      segname[16];
-    uint32_t  vmaddr;
-    uint32_t  vmsize;
-    uint32_t  fileoff;
-    uint32_t  filesize;
-    vm_prot_t maxprot;
-    vm_prot_t initprot;
-    uint32_t  nsects;
-    uint32_t  flags;
-};
+    uint32_t magic;
+    fseek(fp, 0, SEEK_SET);
+    fread(&magic, sizeof(uint32_t), 1, fp);
+    return (magic);
+}
+
+int32_t get_magic_number(FILE *fp, uint32_t *magic)
+{
+    (*magic) = read_magic(fp);
+    return (0);
+}
+
+struct program_header *init_header(void)
+{
+    struct program_header *header = NULL;
+
+    header = mem_calloc(sizeof(struct program_header));
+    if(header == NULL)
+    {
+        output(ERROR, "Program header allocation failed\n");
+        return (NULL);
+    }
+
+    return (header);
+}
