@@ -20,16 +20,7 @@
 #include <mach-o/loader.h>
 #include <mach-o/swap.h>
 
-struct program_header
-{
-    uint32_t      magic;
-    cpu_type_t    cputype;
-    cpu_subtype_t cpusubtype;
-    uint32_t      filetype;
-    uint32_t      ncmds;
-    uint32_t      sizeofcmds;
-    uint32_t      flags;
-};
+typedef struct mach_header program_header;
 
 static uint32_t read_magic(FILE *fp)
 {
@@ -49,7 +40,7 @@ struct program_header *init_header(void)
 {
     struct program_header *header = NULL;
 
-    header = mem_calloc(sizeof(struct program_header));
+    header = mem_calloc(sizeof(program_header));
     if(header == NULL)
     {
         output(ERROR, "Program header allocation failed\n");
