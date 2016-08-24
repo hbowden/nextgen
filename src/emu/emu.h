@@ -16,6 +16,8 @@
 #ifndef EMU_H
 #define EMU_H
 
+#include <stdint.h>
+
 struct emulator_ctx;
 
 /**
