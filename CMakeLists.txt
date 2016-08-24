@@ -179,7 +179,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
     add_library(nxruntime SHARED src/runtime/runtime.c src/runtime/nextgen.c)
 
-    add_library(nxemu SHARED src/emu/emu.c)
+    add_library(nxemu SHARED src/emu/emu.c src/emu/emu-macos.c)
 
     add_executable(nextgen src/main.m)
     add_sanitizers(nextgen)
@@ -288,6 +288,9 @@ target_link_libraries(nxruntime nxsyscall)
 target_link_libraries(nxruntime nxfile)
 target_link_libraries(nxruntime nxprobe)
 target_link_libraries(nxruntime nxgenetic)
+target_link_libraries(nxemu nxio)
+target_link_libraries(nxemu nxconcurrent)
+target_link_libraries(nxemu nxmemory)
 target_link_libraries(nextgen nxutils)
 target_link_libraries(nextgen nxruntime)
 target_link_libraries(nextgen nxmemory)
