@@ -25,6 +25,7 @@ enum local_bool { FALSE, TRUE };
 static const uint32_t ARG_LIMIT = 7;
 static const uint32_t ARG_BUF_LEN = 4096;
 static const uint32_t POOL_SIZE = 1024;
+static const char OPERATING_SYSTEM[] = "FREEBSD";
 
 #endif /* End of FreeBSD. */
 
@@ -36,6 +37,7 @@ static const uint32_t POOL_SIZE = 1024;
 static const uint32_t ARG_LIMIT = 7;
 static const uint32_t ARG_BUF_LEN = 4096;
 static const uint32_t POOL_SIZE = 1024;
+static const char OPERATING_SYSTEM[] = "MACOS";
 
 #endif /* End of MAC OSX. */
 
@@ -47,6 +49,7 @@ enum local_bool { FALSE, TRUE };
 static const uint32_t ARG_LIMIT = 7;
 static const uint32_t ARG_BUF_LEN = 4096;
 static const uint32_t POOL_SIZE = 1024;
+static const char OPERATING_SYSTEM[] = "LINUX";
 
 #endif /* End of Linux. */
 
