@@ -121,7 +121,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
 
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-    # We need this to conditionally compile freebsd only sources.
+    # We need this to conditionally compile macOS only sources.
     add_definitions(-DMAC_OS)
 
     # We currently need a deprecated carbon function to set a process name on OSX.
