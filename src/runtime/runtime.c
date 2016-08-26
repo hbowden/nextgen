@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
- * 
+ *
  * Permission to use, copy, modify, and/or distribute this software for any purpose
- * with or without fee is hereby granted, provided that the above copyright notice 
+ * with or without fee is hereby granted, provided that the above copyright notice
  * and this permission notice appear in all copies.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH 
- * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY 
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, 
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
  * WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
@@ -60,7 +60,7 @@ static int32_t start_syscall_mode_runtime(void)
         return (-1);
     }
 
-    /* Start the main loop for the syscall fuzzer. This function should not 
+    /* Start the main loop for the syscall fuzzer. This function should not
     return except when the user set's ctrl-c or there is an unrecoverable error. */
     start_main_syscall_loop(thread);
 
@@ -183,7 +183,7 @@ static int32_t setup_file_mode_runtime(void)
         /* Inject the fork server. One can learn more about the fork server idea at:
         http://lcamtuf.blogspot.com/2014/10/fuzzing-binaries-without-execve.html .
         We use the fork server so that we can avoid the cost of probe injection and execv
-        calls on each fuzz test. This implementation of the fork server use's mach traps or ptrace 
+        calls on each fuzz test. This implementation of the fork server use's mach traps or ptrace
         as opposed to a C/C++ compiler plugin like the orignal implementation. */
         rtrn = inject_fork_server(main_addr);
         if(rtrn < 0)
@@ -229,8 +229,8 @@ static int32_t setup_syscall_mode_runtime(void)
         }
 
         /* Setup the syscall module. */
-        rtrn = setup_syscall_module(&map->stop, 
-                                    &map->test_counter, 
+        rtrn = setup_syscall_module(&map->stop,
+                                    &map->test_counter,
                                     map->smart_mode,
                                     &map->epoch);
         if(rtrn < 0)
@@ -240,7 +240,7 @@ static int32_t setup_syscall_mode_runtime(void)
         }
 
         get_total_syscalls(&total_syscalls);
-        
+
         /* Start the genetic algorithm. */
         rtrn = setup_genetic_module(SYSCALL_FUZZING, &map->gen_algo_thread, &map->stop);
         if(rtrn < 0)
@@ -263,8 +263,8 @@ static int32_t setup_syscall_mode_runtime(void)
         }
 
         /* Setup the syscall module. */
-        rtrn = setup_syscall_module(&map->stop, 
-                                    &map->test_counter, 
+        rtrn = setup_syscall_module(&map->stop,
+                                    &map->test_counter,
                                     map->smart_mode,
                                     &map->epoch);
         if(rtrn < 0)
@@ -290,7 +290,7 @@ int32_t setup_runtime(struct shared_map *mapping)
 {
     output(STD, "Setting up fuzzer\n");
 
-    /* Here we do work that's common across different fuzzing modes, 
+    /* Here we do work that's common across different fuzzing modes,
      then we call the init function for the selected fuzzing. */
     int32_t rtrn = 0;
 
@@ -371,4 +371,9 @@ int32_t shutdown(void)
     cas_loop_int32(&map->stop, TRUE);
 
     return (0);
+}
+
+const char *get_os(void)
+{
+    return (OPERATING_SYSTEM);
 }
