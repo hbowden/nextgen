@@ -68,14 +68,21 @@
 #
 
 # Check prereqs
-FIND_PROGRAM( GCOV_PATH gcov )
-FIND_PROGRAM( LCOV_PATH lcov )
-FIND_PROGRAM( GENHTML_PATH genhtml )
-FIND_PROGRAM( GCOVR_PATH gcovr PATHS ${CMAKE_SOURCE_DIR}/tests)
 
-IF(NOT GCOV_PATH)
-	MESSAGE(FATAL_ERROR "gcov not found! Aborting...")
-ENDIF() # NOT GCOV_PATH
+if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
+
+    MESSAGE(WARNING "Skipping gcov and lcov check on FreeBSD. This should be fixed!")
+
+else()
+    FIND_PROGRAM( GCOV_PATH gcov )
+    FIND_PROGRAM( LCOV_PATH lcov )
+    FIND_PROGRAM( GENHTML_PATH genhtml )
+    FIND_PROGRAM( GCOVR_PATH gcovr PATHS ${CMAKE_SOURCE_DIR}/tests)
+
+    IF(NOT GCOV_PATH)
+	    MESSAGE(FATAL_ERROR "gcov not found! Aborting...")
+    ENDIF() # NOT GCOV_PATH
+endif()
 
 IF(NOT CMAKE_COMPILER_IS_GNUCXX)
 	# Clang version 3.0.0 and greater now supports gcov as well.
