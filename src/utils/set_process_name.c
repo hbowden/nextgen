@@ -42,13 +42,13 @@ void set_process_name(char *name)
 
     CFBundleRef launch_services_bundle =
         CFBundleGetBundleWithIdentifier(CFSTR("com.apple.LaunchServices"));
-    if(!launch_services_bundle) 
+    if(!launch_services_bundle)
     {
       output(ERROR, "Failed to look up LaunchServices bundle\n");
       return;
     }
 
-    ls_get_current_application_asn_func = CFBundleGetFunctionPointerForName(launch_services_bundle, 
+    ls_get_current_application_asn_func = CFBundleGetFunctionPointerForName(launch_services_bundle,
                                                                             CFSTR("_LSGetCurrentApplicationASN"));
     if(!ls_get_current_application_asn_func)
       output(ERROR, "Could not find _LSGetCurrentApplicationASN\n");
@@ -85,7 +85,7 @@ void set_process_name(char *name)
   PrivateLSASN asn = ls_get_current_application_asn_func();
   // Constant used by WebKit; what exactly it means is unknown.
   const int magic_session_constant = -2;
-  
+
   ls_set_application_information_item_func(magic_session_constant, asn,
                                            ls_display_name_key,
                                            process_name,
