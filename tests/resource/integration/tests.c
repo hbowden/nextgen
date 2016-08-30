@@ -83,7 +83,7 @@ static void test_clean_file_pool(void)
 
     /* Now that we have an index of file paths, let's call clean_file_pool().
     Now we can manually check that clean_file_pool() actually got rid of the files. */
-    rtrn = clean_file_pool();
+    rtrn = clean_file_pool(file_pool);
 
     /* Should return zero. */
     TEST_ASSERT(rtrn == 0);
@@ -446,6 +446,10 @@ static void test_create_fd_pool(void)
         TEST_ASSERT_NOT_NULL(m_blk);
         TEST_ASSERT_NOT_NULL(m_blk->ptr);
     }
+
+    /* Clean the pool so we don't leak descriptors and
+		 so we have empty pools for later testing. */
+		clean_file_pool(pool);
 
     return;
 }
