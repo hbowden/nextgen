@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
- * 
+ *
  * Permission to use, copy, modify, and/or distribute this software for any purpose
- * with or without fee is hereby granted, provided that the above copyright notice 
+ * with or without fee is hereby granted, provided that the above copyright notice
  * and this permission notice appear in all copies.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH 
- * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY 
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, 
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
  * WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
@@ -118,7 +118,7 @@ static struct child_ctx **children;
 /* The syscall table. */
 static struct syscall_table *sys_table;
 
-/* A copy of the stop pointer. If the atomic int is 
+/* A copy of the stop pointer. If the atomic int is
    set to NX_YES than we stop fuzzing and exit. */
 static int32_t *stop;
 
@@ -149,11 +149,11 @@ void set_did_jump(struct child_ctx *child, int32_t val)
     atomic_store_int32(&child->did_jump, val);
 }
 
-void jump(struct child_ctx *child)
+NX_NO_RETURN void jump(struct child_ctx *child)
 {
+    /* Jump to the return point saved earlier.
+      No need for a return because it will not be executed. */
     longjmp(child->return_jump, 0);
-
-    return;
 }
 
 void set_child_pid(struct child_ctx *child, int32_t pid)
@@ -195,7 +195,7 @@ void cleanup_syscall_table(struct syscall_table **table)
     mem_free_shared((void **)&(*table)->sys_entry, sizeof(struct syscall_entry));
     mem_free_shared((void **)table, sizeof(struct syscall_table));
 
-    return; 
+    return;
 }
 
 void get_total_syscalls(uint32_t *total)
@@ -214,7 +214,7 @@ struct syscall_entry *get_entry(uint32_t syscall_number)
    return(atomic_load_ptr(&sys_table->sys_entry[syscall_number]));
 }
 
-/* Don't use inside of the syscall module. This function is for 
+/* Don't use inside of the syscall module. This function is for
 Other modules to get child processes. */
 struct child_ctx *get_child_from_index(uint32_t i)
 {
@@ -286,6 +286,8 @@ exit:
     /* Decrement the running child counter. */
     atomic_dec_uint32(&state->running_children);
 
+    printf("Exiting\n");
+
     /* Exit and cleanup child. */
     _exit(ret_val);
 }
@@ -310,8 +312,8 @@ static int32_t free_old_arguments(struct child_ctx *ctx)
         /* Handle args that require special cleanup procedures. */
         switch((int32_t)entry->arg_context_array[i]->type)
         {
-            /* Below is the resource types ie they are from the resource module. 
-            They must be freed using special functions and the free must be done on 
+            /* Below is the resource types ie they are from the resource module.
+            They must be freed using special functions and the free must be done on
             the arg_copy_index so the free_* functions don't use the mutated value in arg_value_index. */
             case FILE_DESC:
                 rtrn = free_desc((int32_t *)ctx->arg_copy_array[i]);
@@ -383,8 +385,8 @@ NX_NO_RETURN static void start_smart_syscall_child(struct thread_ctx *thread)
         exit_child(thread);
     }
 
-    /* Set the return jump so that we can try fuzzing again on a signal. This 
-    is required on some operating systems because they can't clean up old 
+    /* Set the return jump so that we can try fuzzing again on a signal. This
+    is required on some operating systems because they can't clean up old
     processes fast enough for us. It also alows us to do PRNG seeding and
     probe injection and teardown less often. */
     rtrn = setjmp(child->return_jump);
@@ -399,7 +401,7 @@ NX_NO_RETURN static void start_smart_syscall_child(struct thread_ctx *thread)
     /* Loop until ctrl-c is pressed by the user. */
     while(atomic_load_int32(stop) != TRUE)
     {
-        
+
     }
 
     exit_child(thread);
@@ -506,7 +508,7 @@ static struct syscall_table *build_syscall_table(void)
         return (NULL);
     }
 
-    /* Move the system call table into shared memory. */ 
+    /* Move the system call table into shared memory. */
     memmove(table, syscall_table, sizeof(struct syscall_table));
 
     uint32_t i, counter;
@@ -552,7 +554,7 @@ struct syscall_table *get_syscall_table(void)
 int32_t pick_syscall(struct child_ctx *child)
 {
     /* Use rand_range to pick a number between 0 and the number_of_syscalls. The minus one
-    is a hack, get_syscall_table() returns an array - 1 the size of number of syscalls 
+    is a hack, get_syscall_table() returns an array - 1 the size of number of syscalls
     and should be fixed. */
 
     uint32_t num = 0;
@@ -603,7 +605,7 @@ int32_t generate_arguments(struct child_ctx *ctx)
         }
 
         /* Copy the argument into the argument copy array. */
-        memcpy(ctx->arg_copy_array[i], 
+        memcpy(ctx->arg_copy_array[i],
                ctx->arg_value_array[i],
                ctx->arg_size_array[i]);
     }
@@ -860,7 +862,7 @@ static int32_t create_child(struct thread_ctx *thread)
             return (-1);
         }
 
-        /* Check if the child pid is not set to empty, skip 
+        /* Check if the child pid is not set to empty, skip
           and continue if the pid is valid, ie not EMPTY. */
         if(atomic_load_int32(&children[i]->pid) != EMPTY)
         {
@@ -884,13 +886,13 @@ static int32_t create_child(struct thread_ctx *thread)
             return (-1);
         }
 
-        /* Fork and create child process. Don't use the variable 
-        thread inside the child because it belongs to the parent. 
+        /* Fork and create child process. Don't use the variable
+        thread inside the child because it belongs to the parent.
         The child has to create it's own thread ctx. */
         pid = fork();
         if(pid == 0)
         {
-            /* Set the child pid and increment the running child counter. Do this 
+            /* Set the child pid and increment the running child counter. Do this
             right away so we can let the parent continue as soon as possible. */
             cas_loop_int32(&children[i]->pid, getpid());
             atomic_add_uint32(&state->running_children, 1);
@@ -1049,7 +1051,7 @@ static struct child_ctx *init_child_context(void)
 }
 
 int32_t setup_syscall_module(int32_t *stop_ptr,
-                             uint32_t *counter, 
+                             uint32_t *counter,
                              int32_t run_mode,
                              epoch_ctx *e)
 {
