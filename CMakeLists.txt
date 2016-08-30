@@ -8,6 +8,7 @@ enable_testing()
 
 # Save concurrencykit name as a variable.
 SET(CK "ck-0.5.2")
+SET(UNITY "Unity")
 
 # Set the cmake module path to deps/cmake_modules.
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/deps/cmake_modules" ${CMAKE_MODULE_PATH})
@@ -42,15 +43,17 @@ set_source_files_properties(src/concurrent/concurrent-freebsd.c PROPERTIES COMPI
 set_source_files_properties(src/main.m PROPERTIES COMPILE_FLAGS -Wno-incompatible-pointer-types-discards-qualifiers)
 
 # Check the compiler and set compiler specific options.
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
   # using Clang
-  add_definitions("-Weverything -std=c11")
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  MESSAGE( WARNING "Using clang")
+  SET( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Weverything -std=c11")
+  SET( CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -Weverything -std=c11")
+elseif ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
   # using GCC
   add_definitions("-Wextra -std=gnu11")
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+elseif ("${CMAKE_C_COMPILER_ID}" STREQUAL "Intel")
   # using Intel C++
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+elseif ("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
   # using Visual Studio C++
 endif()
 
@@ -76,6 +79,9 @@ target_link_libraries(nxmemory nxio)
 if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     # We need this to conditionally compile freebsd only sources.
     add_definitions(-DFREEBSD)
+
+    SET( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Weverything -std=c11")
+    SET( CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -Weverything -std=c11")
 
     add_library(nxutils SHARED src/utils/utils.c src/utils/reallocarray.c)
 
@@ -127,8 +133,14 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     # We need this to conditionally compile macOS only sources.
     add_definitions(-DMAC_OS)
 
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Weverything -std=c11")
+    SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -Weverything -std=c11")
+
+    SET(UTILS_IGNORE_FLAGS "-Wno-reserved-id-macro -Wno-unused-macros")
+    set_source_files_properties(src/utils/utils.c PROPERTIES COMPILE_FLAGS ${UTILS_IGNORE_FLAGS})
+
     # We currently need a deprecated carbon function to set a process name on OSX.
-    set_source_files_properties(src/utils/SetProcessName.c PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations)
+    set_source_files_properties(src/utils/set_process_name.c PROPERTIES COMPILE_FLAGS "-Wno-deprecated-declarations -Wno-pedantic")
 
     # Set standard compiler flags for all files.
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -fstack-protector-all -fno-strict-aliasing -Werror -Wno-unknown-warning-option -Wno-used-but-marked-unused -Wno-padded")
@@ -139,7 +151,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
     FIND_LIBRARY(CARBON Carbon)
     FIND_LIBRARY(CORE_FOUNDATION CoreFoundation)
-    add_library(nxutils SHARED src/utils/utils.c src/utils/SetProcessName.c src/utils/reallocarray.c)
+    add_library(nxutils SHARED src/utils/utils.c src/utils/set_process_name.c src/utils/reallocarray.c)
     target_link_libraries(nxutils ${CORE_FOUNDATION})
     target_link_libraries(nxutils ${CARBON})
 
@@ -300,31 +312,31 @@ install(TARGETS nextgen nxio nxmemory nxconcurrent nxcrypto nxutils nxprobe nxne
 install(CODE "execute_process(COMMAND \"../install.sh\")")
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --verbose)
 
-include_directories(deps/Unity-master/src)
+include_directories(deps/${UNITY}/src)
 
-add_executable(concurrent-unit-test EXCLUDE_FROM_ALL tests/concurrent/unit/tests.c deps/Unity-master/src/unity.c)
+add_executable(concurrent-unit-test EXCLUDE_FROM_ALL tests/concurrent/unit/tests.c deps/${UNITY}/src/unity.c)
 target_link_libraries(concurrent-unit-test nxconcurrent)
 target_link_libraries(concurrent-unit-test nxmemory)
 target_link_libraries(concurrent-unit-test ${CMAKE_SOURCE_DIR}/deps/${CK}/src/libck.so)
 
-add_executable(memory-unit-test EXCLUDE_FROM_ALL tests/memory/unit/tests.c deps/Unity-master/src/unity.c)
+add_executable(memory-unit-test EXCLUDE_FROM_ALL tests/memory/unit/tests.c deps/${UNITY}/src/unity.c)
 target_link_libraries(memory-unit-test nxconcurrent)
 target_link_libraries(memory-unit-test nxmemory)
 target_link_libraries(memory-unit-test ${CMAKE_SOURCE_DIR}/deps/${CK}/src/libck.so)
 
-add_executable(memory-intergration-test EXCLUDE_FROM_ALL tests/memory/unit/tests.c deps/Unity-master/src/unity.c)
+add_executable(memory-intergration-test EXCLUDE_FROM_ALL tests/memory/unit/tests.c deps/${UNITY}/src/unity.c)
 target_link_libraries(memory-intergration-test nxconcurrent)
 target_link_libraries(memory-intergration-test nxmemory)
 target_link_libraries(memory-intergration-test ${CMAKE_SOURCE_DIR}/deps/${CK}/src/libck.so)
 
-add_executable(crypto-unit-test EXCLUDE_FROM_ALL tests/crypto/unit/tests.c deps/Unity-master/src/unity.c)
+add_executable(crypto-unit-test EXCLUDE_FROM_ALL tests/crypto/unit/tests.c deps/${UNITY}/src/unity.c)
 target_link_libraries(crypto-unit-test nxconcurrent)
 target_link_libraries(crypto-unit-test nxmemory)
 target_link_libraries(crypto-unit-test nxcrypto)
 target_link_libraries(crypto-unit-test crypto)
 target_link_libraries(crypto-unit-test ${CMAKE_SOURCE_DIR}/deps/${CK}/src/libck.so)
 
-add_executable(utils-unit-test EXCLUDE_FROM_ALL tests/utils/unit/tests.c deps/Unity-master/src/unity.c)
+add_executable(utils-unit-test EXCLUDE_FROM_ALL tests/utils/unit/tests.c deps/${UNITY}/src/unity.c)
 target_link_libraries(utils-unit-test nxconcurrent)
 target_link_libraries(utils-unit-test nxmemory)
 target_link_libraries(utils-unit-test nxutils)
@@ -332,7 +344,7 @@ target_link_libraries(utils-unit-test nxcrypto)
 target_link_libraries(utils-unit-test crypto)
 target_link_libraries(utils-unit-test ${CMAKE_SOURCE_DIR}/deps/${CK}/src/libck.so)
 
-add_executable(resource-integration-test EXCLUDE_FROM_ALL tests/resource/integration/tests.c deps/Unity-master/src/unity.c)
+add_executable(resource-integration-test EXCLUDE_FROM_ALL tests/resource/integration/tests.c deps/${UNITY}/src/unity.c)
 target_link_libraries(resource-integration-test nxnetwork)
 target_link_libraries(resource-integration-test nxconcurrent)
 target_link_libraries(resource-integration-test nxmemory)
@@ -340,7 +352,7 @@ target_link_libraries(resource-integration-test nxutils)
 target_link_libraries(resource-integration-test nxcrypto)
 target_link_libraries(resource-integration-test crypto)
 
-add_executable(runtime-integration-test EXCLUDE_FROM_ALL tests/runtime/integration/tests.c deps/Unity-master/src/unity.c)
+add_executable(runtime-integration-test EXCLUDE_FROM_ALL tests/runtime/integration/tests.c deps/${UNITY}/src/unity.c)
 target_link_libraries(runtime-integration-test nxruntime)
 
 add_sanitizers(runtime-integration-test)
