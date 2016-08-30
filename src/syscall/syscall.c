@@ -778,7 +778,6 @@ NX_NO_RETURN static void start_child_loop(struct thread_ctx *thread)
     if(mode != TRUE)
     {
         start_syscall_child(thread);
-        exit_child(thread);
     }
 
     start_smart_syscall_child(thread);
