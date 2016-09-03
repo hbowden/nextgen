@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
- * 
+ *
  * Permission to use, copy, modify, and/or distribute this software for any purpose
- * with or without fee is hereby granted, provided that the above copyright notice 
+ * with or without fee is hereby granted, provided that the above copyright notice
  * and this permission notice appear in all copies.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH 
- * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY 
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, 
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
  * WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
@@ -65,7 +65,7 @@ static int32_t setup_ctrlc_handler(void)
     int32_t rtrn = 0;
     struct sigaction sa;
     memset(&sa, 0, sizeof(struct sigaction));
-    
+
     /* Set the SIGINT or ctrlc signal handling function. */
     sa.sa_handler = &ctrlc_handler;
 
@@ -96,7 +96,7 @@ int32_t setup_signal_handler(void)
 
     struct sigaction sa;
     memset(&sa, 0, sizeof(struct sigaction));
-    
+
     /* Set the child exit handler. */
     sa.sa_handler = &child_exit_handler;
 
@@ -116,6 +116,15 @@ int32_t setup_signal_handler(void)
 
 static void child_signal_handler(int sig, siginfo_t *info, void *context)
 {
+    /* Set context to void to ignore clang warning. Remove
+      this caste if we begin using context in this function. */
+    (void)context;
+
+    /* Grab the child context using the pid
+      that recieved a signal. We need the
+      child context so we can let the child
+      know it's jumping back from a signal
+      handler. */
     struct child_ctx *child = NULL;
     child = get_child_ctx_from_pid(info->si_pid);
 
@@ -130,6 +139,8 @@ static void child_signal_handler(int sig, siginfo_t *info, void *context)
             set_sig_num(child, sig);
             break;
 
+        /* We recieved a "bad" signal so inform the child process
+          via the it's child context object. */
         default:
             set_had_error(child, NX_YES);
             set_ret_value(child, -1);
@@ -155,7 +166,7 @@ int32_t setup_child_signal_handler(void)
 
     struct sigaction sa;
     memset(&sa, 0, sizeof(struct sigaction));
-    
+
     /* Set the child signal handler. */
     sa.sa_sigaction = &child_signal_handler;
     sa.sa_flags |= SA_SIGINFO;
