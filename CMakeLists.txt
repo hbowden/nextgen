@@ -80,8 +80,8 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     # We need this to conditionally compile freebsd only sources.
     add_definitions(-DFREEBSD)
 
-    SET( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Weverything -std=c11")
-    SET( CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -Weverything -std=c11")
+    SET( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Weverything -std=c11 -Wno-covered-switch-default")
+    SET( CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -Weverything -std=c11 -Wno-covered-switch-default")
 
     add_library(nxutils SHARED src/utils/utils.c src/utils/reallocarray.c)
 
@@ -133,8 +133,8 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     # We need this to conditionally compile macOS only sources.
     add_definitions(-DMAC_OS)
 
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Weverything -std=c11")
-    SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -Weverything -std=c11")
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Weverything -std=c11 -Wno-covered-switch-default")
+    SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -Weverything -std=c11 -Wno-covered-switch-default")
 
     SET(UTILS_IGNORE_FLAGS "-Wno-reserved-id-macro -Wno-unused-macros")
     set_source_files_properties(src/utils/utils.c PROPERTIES COMPILE_FLAGS ${UTILS_IGNORE_FLAGS})
@@ -371,10 +371,8 @@ add_test(memory-unit-test memory-unit-test)
 add_test(memory-intergration-test memory-intergration-test)
 add_test(crypto-unit-test crypto-unit-test)
 add_test(concurrent-unit-test concurrent-unit-test)
-add_test(resource-integration-test resource-integration-test)
 
 add_dependencies(check runtime-integration-test)
-add_dependencies(check resource-integration-test)
 add_dependencies(check utils-unit-test)
 add_dependencies(check memory-intergration-test)
 add_dependencies(check memory-unit-test)
