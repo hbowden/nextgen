@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
- * 
+ *
  * Permission to use, copy, modify, and/or distribute this software for any purpose
- * with or without fee is hereby granted, provided that the above copyright notice 
+ * with or without fee is hereby granted, provided that the above copyright notice
  * and this permission notice appear in all copies.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH 
- * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY 
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, 
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
  * WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
@@ -38,7 +38,7 @@
 /* If the setup variable is equal to zero
    the resource module is not setup. Set this
    variable after successfully setting up the module. */
-static uint8_t setup = 0; 
+static uint8_t setup = 0;
 
 /* Shared memory pools. */
 static struct mem_pool_shared *desc_pool;
@@ -47,8 +47,8 @@ static struct mem_pool_shared *dirpath_pool;
 static struct mem_pool_shared *file_pool;
 static struct mem_pool_shared *socket_pool;
 
-/* The resource get functions abstraction/interface. 
-If a functions uses this signature and returns the 
+/* The resource get functions abstraction/interface.
+If a functions uses this signature and returns the
 right resource they can be used for this interface. */
 static int32_t (*get_desc_interface)(void);
 static int32_t (*get_socket_interface)(void);
@@ -56,8 +56,8 @@ static char *(*get_mountpath_interface)(void);
 static char *(*get_dirpath_interface)(void);
 static char *(*get_filepath_interface)(void);
 
-/* The resource free functions abstraction/interface. 
-If a functions uses this signature and returns the 
+/* The resource free functions abstraction/interface.
+If a functions uses this signature and returns the
 right resource they can be used for this interface. */
 static int32_t (*free_desc_interface)(int32_t *);
 static int32_t (*free_socket_interface)(int32_t *);
@@ -76,7 +76,7 @@ static char *get_dirpath_nocached(void)
         output(ERROR, "Can't create directory");
         return (NULL);
     }
-    
+
     return (path);
 }
 
@@ -251,7 +251,7 @@ static int32_t free_filepath_cached(char **path)
         }
     }
 
-    return (0);   
+    return (0);
 }
 
 static int32_t free_mountpath_cached(char **path)
@@ -484,6 +484,8 @@ int32_t free_desc(int32_t *fd)
         output(ERROR, "Setup resource module first\n");
         return (-1);
     }
+
+    printf("desc: %d\n", (*fd));
 
     return (free_desc_interface(fd));
 }
@@ -743,7 +745,7 @@ static struct mem_pool_shared *create_file_pool(char *path)
         memcpy(name, fs_name, 8);
 
         output(ERROR, "name: %s\n", name);
-        
+
         rtrn = mount(name, path, MNT_FORCE, NULL);
         if(rtrn < 0)
         {
@@ -773,7 +775,7 @@ static struct mem_pool_shared *create_dirpath_pool(char *path)
 
     NX_SLIST_FOREACH(m_blk, &pool->free_list)
     {
-        /* Temp variable that we define with auto_clean so that we 
+        /* Temp variable that we define with auto_clean so that we
         don't have to worry about calling free. */
         char *dir_name auto_free = NULL;
 
@@ -821,22 +823,22 @@ static struct mem_pool_shared *create_dirpath_pool(char *path)
     return (pool);
 }
 
-static int32_t clean_file_pool(void)
+static int32_t clean_file_pool(struct mem_pool_shared *pool)
 {
     int32_t rtrn = 0;
     struct memory_block *m_blk = NULL;
 
-    if(file_pool == NULL)
+    if(pool == NULL)
     {
         output(ERROR, "File pool already clean\n");
         return (-1);
     }
 
     /* Lock the spinlock. */
-    nx_spinlock_lock(&file_pool->lock);
+    nx_spinlock_lock(&pool->lock);
 
     /* Loop and grab all the file paths in the allocated list. */
-    NX_SLIST_FOREACH(m_blk, &file_pool->allocated_list)
+    NX_SLIST_FOREACH(m_blk, &pool->allocated_list)
     {
         struct resource_ctx *resource = (struct resource_ctx *)m_blk->ptr;
 
@@ -853,7 +855,7 @@ static int32_t clean_file_pool(void)
     }
 
     /* Now check the free list for any resource blocks. */
-    NX_SLIST_FOREACH(m_blk, &file_pool->free_list)
+    NX_SLIST_FOREACH(m_blk, &pool->free_list)
     {
         struct resource_ctx *resource = (struct resource_ctx *)m_blk->ptr;
 
@@ -869,9 +871,9 @@ static int32_t clean_file_pool(void)
         mem_free_shared((void **)&m_blk, sizeof(struct memory_block));
     }
 
-    nx_spinlock_unlock(&file_pool->lock);
+    nx_spinlock_unlock(&pool->lock);
 
-    mem_clean_shared_pool(file_pool);
+    mem_clean_shared_pool(pool);
 
     return (0);
 }
@@ -933,7 +935,7 @@ int32_t cleanup_resource_pool(void)
 {
     int32_t rtrn = 0;
 
-    rtrn = clean_file_pool();
+    rtrn = clean_file_pool(file_pool);
     if(rtrn < 0)
     {
         output(ERROR, "Can't clean file pool\n");
@@ -1051,7 +1053,7 @@ int32_t setup_resource_module(enum rsrc_gen_type type, char *path)
                 output(ERROR, "Can't create resource pools\n");
                 return (-1);
             }
-            
+
             setup_cached_interface();
 
             break;

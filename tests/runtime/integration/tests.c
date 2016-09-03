@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2015, Harrison Bowden, Secure Labs, Minneapolis, MN
+/*
+ * Copyright (c) 2016, Harrison Bowden, Minneapolis, MN
  *
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice
@@ -11,36 +11,22 @@
  * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
  * WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- **/
+ */
 
-#ifndef SYSCALL_TABLE_H
-#define SYSCALL_TABLE_H
+#include "runtime/runtime.h"
+#include "unity.h"
 
-#include "entry.h"
-
-#include <stdint.h>
-
-struct syscall_table
+static void test_get_os(void)
 {
-    uint32_t total_syscalls;
-    const char padding[4];
-    struct syscall_entry *sys_entry[56];
-};
+    const char *os = get_os();
+    TEST_ASSERT_NOT_NULL(os);
 
-extern struct syscall_table *get_table(void);
+    return;
+}
 
-#ifdef FREEBSD
+int main(void)
+{
+    test_get_os();
 
-extern struct syscall_table freebsd_syscall_table;
-
-#elif MAC_OS
-
-extern struct syscall_table mac_osx_syscall_table;
-
-#elif LINUX
-
-extern struct syscall_table linux_syscall_table;
-
-#endif
-
-#endif /* End of header file. */
+    return (0);
+}

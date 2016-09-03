@@ -18,6 +18,8 @@
 
 /* OPENBSD ORIGINAL: lib/libc/stdlib/reallocarray.c */
 
+#include "utils.h"
+
 #include <sys/types.h>
 #include <errno.h>
 #include <stdint.h>

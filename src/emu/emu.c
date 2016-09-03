@@ -138,7 +138,7 @@ int32_t load_file(struct emulator_ctx *emu, const char *path)
         return (-1);
     }
 
-    void *data = mmap(NULL, stbuf.st_size, PROT_READ, MAP_FILE|MAP_PRIVATE, fileno(fp), 0);
+    void *data = mmap(NULL, (size_t)stbuf.st_size, PROT_READ, MAP_FILE|MAP_PRIVATE, fileno(fp), 0);
     if(data == MAP_FAILED)
     {
         output(ERROR, "mmap: %s\n", strerror(errno));

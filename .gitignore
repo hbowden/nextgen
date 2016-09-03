@@ -9,6 +9,9 @@
 *.lo
 *.a
 *.dylib
+*.la
+*.deps
+*.libs
 
 # Packages #
 ############

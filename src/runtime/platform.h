@@ -1,5 +1,3 @@
-
-
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
  *
@@ -18,42 +16,41 @@
 #ifndef PLATFORM_H
 #define PLATFORM_H
 
+#include <stdint.h>
+
 #ifdef FREEBSD
 
-#define ARG_LIMIT 7
-
+/* Define TRUE and FALSE. */
 enum local_bool { FALSE, TRUE };
-
-#define ARG_BUF_LEN 4096
+static const uint32_t ARG_LIMIT = 7;
+static const uint32_t ARG_BUF_LEN = 4096;
+static const uint32_t POOL_SIZE = 1024;
+static const char OPERATING_SYSTEM[] = "FREEBSD";
 
 #endif /* End of FreeBSD. */
 
 #ifdef MAC_OS
 
-#define ARG_LIMIT 7
-
+/* In this header TRUE and FALSE are defined. */
 #include <mach/boolean.h>
 
-#define POOL_SIZE 1024
-
-#define ARG_BUF_LEN 4096
-
-#else
-
-#define POOL_SIZE 1024
+static const uint32_t ARG_LIMIT = 7;
+static const uint32_t ARG_BUF_LEN = 4096;
+static const uint32_t POOL_SIZE = 1024;
+static const char OPERATING_SYSTEM[] = "MACOS";
 
 #endif /* End of MAC OSX. */
 
 #ifdef LINUX
 
-#define ARG_LIMIT 7
-
+/* Define TRUE and FALSE. */
 enum local_bool { FALSE, TRUE };
 
-#define POOL_SIZE 1024
+static const uint32_t ARG_LIMIT = 7;
+static const uint32_t ARG_BUF_LEN = 4096;
+static const uint32_t POOL_SIZE = 1024;
+static const char OPERATING_SYSTEM[] = "LINUX";
 
-#define ARG_BUF_LEN 4096
-
-#endif
+#endif /* End of Linux. */
 
 #endif /* End of header file. */

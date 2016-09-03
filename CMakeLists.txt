@@ -6,6 +6,10 @@ project (Nextgen C)
 # Turn on testing.
 enable_testing()
 
+# Save concurrencykit name as a variable.
+SET(CK "ck-0.5.2")
+SET(UNITY "Unity")
+
 # Set the cmake module path to deps/cmake_modules.
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/deps/cmake_modules" ${CMAKE_MODULE_PATH})
 
@@ -39,15 +43,17 @@ set_source_files_properties(src/concurrent/concurrent-freebsd.c PROPERTIES COMPI
 set_source_files_properties(src/main.m PROPERTIES COMPILE_FLAGS -Wno-incompatible-pointer-types-discards-qualifiers)
 
 # Check the compiler and set compiler specific options.
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
   # using Clang
-  add_definitions("-Weverything -std=c11")
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  MESSAGE( WARNING "Using clang")
+  SET( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Weverything -std=c11")
+  SET( CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -Weverything -std=c11")
+elseif ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
   # using GCC
   add_definitions("-Wextra -std=gnu11")
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+elseif ("${CMAKE_C_COMPILER_ID}" STREQUAL "Intel")
   # using Intel C++
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+elseif ("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
   # using Visual Studio C++
 endif()
 
@@ -55,12 +61,12 @@ endif()
 include_directories(src)
 include_directories(SYSTEM deps/sqlite)
 include_directories(SYSTEM deps/libressl-2.4.2/include)
-include_directories(SYSTEM deps/ck-0.5.1/include)
+include_directories(SYSTEM deps/${CK}/include)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/deps/capstone-3.0.4/include SYSTEM)
 
 link_directories(${CMAKE_SOURCE_DIR}/deps/libressl-2.4.2/crypto/.libs)
 link_directories(${CMAKE_SOURCE_DIR}/deps/sqlite)
-link_directories(${CMAKE_SOURCE_DIR}/deps/ck-0.5.1/src)
+link_directories(${CMAKE_SOURCE_DIR}/deps/${CK}/src)
 link_directories(${CMAKE_SOURCE_DIR}/deps/capstone-3.0.4)
 
 # Build and link libraries that don't need os specific build instructions.
@@ -73,6 +79,9 @@ target_link_libraries(nxmemory nxio)
 if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     # We need this to conditionally compile freebsd only sources.
     add_definitions(-DFREEBSD)
+
+    SET( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Weverything -std=c11 -Wno-documentation")
+    SET( CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -Weverything -std=c11")
 
     add_library(nxutils SHARED src/utils/utils.c src/utils/reallocarray.c)
 
@@ -121,22 +130,30 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
 
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-    # We need this to conditionally compile freebsd only sources.
+    # We need this to conditionally compile macOS only sources.
     add_definitions(-DMAC_OS)
 
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Weverything -std=c11 -Wno-documentation")
+    SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -Weverything -std=c11")
+
+    SET(UTILS_IGNORE_FLAGS "-Wno-reserved-id-macro -Wno-unused-macros")
+    set_source_files_properties(src/utils/utils.c PROPERTIES COMPILE_FLAGS ${UTILS_IGNORE_FLAGS})
+
     # We currently need a deprecated carbon function to set a process name on OSX.
-    set_source_files_properties(src/utils/SetProcessName.c PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations)
+    set_source_files_properties(src/utils/set_process_name.c PROPERTIES COMPILE_FLAGS "-Wno-deprecated-declarations -Wno-pedantic")
 
     # Set standard compiler flags for all files.
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -fstack-protector-all -fno-strict-aliasing -Werror -Wno-unknown-warning-option -Wno-used-but-marked-unused -Wno-padded")
 
     # Ignore some objective-c specific warnings.
-    set(OBJC_IGNORE_FLAGS "${CMAKE_C_FLAGS} -Wno-direct-ivar-access -Wno-objc-interface-ivars")
+    set(OBJC_IGNORE_FLAGS "${CMAKE_C_FLAGS} -Wno-direct-ivar-access -Wno-objc-interface-ivars -Wno-unused-parameter")
     set_source_files_properties(src/objc/AppDelegate.m PROPERTIES COMPILE_FLAGS ${OBJC_IGNORE_FLAGS})
+    set_source_files_properties(src/objc/AppDelegate.h PROPERTIES COMPILE_FLAGS ${OBJC_IGNORE_FLAGS})
+    set_source_files_properties(src/objc/objc-utils.m PROPERTIES COMPILE_FLAGS ${OBJC_IGNORE_FLAGS})
 
     FIND_LIBRARY(CARBON Carbon)
     FIND_LIBRARY(CORE_FOUNDATION CoreFoundation)
-    add_library(nxutils SHARED src/utils/utils.c src/utils/SetProcessName.c src/utils/reallocarray.c)
+    add_library(nxutils SHARED src/utils/utils.c src/utils/set_process_name.c src/utils/reallocarray.c)
     target_link_libraries(nxutils ${CORE_FOUNDATION})
     target_link_libraries(nxutils ${CARBON})
 
@@ -228,7 +245,7 @@ target_link_libraries(nxutils nxmemory)
 target_link_libraries(nxconcurrent nxio)
 target_link_libraries(nxconcurrent nxmemory)
 target_link_libraries(nxconcurrent nxutils)
-target_link_libraries(nxconcurrent ${CMAKE_SOURCE_DIR}/deps/ck-0.5.1/src/libck.so)
+target_link_libraries(nxconcurrent ${CMAKE_SOURCE_DIR}/deps/${CK}/src/libck.so)
 target_link_libraries(nxcrypto crypto)
 target_link_libraries(nxcrypto nxio)
 target_link_libraries(nxcrypto nxmemory)
@@ -252,7 +269,7 @@ target_link_libraries(nxresource nxio)
 target_link_libraries(nxresource nxmemory)
 target_link_libraries(nxlog nxio)
 target_link_libraries(nxlog nxmemory)
-target_link_libraries(nxsyscall ${CMAKE_SOURCE_DIR}/deps/ck-0.5.1/src/libck.so)
+target_link_libraries(nxsyscall ${CMAKE_SOURCE_DIR}/deps/${CK}/src/libck.so)
 target_link_libraries(nxsyscall nxio)
 target_link_libraries(nxsyscall nxmemory)
 target_link_libraries(nxsyscall nxconcurrent)
@@ -272,7 +289,7 @@ target_link_libraries(nxfile nxmemory)
 target_link_libraries(nxdisas nxio)
 target_link_libraries(nxdisas nxfile)
 target_link_libraries(nxdisas nxmemory)
-target_link_libraries(nxruntime ${CMAKE_SOURCE_DIR}/deps/ck-0.5.1/src/libck.so)
+target_link_libraries(nxruntime ${CMAKE_SOURCE_DIR}/deps/${CK}/src/libck.so)
 target_link_libraries(nxruntime nxio)
 target_link_libraries(nxruntime nxmemory)
 target_link_libraries(nxruntime nxconcurrent)
@@ -304,39 +321,39 @@ install(TARGETS nextgen nxio nxmemory nxconcurrent nxcrypto nxutils nxprobe nxne
 install(CODE "execute_process(COMMAND \"../install.sh\")")
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --verbose)
 
-include_directories(deps/Unity-master/src)
+include_directories(deps/${UNITY}/src)
 
-add_executable(concurrent-unit-test EXCLUDE_FROM_ALL tests/concurrent/unit/tests.c deps/Unity-master/src/unity.c)
+add_executable(concurrent-unit-test EXCLUDE_FROM_ALL tests/concurrent/unit/tests.c deps/${UNITY}/src/unity.c)
 target_link_libraries(concurrent-unit-test nxconcurrent)
 target_link_libraries(concurrent-unit-test nxmemory)
-target_link_libraries(concurrent-unit-test ${CMAKE_SOURCE_DIR}/deps/ck-0.5.1/src/libck.so)
+target_link_libraries(concurrent-unit-test ${CMAKE_SOURCE_DIR}/deps/${CK}/src/libck.so)
 
-add_executable(memory-unit-test EXCLUDE_FROM_ALL tests/memory/unit/tests.c deps/Unity-master/src/unity.c)
+add_executable(memory-unit-test EXCLUDE_FROM_ALL tests/memory/unit/tests.c deps/${UNITY}/src/unity.c)
 target_link_libraries(memory-unit-test nxconcurrent)
 target_link_libraries(memory-unit-test nxmemory)
-target_link_libraries(memory-unit-test ${CMAKE_SOURCE_DIR}/deps/ck-0.5.1/src/libck.so)
+target_link_libraries(memory-unit-test ${CMAKE_SOURCE_DIR}/deps/${CK}/src/libck.so)
 
-add_executable(memory-intergration-test EXCLUDE_FROM_ALL tests/memory/unit/tests.c deps/Unity-master/src/unity.c)
+add_executable(memory-intergration-test EXCLUDE_FROM_ALL tests/memory/unit/tests.c deps/${UNITY}/src/unity.c)
 target_link_libraries(memory-intergration-test nxconcurrent)
 target_link_libraries(memory-intergration-test nxmemory)
-target_link_libraries(memory-intergration-test ${CMAKE_SOURCE_DIR}/deps/ck-0.5.1/src/libck.so)
+target_link_libraries(memory-intergration-test ${CMAKE_SOURCE_DIR}/deps/${CK}/src/libck.so)
 
-add_executable(crypto-unit-test EXCLUDE_FROM_ALL tests/crypto/unit/tests.c deps/Unity-master/src/unity.c)
+add_executable(crypto-unit-test EXCLUDE_FROM_ALL tests/crypto/unit/tests.c deps/${UNITY}/src/unity.c)
 target_link_libraries(crypto-unit-test nxconcurrent)
 target_link_libraries(crypto-unit-test nxmemory)
 target_link_libraries(crypto-unit-test nxcrypto)
 target_link_libraries(crypto-unit-test crypto)
-target_link_libraries(crypto-unit-test ${CMAKE_SOURCE_DIR}/deps/ck-0.5.1/src/libck.so)
+target_link_libraries(crypto-unit-test ${CMAKE_SOURCE_DIR}/deps/${CK}/src/libck.so)
 
-add_executable(utils-unit-test EXCLUDE_FROM_ALL tests/utils/unit/tests.c deps/Unity-master/src/unity.c)
+add_executable(utils-unit-test EXCLUDE_FROM_ALL tests/utils/unit/tests.c deps/${UNITY}/src/unity.c)
 target_link_libraries(utils-unit-test nxconcurrent)
 target_link_libraries(utils-unit-test nxmemory)
 target_link_libraries(utils-unit-test nxutils)
 target_link_libraries(utils-unit-test nxcrypto)
 target_link_libraries(utils-unit-test crypto)
-target_link_libraries(utils-unit-test ${CMAKE_SOURCE_DIR}/deps/ck-0.5.1/src/libck.so)
+target_link_libraries(utils-unit-test ${CMAKE_SOURCE_DIR}/deps/${CK}/src/libck.so)
 
-add_executable(resource-integration-test EXCLUDE_FROM_ALL tests/resource/integration/tests.c deps/Unity-master/src/unity.c)
+add_executable(resource-integration-test EXCLUDE_FROM_ALL tests/resource/integration/tests.c deps/${UNITY}/src/unity.c)
 target_link_libraries(resource-integration-test nxnetwork)
 target_link_libraries(resource-integration-test nxconcurrent)
 target_link_libraries(resource-integration-test nxmemory)
@@ -354,8 +371,12 @@ target_link_libraries(emu-integration-test nxmemory)
 target_link_libraries(emu-integration-test nxio)
 target_link_libraries(emu-integration-test nxconcurrent)
 
+add_executable(runtime-integration-test EXCLUDE_FROM_ALL tests/runtime/integration/tests.c deps/${UNITY}/src/unity.c)
+target_link_libraries(runtime-integration-test nxruntime)
+
 add_sanitizers(emu-integration-test)
 add_sanitizers(emu-unit-test)
+add_sanitizers(runtime-integration-test)
 add_sanitizers(utils-unit-test)
 add_sanitizers(memory-unit-test)
 add_sanitizers(memory-intergration-test)
@@ -365,14 +386,18 @@ add_sanitizers(resource-integration-test)
 
 add_test(emu-integration-test emu-integration-test)
 add_test(emu-unit-test emu-unit-test)
+add_test(runtime-integration-test runtime-integration-test)
 add_test(utils-unit-test utils-unit-test)
 add_test(memory-unit-test memory-unit-test)
 add_test(memory-intergration-test memory-intergration-test)
 add_test(crypto-unit-test crypto-unit-test)
 add_test(concurrent-unit-test concurrent-unit-test)
+add_test(resource-integration-test resource-integration-test)
 
 add_dependencies(check emu-integration-test)
 add_dependencies(check emu-unit-test)
+add_dependencies(check runtime-integration-test)
+add_dependencies(check resource-integration-test)
 add_dependencies(check utils-unit-test)
 add_dependencies(check memory-intergration-test)
 add_dependencies(check memory-unit-test)

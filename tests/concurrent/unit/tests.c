@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2016, Harrison Bowden, Minneapolis, MN
- * 
+ *
  * Permission to use, copy, modify, and/or distribute this software for any purpose
- * with or without fee is hereby granted, provided that the above copyright notice 
+ * with or without fee is hereby granted, provided that the above copyright notice
  * and this permission notice appear in all copies.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH 
- * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY 
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, 
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
  * WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
@@ -27,7 +27,7 @@ struct test_obj
 
 static struct test_obj *obj;
 
-void *start_thread(void *arg)
+static void *start_thread(void *arg)
 {
 	/* We need an initialized epoch context object
 	  to initialize a thread context object. */
@@ -53,15 +53,15 @@ void *start_thread(void *arg)
 
         struct test_obj *o = atomic_load_ptr(&obj);
         atomic_add_uint32(&o->counter, 1);
-  
+
         /* End the epoch protected section. */
         epoch_stop(thread);
 	}
 
-	return (NULL);
+	  return (NULL);
 }
 
-void test_epoch_section(void)
+static void test_epoch_section(void)
 {
 	obj = mem_alloc_shared(sizeof(struct test_obj));
 	TEST_ASSERT_NOT_NULL(obj);
@@ -74,7 +74,7 @@ void test_epoch_section(void)
 	epoch_init(&epoch);
 	TEST_ASSERT_NOT_NULL(&epoch);
 
-    int32_t rtrn = 0;
+  int32_t rtrn = 0;
 	pthread_t pthread = 0;
 	rtrn = pthread_create(&pthread, NULL, start_thread, &epoch);
 	TEST_ASSERT(rtrn > -1);
@@ -93,7 +93,7 @@ void test_epoch_section(void)
 	for(i = 0; i < 100; i++)
 	{
 	    /* Start epoch protected section. */
-        int32_t rtrn = epoch_start(thread);
+        rtrn = epoch_start(thread);
         TEST_ASSERT(rtrn != -1);
 
         struct test_obj *o = atomic_load_ptr(&obj);
@@ -110,7 +110,7 @@ void test_epoch_section(void)
 	return;
 }
 
-void test_get_record(void)
+static void test_get_record(void)
 {
 	/* We need an initialized epoch context object
 	  to initialize a thread context object. */
@@ -130,7 +130,7 @@ void test_get_record(void)
 	return;
 }
 
-void test_thread_init(void)
+static void test_thread_init(void)
 {
 	/* We need an initialized epoch context object
 	  to initialize a thread context object. */
@@ -148,9 +148,9 @@ void test_thread_init(void)
 
 int main(void)
 {
-	test_thread_init();
-	test_get_record();
-	test_epoch_section();
-	
+	  test_thread_init();
+	  test_get_record();
+	  test_epoch_section();
+
     return (0);
 }
