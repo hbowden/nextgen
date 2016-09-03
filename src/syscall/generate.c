@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
- * 
+ *
  * Permission to use, copy, modify, and/or distribute this software for any purpose
- * with or without fee is hereby granted, provided that the above copyright notice 
+ * with or without fee is hereby granted, provided that the above copyright notice
  * and this permission notice appear in all copies.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH 
- * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY 
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, 
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
  * WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
@@ -66,6 +66,8 @@ int32_t generate_fd(uint64_t **fd, struct child_ctx *child)
     }
 
     memmove((*fd), &desc, sizeof(int32_t));
+
+    //printf("OG_DESC: %d\n", (int32_t)(**fd));
 
     /* Set the argument size. */
     set_arg_size(child, sizeof(int32_t));
@@ -207,6 +209,8 @@ int32_t generate_path(uint64_t **path, struct child_ctx *child)
         output(ERROR, "Can't get file path\n");
         return (-1);
     }
+
+    //printf("OG_PATH: %s\n", (char *)(**path));
 
     set_arg_size(child, strlen((char *)(*path)));
 
@@ -668,182 +672,6 @@ int32_t generate_dirpath(uint64_t **dirpath, struct child_ctx *child)
     }
 
     set_arg_size(child, strlen((char *)(*dirpath)));
-
-    return (0);
-}
-
-int32_t generate_mount_flags(uint64_t **flag, struct child_ctx *child)
-{
-    int32_t rtrn = 0;
-    uint32_t number = 0;
-
-#ifdef MAC_OSX
-
-    int32_t flags[] = {MNT_RDONLY, MNT_NOEXEC,      MNT_NOSUID,  MNT_NODEV,
-                       MNT_UNION,  MNT_SYNCHRONOUS, MNT_CPROTECT};
-
-    uint32_t range = 7;
-
-#endif
-#ifdef FREEBSD
-
-    int32_t flags[] = {MNT_RDONLY, MNT_NOEXEC, MNT_NOSUID, MNT_UNION,
-                       MNT_SYNCHRONOUS};
-
-    uint32_t range = 5;
-
-#endif
-#ifdef LINUX
-
-    int32_t flags[] = {MS_BIND, MS_DIRSYNC, MS_MANDLOCK,
-                       MS_MOVE, MS_NOATIME, MS_NODEV,
-                       MS_NODIRATIME, MS_NOEXEC, MS_NOSUID,
-                       MS_RDONLY, MS_RELATIME, MS_REMOUNT, 
-                       MS_REMOUNT, MS_SILENT};
-
-    uint32_t range = 14;
-
-#endif
-    (*flag) = mem_alloc(sizeof(int32_t));
-    if((*flag) == NULL)
-    {
-        output(ERROR, "Can't alloc mount flags\n");
-        return (-1);
-    }
-
-    rtrn = rand_range(range, &number);
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't generate random number\n");
-        return (-1);
-    }
-
-    /* Copy randomly chosen flag value to flag buffer. */
-    memcpy((*flag), &flags[number], sizeof(int32_t));
-
-    /* Set argument size. */
-    set_arg_size(child, sizeof(int32_t));
-
-    return (0);
-}
-
-int32_t generate_unmount_flags(uint64_t **flag, struct child_ctx *child)
-{
-    int32_t rtrn = 0;
-    uint32_t number = 0;
-
-#ifdef MAC_OSX
-
-    int32_t flags[] = {MNT_RDONLY, MNT_NOEXEC,      MNT_NOSUID,  MNT_NODEV,
-                       MNT_UNION,  MNT_SYNCHRONOUS, MNT_CPROTECT};
-
-    uint32_t range = 7;
-
-#endif
-#ifdef FREEBSD
-
-    int32_t flags[] = {MNT_RDONLY, MNT_NOEXEC, MNT_NOSUID, MNT_UNION,
-                       MNT_SYNCHRONOUS};
-
-    uint32_t range = 5;
-
-#endif
-#ifdef LINUX
-
-    int32_t flags[] = {MS_BIND, MS_DIRSYNC, MS_MANDLOCK,
-                       MS_MOVE, MS_NOATIME, MS_NODEV,
-                       MS_NODIRATIME, MS_NOEXEC, MS_NOSUID,
-                       MS_RDONLY, MS_RELATIME, MS_REMOUNT, 
-                       MS_REMOUNT, MS_SILENT};
-
-    uint32_t range = 14;
-
-#endif
-
-    (*flag) = mem_alloc(sizeof(uint64_t));
-    if((*flag) == NULL)
-    {
-        output(ERROR, "Can't alloc mount flags\n");
-        return (-1);
-    }
-
-    rtrn = rand_range(range, &number);
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't generate random number\n");
-        return (-1);
-    }
-
-    /* Copy randomly chosen flag value to flag buffer. */
-    memcpy((*flag), &flags[number], sizeof(flags[number]));
-
-    /* Set arg size. */
-    set_arg_size(child, sizeof(int32_t));
-
-    return (0);
-}
-
-int32_t generate_request(uint64_t **flag, struct child_ctx *child)
-{
-    int32_t rtrn = 0;
-    uint32_t number = 0;
-
-#ifdef MAC_OSX
-
-    int32_t request[] = {PT_TRACE_ME, PT_DENY_ATTACH, PT_CONTINUE,  PT_STEP,
-                         PT_KILL,     PT_ATTACH,      PT_ATTACHEXC, PT_DETACH};
-
-    uint32_t range = 7;
-
-#endif
-#ifdef FREEBSD
-
-    int32_t request[] = {
-        PT_TRACE_ME,   PT_READ_I,      PT_WRITE_I,      PT_IO,
-        PT_CONTINUE,   PT_STEP,        PT_KILL,         PT_ATTACH,
-        PT_DETACH,     PT_GETREGS,     PT_SETREGS,      PT_GETFPREGS,
-        PT_SETFPREGS,  PT_GETDBREGS,   PT_SETDBREGS,    PT_LWPINFO,
-        PT_GETNUMLWPS, PT_GETLWPLIST,  PT_SETSTEP,      PT_CLEARSTEP,
-        PT_SUSPEND,    PT_RESUME,      PT_TO_SCE,       PT_TO_SCX,
-        PT_SYSCALL,    PT_FOLLOW_FORK, PT_VM_TIMESTAMP, PT_VM_ENTRY
-    };
-
-    uint32_t range = 28;
-
-#endif
-#ifdef LINUX
-
-    int32_t request[] = {
-        PTRACE_TRACEME, PTRACE_PEEKTEXT,
-        PTRACE_PEEKDATA, PTRACE_PEEKUSER,
-        PTRACE_POKETEXT, PTRACE_POKEDATA,
-        PTRACE_POKEUSER, PTRACE_GETREGS,
-        PTRACE_GETFPREGS, PTRACE_GETREGSET,
-        PTRACE_SETREGS, PTRACE_SETFPREGS,
-        PTRACE_SETREGSET, PTRACE_GETSIGINFO,
-        PTRACE_PEEKSIGINFO, PTRACE_SETOPTIONS,
-    };
-
-    int32_t range = 16;
-#endif
-
-    (*flag) = mem_alloc(sizeof(int32_t));
-    if((*flag) == NULL)
-    {
-        output(ERROR, "Can't alloc mount flags\n");
-        return (-1);
-    }
-
-    rtrn = rand_range(range, &number);
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't generate random number\n");
-        return (-1);
-    }
-
-    memcpy((*flag), &request[number], sizeof(int32_t));
-
-    set_arg_size(child, sizeof(int32_t));
 
     return (0);
 }

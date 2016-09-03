@@ -897,7 +897,7 @@ static int32_t create_child(struct thread_ctx *thread)
             atomic_add_uint32(&state->running_children, 1);
 
             /* Let the parent process know it's safe to continue. */
-            size_t ret = write(fd[1], "!", 1);
+            ssize_t ret = write(fd[1], "!", 1);
             if(ret < 1)
             {
                 output(ERROR, "Write: %s\n", strerror(errno));
@@ -912,7 +912,7 @@ static int32_t create_child(struct thread_ctx *thread)
             char *buf[1] = {0};
 
             /* Wait for a byte from the child saying it's safe to return. */
-            size_t ret = read(fd[0], buf, 1);
+            ssize_t ret = read(fd[0], buf, 1);
             if(ret < 1)
             {
                 output(ERROR, "Read: %s\n", strerror(errno));

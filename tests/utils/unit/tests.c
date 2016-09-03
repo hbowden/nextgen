@@ -1,14 +1,14 @@
 /*
  * Copyright (c) 2016, Harrison Bowden, Minneapolis, MN
- * 
+ *
  * Permission to use, copy, modify, and/or distribute this software for any purpose
- * with or without fee is hereby granted, provided that the above copyright notice 
+ * with or without fee is hereby granted, provided that the above copyright notice
  * and this permission notice appear in all copies.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH 
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
  * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY å
  * AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, 
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
  * WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
@@ -70,13 +70,13 @@ static void test_delete_directory(void)
     {
         uint64_t size = 0;
         char *path auto_free = NULL;
-       
+
         /* Create random file. */
         rtrn = create_random_file(dir, ".txt", &path, &size);
         TEST_ASSERT(rtrn == 0);
     }
 
-    /* Now that were done setting up a test directory let's start 
+    /* Now that were done setting up a test directory let's start
     testing delete_directory(). Pass a NULL path and make sure delete_directory
     returns an error. */
     char *dir_path = NULL;
@@ -200,7 +200,7 @@ static void test_ascii_to_binary(void)
         TEST_ASSERT(strncmp(binary_array[i], binary_string, 8) == 0);
         mem_free((void **)&binary_string);
     }
-    
+
     return;
 }
 
@@ -245,7 +245,7 @@ static void test_get_extension(void)
         TEST_ASSERT(extension != NULL);
         TEST_ASSERT(strncmp(extension, ext[i], size_array[i]) == 0);
 
-        mem_free((void **)&path);   
+        mem_free((void **)&path);
     }
 
     return;
@@ -261,7 +261,7 @@ int main(void)
     If we don't clear the contents some test may fail. */
     delete_dir_contents("/tmp");
 
-	test_check_root();
+	  test_check_root();
     test_get_file_size();
     test_get_core_count();
     test_get_extension();
