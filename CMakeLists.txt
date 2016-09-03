@@ -320,6 +320,7 @@ add_executable(concurrent-unit-test EXCLUDE_FROM_ALL tests/concurrent/unit/tests
 target_link_libraries(concurrent-unit-test nxconcurrent)
 target_link_libraries(concurrent-unit-test nxmemory)
 target_link_libraries(concurrent-unit-test ${CMAKE_SOURCE_DIR}/deps/${CK}/src/libck.so)
+target_link_libraries(concurrent-unit-test pthread)
 
 add_executable(memory-unit-test EXCLUDE_FROM_ALL tests/memory/unit/tests.c deps/${UNITY}/src/unity.c)
 target_link_libraries(memory-unit-test nxconcurrent)
