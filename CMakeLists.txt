@@ -146,7 +146,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -fstack-protector-all -fno-strict-aliasing -Werror -Wno-unknown-warning-option -Wno-used-but-marked-unused -Wno-padded")
 
     # Ignore some objective-c specific warnings.
-    set(OBJC_IGNORE_FLAGS "${CMAKE_C_FLAGS} -Wno-direct-ivar-access -Wno-objc-interface-ivars")
+    set(OBJC_IGNORE_FLAGS "${CMAKE_C_FLAGS} -Wno-direct-ivar-access -Wno-objc-interface-ivars -Wno-unused-parameter")
     set_source_files_properties(src/objc/AppDelegate.m PROPERTIES COMPILE_FLAGS ${OBJC_IGNORE_FLAGS})
     set_source_files_properties(src/objc/AppDelegate.h PROPERTIES COMPILE_FLAGS ${OBJC_IGNORE_FLAGS})
     set_source_files_properties(src/objc/objc-utils.m PROPERTIES COMPILE_FLAGS ${OBJC_IGNORE_FLAGS})
