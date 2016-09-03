@@ -1,4 +1,6 @@
 
+# License
+
 Most of the code is licensed under the ISC license below. 
 However some files are licensed differently, but they are all Permissive licenses.
 
@@ -20,14 +22,17 @@ However some files are licensed differently, but they are all Permissive license
     
 ```
  
- The file SetProccessName.c is under the Chromium project license shown below.
+ The file src/utils/set_proccess_name.c is under the Chromium project license shown below.
  
+```
 // Copyright (c) 2011 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+```
 
 Capstone a nextgen dependency is licensed under the BSD license shown below.
 
+```
 /*
  * Capstone has been designed & implemented by Nguyen Anh Quynh <aquynh@gmail.com>
  *
@@ -60,9 +65,11 @@ Capstone a nextgen dependency is licensed under the BSD license shown below.
  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
-
+ */
+```
 Concurrencykit, another dependacy of nextgen license is shown below.
 
+```
 Copyright 2010-2014 Samy Al Bahra.
 Copyright 2011-2013 AppNexus, Inc.
 All rights reserved.
@@ -87,9 +94,11 @@ HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
 LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
 OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 SUCH DAMAGE.
+```
 
 Hazard Pointers (src/ck_hp.c) also includes this license:
 
+```
 (c) Copyright 2008, IBM Corporation.
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -117,8 +126,11 @@ THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR IMPLIED
 WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 
+```
+
 Finnaly Libressl uses a combination of the ISC license and the two licenses shown below.
 
+```
 
   OpenSSL License
   ---------------
@@ -236,3 +248,5 @@ Finnaly Libressl uses a combination of the ISC license and the two licenses show
  * copied and put under another distribution licence
  * [including the GNU Public Licence.]
  */
+ 
+ ```
