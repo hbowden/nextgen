@@ -16,5 +16,5 @@
  # This file is run before installing nextgen on travis-ci.
  # Use this file to do whatever setup we want before the install.
 
-brew update && brew outdated automake || brew upgrade automake && \\
+brew update && brew outdated automake || brew upgrade automake;
 brew install lcov && brew outdated lcov || brew upgrade lcov;
