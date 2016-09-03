@@ -148,6 +148,8 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     # Ignore some objective-c specific warnings.
     set(OBJC_IGNORE_FLAGS "${CMAKE_C_FLAGS} -Wno-direct-ivar-access -Wno-objc-interface-ivars")
     set_source_files_properties(src/objc/AppDelegate.m PROPERTIES COMPILE_FLAGS ${OBJC_IGNORE_FLAGS})
+    set_source_files_properties(src/objc/AppDelegate.h PROPERTIES COMPILE_FLAGS ${OBJC_IGNORE_FLAGS})
+    set_source_files_properties(src/objc/objc-utils.m PROPERTIES COMPILE_FLAGS ${OBJC_IGNORE_FLAGS})
 
     FIND_LIBRARY(CARBON Carbon)
     FIND_LIBRARY(CORE_FOUNDATION CoreFoundation)
