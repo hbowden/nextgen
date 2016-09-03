@@ -14,7 +14,7 @@ before_install:
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then chmod u+x tools/ci-macos-before-install.sh && ./tools/ci-macos-before-install.sh; fi
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ./get-aclocal.sh && pip install --user cpp-coveralls && sudo apt-get install lcov; fi
 script:
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then chmod u+x setup.sh && ./setup.sh && mkdir build && cd build && cmake ../ && make; fi
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then chmod u+x setup.sh && ./setup.sh && mkdir build && cd build && cmake ../ && make; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then chmod u+x setup.sh && ./setup.sh && mkdir build && cd build && cmake ../ && make && make check; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then chmod u+x setup.sh && ./setup.sh && mkdir build && cd build && cmake ../ && make && make check; fi
 after_success:
    - if [ "$TRAVIS_OS_NAME" == "linux" ]; then coveralls --exclude lib --exclude tests --gcov-options '\-lp'; fi
