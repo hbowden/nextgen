@@ -485,8 +485,6 @@ int32_t free_desc(int32_t *fd)
         return (-1);
     }
 
-    printf("desc: %d\n", (*fd));
-
     return (free_desc_interface(fd));
 }
 
@@ -823,19 +821,11 @@ static struct mem_pool_shared *create_dirpath_pool(char *path)
     return (pool);
 }
 
-static int32_t clean_file_pool(struct mem_pool_shared *pool)
+static int32_t clean_allocated_file_list(struct mem_pool_shared *pool)
 {
     int32_t rtrn = 0;
+
     struct memory_block *m_blk = NULL;
-
-    if(pool == NULL)
-    {
-        output(ERROR, "File pool already clean\n");
-        return (-1);
-    }
-
-    /* Lock the spinlock. */
-    nx_spinlock_lock(&pool->lock);
 
     /* Loop and grab all the file paths in the allocated list. */
     NX_SLIST_FOREACH(m_blk, &pool->allocated_list)
@@ -854,7 +844,19 @@ static int32_t clean_file_pool(struct mem_pool_shared *pool)
         mem_free_shared((void **)&m_blk, sizeof(struct memory_block));
     }
 
-    /* Now check the free list for any resource blocks. */
+    return (0);
+}
+
+/*static int32_t clean_free_file_list(struct mem_pool_shared *pool)
+{
+    int32_t rtrn = 0;
+
+    struct memory_block *m_blk = NULL;
+
+    printf("pool: %p\n", (void *)pool);
+    printf("free_list: %p\n", (void *)&pool->free_list);
+    printf("allocated_list: %p\n", (void *)&pool->allocated_list);
+
     NX_SLIST_FOREACH(m_blk, &pool->free_list)
     {
         struct resource_ctx *resource = (struct resource_ctx *)m_blk->ptr;
@@ -870,6 +872,42 @@ static int32_t clean_file_pool(struct mem_pool_shared *pool)
         mem_free_shared((void **)&m_blk->ptr, sizeof(struct resource_ctx));
         mem_free_shared((void **)&m_blk, sizeof(struct memory_block));
     }
+
+    return (0);
+} */
+
+static int32_t clean_file_pool(struct mem_pool_shared *pool)
+{
+    int32_t rtrn = 0;
+
+    if(pool == NULL)
+    {
+        output(ERROR, "File pool already clean\n");
+        return (-1);
+    }
+
+    /* Lock the spinlock. */
+    nx_spinlock_lock(&pool->lock);
+
+    if(CK_SLIST_EMPTY(&pool->allocated_list) != TRUE)
+    {
+        rtrn = clean_allocated_file_list(pool);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't clean allocated file list\n");
+            return (-1);
+        }
+    }
+
+    /*if(CK_SLIST_EMPTY(&pool->free_list) != TRUE)
+    {
+        rtrn = clean_free_file_list(pool);
+        if(rtrn < 0)
+        {
+            output(ERROR, "Can't clean free file list\n");
+            return (-1);
+        }
+    } */
 
     nx_spinlock_unlock(&pool->lock);
 
@@ -931,7 +969,7 @@ static struct mem_pool_shared *create_socket_pool(void)
     return (pool);
 }
 
-int32_t cleanup_resource_pool(void)
+static int32_t cleanup_resource_pools(void)
 {
     int32_t rtrn = 0;
 
@@ -941,6 +979,23 @@ int32_t cleanup_resource_pool(void)
         output(ERROR, "Can't clean file pool\n");
         return (-1);
     }
+
+    return (0);
+}
+
+int32_t cleanup_resource_module(void)
+{
+    int32_t rtrn = 0;
+
+    rtrn = cleanup_resource_pools();
+    if(rtrn < 0)
+    {
+        output(ERROR, "Failed to clean resource pools\n");
+        return (0);
+    }
+
+    /* Set setup back to zero to signify the module is not setup. */
+    setup = 0;
 
     return (0);
 }
