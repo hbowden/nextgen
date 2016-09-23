@@ -251,6 +251,24 @@ static void test_get_extension(void)
     return;
 }
 
+static void test_create_random_directory(void)
+{
+    struct stat sb;
+    int32_t rtrn = 0;
+    char *path = NULL;
+    rtrn = create_random_directory("/tmp", &path);
+    TEST_ASSERT(rtrn == 0);
+    TEST_ASSERT_NOT_NULL(path);
+
+    rtrn = stat(path, &sb);
+    TEST_ASSERT(rtrn == 0);
+    TEST_ASSERT(sb.st_mode & S_IFDIR);
+
+    /* A second call to create_random_directory */
+
+    return;
+}
+
 int main(void)
 {
     /* We have to setup the crypto module before using
@@ -267,6 +285,7 @@ int main(void)
     test_get_extension();
     test_ascii_to_binary();
     test_delete_directory();
+    test_create_random_directory();
     delete_dir_contents("/tmp");
 
     _exit(0);
