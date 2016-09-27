@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
- * 
+ *
  * Permission to use, copy, modify, and/or distribute this software for any purpose
- * with or without fee is hereby granted, provided that the above copyright notice 
+ * with or without fee is hereby granted, provided that the above copyright notice
  * and this permission notice appear in all copies.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH 
- * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY 
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, 
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
  * WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
@@ -270,7 +270,7 @@ int32_t ascii_to_binary(char *input, char **out, uint64_t input_len,
         return (-1);
     }
 
-    /* Calculate the output string length. 
+    /* Calculate the output string length.
      Should probably be switched to equivalent division. */
     (*out_len) = input_len * 8;
 
@@ -437,7 +437,7 @@ int32_t delete_dir_contents(char *dir)
     FTSENT *f;
     int32_t rtrn = 0;
     char *argv[] = { dir, NULL };
- 
+
     tree = fts_open(argv, FTS_LOGICAL | FTS_NOSTAT, entcmp);
     if(tree == NULL)
     {
@@ -445,7 +445,7 @@ int32_t delete_dir_contents(char *dir)
         return (-1);
     }
 
-    while((f = fts_read(tree))) 
+    while((f = fts_read(tree)))
     {
         switch(f->fts_info)
         {
@@ -457,7 +457,7 @@ int32_t delete_dir_contents(char *dir)
 
         if(strcmp(f->fts_path, dir) == 0)
             continue;
-        
+
         struct stat sb;
 
         rtrn = stat(f->fts_path, &sb);
@@ -484,7 +484,7 @@ int32_t delete_dir_contents(char *dir)
             }
         }
     }
- 
+
     rtrn = fts_close(tree);
     if(rtrn < 0)
     {
@@ -539,7 +539,7 @@ int32_t delete_directory(char *path)
         output(ERROR, "Can't remove directory: %s\n", strerror(errno));
         return (-1);
     }
- 
+
     return (0);
 }
 
@@ -605,8 +605,29 @@ int32_t count_files_directory(uint32_t *count, char *dir)
 
 int32_t create_random_directory(char *root, char **path)
 {
-    (void)root;
-    (void)path;
-    
-    return (-1);
+    int32_t rtrn = 0;
+    char *name = NULL;
+
+    rtrn = generate_name(&name, NULL, DIR_NAME);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Failed to generate directory name\n");
+        return (-1);
+    }
+
+    rtrn = asprintf(path, "%s/%s", root, name);
+    if(rtrn < 0)
+    {
+        output(ERROR, "String concatenation failed\n");
+        return (-1);
+    }
+
+    rtrn = mkdir((*path), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    if(rtrn < 0)
+    {
+        output(ERROR, "Directory creation failed: %s\n", strerror(errno));
+        return (-1);
+    }
+
+    return (0);
 }

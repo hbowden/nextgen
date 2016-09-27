@@ -19,6 +19,8 @@ find_package(Sanitizers)
 # Include the lcov cmake module so we can generate code coverage reports.
 INCLUDE(CodeCoverage)
 
+SET(CMAKE_C_FLAGS "-g -O0 -fprofile-arcs -ftest-coverage")
+
 # Turn on coverage for debug builds.
 SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
 
@@ -32,9 +34,11 @@ set(GENERATE_IGNORE_WARNINGS "-Wno-deprecated-declarations -Wno-cast-align")
 set_source_files_properties(src/syscall/generate.c PROPERTIES COMPILE_FLAGS ${GENERATE_IGNORE_WARNINGS})
 set_source_files_properties(src/syscall/generate-macos.c PROPERTIES COMPILE_FLAGS ${GENERATE_IGNORE_WARNINGS})
 
+SET(SET_TEST_IGNORE_FLAGS "-Wno-deprecated-declarations -Wno-unused-function")
+
 set_source_files_properties(src/io/io.c PROPERTIES COMPILE_FLAGS -Wno-format-nonliteral)
 set_source_files_properties(src/plugins/plugin.c PROPERTIES COMPILE_FLAGS -Wno-cast-qual)
-set_source_files_properties(src/syscall/set_test.c PROPERTIES COMPILE_FLAGS -Wno-unused-function)
+set_source_files_properties(src/syscall/set_test.c PROPERTIES COMPILE_FLAGS ${SET_TEST_IGNORE_FLAGS})
 set_source_files_properties(src/file/file.c PROPERTIES COMPILE_FLAGS -Wno-cast-qual)
 set_source_files_properties(src/probe/probe-freebsd.c PROPERTIES COMPILE_FLAGS -Wno-incompatible-pointer-types-discards-qualifiers)
 set_source_files_properties(src/runtime/runtime.c PROPERTIES COMPILE_FLAGS -Wno-incompatible-pointer-types-discards-qualifiers)
@@ -80,8 +84,8 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     # We need this to conditionally compile freebsd only sources.
     add_definitions(-DFREEBSD)
 
-    SET( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Weverything -std=c11 -Wno-documentation")
-    SET( CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -Weverything -std=c11")
+    SET( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Weverything -std=c11 -Wno-covered-switch-default")
+    SET( CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -Weverything -std=c11 -Wno-covered-switch-default")
 
     add_library(nxutils SHARED src/utils/utils.c src/utils/reallocarray.c)
 
@@ -133,8 +137,8 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     # We need this to conditionally compile macOS only sources.
     add_definitions(-DMAC_OS)
 
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Weverything -std=c11 -Wno-documentation")
-    SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -Weverything -std=c11")
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Weverything -std=c11 -Wno-covered-switch-default -Wno-switch-enum")
+    SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -Weverything -std=c11 -Wno-covered-switch-default  -Wno-switch-enum")
 
     SET(UTILS_IGNORE_FLAGS "-Wno-reserved-id-macro -Wno-unused-macros")
     set_source_files_properties(src/utils/utils.c PROPERTIES COMPILE_FLAGS ${UTILS_IGNORE_FLAGS})
@@ -327,6 +331,7 @@ add_executable(concurrent-unit-test EXCLUDE_FROM_ALL tests/concurrent/unit/tests
 target_link_libraries(concurrent-unit-test nxconcurrent)
 target_link_libraries(concurrent-unit-test nxmemory)
 target_link_libraries(concurrent-unit-test ${CMAKE_SOURCE_DIR}/deps/${CK}/src/libck.so)
+target_link_libraries(concurrent-unit-test pthread)
 
 add_executable(memory-unit-test EXCLUDE_FROM_ALL tests/memory/unit/tests.c deps/${UNITY}/src/unity.c)
 target_link_libraries(memory-unit-test nxconcurrent)
@@ -386,18 +391,18 @@ add_sanitizers(resource-integration-test)
 
 add_test(emu-integration-test emu-integration-test)
 add_test(emu-unit-test emu-unit-test)
+add_test(resource-integration-test resource-integration-test)
 add_test(runtime-integration-test runtime-integration-test)
 add_test(utils-unit-test utils-unit-test)
 add_test(memory-unit-test memory-unit-test)
 add_test(memory-intergration-test memory-intergration-test)
 add_test(crypto-unit-test crypto-unit-test)
 add_test(concurrent-unit-test concurrent-unit-test)
-add_test(resource-integration-test resource-integration-test)
 
 add_dependencies(check emu-integration-test)
 add_dependencies(check emu-unit-test)
-add_dependencies(check runtime-integration-test)
 add_dependencies(check resource-integration-test)
+add_dependencies(check runtime-integration-test)
 add_dependencies(check utils-unit-test)
 add_dependencies(check memory-intergration-test)
 add_dependencies(check memory-unit-test)
