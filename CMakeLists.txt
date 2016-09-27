@@ -19,6 +19,8 @@ find_package(Sanitizers)
 # Include the lcov cmake module so we can generate code coverage reports.
 INCLUDE(CodeCoverage)
 
+SET(CMAKE_C_FLAGS "-g -O0 -fprofile-arcs -ftest-coverage")
+
 # Turn on coverage for debug builds.
 SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
 
