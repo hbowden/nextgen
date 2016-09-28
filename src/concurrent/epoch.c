@@ -20,13 +20,13 @@
 
 struct thread_ctx
 {
-	epoch_record *record;
+	  epoch_record *record;
 
-	epoch_section **section;
+	  epoch_section **section;
 
-	uint32_t section_count;
+	  uint32_t section_count;
 
-	uint32_t buf_size;
+    uint32_t buf_size;
 };
 
 struct thread_ctx *init_thread(epoch_ctx *epoch)
