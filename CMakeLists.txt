@@ -200,6 +200,10 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
     add_library(nxruntime SHARED src/runtime/runtime.c src/runtime/nextgen.c)
 
+    set_source_files_properties(src/emu/emu.c PROPERTIES COMPILE_FLAGS -Wno-documentation)
+    set_source_files_properties(src/emu/emu-macos.c PROPERTIES COMPILE_FLAGS -Wno-documentation)
+    set_source_files_properties(tests/emu/integration/tests.c PROPERTIES COMPILE_FLAGS -Wno-documentation)
+    set_source_files_properties(tests/emu/unit/tests.c PROPERTIES COMPILE_FLAGS -Wno-documentation)
     add_library(nxemu SHARED src/emu/emu.c src/emu/emu-macos.c)
 
     add_executable(nextgen src/main.m)
@@ -366,12 +370,12 @@ target_link_libraries(resource-integration-test nxutils)
 target_link_libraries(resource-integration-test nxcrypto)
 target_link_libraries(resource-integration-test crypto)
 
-add_executable(emu-unit-test EXCLUDE_FROM_ALL tests/emu/unit/tests.c deps/Unity-master/src/unity.c)
+add_executable(emu-unit-test EXCLUDE_FROM_ALL tests/emu/unit/tests.c deps/${UNITY}/src/unity.c)
 target_link_libraries(emu-unit-test nxmemory)
 target_link_libraries(emu-unit-test nxio)
 target_link_libraries(emu-unit-test nxconcurrent)
 
-add_executable(emu-integration-test EXCLUDE_FROM_ALL tests/emu/integration/tests.c deps/Unity-master/src/unity.c)
+add_executable(emu-integration-test EXCLUDE_FROM_ALL tests/emu/integration/tests.c deps/${UNITY}/src/unity.c)
 target_link_libraries(emu-integration-test nxmemory)
 target_link_libraries(emu-integration-test nxio)
 target_link_libraries(emu-integration-test nxconcurrent)
