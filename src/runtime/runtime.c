@@ -279,7 +279,7 @@ static int32_t setup_syscall_mode_runtime(void)
     rtrn = setup_log_module(map->output_path, total_syscalls);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't setup the logging module: %s\n");
+        output(ERROR, "Can't setup the logging module\n");
         return (-1);
     }
 
