@@ -19,8 +19,6 @@ find_package(Sanitizers)
 # Include the lcov cmake module so we can generate code coverage reports.
 INCLUDE(CodeCoverage)
 
-SET(CMAKE_C_FLAGS "-g -O0 -fprofile-arcs -ftest-coverage")
-
 # Turn on coverage for debug builds.
 SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
 
@@ -64,11 +62,11 @@ endif()
 # Set include directories so we can find headers.
 include_directories(src)
 include_directories(SYSTEM deps/sqlite)
-include_directories(SYSTEM deps/libressl-2.4.2/include)
+include_directories(SYSTEM deps/libressl-2.5.0/include)
 include_directories(SYSTEM deps/${CK}/include)
 include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/deps/capstone-3.0.4/include SYSTEM)
 
-link_directories(${CMAKE_SOURCE_DIR}/deps/libressl-2.4.2/crypto/.libs)
+link_directories(${CMAKE_SOURCE_DIR}/deps/libressl-2.5.0/crypto/.libs)
 link_directories(${CMAKE_SOURCE_DIR}/deps/sqlite)
 link_directories(${CMAKE_SOURCE_DIR}/deps/${CK}/src)
 link_directories(${CMAKE_SOURCE_DIR}/deps/capstone-3.0.4)
