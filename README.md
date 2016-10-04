@@ -1,5 +1,5 @@
 # nextgen
-A Genetic File, Sycall and Network Fuzzer for Unix systems.
+A Genetic File, Syscall and Network Fuzzer for Unix systems.
 
 <a href="https://scan.coverity.com/projects/2trill2spill-nextgen">
   <img alt="Coverity Scan Build Status"
@@ -69,7 +69,7 @@ Finally use `make` or `gmake` to build `nextgen`.
 
 # Build-Linux
 
-To build nextgen on `Linux` you will first need to install `aclocal-1.15`. If your distributions packgage manager dosen't
+To build nextgen on `Linux` you will first need to install `aclocal-1.15`. If your distributions packgage manager doesn't
 have `aclocal-1.15`, the easiest way to get it is to run the get-aclocal script that comes packaged with nextgen. This script
 needs to be run with root privileges and installs the `automake-1.15` package to `/usr/local/bin/` and includes `aclocal-1.15`.
 
@@ -99,7 +99,7 @@ On some distributions of `Linux` such as ubuntu you will have to raise the ulimi
 
 Finally after building nextgen for your platform you can install nextgen with `sudo make install`. This will install the required dynamic libraries built earlier.
 
-To run nextgen use the binary in the nextgen directory, if you run nextgen outside it's directory, nextgen won't find it's plugin directory. This limitation will be fixed later.
+To run nextgen use the binary in the nextgen directory, if you run nextgen outside its directory, nextgen won't find its plugin directory. This limitation will be fixed later.
 
 # Documentation
 
