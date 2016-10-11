@@ -12,6 +12,7 @@
 *.la
 *.deps
 *.libs
+*.gch
 
 # Packages #
 ############
