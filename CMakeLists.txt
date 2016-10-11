@@ -118,7 +118,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     add_library(nxdisas SHARED src/disas/disas.c src/disas/disas-freebsd.c)
     target_link_libraries(nxdisas ${CMAKE_SOURCE_DIR}/deps/capstone-3.0.4/libcapstone.so)
 
-    add_library(nxruntime SHARED src/runtime/runtime.c src/runtime/nextgen.c)
+    add_library(nxruntime SHARED src/runtime/runtime.c src/runtime/fuzzer-syscall.c src/runtime/nextgen.c)
 
     add_executable(nextgen src/main.c)
     target_link_libraries(nextgen dtrace)
@@ -196,7 +196,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     target_link_libraries(nxfile objc)
     target_link_libraries(nxdisas ${CMAKE_SOURCE_DIR}/deps/capstone-3.0.4/libcapstone.dylib)
 
-    add_library(nxruntime SHARED src/runtime/runtime.c src/runtime/nextgen.c)
+    add_library(nxruntime SHARED src/runtime/runtime.c src/runtime/fuzzer-syscall.c src/runtime/nextgen.c)
 
     set_source_files_properties(src/emu/emu.c PROPERTIES COMPILE_FLAGS -Wno-documentation)
     set_source_files_properties(src/emu/emu-macos.c PROPERTIES COMPILE_FLAGS -Wno-documentation)
@@ -235,7 +235,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     add_library(nxdisas SHARED src/disas/disas.c src/disas/disas-linux.c)
     target_link_libraries(nxdisas ${CMAKE_SOURCE_DIR}/deps/capstone-3.0.4/libcapstone.so)
 
-    add_library(nxruntime SHARED src/runtime/runtime.c src/runtime/nextgen.c)
+    add_library(nxruntime SHARED src/runtime/runtime.c src/runtime/fuzzer-syscall.c src/runtime/nextgen.c)
     target_link_libraries(nxruntime pthread)
 
     add_executable(nextgen src/main.c)

@@ -137,7 +137,7 @@ FUNCTION(SETUP_TARGET_FOR_COVERAGE _targetname _testrunner _outputname)
 
 	SET(coverage_info "${CMAKE_BINARY_DIR}/${_outputname}.info")
 	SET(coverage_cleaned "${coverage_info}.cleaned")
-  
+
 	SEPARATE_ARGUMENTS(test_command UNIX_COMMAND "${_testrunner}")
 
 	# Setup target
