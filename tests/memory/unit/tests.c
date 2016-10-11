@@ -140,6 +140,20 @@ static void test_mem_alloc_shared(void)
     return;
 }
 
+static void test_default_memory_allocator(void)
+{
+    struct memory_allocator *allocator = NULL;
+    allocator = get_default_allocator();
+    TEST_ASSERT_NOT_NULL(allocator);
+    TEST_ASSERT_NOT_NULL(&allocator->alloc);
+
+    void *buf = allocator->alloc(100);
+    TEST_ASSERT_NOT_NULL(buf);
+
+    void *buf2 = allocator->alloc(0);
+    TEST_ASSERT_NULL(buf2);
+}
+
 int main(void)
 {
     test_mem_alloc_shared();
@@ -147,6 +161,7 @@ int main(void)
     test_mem_alloc();
     test_mem_free();
     test_mem_calloc();
+    test_default_memory_allocator();
 
 	return (0);
 }

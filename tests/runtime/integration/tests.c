@@ -14,7 +14,29 @@
  */
 
 #include "runtime/runtime.h"
+#include "runtime/fuzzer.h"
+#include "memory/memory.h"
+#include "io/io.h"
 #include "unity.h"
+
+static void test_get_syscall_fuzzer(void)
+{
+    int32_t rtrn = 0;
+    struct fuzzer_instance *fuzzer = NULL;
+    struct output_writter *output = get_console_writter();
+    struct memory_allocator *allocator = get_default_allocator();
+
+    fuzzer = get_syscall_fuzzer(allocator, output);
+    TEST_ASSERT_NOT_NULL(fuzzer);
+    TEST_ASSERT_NOT_NULL(fuzzer->setup);
+    TEST_ASSERT_NOT_NULL(fuzzer->start);
+    TEST_ASSERT_NOT_NULL(fuzzer->stop);
+
+    rtrn = fuzzer->setup();
+    TEST_ASSERT(rtrn == 0);
+
+    return;
+}
 
 static void test_get_os(void)
 {
@@ -27,6 +49,7 @@ static void test_get_os(void)
 int main(void)
 {
     test_get_os();
+    test_get_syscall_fuzzer();
 
     return (0);
 }

@@ -20,122 +20,122 @@
 
 #include <pthread.h>
 
-static uint32_t iterations = 10000000;
+static uint32_t iterations = 10;
 
-static void test_clean_fd_pool(void)
-{
-	return;
-}
+// static void test_clean_fd_pool(void)
+// {
+// 	return;
+// }
+//
+// static void test_clean_dirpath_pool(void)
+// {
+// 	return;
+// }
+//
+// static void test_clean_socket_pool(void)
+// {
+// 	return;
+// }
 
-static void test_clean_dirpath_pool(void)
-{
-	return;
-}
-
-static void test_clean_socket_pool(void)
-{
-	return;
-}
-
-static void test_clean_file_pool(void)
-{
-    uint32_t i = 0;
-    int32_t rtrn = 0;
-    char **paths = NULL;
-
-    /* Create an array of char pointers. */
-    paths = mem_alloc(sizeof(char *) * POOL_SIZE);
-    TEST_ASSERT_NOT_NULL(paths);
-
-    /* Loop and allocate each index in the array. */
-    for(i = 0; i < POOL_SIZE; i++)
-    {
-        paths[i] = mem_alloc(PATH_MAX + 1);
-        TEST_ASSERT_NOT_NULL(paths[i])
-    }
-
-    struct memory_block *m_blk = NULL;
-
-    /* Reset i back to zero. */
-    i = 0;
-
-    /* Loop and grab all the file paths in the allocated list. */
-    NX_SLIST_FOREACH(m_blk, &file_pool->allocated_list)
-    {
-        struct resource_ctx *resource = (struct resource_ctx *)m_blk->ptr;
-
-        /* Copy the path pointer into the paths index. */
-        memcpy(paths[i], (char *)resource->ptr, strlen((char *)resource->ptr));
-
-        i++;
-    }
-
-     /* Now check the free list for any resource blocks. */
-    NX_SLIST_FOREACH(m_blk, &file_pool->free_list)
-    {
-        struct resource_ctx *resource = (struct resource_ctx *)m_blk->ptr;
-
-        /* Copy the path pointer into the paths index. */
-        memcpy(paths[i], (char *)resource->ptr, strlen((char *)resource->ptr));
-
-        i++;
-    }
-
-    /* Now that we have an index of file paths, let's call clean_file_pool().
-    Now we can manually check that clean_file_pool() actually got rid of the files. */
-    rtrn = clean_file_pool(file_pool);
-
-    /* Should return zero. */
-    TEST_ASSERT(rtrn == 0);
-
-    /* Make sure there is no allocated block in the free list. */
-    NX_SLIST_FOREACH(m_blk, &file_pool->free_list)
-    {
-        /* The memory block should be NULL. */
-        TEST_ASSERT_NULL(m_blk);
-
-        /* The resource pointer should also be NULL. */
-        TEST_ASSERT_NULL(m_blk->ptr);
-
-        /* As should the file path pointer. */
-        TEST_ASSERT_NULL(((struct resource_ctx *)m_blk->ptr)->ptr);
-    }
-
-    /* Now check the allocated list. */
-    NX_SLIST_FOREACH(m_blk, &file_pool->allocated_list)
-    {
-        /* The memory block should be NULL. */
-        TEST_ASSERT_NULL(m_blk);
-
-        /* The resource pointer should also be NULL. */
-        TEST_ASSERT_NULL(m_blk->ptr);
-
-        /* As should the file path pointer. */
-        TEST_ASSERT_NULL(((struct resource_ctx *)m_blk->ptr)->ptr);
-    }
-
-    int32_t fd = 0;
-
-    /* Now let's loop through the paths array and make sure the file
-    referenced by the file path has been cleaned up. */
-    for(i = 0; i < POOL_SIZE; i++)
-    {
-        fd = open(paths[i], O_RDONLY);
-
-        /* Make sure the open call failed. */
-        TEST_ASSERT(fd < 0);
-    }
-
-    /* Now let's clean up our mess. */
-    for(i = 0; i < POOL_SIZE; i++)
-    {
-        mem_free((void **)&paths[i]);
-    }
-
-    mem_free((void **)&paths);
-
-    return;
-}
+// static void test_clean_file_pool(void)
+// {
+//     uint32_t i = 0;
+//     int32_t rtrn = 0;
+//     char **paths = NULL;
+//
+//     /* Create an array of char pointers. */
+//     paths = mem_alloc(sizeof(char *) * POOL_SIZE);
+//     TEST_ASSERT_NOT_NULL(paths);
+//
+//     /* Loop and allocate each index in the array. */
+//     for(i = 0; i < POOL_SIZE; i++)
+//     {
+//         paths[i] = mem_alloc(PATH_MAX + 1);
+//         TEST_ASSERT_NOT_NULL(paths[i])
+//     }
+//
+//     struct memory_block *m_blk = NULL;
+//
+//     /* Reset i back to zero. */
+//     i = 0;
+//
+//     /* Loop and grab all the file paths in the allocated list. */
+//     NX_SLIST_FOREACH(m_blk, &file_pool->allocated_list)
+//     {
+//         struct resource_ctx *resource = (struct resource_ctx *)m_blk->ptr;
+//
+//         /* Copy the path pointer into the paths index. */
+//         memcpy(paths[i], (char *)resource->ptr, strlen((char *)resource->ptr));
+//
+//         i++;
+//     }
+//
+//      /* Now check the free list for any resource blocks. */
+//     NX_SLIST_FOREACH(m_blk, &file_pool->free_list)
+//     {
+//         struct resource_ctx *resource = (struct resource_ctx *)m_blk->ptr;
+//
+//         /* Copy the path pointer into the paths index. */
+//         memcpy(paths[i], (char *)resource->ptr, strlen((char *)resource->ptr));
+//
+//         i++;
+//     }
+//
+//     /* Now that we have an index of file paths, let's call clean_file_pool().
+//     Now we can manually check that clean_file_pool() actually got rid of the files. */
+//     rtrn = clean_file_pool(file_pool);
+//
+//     /* Should return zero. */
+//     TEST_ASSERT(rtrn == 0);
+//
+//     /* Make sure there is no allocated block in the free list. */
+//     NX_SLIST_FOREACH(m_blk, &file_pool->free_list)
+//     {
+//         /* The memory block should be NULL. */
+//         TEST_ASSERT_NULL(m_blk);
+//
+//         /* The resource pointer should also be NULL. */
+//         TEST_ASSERT_NULL(m_blk->ptr);
+//
+//         /* As should the file path pointer. */
+//         TEST_ASSERT_NULL(((struct resource_ctx *)m_blk->ptr)->ptr);
+//     }
+//
+//     /* Now check the allocated list. */
+//     NX_SLIST_FOREACH(m_blk, &file_pool->allocated_list)
+//     {
+//         /* The memory block should be NULL. */
+//         TEST_ASSERT_NULL(m_blk);
+//
+//         /* The resource pointer should also be NULL. */
+//         TEST_ASSERT_NULL(m_blk->ptr);
+//
+//         /* As should the file path pointer. */
+//         TEST_ASSERT_NULL(((struct resource_ctx *)m_blk->ptr)->ptr);
+//     }
+//
+//     int32_t fd = 0;
+//
+//     /* Now let's loop through the paths array and make sure the file
+//     referenced by the file path has been cleaned up. */
+//     for(i = 0; i < POOL_SIZE; i++)
+//     {
+//         fd = open(paths[i], O_RDONLY);
+//
+//         /* Make sure the open call failed. */
+//         TEST_ASSERT(fd < 0);
+//     }
+//
+//     /* Now let's clean up our mess. */
+//     for(i = 0; i < POOL_SIZE; i++)
+//     {
+//         mem_free((void **)&paths[i]);
+//     }
+//
+//     mem_free((void **)&paths);
+//
+//     return;
+// }
 
 static void *socket_test_thread(void *arg)
 {
@@ -183,49 +183,49 @@ static void test_get_socket(void)
     return;
 }
 
-static void *mountpath_test_thread(void *arg)
-{
-    (void)arg;
+// static void *mountpath_test_thread(void *arg)
+// {
+//     (void)arg;
+//
+//     uint32_t i;
+//     char *mountpath = NULL;
+//
+//     for(i = 0; i < iterations; i++)
+//     {
+//         mountpath = get_mountpath();
+//
+//         TEST_ASSERT_NOT_NULL(mountpath);
+//
+//         free_mountpath(&mountpath);
+//     }
+//
+//     return (NULL);
+// }
 
-    uint32_t i;
-    char *mountpath = NULL;
-
-    for(i = 0; i < iterations; i++)
-    {
-        mountpath = get_mountpath();
-
-        TEST_ASSERT_NOT_NULL(mountpath);
-
-        free_mountpath(&mountpath);
-    }
-
-    return (NULL);
-}
-
-static void test_get_mountpath(void)
-{
-    int32_t rtrn = 0;
-    char *mountpath = NULL;
-    pthread_t thread = 0;
-
-    rtrn = pthread_create(&thread, NULL, mountpath_test_thread, NULL);
-    TEST_ASSERT(rtrn > -1);
-
-    uint32_t i;
-
-    for(i = 0; i < iterations; i++)
-    {
-        mountpath = get_mountpath();
-
-        TEST_ASSERT_NOT_NULL(mountpath);
-
-        free_mountpath(&mountpath);
-    }
-
-    pthread_join(thread, NULL);
-
-    return;
-}
+// static void test_get_mountpath(void)
+// {
+//     int32_t rtrn = 0;
+//     char *mountpath = NULL;
+//     pthread_t thread = 0;
+//
+//     rtrn = pthread_create(&thread, NULL, mountpath_test_thread, NULL);
+//     TEST_ASSERT(rtrn > -1);
+//
+//     uint32_t i;
+//
+//     for(i = 0; i < iterations; i++)
+//     {
+//         mountpath = get_mountpath();
+//
+//         TEST_ASSERT_NOT_NULL(mountpath);
+//
+//         free_mountpath(&mountpath);
+//     }
+//
+//     pthread_join(thread, NULL);
+//
+//     return;
+// }
 
 static void *dirpath_test_thread(void *arg)
 {
@@ -473,11 +473,8 @@ static void test_cached(void)
     test_get_fd();
     test_get_dirpath();
     test_get_socket();
-    test_get_mountpath();
-    test_clean_file_pool();
-    test_clean_fd_pool();
-    test_clean_dirpath_pool();
-    test_clean_socket_pool();
+    // test_get_mountpath();
+    cleanup_resource_module();
 
 	return;
 }
@@ -489,11 +486,9 @@ static void test_no_cached(void)
     test_get_fd();
     test_get_dirpath();
     test_get_socket();
-    test_get_mountpath();
-    test_clean_file_pool();
-    test_clean_fd_pool();
-    test_clean_dirpath_pool();
-    test_clean_socket_pool();
+    // test_get_mountpath();
+
+		cleanup_resource_module();
 
     return;
 }
