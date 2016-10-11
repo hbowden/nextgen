@@ -74,14 +74,21 @@ static inline void close_fp(FILE **fp)
     fclose((*fp));
 }
 
+/* The enum used to tell output how to output the message. */
+enum out_type { ERROR, STD };
+
+struct output_writter
+{
+    void (*write)(enum out_type type, const char *format, ...);
+};
+
+extern struct output_writter *get_console_writter(void);
+
 #define auto_close_fp __attribute__((cleanup (close_fp)))
 
 #define auto_close __attribute__((cleanup (close_fd)))
 
 #define auto_close_dir __attribute__((cleanup (close_dir)))
-
-/* The enum used to tell output how to output the message. */
-enum out_type { ERROR, STD };
 
 /* This function replaces printf and perror in the code so we can aggregate output to one point. */
 extern void output(enum out_type type, const char *format, ...);

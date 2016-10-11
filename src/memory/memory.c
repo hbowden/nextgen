@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
- * 
+ *
  * Permission to use, copy, modify, and/or distribute this software for any purpose
- * with or without fee is hereby granted, provided that the above copyright notice 
+ * with or without fee is hereby granted, provided that the above copyright notice
  * and this permission notice appear in all copies.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH 
- * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY 
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, 
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
  * WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
@@ -221,10 +221,6 @@ struct mem_pool_shared *mem_create_shared_pool(uint32_t block_size,
 
 struct memory_block *mem_get_shared_block(struct mem_pool_shared *pool)
 {
-    /* Check if the list is empty, if it is empty return early. */
-    if(CK_SLIST_EMPTY(&pool->free_list) == TRUE)
-        return NULL;
-
     /* Declare a memory block pointer. */
     struct memory_block *block = NULL;
 
@@ -244,7 +240,12 @@ struct memory_block *mem_get_shared_block(struct mem_pool_shared *pool)
             NX_SLIST_INSERT_HEAD(&pool->allocated_list, block);
 
             if(block != NULL)
+            {
+            /* Were jumping out of the loop, so unlock
+               the spin lock now, before jumping. */
+                nx_spinlock_unlock(&pool->lock);
                 goto done;
+            }
         }
 
         /* Unlock the spinlock. */
@@ -252,9 +253,6 @@ struct memory_block *mem_get_shared_block(struct mem_pool_shared *pool)
     }
 
 done:
-
-    nx_spinlock_unlock(&pool->lock);
-
     /* Return the empty block. */
     return (block);
 }
@@ -262,6 +260,18 @@ done:
 void mem_free_shared_block(struct memory_block *block,
                            struct mem_pool_shared *pool)
 {
+    if(block == NULL)
+    {
+        output(ERROR, "Block is NULL\n");
+        return;
+    }
+
+    if(pool == NULL)
+    {
+        output(ERROR, "Pool is NULL\n");
+        return;
+    }
+
     /* Lock the spinlock. */
     nx_spinlock_lock(&pool->lock);
 
@@ -275,4 +285,17 @@ void mem_free_shared_block(struct memory_block *block,
     nx_spinlock_unlock(&pool->lock);
 
     return;
+}
+
+struct memory_allocator *get_default_allocator(void)
+{
+    struct memory_allocator *allocator = NULL;
+
+    allocator = mem_alloc(sizeof(struct memory_allocator));
+    if(allocator == NULL)
+        return (NULL);
+
+    allocator->alloc = &mem_alloc;
+
+    return (allocator);
 }
