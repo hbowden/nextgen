@@ -14,6 +14,8 @@
  */
 
 #include "unity.h"
+#include "io/io.h"
+#include "memory/memory.h"
 #include "crypto/crypto.h"
 #include "resource/resource.c"
 #include "concurrent/concurrent.h"
@@ -21,6 +23,22 @@
 #include <pthread.h>
 
 static uint32_t iterations = 10;
+
+static void test_get_default_desc_generator(void)
+{
+    struct output_writter *output = get_console_writter();
+    struct memory_allocator *allocator = get_default_allocator();
+    struct desc_generator *desc_gen = NULL;
+
+    desc_gen = get_default_desc_generator(allocator, output);
+    TEST_ASSERT_NOT_NULL(desc_gen);
+
+    int32_t fd = desc_gen->get();
+    TEST_ASSERT(fd > 1);
+    desc_gen->free(&fd);
+
+    return;
+}
 
 // static void test_clean_fd_pool(void)
 // {
@@ -508,6 +526,7 @@ int main(void)
     test_create_fd_pool();
     test_cached();
     test_no_cached();
+    test_get_default_desc_generator();
 
 	  _exit(0);
 }

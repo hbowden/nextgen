@@ -19,6 +19,7 @@
 #define RESOURCE_H
 
 #include "memory/memory.h"
+#include "io/io.h"
 #include <stdint.h>
 
 enum rsrc_gen_type { CACHE, NO_CACHE };
@@ -30,6 +31,14 @@ struct resource_ctx
     void *ptr;
 };
 
+struct desc_generator
+{
+    int32_t (*get)(void);
+    int32_t (*free)(int32_t *);
+};
+
+extern struct desc_generator *get_default_desc_generator(struct memory_allocator *,
+                                                         struct output_writter *);
 extern int32_t get_socket(void);
 
 extern int32_t free_socket(int32_t *sock_fd);

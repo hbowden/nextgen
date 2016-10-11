@@ -25,7 +25,6 @@
 #include "resource.h"
 #include "concurrent/concurrent.h"
 #include "crypto/crypto.h"
-#include "io/io.h"
 #include "network/network.h"
 #include "runtime/platform.h"
 #include "utils/utils.h"
@@ -1071,6 +1070,22 @@ static int32_t create_resource_pools(char *path)
     }
 
     return (0);
+}
+
+struct desc_generator *get_default_desc_generator(struct memory_allocator *allocator,
+                                                  struct output_writter *output)
+{
+    struct desc_generator *desc_gen = allocator->alloc(sizeof(struct desc_generator));
+    if(desc_gen == NULL)
+    {
+        output->write(ERROR, "Failed to allocate memory for the descriptor generator\n");
+        return (NULL);
+    }
+
+    desc_gen->get = &get_desc_nocached;
+    desc_gen->free = &free_desc_nocached;
+
+    return (desc_gen);
 }
 
 int32_t setup_resource_module(enum rsrc_gen_type type, char *path)
