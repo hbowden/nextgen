@@ -42,8 +42,8 @@ static void test_get_random_generator(void)
 		for(i = 0; i < iterations; i++)
 		{
 				rtrn = random->range(1000, &number);
-				// TEST_ASSERT(rtrn == 0);
-				// TEST_ASSERT(number <= 1000);
+				TEST_ASSERT(rtrn == 0);
+				TEST_ASSERT(number <= 1000);
 		}
 }
 
