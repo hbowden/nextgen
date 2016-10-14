@@ -45,6 +45,24 @@
 #include <sys/sysctl.h>
 #include <sys/wait.h>
 
+/* Compile in run_syscall() for macOS because syscall(2) is deprecated
+   since macOS sierra (10.12). */
+#if __x86_64__
+
+#include <stdarg.h>
+
+int32_t run_syscall(int32_t number, ...)
+{
+    (void)number;
+    __asm__ ( "movl $10, %eax;"
+              "movl $20, %ebx;"
+              "addl %ebx, %eax;"
+    );
+    return (0);
+}
+
+#endif
+
 int32_t check_root(void)
 {
     output(STD, "Making sure nextgen has root privileges\n");

@@ -22,6 +22,7 @@
 #include <sys/stat.h>
 #include <stdint.h>
 #include <unistd.h>
+#include <sys/syscall.h>
 
 static uint32_t number_of_extensions = 11;
 
@@ -40,6 +41,13 @@ static char *string_array[] = { "a", "b", "c", "d", "e", "f", NULL };
 /* Array of binary strings to compare against. */
 static char *binary_array[] = { "01100001", "01100010", "01100011", "01100100",
                                 "01100101", "01100110", NULL };
+
+static void test_run_syscall(void)
+{
+    int32_t rtrn = 0;
+    rtrn = run_syscall(SYS_write, 1, "TEST", 4);
+    TEST_ASSERT(rtrn == 4);
+}
 
 static void test_delete_directory(void)
 {
@@ -287,6 +295,7 @@ int main(void)
     test_delete_directory();
     test_create_random_directory();
     delete_dir_contents("/tmp");
+    test_run_syscall();
 
     _exit(0);
 }
