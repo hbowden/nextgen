@@ -16,6 +16,7 @@
 #include "runtime/runtime.h"
 #include "runtime/fuzzer.h"
 #include "memory/memory.h"
+#include "crypto/crypto.h"
 #include "io/io.h"
 #include "unity.h"
 
@@ -32,7 +33,10 @@ static void test_get_syscall_fuzzer(void)
     TEST_ASSERT_NOT_NULL(fuzzer->start);
     TEST_ASSERT_NOT_NULL(fuzzer->stop);
 
-    rtrn = fuzzer->setup();
+    struct random_generator *random = NULL;
+    random = get_default_random_generator(allocator, output);
+
+    rtrn = fuzzer->setup(random);
     TEST_ASSERT(rtrn == 0);
 
     return;
