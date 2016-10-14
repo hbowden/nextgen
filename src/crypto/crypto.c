@@ -35,6 +35,23 @@ static int32_t software_prng;
 
 static int32_t crypto_setup;
 
+struct random_generator *get_default_random_generator(struct memory_allocator *allocator,
+                                                      struct output_writter *output)
+{
+    struct random_generator *random = NULL;
+
+    random = allocator->alloc(sizeof(struct random_generator));
+    if(random == NULL)
+    {
+        output->write(ERROR, "Random generator allocation failed");
+        return (NULL);
+    }
+
+    random->range = &rand_range;
+
+    return (random);
+}
+
 int32_t using_hardware_prng(void) { return (software_prng); }
 
 static int32_t rand_range_no_crypto(uint32_t range, uint32_t *number)
