@@ -31,10 +31,11 @@ struct output_writter *get_console_writter(void)
     console = malloc(sizeof(struct output_writter));
     if(console == NULL)
     {
+        printf("Failed to allocate console writter\n");
         return (NULL);
     }
 
-    console->write = output;
+    console->write = &output;
 
     return (console);
 }
@@ -46,8 +47,8 @@ void set_verbosity(int32_t val)
 
 void output(enum out_type type, const char *format, ...)
 {
-    if(type == STD && verbose == FALSE)
-        return;
+    // if(type == STD && verbose == FALSE)
+    //     return;
 
     va_list args;
 
