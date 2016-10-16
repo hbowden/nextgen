@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
- * 
+ *
  * Permission to use, copy, modify, and/or distribute this software for any purpose
- * with or without fee is hereby granted, provided that the above copyright notice 
+ * with or without fee is hereby granted, provided that the above copyright notice
  * and this permission notice appear in all copies.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH 
- * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY 
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, 
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
  * WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
@@ -91,7 +91,7 @@ static void display_help_banner(void)
     return;
 }
 
-static int32_t init_parser_ctx(struct parser_ctx **ctx)
+static int32_t init_parser_ctx(struct parser_ctx **ctx, struct memory_allocator *allocator)
 {
     if((*ctx) != NULL)
     {
@@ -99,7 +99,7 @@ static int32_t init_parser_ctx(struct parser_ctx **ctx)
         return (-1);
     }
 
-    (*ctx) = mem_alloc(sizeof(struct parser_ctx));
+    (*ctx) = allocator->alloc(sizeof(struct parser_ctx));
     if((*ctx) == NULL)
     {
         output(ERROR, "Can't allocate parser context\n");
@@ -264,8 +264,16 @@ static int32_t set_crypto_method(struct parser_ctx *ctx, enum crypto_method meth
     return (0);
 }
 
-struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
+struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[],
+                                  struct output_writter *output,
+                                  struct memory_allocator *allocator)
 {
+    if(argc == 1)
+    {
+        display_help_banner();
+        return (NULL);
+    }
+
     int32_t ch = 0;
     int32_t rtrn = 0;
     struct parser_ctx *ctx = NULL;
@@ -274,10 +282,10 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
             sFlag = FALSE;
 
     /* Allocate the parser context. */
-    rtrn = init_parser_ctx(&ctx);
+    rtrn = init_parser_ctx(&ctx, allocator);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't init parser context\n");
+        output->write(ERROR, "Can't init parser context\n");
         return (NULL);
     }
 
@@ -286,7 +294,7 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
     rtrn = set_crypto_method(ctx, CRYPTO);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't set crypto method\n");
+        output->write(ERROR, "Can't set crypto method\n");
         return (NULL);
     }
 
@@ -319,7 +327,7 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
                 rtrn = set_exec_path(ctx, optarg);
                 if(rtrn < 0)
                 {
-                    output(ERROR, "Can't set exec path\n");
+                    output->write(ERROR, "Can't set exec path\n");
                     mem_free((void **)&ctx);
                     return (NULL);
                 }
@@ -332,7 +340,7 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
                 rtrn = set_input_path(ctx, optarg);
                 if(rtrn < 0)
                 {
-                    output(ERROR, "Can't set input path\n");
+                    output->write(ERROR, "Can't set input path\n");
                     mem_free((void **)&ctx);
                     return (NULL);
                 }
@@ -346,7 +354,7 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
                 rtrn = set_output_path(ctx, optarg);
                 if(rtrn < 0)
                 {
-                    output(ERROR, "Can't set output path\n");
+                    output->write(ERROR, "Can't set output path\n");
                     mem_free((void **)&ctx);
                     return (NULL);
                 }
@@ -359,7 +367,7 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
                 rtrn = set_fuzz_mode(ctx, MODE_FILE);
                 if(rtrn < 0)
                 {
-                    output(ERROR, "Can't set fuzz mode\n");
+                    output->write(ERROR, "Can't set fuzz mode\n");
                     mem_free((void **)&ctx);
                     return (NULL);
                 }
@@ -370,7 +378,7 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
                 rtrn = set_fuzz_mode(ctx, MODE_NETWORK);
                 if(rtrn < 0)
                 {
-                    output(ERROR, "Can't set fuzz mode\n");
+                    output->write(ERROR, "Can't set fuzz mode\n");
                     mem_free((void **)&ctx);
                     return (NULL);
                 }
@@ -381,7 +389,7 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
                 rtrn = set_fuzz_mode(ctx, MODE_SYSCALL);
                 if(rtrn < 0)
                 {
-                    output(ERROR, "Can't set fuzz mode\n");
+                    output->write(ERROR, "Can't set fuzz mode\n");
                     mem_free((void **)&ctx);
                     return (NULL);
                 }
@@ -393,7 +401,7 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
                 rtrn = set_crypto_method(ctx, NO_CRYPTO);
                 if(rtrn < 0)
                 {
-                    output(ERROR, "Can't set crypto method\n");
+                    output->write(ERROR, "Can't set crypto method\n");
                     mem_free((void **)&ctx);
                     return (NULL);
                 }
@@ -412,14 +420,14 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
                 rtrn = asprintf(&ctx->args, "%s", optarg);
                 if(rtrn < 0)
                 {
-                    output(ERROR, "asprintf: %s\n", strerror(errno));
+                    output->write(ERROR, "asprintf: %s\n", strerror(errno));
                     mem_free((void **)&ctx);
                     return (NULL);
                 }
                 break;
 
             default:
-                output(ERROR, "Unknown option\n");
+                output->write(ERROR, "Unknown option\n");
                 mem_free((void **)&ctx);
                 return (NULL);
         }
@@ -428,7 +436,7 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
     /* Make sure a fuzzing mode was selected. */
     if(fFlag != TRUE && nFlag != TRUE && sFlag != TRUE)
     {
-        output(STD, "Specify a fuzzing mode\n");
+        output->write(STD, "Specify a fuzzing mode\n");
         mem_free((void **)&ctx);
         return NULL;
     }
@@ -438,7 +446,7 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
     {
         if(iFlag == FALSE || oFlag == FALSE || eFlag == FALSE)
         {
-            output(STD, "Pass --exec , --in and --out for file mode\n");
+            output->write(STD, "Pass --exec , --in and --out for file mode\n");
             mem_free((void **)&ctx);
             return NULL;
         }
@@ -448,7 +456,7 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
     {
         if(aFlag == FALSE || tFlag == FALSE || oFlag == FALSE)
         {
-            output(STD, "Pass --address , --port, --protocol, and --out for "
+            output->write(STD, "Pass --address , --port, --protocol, and --out for "
                         "network mode\n");
             mem_free((void **)&ctx);
             return NULL;
@@ -461,7 +469,7 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
         /* Make sure the user set an output path. */
         if(oFlag != TRUE)
         {
-            output(STD, "Pass --out for syscall mode\n");
+            output->write(STD, "Pass --out for syscall mode\n");
             mem_free((void **)&ctx);
             return NULL;
         }
@@ -471,10 +479,10 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
 }
 
 static void clean_syscall_mapping(void)
-{ 
+{
     mem_free((void **)&map->output_path);
 
-    return; 
+    return;
 }
 
 static void clean_file_mapping(void)
