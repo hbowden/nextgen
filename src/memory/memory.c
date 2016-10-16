@@ -296,6 +296,7 @@ struct memory_allocator *get_default_allocator(void)
         return (NULL);
 
     allocator->alloc = &mem_alloc;
+    allocator->shared = &mem_alloc_shared;
 
     return (allocator);
 }
