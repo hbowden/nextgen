@@ -33,6 +33,9 @@
 *.sql
 *.sqlite
 
+html
+latex
+
 # OS generated files #
 ######################
 .DS_Store
