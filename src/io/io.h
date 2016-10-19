@@ -26,6 +26,8 @@
 #include <sys/types.h>
 #include <sys/param.h>
 
+#define DEPRECATED __attribute__((deprecated))
+
 /* MACROS for map_file_in(). */
 #define READ PROT_READ
 #define WRITE PROT_WRITE
@@ -91,18 +93,18 @@ extern struct output_writter *get_console_writter(void);
 #define auto_close_dir __attribute__((cleanup (close_dir)))
 
 /* This function replaces printf and perror in the code so we can aggregate output to one point. */
-extern void output(enum out_type type, const char *format, ...);
+DEPRECATED void output(enum out_type type, const char *format, ...);
 
 extern void set_verbosity(int32_t val);
 
-extern int32_t get_file_size(int32_t fd, uint64_t *size);
+extern int32_t get_file_size(int32_t fd, uint64_t *size, struct output_writter *output);
 
-extern int32_t map_file_in(int32_t fd, char **buf, uint64_t *size, int32_t perm);
+extern int32_t map_file_in(int32_t fd, char **buf, uint64_t *size, int32_t perm, struct output_writter *output);
 
 /* This function maps a buffer of size to a file path.  */
-extern int32_t map_file_out(char *path, char *buf, uint64_t size);
+extern int32_t map_file_out(char *path, char *buf, uint64_t size, struct output_writter *output);
 
 /* Copy a file from one file path to another. */
-extern int32_t copy_file_to(char *src, char *dst);
+extern int32_t copy_file_to(char *src, char *dst, struct output_writter *output);
 
 #endif
