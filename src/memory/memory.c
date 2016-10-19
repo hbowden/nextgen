@@ -53,7 +53,7 @@ void *mem_alloc(uint64_t nbytes)
 
     if(nbytes == 0)
     {
-        output(ERROR, "Can't allocate zero bytes\n");
+        printf("Can't allocate zero bytes\n");
         return (NULL);
     }
 
