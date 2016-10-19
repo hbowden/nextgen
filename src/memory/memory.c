@@ -22,6 +22,31 @@
 #include <string.h>
 #include <sys/mman.h>
 
+static void *default_mem_alloc(uint64_t nbytes)
+{
+    void *ptr = NULL;
+
+    if(nbytes == 0)
+        return (NULL);
+
+    ptr = malloc(nbytes);
+    if(ptr == NULL)
+        return (NULL);
+
+    return (ptr);
+}
+
+static void *default_mem_alloc_shared(uint64_t nbytes)
+{
+    void *pointer = NULL;
+
+    pointer = mmap(NULL, nbytes, PROT_READ | PROT_WRITE, MAP_ANON | MAP_SHARED, -1, 0);
+    if(pointer == MAP_FAILED)
+        return (NULL);
+
+    return (pointer);
+}
+
 void *mem_alloc(uint64_t nbytes)
 {
     void *ptr = NULL;
@@ -35,8 +60,7 @@ void *mem_alloc(uint64_t nbytes)
     ptr = malloc(nbytes);
     if(ptr == NULL)
     {
-        output(ERROR, "Can't allocate: %lu bytes, because: %s\n", nbytes,
-               strerror(errno));
+        printf("Can't allocate: %llu bytes, because: %s\n", nbytes, strerror(errno));
         return (NULL);
     }
 
@@ -49,20 +73,20 @@ void *mem_calloc(uint64_t nbytes)
 
     if(nbytes == 0)
     {
-        output(ERROR, "nbytes is zero\n");
+        printf("nbytes is zero\n");
         return (NULL);
     }
 
     ptr = mem_alloc(nbytes);
     if(ptr == NULL)
     {
-        output(ERROR, "Can't allocate buf\n");
+        printf("Can't allocate buf\n");
         return (NULL);
     }
 
     if(memset(ptr, 0, nbytes) == NULL)
     {
-        output(ERROR, "Can't initialize memory to zero: %s\n", strerror(errno));
+        printf("Can't initialize memory to zero: %s\n", strerror(errno));
         return (NULL);
     }
 
@@ -91,7 +115,7 @@ void *mem_alloc_shared(uint64_t nbytes)
                    -1, 0);
     if(pointer == MAP_FAILED)
     {
-        output(ERROR, "mmap: %s\n", strerror(errno));
+        printf("mmap: %s\n", strerror(errno));
         return NULL;
     }
 
@@ -102,7 +126,7 @@ void *mem_calloc_shared(uint64_t nbytes)
 {
     if(nbytes == 0)
     {
-        output(ERROR, "nbytes is zero\n");
+        printf("nbytes is zero\n");
         return (NULL);
     }
 
@@ -112,13 +136,13 @@ void *mem_calloc_shared(uint64_t nbytes)
                    -1, 0);
     if(pointer == MAP_FAILED)
     {
-        output(ERROR, "mmap: %s\n", strerror(errno));
+        printf("mmap: %s\n", strerror(errno));
         return (NULL);
     }
 
     if(memset(pointer, 0, nbytes) == NULL)
     {
-        output(ERROR, "Can't initialize memory to zero: %s\n", strerror(errno));
+        printf("Can't initialize memory to zero: %s\n", strerror(errno));
         return (NULL);
     }
 
@@ -151,14 +175,14 @@ struct mem_pool_shared *mem_create_shared_pool(uint32_t block_size,
     /* If the block_size is zero return NULL. */
     if(block_size == 0)
     {
-        output(ERROR, "block_size is zero\n");
+        printf("block_size is zero\n");
         return NULL;
     }
 
     /* If the block_count is zero return NULL. */
     if(block_count == 0)
     {
-        output(ERROR, "block_count is zero\n");
+        printf("block_count is zero\n");
         return NULL;
     }
 
@@ -168,7 +192,7 @@ struct mem_pool_shared *mem_create_shared_pool(uint32_t block_size,
     pool = mem_alloc_shared(sizeof(struct mem_pool_shared));
     if(pool == NULL)
     {
-        output(ERROR, "Can't allocate shared memory\n");
+        printf("Can't allocate shared memory\n");
         return (NULL);
     }
 
@@ -199,7 +223,7 @@ struct mem_pool_shared *mem_create_shared_pool(uint32_t block_size,
         block = mem_alloc_shared(sizeof(struct memory_block));
         if(block == NULL)
         {
-            output(ERROR, "Can't alloc mem_block\n");
+            printf("Can't alloc mem_block\n");
             return (NULL);
         }
 
@@ -207,7 +231,7 @@ struct mem_pool_shared *mem_create_shared_pool(uint32_t block_size,
         block->ptr = mem_alloc_shared(block_size);
         if(block->ptr == NULL)
         {
-            output(ERROR, "Can't alloc memory block pointer.\n");
+            printf("Can't alloc memory block pointer.\n");
             return (NULL);
         }
 
@@ -262,13 +286,13 @@ void mem_free_shared_block(struct memory_block *block,
 {
     if(block == NULL)
     {
-        output(ERROR, "Block is NULL\n");
+        printf("Block is NULL\n");
         return;
     }
 
     if(pool == NULL)
     {
-        output(ERROR, "Pool is NULL\n");
+        printf("Pool is NULL\n");
         return;
     }
 
@@ -291,12 +315,12 @@ struct memory_allocator *get_default_allocator(void)
 {
     struct memory_allocator *allocator = NULL;
 
-    allocator = mem_alloc(sizeof(struct memory_allocator));
+    allocator = default_mem_alloc(sizeof(struct memory_allocator));
     if(allocator == NULL)
         return (NULL);
 
-    allocator->alloc = &mem_alloc;
-    allocator->shared = &mem_alloc_shared;
+    allocator->alloc = &default_mem_alloc;
+    allocator->shared = &default_mem_alloc_shared;
 
     return (allocator);
 }
