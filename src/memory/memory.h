@@ -56,6 +56,9 @@ struct mem_pool_shared
 /* Macro for initializing shared memory pool. */
 #define init_shared_pool(pool,block) CK_SLIST_FOREACH(block, pool->free_list, list_entry)
 
+/**
+ * @return the default heap memory allocator.
+ */
 extern struct memory_allocator *get_default_allocator(void);
 
 /* General purpose heap memory allocator. */
