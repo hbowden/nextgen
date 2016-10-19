@@ -32,7 +32,15 @@ enum name_type { DIR_NAME, FILE_NAME };
 int32_t run_syscall(int32_t number, ...);
 
 /* This function as the name implies gets the file size. */
-extern int32_t get_file_size(int32_t fd, uint64_t *size);
+extern int32_t get_file_size(int32_t fd, uint64_t *size, struct output_writter *output);
+
+extern int32_t map_file_in(int32_t fd, char **buf, uint64_t *size, int32_t perm, struct output_writter *output);
+
+/* This function maps a buffer of size to a file path.  */
+extern int32_t map_file_out(char *path, char *buf, uint64_t size, struct output_writter *output);
+
+/* Copy a file from one file path to another. */
+extern int32_t copy_file_to(char *src, char *dst, struct output_writter *output);
 
 /* Get file extension */
 extern int32_t get_extension(char *path, char **extension);

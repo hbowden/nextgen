@@ -63,6 +63,109 @@ int32_t run_syscall(int32_t number, ...)
 
 #endif
 
+int32_t map_file_in(int32_t fd, char **buf, uint64_t *size, int32_t perm, struct output_writter *output)
+{
+    int32_t rtrn = 0;
+
+    /* Get the file's size. */
+    rtrn = get_file_size(fd, size);
+    if(rtrn < 0)
+    {
+        output->write(ERROR, "Can't get file size\n");
+        return (-1);
+    }
+
+    /* Use MAP_SHARED otherwise the file won't change when we write it to disk. */
+    (*buf) = mmap(0, (unsigned long)(*size), perm, MAP_SHARED, fd, 0);
+    if((*buf) == MAP_FAILED)
+    {
+        output->write(ERROR, "mmap: %s\n", strerror(errno));
+        return (-1);
+    }
+
+    return (0);
+}
+
+int32_t map_file_out(char *path, char *buf, uint64_t size, struct output_writter *output)
+{
+    int32_t fd auto_close = 0;
+
+    fd = open(path, O_RDWR | O_CREAT | O_TRUNC, 0777);
+    if(fd < 0)
+    {
+        output->write(ERROR, "open: %s\n", strerror(errno));
+        return (-1);
+    }
+
+    if(lseek(fd, (int64_t)size - 1, SEEK_SET) == -1)
+    {
+        output->write(ERROR, "lseek: %s\n", strerror(errno));
+        return (-1);
+    }
+
+    ssize_t ret = write(fd, "", 1);
+    if(ret != 1)
+    {
+        output->write(ERROR, "write: %s\n", strerror(errno));
+        return (-1);
+    }
+
+    char *dst = mmap(0, (unsigned long)size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    if(dst == MAP_FAILED)
+    {
+        output->write(ERROR, "mmap: %s\n", strerror(errno));
+        return (-1);
+    }
+
+    memcpy(dst, buf, (unsigned long)size);
+    munmap(dst, (unsigned long)size);
+
+    return (0);
+}
+
+int32_t copy_file_to(char *src, char *dst, struct output_writter *output)
+{
+    int32_t rtrn = 0;
+    uint64_t file_size = 0;
+    char *file_buffer = NULL;
+    int32_t file auto_close = 0;
+
+    file = open(src, O_RDONLY);
+    if(file < 0)
+    {
+        output->write(ERROR, "Can't open file: %s\n", strerror(errno));
+        free(file_buffer);
+        return (-1);
+    }
+
+    rtrn = map_file_in(file, &file_buffer, &file_size, READ, output);
+    if(rtrn < 0)
+    {
+        output->write(ERROR, "Can't read file to memory\n");
+        return (-1);
+    }
+
+    rtrn = map_file_out(dst, file_buffer, file_size, output);
+    if(rtrn < 0)
+    {
+        output->write(ERROR, "Can't write file to disk\n");
+        munmap(file_buffer, (size_t)file_size);
+        return (-1);
+    }
+
+    rtrn = fsync(file);
+    if(rtrn < 0)
+    {
+        output->write(ERROR, "Can't sync file on disk\n");
+        munmap(file_buffer, (size_t)file_size);
+        return (-1);
+    }
+
+    munmap(file_buffer, (size_t)file_size);
+
+    return (0);
+}
+
 int32_t check_root(void)
 {
     output(STD, "Making sure nextgen has root privileges\n");

@@ -51,30 +51,6 @@
 #define BOLD_CYAN    "\033[1m\033[36m"      /* Bold Cyan */
 #define BOLD_WHITE   "\033[1m\033[37m"      /* Bold White */
 
-static inline void close_fd(int *fd)
-{
-    if((*fd) == 0)
-        return;
-
-    close((*fd));
-}
-
-static inline void close_dir(DIR **dir)
-{
-    if((*dir) == NULL)
-        return;
-
-    closedir((*dir));
-}
-
-static inline void close_fp(FILE **fp)
-{
-    if((*fp) == NULL)
-        return;
-
-    fclose((*fp));
-}
-
 /* The enum used to tell output how to output the message. */
 enum out_type { ERROR, STD };
 
@@ -84,12 +60,6 @@ struct output_writter
 };
 
 extern struct output_writter *get_console_writter(void);
-
-#define auto_close_fp __attribute__((cleanup (close_fp)))
-
-#define auto_close __attribute__((cleanup (close_fd)))
-
-#define auto_close_dir __attribute__((cleanup (close_dir)))
 
 /* This function replaces printf and perror in the code so we can aggregate output to one point. */
 DEPRECATED void output(enum out_type type, const char *format, ...);
