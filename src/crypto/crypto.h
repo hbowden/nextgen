@@ -30,6 +30,7 @@ enum crypto_method {CRYPTO, NO_CRYPTO};
 struct random_generator
 {
     int32_t (*range)(uint32_t, uint32_t *);
+    int32_t (*seed)(void);
 };
 
 /* Call this once to setup the crypto module. */

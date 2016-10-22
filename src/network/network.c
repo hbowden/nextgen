@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
- * 
+ *
  * Permission to use, copy, modify, and/or distribute this software for any purpose
- * with or without fee is hereby granted, provided that the above copyright notice 
+ * with or without fee is hereby granted, provided that the above copyright notice
  * and this permission notice appear in all copies.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH 
- * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY 
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, 
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
  * WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
@@ -41,7 +41,7 @@ static int32_t listen_fd6;
 void get_server_port(uint32_t *port)
 {
     (*port) = ss_port;
-    
+
     return;
 }
 
@@ -63,14 +63,14 @@ int32_t connect_ipv4(int32_t *sockFd)
     (*sockFd) = socket(AF_INET, SOCK_STREAM, 0);
     if((*sockFd) < 0)
     {
-        output(ERROR, "socket: %s\n", strerror(errno));
+        printf("socket: %s\n", strerror(errno));
         return (-1);
     }
 
     rtrn = connect((*sockFd), (struct sockaddr *)&addr.in, sizeof(addr.in));
     if(rtrn < 0)
     {
-        output(ERROR, "connect: %s\n", strerror(errno));
+        printf("connect: %s\n", strerror(errno));
         return (-1);
     }
 
@@ -95,14 +95,14 @@ int32_t connect_ipv6(int32_t *sockFd)
     (*sockFd) = socket(AF_INET6, SOCK_STREAM, 0);
     if((*sockFd) < 0)
     {
-        output(ERROR, "socket: %s\n", strerror(errno));
+        printf("socket: %s\n", strerror(errno));
         return (-1);
     }
 
     rtrn = connect((*sockFd), (struct sockaddr *)&addr.in6, sizeof(addr.in6));
     if(rtrn < 0)
     {
-        output(ERROR, "connect: %s\n", strerror(errno));
+        printf("connect: %s\n", strerror(errno));
         return (-1);
     }
 
@@ -111,21 +111,21 @@ int32_t connect_ipv6(int32_t *sockFd)
 
 static int32_t setup_socket_server(int32_t *sockFd4, int *sockFd6)
 {
-    output(STD, "Setting Up Socket Server\n");
+    printf("Setting Up Socket Server\n");
 
     int32_t rtrn = 0;
 
     rtrn = setup_ipv4_tcp_server(sockFd4);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't set up ipv4 socket server\n");
+        printf("Can't set up ipv4 socket server\n");
         return (-1);
     }
 
     rtrn = setup_ipv6_tcp_server(sockFd6);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't set up ipv6 socket server\n");
+        printf("Can't set up ipv6 socket server\n");
         return (-1);
     }
 
@@ -141,7 +141,7 @@ static int32_t accept_client(int listenFd)
     clientFd = accept(listenFd, (struct sockaddr *)&addr, &addr_len);
     if(clientFd < 0)
     {
-        output(ERROR, "accept: %s\n", strerror(errno));
+        printf("accept: %s\n", strerror(errno));
         return (-1);
     }
 
@@ -160,14 +160,14 @@ static void *accept_thread_start(void *obj)
         rtrn = listen(*sockFd, 1024);
         if(rtrn < 0)
         {
-            output(ERROR, "listen: %s\n", strerror(errno));
+            printf("listen: %s\n", strerror(errno));
             return NULL;
         }
 
         rtrn = accept_client(*sockFd);
         if(rtrn < 0)
         {
-            output(ERROR, "Can't accept\n");
+            printf("Can't accept\n");
             return NULL;
         }
     }
@@ -177,7 +177,7 @@ static void *accept_thread_start(void *obj)
 
 static void *start_thread(void *arg)
 {
-    output(STD, "Starting Socket Server\n");
+    printf("Starting Socket Server\n");
 
     (void)arg;
 
@@ -187,7 +187,7 @@ static void *start_thread(void *arg)
     rtrn = pthread_create(&ipv6AcceptThread, NULL, accept_thread_start, &listen_fd6);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't start the IPV6 accept thread\n");
+        printf("Can't start the IPV6 accept thread\n");
         return (NULL);
     }
 
@@ -196,14 +196,14 @@ static void *start_thread(void *arg)
         rtrn = listen(listen_fd4, 1024);
         if(rtrn < 0)
         {
-            output(ERROR, "listen: %s\n", strerror(errno));
+            printf("listen: %s\n", strerror(errno));
             return (NULL);
         }
 
         rtrn = accept_client(listen_fd4);
         if(rtrn < 0)
         {
-            output(ERROR, "Can't accept\n");
+            printf("Can't accept\n");
             return (NULL);
         }
     }
@@ -218,10 +218,36 @@ int32_t pick_random_port(uint32_t *port)
     int32_t rtrn = 0;
     uint32_t offset = 0;
 
-    rtrn = rand_range(10000, &offset);
+    /* Should not be grabbing allocator, console writter and random
+      generator here should be passed in. However this function is
+      depreacted so it will be deleted soon. */
+    struct memory_allocator *allocator = NULL;
+    allocator = get_default_allocator();
+    if(allocator == NULL)
+    {
+        printf("Failed to get allocator\n");
+        return (-1);
+    }
+    struct output_writter *output = NULL;
+    output = get_console_writter();
+    if(output == NULL)
+    {
+        printf("Failed to get console writter\n");
+        return (-1);
+    }
+
+    struct random_generator *random = NULL;
+    random = get_default_random_generator(allocator, output);
+    if(random == NULL)
+    {
+        printf("Failed to get random number generator\n");
+        return (-1);
+    }
+
+    rtrn = random->range(10000, &offset);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't generate random number\n");
+        printf("Can't generate random number\n");
         return (-1);
     }
 
@@ -237,7 +263,7 @@ static int32_t select_port_number(void)
     rtrn = pick_random_port(&ss_port);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't pick random port\n");
+        printf("Can't pick random port\n");
         return (-1);
     }
 
@@ -253,7 +279,7 @@ static int32_t start_socket_server(void)
     rtrn = select_port_number();
     if(rtrn < 0)
     {
-        output(ERROR, "Can't select port number\n");
+        printf("Can't select port number\n");
         return (-1);
     }
 
@@ -262,17 +288,17 @@ static int32_t start_socket_server(void)
     rtrn = setup_socket_server(&listen_fd4, &listen_fd6);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't set up socket server\n");
+        printf("Can't set up socket server\n");
         return (-1);
     }
 
     rtrn = pthread_create(&thread, NULL, start_thread, NULL);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't start socket server thread\n");
+        printf("Can't start socket server thread\n");
         return (-1);
     }
-  
+
     return (0);
 }
 
@@ -287,14 +313,14 @@ int32_t setup_network_module(enum network_mode mode)
             rtrn = start_socket_server();
             if(rtrn < 0)
             {
-                output(ERROR, "Can't setup the socket server\n");
+                printf("Can't setup the socket server\n");
                 return (-1);
             }
 
             break;
 
         default:
-            output(ERROR, "Unknown setup option\n");
+            printf("Unknown setup option\n");
             return (-1);
     }
 

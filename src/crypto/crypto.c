@@ -22,6 +22,8 @@
 #include "openssl/evp.h"
 #include "openssl/rand.h"
 #include "openssl/sha.h"
+#include "utils/autofree.h"
+#include "utils/autoclose.h"
 #include "runtime/platform.h"
 
 #include <errno.h>
@@ -48,6 +50,7 @@ struct random_generator *get_default_random_generator(struct memory_allocator *a
     }
 
     random->range = &rand_range;
+    random->seed = &seed_prng;
 
     return (random);
 }
@@ -65,7 +68,7 @@ int32_t rand_bytes(char **buf, uint32_t length)
     int32_t rtrn = RAND_bytes((unsigned char *)*buf, (int32_t)length);
     if(rtrn != 1)
     {
-        output(STD, "Can't get random bytes\n");
+        printf("Can't get random bytes\n");
         return (-1);
     }
 
@@ -83,35 +86,35 @@ static int32_t rand_range_crypto(uint32_t range, uint32_t *number)
     random = BN_new();
     if(random == NULL)
     {
-        output(ERROR, "Can't init bignum struct\n");
+        printf("Can't init bignum struct\n");
         return (-1);
     }
 
     range1 = BN_new();
     if(range1 == NULL)
     {
-        output(ERROR, "Can't init bignum struct\n");
+        printf("Can't init bignum struct\n");
         return (-1);
     }
 
     rtrn = BN_set_word(range1, (range + 1));
     if(rtrn < 0)
     {
-        output(ERROR, "Can't set range\n");
+        printf("Can't set range\n");
         return (-1);
     }
 
     rtrn = BN_rand_range(random, range1);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't get random range\n");
+        printf("Can't get random range\n");
         return -1;
     }
 
     char *buf = BN_bn2dec(random);
     if(buf == NULL)
     {
-        output(ERROR, "Can't convert random number\n");
+        printf("Can't convert random number\n");
         return (-1);
     }
 
@@ -132,7 +135,7 @@ static int32_t setup_rand_range(enum crypto_method method)
     }
     else
     {
-        output(ERROR, "Bad argument to crypto option, try again\n");
+        printf("Bad argument to crypto option, try again\n");
         return (-1);
     }
 
@@ -145,7 +148,7 @@ int32_t rand_range(uint32_t range, uint32_t *number)
     crash when we call rand_range_pointer(). */
     if(crypto_setup != TRUE)
     {
-        output(ERROR, "Call setup crypto first\n");
+        printf("Call setup crypto first\n");
         return (-1);
     }
 
@@ -158,7 +161,7 @@ static int32_t setup_hardware_acceleration(void)
     ENGINE *engine = ENGINE_by_id("rdrand");
     if(engine == NULL)
     {
-        output(STD, "No intel random number generator detected\n");
+        printf("No intel random number generator detected\n");
         return (1); /* Return one, when we can't detect a hardware random  */
     }
 
@@ -166,14 +169,14 @@ static int32_t setup_hardware_acceleration(void)
     int32_t rtrn = ENGINE_init(engine);
     if(rtrn == 0)
     {
-        output(ERROR, "Can't init crypto engine\n");
+        printf("Can't init crypto engine\n");
         return (-1);
     }
 
     rtrn = ENGINE_set_default(engine, ENGINE_METHOD_RAND);
     if(rtrn == 0)
     {
-        output(ERROR, "Can't set default method\n");
+        printf("Can't set default method\n");
         return (-1);
     }
 
@@ -190,28 +193,28 @@ int32_t sha512(char *in, char **out)
     rtrn = SHA512_Init(&ctx);
     if(rtrn < 0)
     {
-        output(ERROR, "Sha init\n");
+        printf("Sha init\n");
         return (-1);
     }
 
     rtrn = SHA512_Update(&ctx, in, strlen(in));
     if(rtrn < 0)
     {
-        output(ERROR, "Can't update input string\n");
+        printf("Can't update input string\n");
         return (-1);
     }
 
     rtrn = SHA512_Final(hash, &ctx);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't do this\n");
+        printf("Can't do this\n");
         return (-1);
     }
 
-    (*out) = mem_alloc((SHA512_DIGEST_LENGTH * 2) + 1);
+    (*out) = malloc((SHA512_DIGEST_LENGTH * 2) + 1);
     if((*out) == NULL)
     {
-        output(ERROR, "Can't allocate output buf\n");
+        printf("Can't allocate output buf\n");
         return (-1);
     }
 
@@ -234,29 +237,29 @@ int32_t sha256(char *in, char **out)
     rtrn = SHA256_Init(&sha256);
     if(rtrn < 0)
     {
-        output(ERROR, "Sha Init Error\n");
+        printf("Sha Init Error\n");
         return (-1);
     }
 
     rtrn = SHA256_Update(&sha256, in, strlen(in));
     if(rtrn < 0)
     {
-        output(ERROR, "Sha Update Error\n");
+        printf("Sha Update Error\n");
         return (-1);
     }
 
     rtrn = SHA256_Final(hash, &sha256);
     if(rtrn < 0)
     {
-        output(ERROR, "Sha Final Error\n");
+        printf("Sha Final Error\n");
         return (-1);
     }
 
     /* Allocate the output buffer. */
-    (*out) = mem_alloc((SHA256_DIGEST_LENGTH * 2) + 1);
+    (*out) = malloc((SHA256_DIGEST_LENGTH * 2) + 1);
     if((*out) == NULL)
     {
-        output(ERROR, "Can't allocate output buf\n");
+        printf("Can't allocate output buf\n");
         return (-1);
     }
 
@@ -283,10 +286,10 @@ int32_t seed_prng(void)
 
     /* Allocate a buffer thats 6000 bytes long, this is
       where we will put random stuff from /dev/urandom. */
-    random_buffer = mem_alloc(6000);
+    random_buffer = malloc(6000);
     if(random_buffer == NULL)
     {
-        output(ERROR, "Can't allocate random buffer\n");
+        printf("Can't allocate random buffer\n");
         return -1;
     }
 
@@ -294,7 +297,7 @@ int32_t seed_prng(void)
     random_fd = open("/dev/urandom", O_RDONLY);
     if(random_fd < 0)
     {
-        output(ERROR, "open '/dev/urandom': %s\n", strerror(errno));
+        printf("open '/dev/urandom': %s\n", strerror(errno));
         return -1;
     }
 
@@ -302,7 +305,7 @@ int32_t seed_prng(void)
     ret = read(random_fd, random_buffer, 5999);
     if(ret != 5999)
     {
-        output(ERROR, "read: %s\n", strerror(errno));
+        printf("read: %s\n", strerror(errno));
         return -1;
     }
 
@@ -313,7 +316,7 @@ int32_t seed_prng(void)
     rtrn = sha512(random_buffer, &hash);
     if(rtrn < 0)
     {
-        output(ERROR, "can't SHA512 buffer\n");
+        printf("can't SHA512 buffer\n");
         return -1;
     }
 
@@ -325,7 +328,7 @@ int32_t seed_prng(void)
     rtrn = rand_range(256, &loops);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't generate random number\n");
+        printf("Can't generate random number\n");
         return -1;
     }
 
@@ -336,7 +339,7 @@ int32_t seed_prng(void)
         rtrn = rand_range(4096, &buf_len);
         if(rtrn < 0)
         {
-            output(ERROR, "Can't generate random number\n");
+            printf("Can't generate random number\n");
             return -1;
         }
 
@@ -344,7 +347,7 @@ int32_t seed_prng(void)
         random_buffer = realloc(random_buffer, (size_t)buf_len + 1);
         if(random_buffer == NULL)
         {
-            output(ERROR, "realloc: $s\n", strerror(errno));
+            printf("realloc: %s\n", strerror(errno));
             return -1;
         }
 
@@ -352,7 +355,7 @@ int32_t seed_prng(void)
         ret = read(random_fd, random_buffer, (size_t)buf_len);
         if(ret != buf_len)
         {
-            output(ERROR, "read: %s\n", strerror(errno));
+            printf("read: %s\n", strerror(errno));
             return -1;
         }
 
@@ -363,7 +366,7 @@ int32_t seed_prng(void)
         rtrn = sha512(random_buffer, &hash);
         if(rtrn < 0)
         {
-            output(ERROR, "can't SHA512 buffer\n");
+            printf("can't SHA512 buffer\n");
             return -1;
         }
 
@@ -376,12 +379,12 @@ int32_t seed_prng(void)
 
 int32_t setup_crypto_module(enum crypto_method method)
 {
-    output(STD, "Setting up crypto\n");
+    printf("Setting up crypto\n");
 
     /* Check if we have been setup already. */
     if(crypto_setup == TRUE)
     {
-        output(ERROR, "Crypto already setup\n");
+        printf("Crypto already setup\n");
         return (-1);
     }
 
@@ -396,7 +399,7 @@ int32_t setup_crypto_module(enum crypto_method method)
     rtrn = setup_rand_range(method);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't setup random range function.\n");
+        printf("Can't setup random range function.\n");
         return (-1);
     }
 
@@ -414,21 +417,20 @@ int32_t setup_crypto_module(enum crypto_method method)
     switch(rtrn)
     {
         case 0:
-            output(STD, "Using hardware crypto PRNG\n");
+            printf("Using hardware crypto PRNG\n");
             software_prng = 0;
             crypto_setup = TRUE;
             break;
 
         case 1:
-            output(STD, "Switching to /dev/urandom \n");
-            output(STD, "Seeding PRNG\n");
+            printf("Switching to /dev/urandom \n");
+            printf("Seeding PRNG\n");
             software_prng = 1;
             crypto_setup = TRUE;
             return (seed_prng());
 
         default:
-            output(ERROR,
-                   "Error while trying to setup hardware acceleration\n");
+            printf("Error while trying to setup hardware acceleration\n");
             return (-1);
     }
 
