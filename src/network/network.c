@@ -213,7 +213,7 @@ static void *start_thread(void *arg)
     return (NULL);
 }
 
-int32_t pick_random_port(uint32_t *port)
+static int32_t pick_random_port(uint32_t *port)
 {
     int32_t rtrn = 0;
     uint32_t offset = 0;
