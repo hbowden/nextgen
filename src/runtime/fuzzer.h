@@ -19,11 +19,12 @@
 #include <stdint.h>
 #include "io/io.h"
 #include "memory/memory.h"
+#include "crypto/crypto.h"
 
 struct fuzzer_instance
 {
     int32_t (*stop)(void);
-    int32_t (*setup)(void);
+    int32_t (*setup)(struct random_generator *, struct output_writter *);
     int32_t (*start)(void);
 };
 

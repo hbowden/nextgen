@@ -29,8 +29,9 @@ struct memory_block
 
 struct memory_allocator
 {
-    void *(*alloc) (uint64_t size);
-    void *(*shared) (uint64_t size);
+    void *(*alloc) (uint64_t);
+    void *(*shared) (uint64_t);
+    void (*free) (void **);
 };
 
 /* Memory pool data structure. */

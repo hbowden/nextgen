@@ -37,6 +37,56 @@ static int32_t software_prng;
 
 static int32_t crypto_setup;
 
+static int32_t default_rand_range(uint32_t range, uint32_t *number)
+{
+    int32_t rtrn = 0;
+    BIGNUM *random, *range1;
+
+    random = BN_new();
+    if(random == NULL)
+    {
+        printf("Can't init bignum struct\n");
+        return (-1);
+    }
+
+    range1 = BN_new();
+    if(range1 == NULL)
+    {
+        printf("Can't init bignum struct\n");
+        return (-1);
+    }
+
+    rtrn = BN_set_word(range1, (range + 1));
+    if(rtrn < 0)
+    {
+        printf("Can't set range\n");
+        return (-1);
+    }
+
+    rtrn = BN_rand_range(random, range1);
+    if(rtrn < 0)
+    {
+        printf("Can't get random range\n");
+        return -1;
+    }
+
+    char *buf = BN_bn2dec(random);
+    if(buf == NULL)
+    {
+        printf("Can't convert random number\n");
+        return (-1);
+    }
+
+    (*number) = (uint32_t)strtol(buf, NULL, 10);
+
+    return (0);
+}
+
+static int32_t default_seed_prng(void)
+{
+     return (0);
+}
+
 struct random_generator *get_default_random_generator(struct memory_allocator *allocator,
                                                       struct output_writter *output)
 {
@@ -49,8 +99,8 @@ struct random_generator *get_default_random_generator(struct memory_allocator *a
         return (NULL);
     }
 
-    random->range = &rand_range;
-    random->seed = &seed_prng;
+    random->range = &default_rand_range;
+    random->seed = &default_seed_prng;
 
     return (random);
 }

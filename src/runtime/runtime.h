@@ -17,6 +17,7 @@
 #define RUNTIME_H
 
 #include "nextgen.h"
+#include "fuzzer.h"
 #include <stdint.h>
 
 /* Calling this function will cause all nextgen processes to start exiting. */
@@ -25,6 +26,8 @@ extern int32_t shutdown(void);
 extern int32_t setup_runtime(struct shared_map *mapping);
 
 extern int32_t start_runtime(void);
+
+extern struct fuzzer_instance *get_fuzzer(struct shared_map *mapping);
 
 /**
  * Return a string with the name of the operating system

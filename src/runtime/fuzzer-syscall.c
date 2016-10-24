@@ -32,9 +32,16 @@ static int32_t start_syscall_fuzzer(void)
     return (0);
 }
 
-static int32_t setup_syscall_fuzzer(void)
+static int32_t setup_syscall_fuzzer(struct random_generator *random,
+                                    struct output_writter *output)
 {
-
+    int32_t rtrn = 0;
+    rtrn = random->seed();
+    if(rtrn < 0)
+    {
+        output->write(ERROR, "Failed to seed random number generator\n");
+        return (-1);
+    }
 
     return (0);
 }

@@ -16,7 +16,6 @@
 #include "epoch.h"
 #include "io/io.h"
 #include "utils/utils.h"
-#include "memory/memory.h"
 
 struct thread_ctx
 {
@@ -29,35 +28,35 @@ struct thread_ctx
     uint32_t buf_size;
 };
 
-struct thread_ctx *init_thread(epoch_ctx *epoch)
+struct thread_ctx *init_thread(epoch_ctx *epoch, struct memory_allocator *allocator, struct output_writter *output)
 {
     struct thread_ctx *thread = NULL;
 
     /* Allocate the thread context. */
-	  thread = mem_alloc(sizeof(struct thread_ctx));
+	  thread = allocator->alloc(sizeof(struct thread_ctx));
 	  if(thread == NULL)
 	  {
 		    output(ERROR, "Thread context allocation failed\n");
 		    return (NULL);
 	  }
 
-	  thread->record = mem_alloc(sizeof(epoch_record));
+	  thread->record = allocator->alloc(sizeof(epoch_record));
 	  if(thread->record == NULL)
 	  {
 		    output(ERROR, "Epoch record allocation failed\n");
-		    mem_free((void **)&thread);
+		    allocator->free((void **)&thread);
 		    return (NULL);
 	  }
 
     thread->buf_size = 8;
 	  thread->section_count = 0;
 
-	  thread->section = mem_alloc(sizeof(epoch_section *) * thread->buf_size);
+	  thread->section = allocator->alloc(sizeof(epoch_section *) * thread->buf_size);
 	  if(thread->section == NULL)
 	  {
 		    output(ERROR, "Epoch section array allocation failed\n");
-		    mem_free((void **)&thread);
-		    mem_free((void **)&thread->record);
+		    allocator->free((void **)&thread);
+		    allocator->free((void **)&thread->record);
 		    return (NULL);
 	  }
 

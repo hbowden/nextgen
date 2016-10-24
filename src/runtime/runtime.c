@@ -49,6 +49,12 @@
 
 static int32_t start_network_mode_runtime(void) { return (0); }
 
+struct fuzzer_instance *get_fuzzer(struct shared_map *mapping)
+{
+    (void)mapping;
+    return (NULL);
+}
+
 static int32_t start_syscall_mode_runtime(void)
 {
     /* Create a thread context object so we can synchronize this
