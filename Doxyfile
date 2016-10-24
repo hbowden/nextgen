@@ -787,6 +787,7 @@ INPUT                  += src/plugins
 INPUT                  += src/probe
 INPUT                  += src/resource
 INPUT                  += src/runtime
+INPUT                  += src/utils
 INPUT                  += src
 
 # This tag can be used to specify the character encoding of the source files
