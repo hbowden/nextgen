@@ -36,14 +36,14 @@ struct thread_ctx *init_thread(epoch_ctx *epoch, struct memory_allocator *alloca
 	  thread = allocator->alloc(sizeof(struct thread_ctx));
 	  if(thread == NULL)
 	  {
-		    output(ERROR, "Thread context allocation failed\n");
+		    output->write(ERROR, "Thread context allocation failed\n");
 		    return (NULL);
 	  }
 
 	  thread->record = allocator->alloc(sizeof(epoch_record));
 	  if(thread->record == NULL)
 	  {
-		    output(ERROR, "Epoch record allocation failed\n");
+		    output->write(ERROR, "Epoch record allocation failed\n");
 		    allocator->free((void **)&thread);
 		    return (NULL);
 	  }
@@ -54,7 +54,7 @@ struct thread_ctx *init_thread(epoch_ctx *epoch, struct memory_allocator *alloca
 	  thread->section = allocator->alloc(sizeof(epoch_section *) * thread->buf_size);
 	  if(thread->section == NULL)
 	  {
-		    output(ERROR, "Epoch section array allocation failed\n");
+		    output->write(ERROR, "Epoch section array allocation failed\n");
 		    allocator->free((void **)&thread);
 		    allocator->free((void **)&thread->record);
 		    return (NULL);
@@ -66,13 +66,13 @@ struct thread_ctx *init_thread(epoch_ctx *epoch, struct memory_allocator *alloca
 	  return (thread);
 }
 
-void clean_thread(struct thread_ctx **thread)
+void clean_thread(struct thread_ctx **thread, struct memory_allocator *allocator)
 {
 	  epoch_unregister((*thread)->record);
 
-	  mem_free((void **)&(*thread)->section);
-	  mem_free((void **)&(*thread)->record);
-	  mem_free((void **)thread);
+	  allocator->free((void **)&(*thread)->section);
+	  allocator->free((void **)&(*thread)->record);
+	  allocator->free((void **)thread);
 
 	  return;
 }
@@ -82,7 +82,7 @@ epoch_record *get_record(struct thread_ctx *thread)
     return (thread->record);
 }
 
-int32_t epoch_start(struct thread_ctx *thread)
+int32_t epoch_start(struct thread_ctx *thread, struct memory_allocator *allocator, struct output_writter *output)
 {
 	  epoch_section section;
 	  uint32_t count = thread->section_count;
@@ -95,17 +95,17 @@ int32_t epoch_start(struct thread_ctx *thread)
 			                           sizeof(epoch_section *));
 		    if(thread->section == NULL)
 		    {
-			      output(ERROR, "Can't reallocate epoch section array\n");
+			      output->write(ERROR, "Can't reallocate epoch section array\n");
 			      return (-1);
 		    }
 
 		    thread->buf_size = thread->buf_size * 2;
 	  }
 
-	  thread->section[count] = mem_alloc(sizeof(epoch_section));
+	  thread->section[count] = allocator->alloc(sizeof(epoch_section));
 	  if(thread->section[count] == NULL)
 	  {
-		    output(ERROR, "Epoch section allocation failed\n");
+		    output->write(ERROR, "Epoch section allocation failed\n");
 		    return (-1);
 	  }
 
@@ -120,24 +120,24 @@ int32_t epoch_start(struct thread_ctx *thread)
 	  return (0);
 }
 
-void epoch_stop(struct thread_ctx *thread)
+void epoch_stop(struct thread_ctx *thread, struct memory_allocator *allocator)
 {
 	  thread->section_count--;
 	  uint32_t count = thread->section_count;
 	  epoch_end(thread->record, thread->section[count]);
-	  mem_free((void **)&thread->section[count]);
+	  allocator->free((void **)&thread->section[count]);
 
 	  return;
 }
 
-void stop_all_sections(struct thread_ctx *thread)
+void stop_all_sections(struct thread_ctx *thread, struct memory_allocator *allocator)
 {
 	  uint32_t i;
 
 	  for(i = 0; i < thread->section_count; i++)
 	  {
 		    epoch_end(thread->record, thread->section[i]);
-		    mem_free((void **)&thread->section[i]);
+		    allocator->free((void **)&thread->section[i]);
 	  }
 
 	  thread->section_count = 0;
