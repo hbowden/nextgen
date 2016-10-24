@@ -28,6 +28,8 @@
 #endif
 
 #include "utils.h"
+#include "autoclose.h"
+#include "autofree.h"
 #include "crypto/crypto.h"
 #include "io/io.h"
 #include "memory/memory.h"
@@ -68,7 +70,7 @@ int32_t map_file_in(int32_t fd, char **buf, uint64_t *size, int32_t perm, struct
     int32_t rtrn = 0;
 
     /* Get the file's size. */
-    rtrn = get_file_size(fd, size);
+    rtrn = get_file_size(fd, size, output);
     if(rtrn < 0)
     {
         output->write(ERROR, "Can't get file size\n");
@@ -123,6 +125,21 @@ int32_t map_file_out(char *path, char *buf, uint64_t size, struct output_writter
     return (0);
 }
 
+int32_t get_file_size(int32_t fd, uint64_t *size, struct output_writter *output)
+{
+    struct stat stbuf;
+
+    if((fstat(fd, &stbuf) != 0) || (!S_ISREG(stbuf.st_mode)))
+    {
+        output->write(ERROR, "fstat: %s\n", strerror(errno));
+        return (-1);
+    }
+
+    (*size) = (uint64_t)stbuf.st_size;
+
+    return (0);
+}
+
 int32_t copy_file_to(char *src, char *dst, struct output_writter *output)
 {
     int32_t rtrn = 0;
@@ -168,7 +185,7 @@ int32_t copy_file_to(char *src, char *dst, struct output_writter *output)
 
 int32_t check_root(void)
 {
-    output(STD, "Making sure nextgen has root privileges\n");
+    printf("Making sure nextgen has root privileges\n");
 
     uid_t check = 0;
 
@@ -187,14 +204,14 @@ int32_t drop_privileges(void)
     rtrn = setgid(999);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't drop gid: %s\n", strerror(errno));
+        printf("Can't drop gid: %s\n", strerror(errno));
         return (-1);
     }
 
     rtrn = setuid(999);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't drop uid: %s\n", strerror(errno));
+        printf("Can't drop uid: %s\n", strerror(errno));
         return (-1);
     }
 
@@ -206,14 +223,14 @@ int32_t get_extension(char *path, char **extension)
     char *pointer = strrchr(path, '.');
     if(pointer == NULL)
     {
-        output(ERROR, "Can't find . :\n", strerror(errno));
+        printf("Can't find . %s:\n", strerror(errno));
         return (-1);
     }
 
     int32_t rtrn = asprintf(extension, "%s\n", pointer + 1);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't alloc extension: %s\n", strerror(errno));
+        printf("Can't alloc extension: %s\n", strerror(errno));
         return (-1);
     }
 
@@ -234,7 +251,7 @@ int32_t get_core_count(uint32_t *core_count)
     int32_t rtrn = sysctl(mib, 2, core_count, &len, NULL, 0);
     if(rtrn < 0)
     {
-        output(ERROR, "sysctl: %s\n", strerror(errno));
+        printf("sysctl: %s\n", strerror(errno));
         return (-1);
     }
 
@@ -254,11 +271,27 @@ int32_t get_core_count(uint32_t *core_count)
 
 #endif
 
+int32_t generate_file_name(char **name, char *extension, struct output_writter *output, struct random_generator *random)
+{
+    (void)name;
+    (void)extension;
+    (void)output;
+    (void)random;
+    return (0);
+}
+
+int32_t generate_directory_name(char **name, struct output_writter *output)
+{
+    (void)name;
+    (void)output;
+    return (0);
+}
+
 int32_t generate_name(char **name, char *extension, enum name_type type)
 {
     if(extension == NULL && type != DIR_NAME)
     {
-        output(ERROR, "File extension is NULL\n");
+        printf("File extension is NULL\n");
         return (-1);
     }
 
@@ -268,10 +301,10 @@ int32_t generate_name(char **name, char *extension, enum name_type type)
     char *tmp_buf auto_free = NULL;
 
     /* Create some space in memory. */
-    random_data = mem_alloc(PATH_MAX + 1);
+    random_data = malloc(PATH_MAX + 1);
     if(random_data == NULL)
     {
-        output(ERROR, "Can't Allocate Space\n");
+        printf("Can't Allocate Space\n");
         return (-1);
     }
 
@@ -279,7 +312,7 @@ int32_t generate_name(char **name, char *extension, enum name_type type)
     rtrn = rand_bytes(&random_data, (PATH_MAX));
     if(rtrn < 0)
     {
-        output(ERROR, "Can't get random bytes\n");
+        printf("Can't get random bytes\n");
         return (-1);
     }
 
@@ -290,7 +323,7 @@ int32_t generate_name(char **name, char *extension, enum name_type type)
     rtrn = sha256(random_data, &tmp_buf);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't Hash Random Data\n");
+        printf("Can't Hash Random Data\n");
         return (-1);
     }
 
@@ -302,7 +335,7 @@ int32_t generate_name(char **name, char *extension, enum name_type type)
             rtrn = asprintf(name, "%s", tmp_buf);
             if(rtrn < 0)
             {
-                output(ERROR, "Can't create dir path: %s\n", strerror(errno));
+                printf("Can't create dir path: %s\n", strerror(errno));
                 return (-1);
             }
             break;
@@ -320,14 +353,14 @@ int32_t generate_name(char **name, char *extension, enum name_type type)
                 rtrn = asprintf(&ext, ".%s", extension);
                 if(rtrn < 0)
                 {
-                    output(ERROR, "Can't create extension string\n");
+                    printf("Can't create extension string\n");
                     return (-1);
                 }
 
                 rtrn = asprintf(name, "%s%s", tmp_buf, ext);
                 if(rtrn < 0)
                 {
-                    output(ERROR, "Can't create file path: %s\n",
+                    printf("Can't create file path: %s\n",
                            strerror(errno));
                     return (-1);
                 }
@@ -338,13 +371,13 @@ int32_t generate_name(char **name, char *extension, enum name_type type)
             rtrn = asprintf(name, "%s%s", tmp_buf, extension);
             if(rtrn < 0)
             {
-                output(ERROR, "Can't create file path: %s\n", strerror(errno));
+                printf("Can't create file path: %s\n", strerror(errno));
                 return (-1);
             }
             break;
 
         default:
-            output(ERROR, "Should not get here\n");
+            printf("Should not get here\n");
             return (-1);
     }
 
@@ -363,7 +396,7 @@ int32_t get_home(char **home)
     /* Get user password struct */
     if(!(pwd = getpwuid(uid)))
     {
-        output(ERROR, "Can't Get pwd struct: %s\n", strerror(errno));
+        printf("Can't Get pwd struct: %s\n", strerror(errno));
         return (-1);
     }
 
@@ -371,7 +404,7 @@ int32_t get_home(char **home)
     rtrn = asprintf(home, "%s", pwd->pw_dir);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't Create home string: %s\n", strerror(errno));
+        printf("Can't Create home string: %s\n", strerror(errno));
         return (-1);
     }
 
@@ -387,7 +420,7 @@ int32_t ascii_to_binary(char *input, char **out, uint64_t input_len,
     /* Make sure length is not zero. */
     if(input_len == 0)
     {
-        output(ERROR, "Length argument is zero\n");
+        printf("Length argument is zero\n");
         return (-1);
     }
 
@@ -396,10 +429,10 @@ int32_t ascii_to_binary(char *input, char **out, uint64_t input_len,
     (*out_len) = input_len * 8;
 
     /* Allocate the output buffer. */
-    (*out) = mem_calloc((*out_len) + 1);
+    (*out) = malloc((*out_len) + 1);
     if((*out) == NULL)
     {
-        output(ERROR, "Can't allocate binary string\n");
+        printf("Can't allocate binary string\n");
         return (-1);
     }
 
@@ -421,7 +454,13 @@ int32_t ascii_to_binary(char *input, char **out, uint64_t input_len,
     return (0);
 }
 
-int32_t create_random_file(char *root, char *ext, char **path, uint64_t *size)
+int32_t create_random_file(char *root,
+                           char *ext,
+                           char **path,
+                           uint64_t *size,
+                           struct random_generator *random,
+                           struct memory_allocator *allocator,
+                           struct output_writter *output)
 {
     int32_t rtrn = 0;
     int32_t no_period = 0;
@@ -437,7 +476,7 @@ int32_t create_random_file(char *root, char *ext, char **path, uint64_t *size)
         rtrn = asprintf(&extension, ".%s", ext);
         if(rtrn < 0)
         {
-            output(ERROR, "Can't create extension string\n");
+            output->write(ERROR, "Can't create extension string\n");
             return (-1);
         }
 
@@ -447,20 +486,20 @@ int32_t create_random_file(char *root, char *ext, char **path, uint64_t *size)
     if(no_period == 1)
     {
         /* Generate random file name. */
-        rtrn = generate_name(&name, extension, FILE_NAME);
+        rtrn = generate_file_name(&name, extension, output, random);
         if(rtrn < 0)
         {
-            output(ERROR, "Can't generate random file name\n");
+            output->write(ERROR, "Can't generate random file name\n");
             return (-1);
         }
     }
     else
     {
         /* Generate random file name. */
-        rtrn = generate_name(&name, ext, FILE_NAME);
+        rtrn = generate_file_name(&name, ext, output, random);
         if(rtrn < 0)
         {
-            output(ERROR, "Can't generate random file name\n");
+            output->write(ERROR, "Can't generate random file name\n");
             return (-1);
         }
     }
@@ -469,15 +508,15 @@ int32_t create_random_file(char *root, char *ext, char **path, uint64_t *size)
     rtrn = asprintf(path, "%s/%s", root, name);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't join paths: %s\n", strerror(errno));
+        output->write(ERROR, "Can't join paths: %s\n", strerror(errno));
         return (-1);
     }
 
     /* Pick a random size between zero and 4 kilobytes. */
-    rtrn = rand_range(4095, (uint32_t *)size);
+    rtrn = random->range(4095, (uint32_t *)size);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't choose random number\n");
+        output->write(ERROR, "Can't choose random number\n");
         return (-1);
     }
 
@@ -485,26 +524,26 @@ int32_t create_random_file(char *root, char *ext, char **path, uint64_t *size)
     (*size) = (*size) + 1;
 
     /* Allocate a buffer to put junk in. */
-    junk = mem_alloc((*size) + 1);
+    junk = allocator->alloc((*size) + 1);
     if(junk == NULL)
     {
-        output(ERROR, "Can't alloc junk buf: %s\n", strerror(errno));
+        output->write(ERROR, "Can't alloc junk buf: %s\n", strerror(errno));
         return (-1);
     }
 
     /* Put some junk in a buffer. */
-    rtrn = rand_bytes(&junk, (uint32_t)(*size));
+    rtrn = random->bytes(&junk, (uint32_t)(*size));
     if(rtrn < 0)
     {
-        output(ERROR, "Can't alloc junk buf: %s\n", strerror(errno));
+        output->write(ERROR, "Can't alloc junk buf: %s\n", strerror(errno));
         return (-1);
     }
 
     /* Write that junk to the file so that the file is not just blank. */
-    rtrn = map_file_out((*path), junk, (*size));
+    rtrn = map_file_out((*path), junk, (*size), output);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't write junk to disk\n");
+        output->write(ERROR, "Can't write junk to disk\n");
         return (-1);
     }
 
@@ -518,16 +557,16 @@ int32_t binary_to_ascii(char *input, char **out, uint64_t input_len,
 
     if(input_len == 0)
     {
-        output(ERROR, "Input length is zero\n");
+        printf("Input length is zero\n");
         return (-1);
     }
 
     (*out_len) = input_len / 8;
 
-    (*out) = mem_calloc((*out_len) + 1);
+    (*out) = malloc((*out_len) + 1);
     if((*out) == NULL)
     {
-        output(ERROR, "Can't allocate binary string\n");
+        printf("Can't allocate binary string\n");
         return (-1);
     }
 
@@ -562,7 +601,7 @@ int32_t delete_dir_contents(char *dir)
     tree = fts_open(argv, FTS_LOGICAL | FTS_NOSTAT, entcmp);
     if(tree == NULL)
     {
-        output(ERROR, "Can't walk directory\n");
+        printf("Can't walk directory\n");
         return (-1);
     }
 
@@ -584,7 +623,7 @@ int32_t delete_dir_contents(char *dir)
         rtrn = stat(f->fts_path, &sb);
         if(rtrn < 0)
         {
-            output(ERROR, "Can't get path stats: %s\n", strerror(errno));
+            printf("Can't get path stats: %s\n", strerror(errno));
             return (-1);
         }
 
@@ -600,7 +639,7 @@ int32_t delete_dir_contents(char *dir)
             rtrn = unlink(f->fts_path);
             if(rtrn < 0)
             {
-                output(ERROR, "Can't remove file\n");
+                printf("Can't remove file\n");
                 return (-1);
             }
         }
@@ -609,7 +648,7 @@ int32_t delete_dir_contents(char *dir)
     rtrn = fts_close(tree);
     if(rtrn < 0)
     {
-        output(ERROR, "fts: %s\n", strerror(errno));
+        printf("fts: %s\n", strerror(errno));
         return (-1);
     }
 
@@ -621,7 +660,7 @@ int32_t delete_directory(char *path)
     /* Check for a NULL pointer being passed to us. */
     if(path == NULL)
     {
-        output(ERROR, "Path pointer is NULL\n");
+        printf("Path pointer is NULL\n");
         return (-1);
     }
 
@@ -632,7 +671,7 @@ int32_t delete_directory(char *path)
     rtrn = stat(path, &sb);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't get stats: %s\n", strerror(errno));
+        printf("Can't get stats: %s\n", strerror(errno));
         return(-1);
     }
 
@@ -644,20 +683,20 @@ int32_t delete_directory(char *path)
         rtrn = delete_dir_contents(path);
         if(rtrn < 0)
         {
-            output(ERROR, "Can't delete dir contents\n");
+            printf("Can't delete dir contents\n");
             return (-1);
         }
     }
     else
     {
-        output(ERROR, "Input path is not a directory\n");
+        printf("Input path is not a directory\n");
         return (-1);
     }
 
     rtrn = rmdir(path);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't remove directory: %s\n", strerror(errno));
+        printf("Can't remove directory: %s\n", strerror(errno));
         return (-1);
     }
 
@@ -676,7 +715,7 @@ int32_t count_files_directory(uint32_t *count, char *dir)
     directory = opendir(dir);
     if(directory == NULL)
     {
-        output(ERROR, "Can't open dir: %s\n", strerror(errno));
+        printf("Can't open dir: %s\n", strerror(errno));
         return (-1);
     }
 
@@ -700,7 +739,7 @@ int32_t count_files_directory(uint32_t *count, char *dir)
         rtrn = stat(file_path, &buf);
         if(rtrn < 0)
         {
-            output(ERROR, "Can't get file stats: %s\n", strerror(errno));
+            printf("Can't get file stats: %s\n", strerror(errno));
             closedir(directory);
             return (-1);
         }
@@ -717,36 +756,36 @@ int32_t count_files_directory(uint32_t *count, char *dir)
     rtrn = closedir(directory);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't close directory\n");
+        printf("Can't close directory\n");
         return (-1);
     }
 
     return (0);
 }
 
-int32_t create_random_directory(char *root, char **path)
+int32_t create_random_directory(char *root, char **path, struct output_writter *output)
 {
     int32_t rtrn = 0;
     char *name = NULL;
 
-    rtrn = generate_name(&name, NULL, DIR_NAME);
+    rtrn = generate_directory_name(&name, output);
     if(rtrn < 0)
     {
-        output(ERROR, "Failed to generate directory name\n");
+        printf("Failed to generate directory name\n");
         return (-1);
     }
 
     rtrn = asprintf(path, "%s/%s", root, name);
     if(rtrn < 0)
     {
-        output(ERROR, "String concatenation failed\n");
+        printf("String concatenation failed\n");
         return (-1);
     }
 
     rtrn = mkdir((*path), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     if(rtrn < 0)
     {
-        output(ERROR, "Directory creation failed: %s\n", strerror(errno));
+        printf("Directory creation failed: %s\n", strerror(errno));
         return (-1);
     }
 
