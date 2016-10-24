@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
- * 
+ *
  * Permission to use, copy, modify, and/or distribute this software for any purpose
- * with or without fee is hereby granted, provided that the above copyright notice 
+ * with or without fee is hereby granted, provided that the above copyright notice
  * and this permission notice appear in all copies.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH 
- * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY 
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, 
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
  * WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
@@ -25,6 +25,8 @@
 
 #include "log.h"
 #include "io/io.h"
+#include "utils/colors.h"
+#include "utils/autofree.h"
 #include "memory/memory.h"
 #include "runtime/platform.h"
 #include "utils/utils.h"
@@ -57,14 +59,14 @@ int32_t log_file(char *file_path, char *file_extension)
                     file_extension);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't create out path: %s\n", strerror(errno));
+        printf("Can't create out path: %s\n", strerror(errno));
         return (-1);
     }
 
     rtrn = copy_file_to(file_path, out_path);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't copy file to the out directory\n");
+        printf("Can't copy file to the out directory\n");
         return (-1);
     }*/
 
@@ -81,35 +83,35 @@ static int32_t create_log_file(char *path)
     rtrn = sqlite3_open(path, &db);
     if(rtrn != SQLITE_OK)
     {
-        output(ERROR, "Can't create database: %s", strerror(errno));
+        printf("Can't create database: %s", strerror(errno));
         return (-1);
     }
-    
+
     return (0);
 }
 
-int32_t write_arguments_to_log(uint32_t total_args, 
-                               uint64_t **arg_value_array, 
+int32_t write_arguments_to_log(uint32_t total_args,
+                               uint64_t **arg_value_array,
                                uint32_t syscall_number)
 {
     /* Make sure the total argument count is in bounds. */
     if(total_args > ARG_LIMIT)
     {
-        output(ERROR, "Total args is greater than the arg limit for this system\n");
+        printf("Total args is greater than the arg limit for this system\n");
         return (-1);
     }
 
     /* Make sure the argument value array is not NULL */
     if(arg_value_array == NULL)
     {
-        output(ERROR, "Argument value array is NULL\n");
+        printf("Argument value array is NULL\n");
         return (-1);
     }
 
     /* Now make sure the syscall number is in bounds too. */
     if(syscall_number > total_syscalls)
     {
-        output(ERROR, "Total arguments \n");
+        printf("Total arguments \n");
         return (-1);
     }
 
@@ -120,7 +122,7 @@ int32_t write_arguments_to_log(uint32_t total_args,
     int32_t rtrn = asprintf(&sql, "INSERT INTO syscallEntry(");
     if(rtrn < 0)
     {
-        output(ERROR, "Can't create sql statement: %s\n", strerror(errno));
+        printf("Can't create sql statement: %s\n", strerror(errno));
         return (-1);
     }
 
@@ -128,7 +130,7 @@ int32_t write_arguments_to_log(uint32_t total_args,
     rtrn = sqlite3_exec(db, sql, NULL, NULL, &err);
     if(rtrn != SQLITE_OK)
     {
-        output(ERROR, "Can't insert syscall values into db: %s\n", err);
+        printf("Can't insert syscall values into db: %s\n", err);
         return (-1);
     }
 
@@ -144,12 +146,12 @@ static int32_t create_out_directory(char *path)
     rtrn = mkdir(path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't create out directory\n");
+        printf("Can't create out directory\n");
 
         /* Check if the directory exist. */
         if(errno == EEXIST)
         {
-            output(STD, "Out directory already exist\n");
+            printf("Out directory already exist\n");
             return (-1);
         }
 
@@ -159,14 +161,14 @@ static int32_t create_out_directory(char *path)
     rtrn = asprintf(&crash_dir, "%s/crash_dir", path);
     if(rtrn < 0)
     {
-        output(STD, "Can't create crash directory path\n");
+        printf("Can't create crash directory path\n");
         return (-1);
     }
 
     rtrn = mkdir(crash_dir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't create crash directory\n");
+        printf("Can't create crash directory\n");
         return (-1);
     }
 
@@ -180,7 +182,7 @@ int32_t log_results(int32_t had_error, int32_t ret_value, char *err_value)
 
     if(err_value == NULL)
     {
-        output(ERROR, "Err value is NULL\n");
+        printf("Err value is NULL\n");
         return (-1);
     }
 
@@ -190,7 +192,7 @@ int32_t log_results(int32_t had_error, int32_t ret_value, char *err_value)
                         err_value, RESET);
         if(rtrn < 0)
         {
-            output(ERROR, "Can't create out message\n");
+            printf("Can't create out message\n");
             return -1;
         }
     }
@@ -199,12 +201,12 @@ int32_t log_results(int32_t had_error, int32_t ret_value, char *err_value)
         rtrn = asprintf(&out_buf, "%s= %d %s\n", BOLD_GREEN, ret_value, RESET);
         if(rtrn < 0)
         {
-            output(ERROR, "Can't create out message\n");
+            printf("Can't create out message\n");
             return -1;
         }
     }
 
-    output(STD, "%s\n", out_buf);
+    printf("%s\n", out_buf);
 
     return 0;
 }
@@ -219,7 +221,7 @@ static int32_t create_arg_entry_table(void)
     rtrn = asprintf(&sql, "CREATE TABLE IF NOT EXISTS arg_entry(id INT NOT NULL, val BLOB NOT NULL);");
     if(rtrn < 0)
     {
-        output(ERROR, "Can't create SQL statement: %s\n", strerror(errno));
+        printf("Can't create SQL statement: %s\n", strerror(errno));
         return (-1);
     }
 
@@ -227,7 +229,7 @@ static int32_t create_arg_entry_table(void)
     rtrn = sqlite3_exec(db, sql, NULL, NULL, &err);
     if(rtrn != SQLITE_OK)
     {
-        output(ERROR, "Can't create argument entry table: %s\n", err);
+        printf("Can't create argument entry table: %s\n", err);
         sqlite3_free(err);
         return (-1);
     }
@@ -245,7 +247,7 @@ static int32_t create_syscall_entry_table(void)
     rtrn = asprintf(&sql, "CREATE TABLE IF NOT EXISTS syscall_entry(id INT NOT NULL, num INT NOT NULL, name );");
     if(rtrn < 0)
     {
-        output(ERROR, "Can't create SQL statement: %s\n", strerror(errno));
+        printf("Can't create SQL statement: %s\n", strerror(errno));
         return (-1);
     }
 
@@ -253,7 +255,7 @@ static int32_t create_syscall_entry_table(void)
     rtrn = sqlite3_exec(db, sql, NULL, NULL, &err);
     if(rtrn != SQLITE_OK)
     {
-        output(ERROR, "Can't create argument entry table: %s\n", err);
+        printf("Can't create argument entry table: %s\n", err);
         sqlite3_free(err);
         return (-1);
     }
@@ -268,14 +270,14 @@ static int32_t setup_tables(void)
     rtrn = create_arg_entry_table();
     if(rtrn < 0)
     {
-        output(ERROR, "Can't create argument entry table\n");
+        printf("Can't create argument entry table\n");
         return (-1);
     }
 
     rtrn = create_syscall_entry_table();
     if(rtrn < 0)
     {
-        output(ERROR, "Can't create syscall entry table\n");
+        printf("Can't create syscall entry table\n");
         return (-1);
     }
 
@@ -287,7 +289,7 @@ int32_t setup_log_module(char *path, uint32_t syscall_max)
     /* Make sure we have not been set up before. */
     if(set != NX_NO)
     {
-        output(ERROR, "We have already been setup\n");
+        printf("We have already been setup\n");
         return (-1);
     }
 
@@ -299,7 +301,7 @@ int32_t setup_log_module(char *path, uint32_t syscall_max)
     rtrn = create_out_directory(path);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't create output directory\n");
+        printf("Can't create output directory\n");
         return (-1);
     }
 
@@ -307,7 +309,7 @@ int32_t setup_log_module(char *path, uint32_t syscall_max)
     rtrn = asprintf(&log_path, "%s/log.nx", path);
     if(rtrn < 0)
     {
-        output(STD, "Can't create log path\n");
+        printf("Can't create log path\n");
         return (-1);
     }
 
@@ -315,14 +317,14 @@ int32_t setup_log_module(char *path, uint32_t syscall_max)
     rtrn = create_log_file(log_path);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't create log file\n");
+        printf("Can't create log file\n");
         return (-1);
     }
 
     rtrn = setup_tables();
     if(rtrn < 0)
     {
-        output(ERROR, "Can't create tables\n");
+        printf("Can't create tables\n");
         return (-1);
     }
 

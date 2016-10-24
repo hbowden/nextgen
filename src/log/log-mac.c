@@ -1,38 +1,40 @@
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
- * 
+ *
  * Permission to use, copy, modify, and/or distribute this software for any purpose
- * with or without fee is hereby granted, provided that the above copyright notice 
+ * with or without fee is hereby granted, provided that the above copyright notice
  * and this permission notice appear in all copies.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH 
- * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY 
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, 
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
  * WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
 #include "log.h"
 #include "io/io.h"
+#include "utils/autofree.h"
 #include "memory/memory.h"
 
-int32_t log_arguments(uint32_t total_args, 
+int32_t log_arguments(uint32_t total_args,
                       const char *syscall_name,
                       uint64_t **arg_value_array,
-                      struct arg_context **arg_context_array)
+                      struct arg_context **arg_context_array,
+                      struct memory_allocator *allocator)
 {
-    char *arg_value auto_free = mem_alloc(1024);
+    char *arg_value auto_free = allocator->alloc(1024);
     if(arg_value == NULL)
     {
-        output(ERROR, "Can't create arg_value buffer\n");
+        printf("Can't create arg_value buffer\n");
         return (-1);
     }
 
-    char *syscall_log_buf auto_free = mem_alloc(4096);
+    char *syscall_log_buf auto_free = allocator->alloc(4096);
     if(syscall_log_buf == NULL)
     {
-        output(ERROR, "Can't create syscall_log_buf buffer\n");
+        printf("Can't create syscall_log_buf buffer\n");
         return (-1);
     }
 
@@ -63,14 +65,14 @@ int32_t log_arguments(uint32_t total_args,
                 break;
 
             default:
-                output(ERROR, "Unknown log type\n");
+                printf("Unknown log type\n");
                 return (-1);
         }
 
         strncat(syscall_log_buf, arg_value, strlen(arg_value));
     }
 
-    output(STD, "%s", syscall_log_buf);
+    printf("%s", syscall_log_buf);
 
     return (0);
 }
