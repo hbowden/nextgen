@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
- * 
+ *
  * Permission to use, copy, modify, and/or distribute this software for any purpose
- * with or without fee is hereby granted, provided that the above copyright notice 
+ * with or without fee is hereby granted, provided that the above copyright notice
  * and this permission notice appear in all copies.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH 
- * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY 
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, 
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
  * WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
@@ -24,6 +24,8 @@
 
 #include "plugin.h"
 #include "io/io.h"
+#include "utils/autofree.h"
+#include "utils/autoclose.h"
 #include "memory/memory.h"
 #include "utils/utils.h"
 
@@ -59,7 +61,7 @@ static int32_t count_plugins(uint32_t *count)
     dir = opendir(dir_path);
     if(dir == NULL)
     {
-        output(ERROR, "Can't open dir: %s\n", strerror(errno));
+        printf("Can't open dir: %s\n", strerror(errno));
         return -1;
     }
 
@@ -105,11 +107,11 @@ static int32_t load_all_plugins(void)
     /* Tell user our course of action. */
     if(plugin_count == 0)
     {
-        output(STD, "No plugins to load\n");
+        printf("No plugins to load\n");
         return 0;
     }
 
-    output(STD, "Loading all plugins\n");
+    printf("Loading all plugins\n");
 
     uint32_t i = 0;
     int32_t rtrn = 0;
@@ -122,7 +124,7 @@ static int32_t load_all_plugins(void)
     dir = opendir(dir_path);
     if(dir == NULL)
     {
-        output(ERROR, "Can't open dir: %s\n", strerror(errno));
+        printf("Can't open dir: %s\n", strerror(errno));
         return -1;
     }
 
@@ -147,7 +149,7 @@ static int32_t load_all_plugins(void)
             current_dir = malloc(1024);
             if(current_dir == NULL)
             {
-                output(ERROR, "Can't malloc current_dir buf: %s\n",
+                printf("Can't malloc current_dir buf: %s\n",
                        strerror(errno));
                 return -1;
             }
@@ -156,7 +158,7 @@ static int32_t load_all_plugins(void)
             current_dir = getcwd(current_dir, 1023);
             if(current_dir == NULL)
             {
-                output(ERROR, "Can't get current directory: %s\n");
+                printf("Can't get current directory\n");
                 return -1;
             }
 
@@ -165,7 +167,7 @@ static int32_t load_all_plugins(void)
                             entry->d_name);
             if(rtrn < 0)
             {
-                output(ERROR, "Can't create plugin path string: %s\n",
+                printf("Can't create plugin path string: %s\n",
                        strerror(errno));
                 return -1;
             }
@@ -175,7 +177,7 @@ static int32_t load_all_plugins(void)
                 asprintf((char **)&plugins[i]->plugin_path, "%s", plugin_path);
             if(rtrn < 0)
             {
-                output(ERROR, "Can't set plugin path string: %s\n",
+                printf("Can't set plugin path string: %s\n",
                        strerror(errno));
                 return -1;
             }
@@ -185,7 +187,7 @@ static int32_t load_all_plugins(void)
                             basename(plugin_path));
             if(rtrn < 0)
             {
-                output(ERROR, "Can't set plugin name string: %s\n",
+                printf("Can't set plugin name string: %s\n",
                        strerror(errno));
                 return -1;
             }
@@ -194,7 +196,7 @@ static int32_t load_all_plugins(void)
             plugins[i]->plugin_handle = dlopen(plugin_path, RTLD_NOW);
             if(plugins[i]->plugin_handle == NULL)
             {
-                output(ERROR, "Can't load plugin: %s beacause: %s\n",
+                printf("Can't load plugin: %s beacause: %s\n",
                        basename(plugin_path), strerror(errno));
                 return -1;
             }
@@ -213,7 +215,7 @@ int32_t setup_plugin_module(void)
     rtrn = count_plugins(&plugin_count);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't count plugins\n");
+        printf("Can't count plugins\n");
         return -1;
     }
 
@@ -221,7 +223,7 @@ int32_t setup_plugin_module(void)
     rtrn = load_all_plugins();
     if(rtrn < 0)
     {
-        output(ERROR, "Can't load plugins\n");
+        printf("Can't load plugins\n");
         return -1;
     }
 
