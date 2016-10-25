@@ -75,6 +75,7 @@ static struct option longopts[] = {{"in", required_argument, NULL, 'i'},
 
 static void display_help_banner(void)
 {
+    set_verbosity(TRUE);
     output(STD, "Nextgen is a Genetic File, Syscall, and Network Fuzzer.\n");
     output(STD,
            "To use the file fuzzer in smart mode run the command below.\n");
@@ -419,7 +420,7 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
                 break;
 
             default:
-                output(ERROR, "Unknown option\n");
+                display_help_banner();
                 mem_free((void **)&ctx);
                 return (NULL);
         }
@@ -428,7 +429,7 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[])
     /* Make sure a fuzzing mode was selected. */
     if(fFlag != TRUE && nFlag != TRUE && sFlag != TRUE)
     {
-        output(STD, "Specify a fuzzing mode\n");
+        display_help_banner();
         mem_free((void **)&ctx);
         return NULL;
     }
