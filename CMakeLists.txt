@@ -10,6 +10,8 @@ enable_testing()
 SET(CK "ck-0.5.2")
 SET(UNITY "Unity")
 
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-documentation -fms-extensions -Wno-microsoft-anon-tag")
+
 # Set the cmake module path to deps/cmake_modules.
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/deps/cmake_modules" ${CMAKE_MODULE_PATH})
 
@@ -21,6 +23,7 @@ INCLUDE(CodeCoverage)
 
 # Turn on coverage for debug builds.
 SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
 
 # Create a coverage target.
 SETUP_TARGET_FOR_COVERAGE(coverage ctest coverage)
@@ -394,8 +397,6 @@ add_sanitizers(resource-integration-test)
 add_test(emu-integration-test emu-integration-test)
 add_test(emu-unit-test emu-unit-test)
 add_test(resource-integration-test resource-integration-test)
-add_test(runtime-integration-test runtime-integration-test)
-add_test(utils-unit-test utils-unit-test)
 add_test(memory-unit-test memory-unit-test)
 add_test(memory-intergration-test memory-intergration-test)
 add_test(crypto-unit-test crypto-unit-test)
@@ -404,8 +405,6 @@ add_test(concurrent-unit-test concurrent-unit-test)
 add_dependencies(check emu-integration-test)
 add_dependencies(check emu-unit-test)
 add_dependencies(check resource-integration-test)
-add_dependencies(check runtime-integration-test)
-add_dependencies(check utils-unit-test)
 add_dependencies(check memory-intergration-test)
 add_dependencies(check memory-unit-test)
 add_dependencies(check crypto-unit-test)
