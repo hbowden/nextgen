@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
- * 
+ *
  * Permission to use, copy, modify, and/or distribute this software for any purpose
- * with or without fee is hereby granted, provided that the above copyright notice 
+ * with or without fee is hereby granted, provided that the above copyright notice
  * and this permission notice appear in all copies.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH 
- * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY 
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, 
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
  * WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
@@ -36,7 +36,7 @@ static int32_t start_target(char *path)
     rtrn = drop_privileges();
     if(rtrn < 0)
     {
-        output(ERROR, "Can't drop privileges\n");
+        printf("Can't drop privileges\n");
         return (-1);
     }
 
@@ -44,7 +44,7 @@ static int32_t start_target(char *path)
     rtrn = execv(path, args);
     if(rtrn < 0)
     {
-        output(ERROR, "execv: %s\n", errno);
+        printf("execv: %d\n", errno);
         return (-1);
     }
 
@@ -85,7 +85,7 @@ int32_t start_and_pause_target(char *path, pid_t *target_pid)
         rtrn = start_target(path);
         if(rtrn < 0)
         {
-            output(ERROR, "Can't start target process\n");
+            printf("Can't start target process\n");
             return (-1);
         }
 
@@ -97,7 +97,7 @@ int32_t start_and_pause_target(char *path, pid_t *target_pid)
         rtrn = pause_target(pid);
         if(rtrn < 0)
         {
-            output(ERROR, "Can't pause target process\n");
+            printf("Can't pause target process\n");
             return (-1);
         }
 
@@ -107,7 +107,7 @@ int32_t start_and_pause_target(char *path, pid_t *target_pid)
     }
     else
     {
-        output(ERROR, "Can't start and pause target process\n");
+        printf("Can't start and pause target process\n");
         return (-1);
     }
 }

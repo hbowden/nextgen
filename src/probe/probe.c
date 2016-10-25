@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
- * 
+ *
  * Permission to use, copy, modify, and/or distribute this software for any purpose
- * with or without fee is hereby granted, provided that the above copyright notice 
+ * with or without fee is hereby granted, provided that the above copyright notice
  * and this permission notice appear in all copies.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH 
- * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY 
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, 
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
  * WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
@@ -58,14 +58,14 @@ int32_t inject_kernel_probes(struct probe_ctx *probe)
 {
     (void)probe;
 
-    return (0); 
+    return (0);
 }
 
-int32_t cleanup_kernel_probes(struct probe_ctx *probe) 
+int32_t cleanup_kernel_probes(struct probe_ctx *probe)
 {
     (void)probe;
 
-    return (0); 
+    return (0);
 }
 
 #ifdef LINUX
@@ -86,13 +86,13 @@ int32_t inject_probes(pid_t pid)
     int32_t rtrn = 0;
     char *dtrace_prog = NULL;
 
-    output(STD, "Injecting probes\n");
+    printf("Injecting probes\n");
 
     /* Create dtrace script that injects all probes into a target process. */
     rtrn = asprintf(&dtrace_prog, "pid%d:::", pid);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't create probe program string\n");
+        printf("Can't create probe program string\n");
         return (-1);
     }
 
@@ -114,7 +114,7 @@ int32_t inject_probes(pid_t pid)
                                      DTRACE_PROBESPEC_NAME, 0, 0, NULL);
     if(ctx->prog == NULL)
     {
-        output(ERROR, "Failed to compile dtrace program\n");
+        printf("Failed to compile dtrace program\n");
         return (-1);
     }
 
@@ -122,7 +122,7 @@ int32_t inject_probes(pid_t pid)
     rtrn = dtrace_program_exec(ctx->dtrace_handle, ctx->prog, &ctx->info);
     if(rtrn < 0)
     {
-        output(ERROR, "Failed to enable dtrace probes\n");
+        printf("Failed to enable dtrace probes\n");
         return (-1);
     }
 
@@ -130,7 +130,7 @@ int32_t inject_probes(pid_t pid)
     rtrn = dtrace_go(ctx->dtrace_handle);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't start probes\n");
+        printf("Can't start probes\n");
         return (-1);
     }
 
