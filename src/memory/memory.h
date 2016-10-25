@@ -32,6 +32,7 @@ struct memory_allocator
     void *(*alloc) (uint64_t);
     void *(*shared) (uint64_t);
     void (*free) (void **);
+    void (*free_shared) (void **, uint64_t);
 };
 
 /* Memory pool data structure. */
@@ -65,6 +66,14 @@ struct mem_pool_shared
  */
 extern struct memory_allocator *get_default_allocator(void);
 
+extern void mem_clean_shared_pool(struct mem_pool_shared *pool);
+
+extern struct memory_block *mem_get_shared_block(struct mem_pool_shared *pool);
+
+extern void mem_free_shared_block(struct memory_block *block, struct mem_pool_shared *pool);
+
+extern struct mem_pool_shared *mem_create_shared_pool(uint32_t block_size, uint32_t block_count);
+
 /* General purpose heap memory allocator. */
 DEPRECATED extern void *mem_alloc(uint64_t nbytes);
 
@@ -77,13 +86,5 @@ DEPRECATED extern void *mem_alloc_shared(uint64_t nbytes);
 DEPRECATED extern void *mem_calloc_shared(uint64_t nbytes);
 
 DEPRECATED extern void mem_free_shared(void **ptr, uint64_t nbytes);
-
-DEPRECATED extern struct mem_pool_shared *mem_create_shared_pool(uint32_t block_size, uint32_t block_count);
-
-DEPRECATED extern void mem_clean_shared_pool(struct mem_pool_shared *pool);
-
-DEPRECATED extern struct memory_block *mem_get_shared_block(struct mem_pool_shared *pool);
-
-DEPRECATED extern void mem_free_shared_block(struct memory_block *block, struct mem_pool_shared *pool);
 
 #endif

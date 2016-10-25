@@ -189,7 +189,7 @@ struct mem_pool_shared *mem_create_shared_pool(uint32_t block_size,
     struct mem_pool_shared *pool = NULL;
 
     /* Allocate the pool structure as shared memory. */
-    pool = mem_alloc_shared(sizeof(struct mem_pool_shared));
+    pool = default_mem_alloc_shared(sizeof(struct mem_pool_shared));
     if(pool == NULL)
     {
         printf("Can't allocate shared memory\n");
@@ -220,7 +220,7 @@ struct mem_pool_shared *mem_create_shared_pool(uint32_t block_size,
         struct memory_block *block = NULL;
 
         /* Allocate the memory block as shared memory. */
-        block = mem_alloc_shared(sizeof(struct memory_block));
+        block = default_mem_alloc_shared(sizeof(struct memory_block));
         if(block == NULL)
         {
             printf("Can't alloc mem_block\n");
@@ -228,7 +228,7 @@ struct mem_pool_shared *mem_create_shared_pool(uint32_t block_size,
         }
 
         /* Allocate enough space for the user to store what they want. */
-        block->ptr = mem_alloc_shared(block_size);
+        block->ptr = default_mem_alloc_shared(block_size);
         if(block->ptr == NULL)
         {
             printf("Can't alloc memory block pointer.\n");
