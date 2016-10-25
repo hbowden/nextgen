@@ -28,9 +28,9 @@ extern DEPRECATED int32_t setup_network_module(enum network_mode mode);
 
 extern private void get_server_port(uint32_t *port);
 
-extern DEPRECATED int32_t connect_ipv4(int32_t *sockFd);
+extern int32_t connect_ipv4(int32_t *sockFd);
 
-extern DEPRECATED int32_t connect_ipv6(int32_t *sockFd);
+extern int32_t connect_ipv6(int32_t *sockFd);
 
 extern private int32_t setup_ipv4_tcp_server(int32_t *sockFd);
 
