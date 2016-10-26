@@ -41,10 +41,7 @@ static void child_exit_handler(int sig)
 
             child = get_child_ctx_from_pid(pid);
             if(child == NULL)
-            {
-                output(ERROR, "Can't get child context\n");
                 return;
-            }
 
             set_child_pid(child, EMPTY);
         }
@@ -60,7 +57,7 @@ static void ctrlc_handler(int sig)
     return;
 }
 
-static int32_t setup_ctrlc_handler(void)
+static int32_t setup_ctrlc_handler(struct output_writter *output)
 {
     int32_t rtrn = 0;
     struct sigaction sa;
@@ -76,21 +73,21 @@ static int32_t setup_ctrlc_handler(void)
     rtrn = sigaction(SIGINT, &sa, NULL);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't setup SIGINT handler: %s\n", strerror(errno));
+        output->write(ERROR, "Can't setup SIGINT handler: %s\n", strerror(errno));
         return (-1);
     }
 
     return (0);
 }
 
-int32_t setup_signal_handler(void)
+int32_t setup_signal_handler(struct output_writter *output)
 {
     int32_t rtrn = 0;
 
-    rtrn = setup_ctrlc_handler();
+    rtrn = setup_ctrlc_handler(output);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't handle SIGINT\n");
+        output->write(ERROR, "Can't handle SIGINT\n");
         return (-1);
     }
 
@@ -107,7 +104,7 @@ int32_t setup_signal_handler(void)
     rtrn = sigaction(SIGCHLD, &sa, NULL);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't setup SIGCHLD handler: %s\n", strerror(errno));
+        output->write(ERROR, "Can't setup SIGCHLD handler: %s\n", strerror(errno));
         return (-1);
     }
 
@@ -153,14 +150,14 @@ static void child_signal_handler(int sig, siginfo_t *info, void *context)
     jump(child);
 }
 
-int32_t setup_child_signal_handler(void)
+int32_t setup_child_signal_handler(struct output_writter *output)
 {
     int32_t rtrn = 0;
 
-    rtrn = setup_ctrlc_handler();
+    rtrn = setup_ctrlc_handler(output);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't handle SIGINT\n");
+        output->write(ERROR, "Can't handle SIGINT\n");
         return (-1);
     }
 
@@ -177,21 +174,21 @@ int32_t setup_child_signal_handler(void)
     rtrn = sigaction(SIGBUS, &sa, NULL);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't setup SIGBUS handler: %s\n", strerror(errno));
+        output->write(ERROR, "Can't setup SIGBUS handler: %s\n", strerror(errno));
         return (-1);
     }
 
     rtrn = sigaction(SIGSEGV, &sa, NULL);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't setup SIGSEGV handler: %s\n", strerror(errno));
+        output->write(ERROR, "Can't setup SIGSEGV handler: %s\n", strerror(errno));
         return (-1);
     }
 
     rtrn = sigaction(SIGALRM, &sa, NULL);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't setup SIGALRM handler: %s\n", strerror(errno));
+        output->write(ERROR, "Can't setup SIGALRM handler: %s\n", strerror(errno));
         return (-1);
     }
 

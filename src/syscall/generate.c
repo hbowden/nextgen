@@ -185,7 +185,7 @@ int32_t generate_length(uint64_t **length, struct child_ctx *child)
 
     uint64_t arg_size = 0;
 
-    int32_t rtrn = get_arg_size(child, last_arg, &arg_size);
+    int32_t rtrn = get_arg_size(child, last_arg, &arg_size, get_console_writter());
     if(rtrn < 0)
     {
         output(ERROR, "Can't get argument size.\n");
@@ -837,7 +837,6 @@ int32_t generate_send_flags(uint64_t **flag, struct child_ctx *child)
 
 int32_t generate_sockaddr(uint64_t **addr, struct child_ctx *child)
 {
-    int32_t rtrn = 0;
     struct sockaddr_in in;
     uint32_t port = 0;
 
@@ -848,12 +847,12 @@ int32_t generate_sockaddr(uint64_t **addr, struct child_ctx *child)
         return (-1);
     }
 
-    rtrn = pick_random_port(&port);
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't pick random port\n");
-        return (-1);
-    }
+    // rtrn = pick_random_port(&port);
+    // if(rtrn < 0)
+    // {
+    //     output(ERROR, "Can't pick random port\n");
+    //     return (-1);
+    // }
 
     in.sin_family = AF_INET;
     in.sin_port = htons(port);
@@ -885,7 +884,7 @@ int32_t generate_socklen(uint64_t **len, struct child_ctx *child)
 
     uint64_t arg_size = 0;
 
-    int32_t rtrn = get_arg_size(child, last_arg, &arg_size);
+    int32_t rtrn = get_arg_size(child, last_arg, &arg_size, get_console_writter());
     if(rtrn < 0)
     {
         output(ERROR, "Can't get argument size.\n");

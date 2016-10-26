@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
- * 
+ *
  * Permission to use, copy, modify, and/or distribute this software for any purpose
- * with or without fee is hereby granted, provided that the above copyright notice 
+ * with or without fee is hereby granted, provided that the above copyright notice
  * and this permission notice appear in all copies.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH 
- * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY 
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, 
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
  * WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
@@ -193,69 +193,69 @@ struct arg_context mount_path_ctx = {
 
 struct arg_context dev_ctx = {
 
-    .name = "DEV", 
-    .type = DEV, 
-    .should_free = NX_YES, 
+    .name = "DEV",
+    .type = DEV,
+    .should_free = NX_YES,
     .log_type = NUMBER
 };
 
 struct arg_context message_ctx = {
 
-    .name = "MESSAGE", 
-    .type = MESSAGE, 
-    .should_free = NX_YES, 
+    .name = "MESSAGE",
+    .type = MESSAGE,
+    .should_free = NX_YES,
     .log_type = POINTER
 };
 
 struct arg_context recv_flags_ctx = {
 
-    .name = "RECV_FLAG", 
-    .type = RECV_FLAG, 
-    .should_free = NX_YES, 
+    .name = "RECV_FLAG",
+    .type = RECV_FLAG,
+    .should_free = NX_YES,
     .log_type = NUMBER
 };
 
 struct arg_context send_flags_ctx = {
 
-    .name = "SEND_FLAG", 
-    .type = SEND_FLAG, 
-    .should_free = NX_YES, 
+    .name = "SEND_FLAG",
+    .type = SEND_FLAG,
+    .should_free = NX_YES,
     .log_type = NUMBER
 };
 
 struct arg_context sockaddr_ctx = {
 
-    .name = "SOCKADDR", 
-    .type = SOCKADDR, 
-    .should_free = NX_YES, 
+    .name = "SOCKADDR",
+    .type = SOCKADDR,
+    .should_free = NX_YES,
     .log_type = POINTER
 };
 
 struct arg_context socklen_ctx = {
 
-    .name = "SOCKLEN", 
-    .type = SOCKLEN, 
-    .should_free = NX_YES, 
+    .name = "SOCKLEN",
+    .type = SOCKLEN,
+    .should_free = NX_YES,
     .log_type = NUMBER
 };
 
 struct arg_context amode_ctx = {
 
-    .name = "AMODE", 
-    .type = AMODE, 
-    .should_free = NX_YES, 
+    .name = "AMODE",
+    .type = AMODE,
+    .should_free = NX_YES,
     .log_type = NUMBER
 };
 
 struct arg_context chflags_ctx = {
 
-    .name = "CHFLAGS", 
-    .type = CHFLAGS, 
-    .should_free = NX_YES, 
+    .name = "CHFLAGS",
+    .type = CHFLAGS,
+    .should_free = NX_YES,
     .log_type = NUMBER
 };
 
-struct arg_context *get_arg_context(enum arg_type type)
+struct arg_context *get_arg_context(enum arg_type type, struct output_writter *output)
 {
     switch((int32_t)type)
     {
@@ -347,7 +347,7 @@ struct arg_context *get_arg_context(enum arg_type type)
             return &chflags_ctx;
 
         default:
-            output(ERROR, "Unlisted arg type\n");
-            return NULL;
+            output->write(ERROR, "Unlisted arg type\n");
+            return (NULL);
     }
 }

@@ -533,7 +533,7 @@ static struct syscall_table *build_syscall_table(struct output_writter *output, 
         {
             int32_t type = entry->arg_type_array[counter];
 
-            entry->arg_context_array[counter] = get_arg_context((enum arg_type)type);
+            entry->arg_context_array[counter] = get_arg_context((enum arg_type)type, output);
             if(entry->arg_context_array[counter] == NULL)
             {
                 output->write(ERROR, "Can't get argument context\n");
@@ -808,7 +808,7 @@ static void init_syscall_child(uint32_t i,
     int32_t rtrn = 0;
 
     /* Set up the child signal handler. */
-    setup_child_signal_handler();
+    setup_child_signal_handler(output);
 
     /* Start an epoch protected section. */
     if(epoch_start(thread, allocator, output) == -1)
@@ -962,7 +962,7 @@ void start_main_syscall_loop(struct thread_ctx *thread,
     int32_t rtrn = 0;
 
     /* Set up signal handler. */
-    rtrn = setup_signal_handler();
+    rtrn = setup_signal_handler(output);
     if(rtrn < 0)
     {
         output->write(ERROR, "Signal handler setup failed\n");
