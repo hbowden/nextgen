@@ -163,12 +163,12 @@ void set_child_pid(struct child_ctx *child, int32_t pid)
     return;
 }
 
-int32_t get_arg_size(struct child_ctx *child, uint32_t arg_num, uint64_t *size)
+int32_t get_arg_size(struct child_ctx *child, uint32_t arg_num, uint64_t *size, struct output_writter *output)
 {
     /* Make sure the argument number requested is in bounds. */
     if(arg_num > ARG_LIMIT)
     {
-        output(ERROR, "Arg number is greater than the arg limit.\n");
+        output->write(ERROR, "Arg number is greater than the arg limit.\n");
         return (-1);
     }
 
@@ -190,10 +190,10 @@ void set_arg_size(struct child_ctx *child, uint64_t size)
     return;
 }
 
-void cleanup_syscall_table(struct syscall_table **table)
+void cleanup_syscall_table(struct syscall_table **table, struct memory_allocator *allocator)
 {
-    mem_free_shared((void **)&(*table)->sys_entry, sizeof(struct syscall_entry));
-    mem_free_shared((void **)table, sizeof(struct syscall_table));
+    allocator->free_shared((void **)&(*table)->sys_entry, sizeof(struct syscall_entry));
+    allocator->free_shared((void **)table, sizeof(struct syscall_table));
 
     return;
 }
@@ -245,20 +245,20 @@ static int32_t get_child_index_number(uint32_t *index_num)
     return (-1);
 }
 
-NX_NO_RETURN static void exit_child(struct thread_ctx *thread)
+NX_NO_RETURN static void exit_child(struct thread_ctx *thread, struct memory_allocator *allocator, struct output_writter *output)
 {
     int32_t rtrn = 0;
     int32_t ret_val = 0;
     struct child_ctx *child = NULL;
 
     /* Start epoch protected section. */
-    epoch_start(thread);
+    epoch_start(thread, allocator, output);
 
     /* Get our childs context object. */
-    child = get_child();
+    child = get_child(output);
     if(child == NULL)
     {
-        output(ERROR, "Can't get child context\n");
+        output->write(ERROR, "Can't get child context\n");
         ret_val = -1;
         goto exit;
     }
@@ -267,7 +267,7 @@ NX_NO_RETURN static void exit_child(struct thread_ctx *thread)
     rtrn = cleanup_kernel_probes(child->probe_handle);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't clean up kernel probes");
+        output->write(ERROR, "Can't clean up kernel probes");
         ret_val = -1;
         goto exit;
     }
@@ -275,10 +275,10 @@ NX_NO_RETURN static void exit_child(struct thread_ctx *thread)
 exit:
     /* We may be in a nested epoch section, so clean all current
     epoch sections before exiting. */
-    stop_all_sections(thread);
+    stop_all_sections(thread, allocator);
 
     /* Clean the thread context object. */
-    clean_thread(&thread);
+    clean_thread(&thread, allocator);
 
     /* Set the PID as empty. */
     cas_loop_int32(&child->pid, EMPTY);
@@ -286,13 +286,16 @@ exit:
     /* Decrement the running child counter. */
     atomic_dec_uint32(&state->running_children);
 
-    printf("Exiting\n");
+    output->write(STD, "Exiting\n");
 
     /* Exit and cleanup child. */
     _exit(ret_val);
 }
 
-static int32_t free_old_arguments(struct child_ctx *ctx)
+static int32_t free_old_arguments(struct child_ctx *ctx,
+                                  struct output_writter *output,
+                                  struct memory_allocator *allocator,
+                                  struct resource_generator *rsrc_gen)
 {
     uint32_t i;
     int32_t rtrn = 0;
@@ -303,7 +306,7 @@ static int32_t free_old_arguments(struct child_ctx *ctx)
     entry = get_entry(ctx->syscall_number);
     if(entry == NULL)
     {
-        output(ERROR, "Can't get entry\n");
+        output->write(ERROR, "Can't get entry\n");
         return (-1);
     }
 
@@ -316,38 +319,37 @@ static int32_t free_old_arguments(struct child_ctx *ctx)
             They must be freed using special functions and the free must be done on
             the arg_copy_index so the free_* functions don't use the mutated value in arg_value_index. */
             case FILE_DESC:
-                rtrn = free_desc((int32_t *)ctx->arg_copy_array[i]);
+                rtrn = rsrc_gen->free_desc((int32_t *)ctx->arg_copy_array[i]);
                 if(rtrn < 0)
-                    output(ERROR, "Can't free descriptor\n");
+                    output->write(ERROR, "Can't free descriptor\n");
                 /* Don't return on errors, just keep looping. */
                 break;
 
             case FILE_PATH:
-                rtrn = free_filepath((char **)&(ctx->arg_copy_array[i]));
+                rtrn = rsrc_gen->free_filepath((char **)&(ctx->arg_copy_array[i]));
                 if(rtrn < 0)
-                    output(ERROR, "Can't free filepath\n");
+                    output->write(ERROR, "Can't free filepath\n");
                 /* Don't return on errors, just keep looping. */
                 break;
 
             case DIR_PATH:
-                rtrn = free_dirpath((char **)&(ctx->arg_copy_array[i]));
+                rtrn = rsrc_gen->free_dirpath((char **)&(ctx->arg_copy_array[i]));
                 if(rtrn < 0)
-                    output(ERROR, "Can't free dirpath\n");
+                    output->write(ERROR, "Can't free dirpath\n");
                 /* Don't return on errors, just keep looping. */
                 break;
 
             case SOCKET:
-                rtrn = free_socket((int32_t *)ctx->arg_copy_array[i]);
+                rtrn = rsrc_gen->free_socket((int32_t *)ctx->arg_copy_array[i]);
                 if(rtrn < 0)
-                    output(ERROR, "Can't free socket\n");
+                    output->write(ERROR, "Can't free socket\n");
                 /* Don't return on errors, just keep looping. */
                 break;
             /* End of resource types. */
 
             /* Clean this with mem_free_shared(). */
             case VOID_BUF:
-                mem_free_shared((void **)&ctx->arg_value_array[i],
-                                ctx->arg_size_array[i]);
+                allocator->free_shared((void **)&ctx->arg_value_array[i], ctx->arg_size_array[i]);
                 break;
 
             /* Kill the temp process using the copy value
@@ -370,19 +372,21 @@ static int32_t free_old_arguments(struct child_ctx *ctx)
     return (0);
 }
 
-NX_NO_RETURN static void start_smart_syscall_child(struct thread_ctx *thread)
+NX_NO_RETURN static void start_smart_syscall_child(struct thread_ctx *thread,
+                                                   struct memory_allocator *allocator,
+                                                   struct output_writter *output)
 {
     int32_t rtrn = 0;
     struct child_ctx *child = NULL;
 
-    epoch_start(thread);
+    epoch_start(thread, allocator, output);
 
     /* Grab our child context object. */
-    child = get_child();
+    child = get_child(output);
     if(child == NULL)
     {
-        output(ERROR, "Can't get child context\n");
-        exit_child(thread);
+        output->write(ERROR, "Can't get child context\n");
+        exit_child(thread, allocator, output);
     }
 
     /* Set the return jump so that we can try fuzzing again on a signal. This
@@ -392,11 +396,11 @@ NX_NO_RETURN static void start_smart_syscall_child(struct thread_ctx *thread)
     rtrn = setjmp(child->return_jump);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't set return jump\n");
-        exit_child(thread);
+        output->write(ERROR, "Can't set return jump\n");
+        exit_child(thread, allocator, output);
     }
 
-    epoch_stop(thread);
+    epoch_stop(thread, allocator);
 
     /* Loop until ctrl-c is pressed by the user. */
     while(atomic_load_int32(stop) != TRUE)
@@ -404,7 +408,7 @@ NX_NO_RETURN static void start_smart_syscall_child(struct thread_ctx *thread)
 
     }
 
-    exit_child(thread);
+    exit_child(thread, allocator, output);
 }
 
 struct child_ctx *get_child_ctx_from_pid(pid_t pid)
@@ -417,10 +421,11 @@ struct child_ctx *get_child_ctx_from_pid(pid_t pid)
             return (children[i]);
     }
 
+    /* Should not get here, but if we do return NULL. */
     return (NULL);
 }
 
-struct child_ctx *get_child(void)
+struct child_ctx *get_child(struct output_writter *output)
 {
     int32_t rtrn = 0;
     uint32_t offset = 0;
@@ -429,7 +434,7 @@ struct child_ctx *get_child(void)
     rtrn = get_child_index_number(&offset);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't grab child number\n");
+        output->write(ERROR, "Can't grab child number\n");
         return (NULL);
     }
 
@@ -437,57 +442,61 @@ struct child_ctx *get_child(void)
     return (atomic_load_ptr(&children[offset]));
 }
 
-static int32_t generate_test_case(struct child_ctx *child, struct thread_ctx *thread)
+static int32_t generate_test_case(struct child_ctx *child,
+                                  struct thread_ctx *thread,
+                                  struct output_writter *output,
+                                  struct memory_allocator *allocator,
+                                  struct random_generator *random)
 {
     int32_t rtrn = 0;
     struct syscall_entry *entry = NULL;
 
     /* Randomly pick the syscall to test. */
-    rtrn = pick_syscall(child);
+    rtrn = pick_syscall(child, random, output);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't pick syscall to test\n");
-        exit_child(thread);
+        output->write(ERROR, "Can't pick syscall to test\n");
+        exit_child(thread, allocator, output);
     }
 
     /* Generate arguments for the syscall selected. */
-    rtrn = generate_arguments(child);
+    rtrn = generate_arguments(child, output);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't generate arguments\n");
-        exit_child(thread);
+        output->write(ERROR, "Can't generate arguments\n");
+        exit_child(thread, allocator, output);
     }
 
     /* Mutate the arguments randomly. */
-    rtrn = mutate_arguments(child->arg_value_array, child->arg_size_array);
+    rtrn = mutate_arguments(child->arg_value_array, child->arg_size_array, random, output);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't mutate arguments\n");
-        exit_child(thread);
+        output->write(ERROR, "Can't mutate arguments\n");
+        exit_child(thread, allocator, output);
     }
 
     /* Grab the syscall entry for the syscall we picked. */
     entry = get_entry(child->syscall_number);
     if(entry == NULL)
     {
-        output(ERROR, "Can't get syscall entry\n");
-        exit_child(thread);
+        output->write(ERROR, "Can't get syscall entry\n");
+        exit_child(thread, allocator, output);
     }
 
     /* Log the arguments before we use them, in case we cause a
        kernel panic, so we know what caused the panic. */
     rtrn = log_arguments(child->total_args, child->syscall_name,
-                         child->arg_value_array, entry->arg_context_array);
+                         child->arg_value_array, entry->arg_context_array, allocator);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't log arguments\n");
-        exit_child(thread);
+        output->write(ERROR, "Can't log arguments\n");
+        exit_child(thread, allocator, output);
     }
 
     return (0);
 }
 
-static struct syscall_table *build_syscall_table(void)
+static struct syscall_table *build_syscall_table(struct output_writter *output, struct memory_allocator *allocator)
 {
     struct syscall_table *table = NULL;
     struct syscall_table *syscall_table = NULL;
@@ -496,15 +505,15 @@ static struct syscall_table *build_syscall_table(void)
     syscall_table = get_table();
     if(syscall_table == NULL)
     {
-        output(STD, "Can't grab syscall table\n");
+        output->write(ERROR, "Can't grab syscall table\n");
         return (NULL);
     }
 
     /* Create a syscall table object with shared memory.*/
-    table = mem_alloc_shared(sizeof(struct syscall_table));
+    table = allocator->shared(sizeof(struct syscall_table));
     if(table == NULL)
     {
-        output(ERROR, "Can't create shadow table\n");
+        output->write(ERROR, "Can't create shadow table\n");
         return (NULL);
     }
 
@@ -527,7 +536,7 @@ static struct syscall_table *build_syscall_table(void)
             entry->arg_context_array[counter] = get_arg_context((enum arg_type)type);
             if(entry->arg_context_array[counter] == NULL)
             {
-                output(ERROR, "Can't get argument context\n");
+                output->write(ERROR, "Can't get argument context\n");
                 return (NULL);
             }
         }
@@ -536,7 +545,7 @@ static struct syscall_table *build_syscall_table(void)
     return (table);
 }
 
-struct syscall_table *get_syscall_table(void)
+struct syscall_table *get_syscall_table(struct output_writter *output, struct memory_allocator *allocator)
 {
     if(table_set == TRUE)
     {
@@ -547,11 +556,11 @@ struct syscall_table *get_syscall_table(void)
     }
 
     /* Build the syscall table and return it. */
-    return (build_syscall_table());
+    return (build_syscall_table(output, allocator));
 }
 
 /* This function is used to randomly pick the syscall to test. */
-int32_t pick_syscall(struct child_ctx *child)
+int32_t pick_syscall(struct child_ctx *child, struct random_generator *random, struct output_writter *output)
 {
     /* Use rand_range to pick a number between 0 and the number_of_syscalls. The minus one
     is a hack, get_syscall_table() returns an array - 1 the size of number of syscalls
@@ -559,10 +568,10 @@ int32_t pick_syscall(struct child_ctx *child)
 
     uint32_t num = 0;
 
-    int32_t rtrn = rand_range(sys_table->total_syscalls - 1, &num);
+    int32_t rtrn = random->range(sys_table->total_syscalls - 1, &num);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't generate random number\n");
+        output->write(ERROR, "Can't generate random number\n");
         return (-1);
     }
 
@@ -577,7 +586,7 @@ int32_t pick_syscall(struct child_ctx *child)
     return (0);
 }
 
-int32_t generate_arguments(struct child_ctx *ctx)
+int32_t generate_arguments(struct child_ctx *ctx, struct output_writter *output)
 {
     uint32_t i = 0;
     int32_t rtrn = 0;
@@ -592,7 +601,7 @@ int32_t generate_arguments(struct child_ctx *ctx)
         struct syscall_entry *entry = get_entry(ctx->syscall_number);
         if(entry == NULL)
         {
-            output(ERROR, "Can't get entry\n");
+            output->write(ERROR, "Can't get entry\n");
             return (-1);
         }
 
@@ -600,7 +609,7 @@ int32_t generate_arguments(struct child_ctx *ctx)
         rtrn = entry->get_arg_array[i](&ctx->arg_value_array[i], ctx);
         if(rtrn < 0)
         {
-            output(ERROR, "Can't generate arguments for: %s\n", entry->syscall_name);
+            output->write(ERROR, "Can't generate arguments for: %s\n", entry->syscall_name);
             return (-1);
         }
 
@@ -621,7 +630,7 @@ static int32_t check_for_failure(int32_t ret_value)
     return (0);
 }
 
-int32_t test_syscall(struct child_ctx *ctx)
+int32_t test_syscall(struct child_ctx *ctx, struct output_writter *output)
 {
     /* Check if we need to set the alarm for blocking syscalls.  */
     if(ctx->need_alarm == NX_YES)
@@ -632,7 +641,7 @@ int32_t test_syscall(struct child_ctx *ctx)
     struct syscall_entry *entry = get_entry(ctx->syscall_number);
     if(entry == NULL)
     {
-        output(ERROR, "Can't get syscall entry\n");
+        output->write(ERROR, "Can't get syscall entry\n");
         return (-1);
     }
 
@@ -659,7 +668,7 @@ int32_t test_syscall(struct child_ctx *ctx)
     return (0);
 }
 
-void kill_all_children(void)
+void kill_all_children(struct output_writter *output)
 {
     uint32_t i = 0;
     int32_t rtrn = 0;
@@ -671,7 +680,7 @@ void kill_all_children(void)
         rtrn = kill(pid, SIGKILL);
         if(rtrn < 0)
         {
-            output(ERROR, "Can't kill child: %s\n", strerror(errno));
+            output->write(ERROR, "Can't kill child: %s\n", strerror(errno));
             return;
         }
     }
@@ -682,108 +691,119 @@ void kill_all_children(void)
 /**
  * This is the fuzzing loop for syscall fuzzing in dumb mode.
  */
-NX_NO_RETURN static void start_syscall_child(struct thread_ctx *thread)
+NX_NO_RETURN static void start_syscall_child(struct thread_ctx *thread,
+                                             struct memory_allocator *allocator,
+                                             struct output_writter *output,
+                                             struct resource_generator *rsrc_gen,
+                                             struct random_generator *random)
 {
     int32_t rtrn = 0;
     struct child_ctx *child = NULL;
 
-    epoch_start(thread);
+    epoch_start(thread, allocator, output);
 
     /* Get our child context. */
-    child = get_child();
+    child = get_child(output);
     if(child == NULL)
     {
-        output(ERROR, "Can't get child context\n");
-        exit_child(thread);
+        output->write(ERROR, "Can't get child context\n");
+        exit_child(thread, allocator, output);
     }
 
     /* Set the return jump so that we can try fuzzing again on a signal. */
     rtrn = setjmp(child->return_jump);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't set return jump\n");
-        exit_child(thread);
+        output->write(ERROR, "Can't set return jump\n");
+        exit_child(thread, allocator, output);
     }
 
     /* Check to see if we jumped back from the signal handler. */
     if(atomic_load_int32(&child->did_jump) == NX_YES)
     {
         /* Start an epoch protected section. */
-        epoch_start(thread);
+        epoch_start(thread, allocator, output);
 
         /* Log the results of the last fuzz test. */
         rtrn = log_results(child->had_error, child->ret_value, strsignal(child->sig_num));
         if(rtrn < 0)
         {
-            output(ERROR, "Can't log test results\n");
-            exit_child(thread);
+            output->write(ERROR, "Can't log test results\n");
+            exit_child(thread, allocator, output);
         }
 
         /* Clean up our old mess. */
-        rtrn = free_old_arguments(child);
+        rtrn = free_old_arguments(child, output, allocator, rsrc_gen);
         if(rtrn < 0)
         {
-            output(ERROR, "Can't cleanup old arguments\n");
-            exit_child(thread);
+            output->write(ERROR, "Can't cleanup old arguments\n");
+            exit_child(thread, allocator, output);
         }
 
-        epoch_stop(thread);
+        epoch_stop(thread, allocator);
     }
 
-    epoch_stop(thread);
+    epoch_stop(thread, allocator);
 
     /* Check if we should stop or continue running. */
     while(atomic_load_int32(stop) != TRUE)
     {
-        epoch_start(thread);
+        epoch_start(thread, allocator, output);
 
         /* Generate mutated syscall arguments for a randomly chosen syscall. */
-        rtrn = generate_test_case(child, thread);
+        rtrn = generate_test_case(child, thread, output, allocator, random);
         if(rtrn < 0)
         {
-            output(ERROR, "Syscall call failed\n");
-            exit_child(thread);
+            output->write(ERROR, "Syscall call failed\n");
+            exit_child(thread, allocator, output);
         }
 
-        epoch_stop(thread);
+        epoch_stop(thread, allocator);
 
         /* Run the syscall we selected with the arguments we generated and mutated. This call usually
         crashes and causes us to jumb back to the setjmp call above. */
-        rtrn = test_syscall(child);
+        rtrn = test_syscall(child, output);
         if(rtrn < 0)
         {
-            output(ERROR, "Syscall call failed\n");
-            exit_child(thread);
+            output->write(ERROR, "Syscall call failed\n");
+            exit_child(thread, allocator, output);
         }
 
         rtrn = log_results(child->had_error, child->ret_value, strsignal(child->sig_num));
         if(rtrn < 0)
         {
-            output(ERROR, "Can't log test results\n");
-            exit_child(thread);
+            output->write(ERROR, "Can't log test results\n");
+            exit_child(thread, allocator, output);
         }
 
         /* If we didn't crash, cleanup are mess. If we don't do this the generate
         functions will crash in a hard to understand way. */
-        free_old_arguments(child);
+        free_old_arguments(child, output, allocator, rsrc_gen);
     }
 
     /* We should not get here, but if we do, exit so we can be restarted. */
-    exit_child(thread);
+    exit_child(thread, allocator, output);
 }
 
-NX_NO_RETURN static void start_child_loop(struct thread_ctx *thread)
+NX_NO_RETURN static void start_child_loop(struct thread_ctx *thread,
+                                          struct memory_allocator *allocator,
+                                          struct output_writter *output,
+                                          struct resource_generator *rsrc_gen,
+                                          struct random_generator *random)
 {
     /* If were in dumb mode start the dumb syscall loop. */
     if(mode != TRUE)
     {
-        start_syscall_child(thread);
+        start_syscall_child(thread, allocator, output, rsrc_gen, random);
     }
 
-    start_smart_syscall_child(thread);
+    start_smart_syscall_child(thread, allocator, output);
 }
 
-static void init_syscall_child(uint32_t i, struct thread_ctx *thread)
+static void init_syscall_child(uint32_t i,
+                               struct thread_ctx *thread,
+                               struct memory_allocator *allocator,
+                               struct output_writter *output)
 {
     int32_t rtrn = 0;
 
@@ -791,10 +811,10 @@ static void init_syscall_child(uint32_t i, struct thread_ctx *thread)
     setup_child_signal_handler();
 
     /* Start an epoch protected section. */
-    if(epoch_start(thread) == -1)
+    if(epoch_start(thread, allocator, output) == -1)
     {
-        output(ERROR, "Can't start epoch protected section\n");
-        exit_child(thread);
+        output->write(ERROR, "Can't start epoch protected section\n");
+        exit_child(thread, allocator, output);
     }
 
     /* Check if we are in smart mode. */
@@ -804,49 +824,45 @@ static void init_syscall_child(uint32_t i, struct thread_ctx *thread)
         rtrn = inject_kernel_probes(children[i]->probe_handle);
         if(rtrn < 0)
         {
-            output(ERROR, "Can't init child probes\n");
-            exit_child(thread);
+            output->write(ERROR, "Can't init child probes\n");
+            exit_child(thread, allocator, output);
         }
     }
 
     /* End epoch protected section. */
-    epoch_stop(thread);
-
-    /* If were using a software PRNG we need to seed the PRNG. */
-    if(using_hardware_prng() == FALSE)
-    {
-        /* We got to seed the prng so that the child process trys different syscalls. */
-        rtrn = seed_prng();
-        if(rtrn < 0)
-        {
-            output(ERROR, "Can't init syscall\n");
-            exit_child(thread);
-        }
-    }
+    epoch_stop(thread, allocator);
 
     return;
 }
 
-NX_NO_RETURN static void start_child(uint32_t i)
+NX_NO_RETURN static void start_child(uint32_t i,
+                                     struct memory_allocator *allocator,
+                                     struct output_writter *output,
+                                     struct resource_generator *rsrc_gen,
+                                     struct random_generator *random)
 {
     struct thread_ctx *thread = NULL;
 
     /* Register the child's main thread with the global epoch. */
-    thread = init_thread(epoch);
+    thread = init_thread(epoch, allocator, output);
     if(thread == NULL)
     {
-        output(ERROR, "Thread initialization failed\n");
-        exit_child(thread);
+        output->write(ERROR, "Thread initialization failed\n");
+        exit_child(thread, allocator, output);
     }
 
     /* Initialize the new child. */
-    init_syscall_child(i, thread);
+    init_syscall_child(i, thread, allocator, output);
 
     /* Start the newly created syscall child's main loop. */
-    start_child_loop(thread);
+    start_child_loop(thread, allocator, output, rsrc_gen, random);
 }
 
-static int32_t create_child(struct thread_ctx *thread)
+static int32_t create_child(struct thread_ctx *thread,
+                            struct memory_allocator *allocator,
+                            struct output_writter *output,
+                            struct resource_generator *rsrc_gen,
+                            struct random_generator *random)
 {
     pid_t pid = 0;
     uint32_t i = 0;
@@ -855,9 +871,9 @@ static int32_t create_child(struct thread_ctx *thread)
     for(i = 0; i < total_children; i++)
     {
         /* Start epoch protected section. */
-        if(epoch_start(thread) == -1)
+        if(epoch_start(thread, allocator, output) == -1)
         {
-            output(ERROR, "Can't start protected section\n");
+            output->write(ERROR, "Can't start protected section\n");
             return (-1);
         }
 
@@ -866,12 +882,12 @@ static int32_t create_child(struct thread_ctx *thread)
         if(atomic_load_int32(&children[i]->pid) != EMPTY)
         {
             /* End the epoch protected section. */
-            epoch_stop(thread);
+            epoch_stop(thread, allocator);
             continue;
         }
 
         /* End the epoch protected section. */
-        epoch_stop(thread);
+        epoch_stop(thread, allocator);
 
         /* Create a pipe so we can avoid a race on child creation.
         We don't wan't the parent to try creating a child on a child
@@ -881,7 +897,7 @@ static int32_t create_child(struct thread_ctx *thread)
         int32_t rtrn = pipe(fd);
         if(rtrn < 0)
         {
-            output(ERROR, "Message pipe creation failed\n");
+            output->write(ERROR, "Message pipe creation failed\n");
             return (-1);
         }
 
@@ -900,12 +916,12 @@ static int32_t create_child(struct thread_ctx *thread)
             ssize_t ret = write(fd[1], "!", 1);
             if(ret < 1)
             {
-                output(ERROR, "Write: %s\n", strerror(errno));
-                exit_child(thread);
+                output->write(ERROR, "Write: %s\n", strerror(errno));
+                exit_child(thread, allocator, output);
             }
 
             /* Start child process's loop. */
-            start_child(i);
+            start_child(i, allocator, output, rsrc_gen, random);
         }
         else if(pid > 0)
         {
@@ -915,7 +931,7 @@ static int32_t create_child(struct thread_ctx *thread)
             ssize_t ret = read(fd[0], buf, 1);
             if(ret < 1)
             {
-                output(ERROR, "Read: %s\n", strerror(errno));
+                output->write(ERROR, "Read: %s\n", strerror(errno));
                 return (-1);
             }
 
@@ -927,7 +943,7 @@ static int32_t create_child(struct thread_ctx *thread)
         }
         else
         {
-            output(ERROR, "Can't create child proc: %s\n", strerror(errno));
+            output->write(ERROR, "Can't create child proc: %s\n", strerror(errno));
             return (-1);
         }
     }
@@ -935,9 +951,13 @@ static int32_t create_child(struct thread_ctx *thread)
     return (0);
 }
 
-void start_main_syscall_loop(struct thread_ctx *thread)
+void start_main_syscall_loop(struct thread_ctx *thread,
+                             struct memory_allocator *allocator,
+                             struct output_writter *output,
+                             struct resource_generator *rsrc_gen,
+                             struct random_generator *random)
 {
-    output(STD, "Starting fuzzer\n");
+    output->write(STD, "Starting fuzzer\n");
 
     int32_t rtrn = 0;
 
@@ -945,7 +965,7 @@ void start_main_syscall_loop(struct thread_ctx *thread)
     rtrn = setup_signal_handler();
     if(rtrn < 0)
     {
-        output(ERROR, "Signal handler setup failed\n");
+        output->write(ERROR, "Signal handler setup failed\n");
         return;
     }
 
@@ -956,27 +976,27 @@ void start_main_syscall_loop(struct thread_ctx *thread)
         if(atomic_load_uint32(&state->running_children) < total_children)
         {
             /* Create children process. */
-            rtrn = create_child(thread);
+            rtrn = create_child(thread, allocator, output, rsrc_gen, random);
             if(rtrn < 0)
             {
-                output(ERROR, "Can't create child\n");
+                output->write(ERROR, "Can't create child\n");
                 return;
             }
         }
     }
 
-    output(STD, "Exiting main loop\n");
+    output->write(STD, "Exiting main loop\n");
 }
 
-static struct child_ctx *init_child_context(void)
+static struct child_ctx *init_child_context(struct output_writter *output, struct memory_allocator *allocator)
 {
     struct child_ctx *child = NULL;
 
     /* Allocate the child context object. */
-    child = mem_alloc_shared(sizeof(struct child_ctx));
+    child = allocator->shared(sizeof(struct child_ctx));
     if(child == NULL)
     {
-        output(ERROR, "Can't create child context\n");
+        output->write(ERROR, "Can't create child context\n");
         return (NULL);
     }
 
@@ -984,31 +1004,31 @@ static struct child_ctx *init_child_context(void)
     child->current_arg = 0;
 
     /* Create the index where we store the syscall arguments. */
-    child->arg_value_array = mem_alloc_shared(ARG_LIMIT * sizeof(uint64_t *));
+    child->arg_value_array = allocator->shared(ARG_LIMIT * sizeof(uint64_t *));
     if(child->arg_value_array == NULL)
     {
-        output(ERROR, "Can't create arg value index: %s\n", strerror(errno));
-        mem_free_shared((void **)&child, sizeof(struct child_ctx));
+        output->write(ERROR, "Can't create arg value index: %s\n", strerror(errno));
+        allocator->free_shared((void **)&child, sizeof(struct child_ctx));
         return (NULL);
     }
 
     /* This index tracks the size of the argument generated.  */
-    child->arg_size_array = mem_alloc_shared(ARG_LIMIT * sizeof(uint64_t));
+    child->arg_size_array = allocator->shared(ARG_LIMIT * sizeof(uint64_t));
     if(child->arg_size_array == NULL)
     {
-        output(ERROR, "Can't create arg size index: %s\n", strerror(errno));
-        mem_free_shared((void **)&child->arg_value_array, ARG_LIMIT * sizeof(uint64_t *));
-        mem_free_shared((void **)&child, sizeof(struct child_ctx));
+        output->write(ERROR, "Can't create arg size index: %s\n", strerror(errno));
+        allocator->free_shared((void **)&child->arg_value_array, ARG_LIMIT * sizeof(uint64_t *));
+        allocator->free_shared((void **)&child, sizeof(struct child_ctx));
         return (NULL);
     }
 
-    child->arg_copy_array = mem_alloc_shared(ARG_LIMIT * sizeof(uint64_t *));
+    child->arg_copy_array = allocator->shared(ARG_LIMIT * sizeof(uint64_t *));
     if(child->arg_copy_array == NULL)
     {
-        output(ERROR, "Can't create arg copy index: %s\n", strerror(errno));
-        mem_free_shared((void **)&child->arg_size_array, ARG_LIMIT * sizeof(uint64_t));
-        mem_free_shared((void **)&child->arg_value_array, ARG_LIMIT * sizeof(uint64_t *));
-        mem_free_shared((void **)&child, sizeof(struct child_ctx));
+        output->write(ERROR, "Can't create arg copy index: %s\n", strerror(errno));
+        allocator->free_shared((void **)&child->arg_size_array, ARG_LIMIT * sizeof(uint64_t));
+        allocator->free_shared((void **)&child->arg_value_array, ARG_LIMIT * sizeof(uint64_t *));
+        allocator->free_shared((void **)&child, sizeof(struct child_ctx));
         return (NULL);
     }
 
@@ -1017,31 +1037,31 @@ static struct child_ctx *init_child_context(void)
     /* Loop and create the various arrays in the child struct. */
     for(i = 0; i < ARG_LIMIT; i++)
     {
-        child->arg_value_array[i] = mem_alloc_shared(ARG_BUF_LEN);
+        child->arg_value_array[i] = allocator->shared(ARG_BUF_LEN);
         if(child->arg_value_array[i] == NULL)
         {
-            output(ERROR, "Can't create arg value\n");
+            output->write(ERROR, "Can't create arg value\n");
             /* Still potentially leaking memory from the indicies
              in the arg_value_array, ie if malloc fails on the second
              or higher iteration. */
-            mem_free_shared((void **)&child->arg_copy_array, ARG_LIMIT * sizeof(uint64_t *));
-            mem_free_shared((void **)&child->arg_size_array, ARG_LIMIT * sizeof(uint64_t));
-            mem_free_shared((void **)&child->arg_value_array, ARG_LIMIT * sizeof(uint64_t *));
-            mem_free_shared((void **)&child, sizeof(struct child_ctx));
+            allocator->free_shared((void **)&child->arg_copy_array, ARG_LIMIT * sizeof(uint64_t *));
+            allocator->free_shared((void **)&child->arg_size_array, ARG_LIMIT * sizeof(uint64_t));
+            allocator->free_shared((void **)&child->arg_value_array, ARG_LIMIT * sizeof(uint64_t *));
+            allocator->free_shared((void **)&child, sizeof(struct child_ctx));
             return (NULL);
         }
 
-        child->arg_copy_array[i] = mem_alloc_shared(ARG_BUF_LEN);
+        child->arg_copy_array[i] = allocator->shared(ARG_BUF_LEN);
         if(child->arg_copy_array[i] == NULL)
         {
-            output(ERROR, "Can't create arg copy value\n");
+            output->write(ERROR, "Can't create arg copy value\n");
             /* Still potentially leaking memory from the indicies
              in the arg_copy_array, ie if malloc fails on the second
              or higher iteration. */
-            mem_free_shared((void **)&child->arg_copy_array, ARG_LIMIT * sizeof(uint64_t *));
-            mem_free_shared((void **)&child->arg_size_array, ARG_LIMIT * sizeof(uint64_t));
-            mem_free_shared((void **)&child->arg_value_array, ARG_LIMIT * sizeof(uint64_t *));
-            mem_free_shared((void **)&child, sizeof(struct child_ctx));
+            allocator->free_shared((void **)&child->arg_copy_array, ARG_LIMIT * sizeof(uint64_t *));
+            allocator->free_shared((void **)&child->arg_size_array, ARG_LIMIT * sizeof(uint64_t));
+            allocator->free_shared((void **)&child->arg_value_array, ARG_LIMIT * sizeof(uint64_t *));
+            allocator->free_shared((void **)&child, sizeof(struct child_ctx));
             return (NULL);
         }
     }
@@ -1052,7 +1072,9 @@ static struct child_ctx *init_child_context(void)
 int32_t setup_syscall_module(int32_t *stop_ptr,
                              uint32_t *counter,
                              int32_t run_mode,
-                             epoch_ctx *e)
+                             epoch_ctx *e,
+                             struct memory_allocator *allocator,
+                             struct output_writter *output)
 {
     uint32_t i = 0;
     int32_t rtrn = 0;
@@ -1062,22 +1084,22 @@ int32_t setup_syscall_module(int32_t *stop_ptr,
     rtrn = get_core_count(&total_children);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't get core count\n");
+        output->write(ERROR, "Can't get core count\n");
         return (-1);
     }
 
     /* Grab the syscall table for the system we are on. */
-    sys_table = get_syscall_table();
+    sys_table = get_syscall_table(output, allocator);
     if(sys_table == NULL)
     {
-        output(ERROR, "Can't get syscall table\n");
+        output->write(ERROR, "Can't get syscall table\n");
         return (-1);
     }
 
-    state = mem_alloc_shared(sizeof(struct global_state));
+    state = allocator->shared(sizeof(struct global_state));
     if(state == NULL)
     {
-        output(ERROR, "Global state allocation failed\n");
+        output->write(ERROR, "Global state allocation failed\n");
         return (-1);
     }
 
@@ -1085,10 +1107,10 @@ int32_t setup_syscall_module(int32_t *stop_ptr,
     atomic_store_uint32(&state->running_children, 0);
 
     /* Create the child process structures. */
-    children = mem_alloc_shared(total_children * sizeof(struct child_ctx *));
+    children = allocator->shared(total_children * sizeof(struct child_ctx *));
     if(children == NULL)
     {
-        output(ERROR, "Can't create children index.\n");
+        output->write(ERROR, "Can't create children index.\n");
         return (-1);
     }
 
@@ -1098,10 +1120,10 @@ int32_t setup_syscall_module(int32_t *stop_ptr,
         struct child_ctx *child = NULL;
 
         /* Create and initialize the child context struct. */
-        child = init_child_context();
+        child = init_child_context(output, allocator);
         if(child == NULL)
         {
-            output(ERROR, "Can't init child context\n");
+            output->write(ERROR, "Can't init child context\n");
             return (-1);
         }
 

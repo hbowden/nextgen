@@ -23,6 +23,9 @@
 #ifndef SYSCALL_H
 #define SYSCALL_H
 
+#include "io/io.h"
+#include "crypto/crypto.h"
+#include "resource/resource.h"
 #include "concurrent/concurrent.h"
 #include "concurrent/epoch.h"
 
@@ -45,19 +48,19 @@ extern void get_total_syscalls(uint32_t *total);
 
 extern struct child_ctx *get_child_from_index(uint32_t i);
 
-extern struct child_ctx *get_child(void);
+extern struct child_ctx *get_child(struct output_writter *output);
 
 extern struct child_ctx *get_child_ctx_from_pid(pid_t pid);
 
-extern struct syscall_table *get_syscall_table(void);
+extern struct syscall_table *get_syscall_table(struct output_writter *output, struct memory_allocator *allocator);
 
-extern void cleanup_syscall_table(struct syscall_table **table);
+extern void cleanup_syscall_table(struct syscall_table **table, struct memory_allocator *allocator);
 
-extern int32_t pick_syscall(struct child_ctx *ctx);
+extern int32_t pick_syscall(struct child_ctx *, struct random_generator *, struct output_writter *);
 
-extern int32_t generate_arguments(struct child_ctx *ctx);
+extern int32_t generate_arguments(struct child_ctx *ctx, struct output_writter *output);
 
-extern int32_t test_syscall(struct child_ctx *ctx);
+extern int32_t test_syscall(struct child_ctx *ctx, struct output_writter *output);
 
 extern void jump(struct child_ctx *child);
 
@@ -73,19 +76,25 @@ extern void set_did_jump(struct child_ctx *child, int32_t val);
 
 extern void set_arg_size(struct child_ctx *child, uint64_t size);
 
-extern int32_t get_arg_size(struct child_ctx *child, uint32_t arg_num, uint64_t *size);
+extern int32_t get_arg_size(struct child_ctx *child, uint32_t arg_num, uint64_t *size, struct output_writter *output);
 
 extern uint32_t get_current_arg(struct child_ctx *child);
 
-extern void kill_all_children(void);
+extern void kill_all_children(struct output_writter *output);
 
 extern struct syscall_entry *get_entry(uint32_t syscall_number);
 
 extern int32_t setup_syscall_module(int32_t *stop_ptr,
-	                                uint32_t *counter,
-	                                int32_t run_mode,
-	                                epoch_ctx *e);
+	                                  uint32_t *counter,
+	                                  int32_t run_mode,
+	                                  epoch_ctx *e,
+																		struct memory_allocator *allocator,
+                                    struct output_writter *output);
 
-extern void start_main_syscall_loop(struct thread_ctx *thread);
+extern void start_main_syscall_loop(struct thread_ctx *thread,
+                                    struct memory_allocator *allocator,
+                                    struct output_writter *output,
+                                    struct resource_generator *rsrc_gen,
+                                    struct random_generator *random);
 
 #endif
