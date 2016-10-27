@@ -22,7 +22,7 @@
 
 struct test_obj
 {
-	uint32_t counter;
+   uint32_t counter;
 };
 
 static struct test_obj *obj;
@@ -34,9 +34,19 @@ static void *start_thread(void *arg)
 	epoch_ctx *e = (epoch_ctx *)arg;
 	epoch_ctx epoch = (*e);
 
-    /* Initialize a thread context object and make sure it's not NULL. */
+  /* We will also need a memory allocator for creating a thread object.  */
+	struct memory_allocator *allocator = NULL;
+	allocator = get_default_allocator();
+	TEST_ASSERT_NOT_NULL(allocator);
+
+  /* Create a output interface so init_thread() can log errors. */
+  struct output_writter *output = NULL;
+	output = get_console_writter();
+	TEST_ASSERT_NOT_NULL(output);
+
+  /* Initialize a thread context object and make sure it's not NULL. */
 	struct thread_ctx *thread = NULL;
-	thread = init_thread(&epoch);
+	thread = init_thread(&epoch, allocator, output);
 	TEST_ASSERT_NOT_NULL(thread);
 
 	/* Make sure the epoch record returned is not NULL. */
@@ -48,14 +58,14 @@ static void *start_thread(void *arg)
 	for(i = 0; i < 100; i++)
 	{
 	    /* Start epoch protected section. */
-        int32_t rtrn = epoch_start(thread);
+        int32_t rtrn = epoch_start(thread, allocator, output);
         TEST_ASSERT(rtrn != -1);
 
         struct test_obj *o = atomic_load_ptr(&obj);
         atomic_add_uint32(&o->counter, 1);
 
         /* End the epoch protected section. */
-        epoch_stop(thread);
+        epoch_stop(thread, allocator);
 	}
 
 	  return (NULL);
@@ -63,93 +73,91 @@ static void *start_thread(void *arg)
 
 static void test_epoch_section(void)
 {
-	obj = mem_alloc_shared(sizeof(struct test_obj));
-	TEST_ASSERT_NOT_NULL(obj);
+	  struct memory_allocator *allocator = NULL;
+	  allocator = get_default_allocator();
+	  TEST_ASSERT_NOT_NULL(allocator);
 
-	obj->counter = 0;
+	  obj = allocator->shared(sizeof(struct test_obj));
+	  TEST_ASSERT_NOT_NULL(obj);
+
+	  /* Create a output interface so we can log errors. */
+	  struct output_writter *output = NULL;
+	  output = get_console_writter();
+	  TEST_ASSERT_NOT_NULL(output);
+
+	  obj->counter = 0;
 
     /* We need an initialized epoch context object
 	  to initialize a thread context object. */
-	epoch_ctx epoch;
-	epoch_init(&epoch);
-	TEST_ASSERT_NOT_NULL(&epoch);
+	  epoch_ctx epoch;
+	  epoch_init(&epoch);
+	  TEST_ASSERT_NOT_NULL(&epoch);
 
-  int32_t rtrn = 0;
-	pthread_t pthread = 0;
-	rtrn = pthread_create(&pthread, NULL, start_thread, &epoch);
-	TEST_ASSERT(rtrn > -1);
+    int32_t rtrn = 0;
+	  pthread_t pthread = 0;
+	  rtrn = pthread_create(&pthread, NULL, start_thread, &epoch);
+	  TEST_ASSERT(rtrn > -1);
 
     /* Initialize a thread context object and make sure it's not NULL. */
-	struct thread_ctx *thread = NULL;
-	thread = init_thread(&epoch);
-	TEST_ASSERT_NOT_NULL(thread);
+	  struct thread_ctx *thread = NULL;
+	  thread = init_thread(&epoch, allocator, output);
+	  TEST_ASSERT_NOT_NULL(thread);
 
-	/* Make sure the epoch record returned is not NULL. */
-	epoch_record *record = get_record(thread);
-	TEST_ASSERT_NOT_NULL(record);
+	  /* Make sure the epoch record returned is not NULL. */
+	  epoch_record *record = get_record(thread);
+	  TEST_ASSERT_NOT_NULL(record);
 
-	uint32_t i;
+	  uint32_t i;
 
-	for(i = 0; i < 100; i++)
-	{
-	    /* Start epoch protected section. */
-        rtrn = epoch_start(thread);
+	  for(i = 0; i < 100; i++)
+	  {
+	      /* Start epoch protected section. */
+        rtrn = epoch_start(thread, allocator, output);
         TEST_ASSERT(rtrn != -1);
 
         struct test_obj *o = atomic_load_ptr(&obj);
         atomic_add_uint32(&o->counter, 1);
 
         /* End the epoch protected section. */
-        epoch_stop(thread);
-	}
+        epoch_stop(thread, allocator);
+	  }
 
-	pthread_join(pthread, NULL);
+	  pthread_join(pthread, NULL);
 
-	TEST_ASSERT(obj->counter == 200);
+	  TEST_ASSERT(obj->counter == 200);
 
-	return;
-}
-
-static void test_get_record(void)
-{
-	/* We need an initialized epoch context object
-	  to initialize a thread context object. */
-	epoch_ctx epoch;
-	epoch_init(&epoch);
-	TEST_ASSERT_NOT_NULL(&epoch);
-
-    /* Initialize a thread context object and make sure it's not NULL. */
-	struct thread_ctx *thread = NULL;
-	thread = init_thread(&epoch);
-	TEST_ASSERT_NOT_NULL(thread);
-
-	/* Make sure the epoch record returned is not NULL. */
-	epoch_record *record = get_record(thread);
-	TEST_ASSERT_NOT_NULL(record);
-
-	return;
+	  return;
 }
 
 static void test_thread_init(void)
 {
-	/* We need an initialized epoch context object
-	  to initialize a thread context object. */
-	epoch_ctx epoch;
-	epoch_init(&epoch);
-	TEST_ASSERT_NOT_NULL(&epoch);
+	  /* We need an initialized epoch context object
+	    to initialize a thread context object. */
+	  epoch_ctx epoch;
+	  epoch_init(&epoch);
+	  TEST_ASSERT_NOT_NULL(&epoch);
+
+		/* We will also need a memory allocator for creating a thread object.  */
+		struct memory_allocator *allocator = NULL;
+		allocator = get_default_allocator();
+		TEST_ASSERT_NOT_NULL(allocator);
+
+	  /* Create a output interface so init_thread() can log errors. */
+	  struct output_writter *output = NULL;
+		output = get_console_writter();
+		TEST_ASSERT_NOT_NULL(output);
 
     /* Initialize a thread context object and make sure it's not NULL. */
-	struct thread_ctx *thread = NULL;
-	thread = init_thread(&epoch);
-	TEST_ASSERT_NOT_NULL(thread);
+	  struct thread_ctx *thread = NULL;
+	  thread = init_thread(&epoch, allocator, output);
+	  TEST_ASSERT_NOT_NULL(thread);
 
-	return;
+	  return;
 }
 
 int main(void)
 {
 	  test_thread_init();
-	  test_get_record();
 	  test_epoch_section();
 
     return (0);
