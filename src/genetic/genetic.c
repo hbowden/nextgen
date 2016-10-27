@@ -71,23 +71,24 @@ struct world_population
 
 static struct world_population *world;
 
-static int32_t init_world(void)
+static int32_t init_world(struct output_writter *output,
+                          struct memory_allocator *allocator)
 {
-    output(STD, "Creating world, may take a sec\n");
+    output->write(STD, "Creating world, may take a sec\n");
 
     /* Allocate the world struct. */
-    world = mem_alloc(sizeof(struct world_population));
+    world = allocator->alloc(sizeof(struct world_population));
     if(world == NULL)
     {
-        output(ERROR, "Can't allocate world\n");
+        output->write(ERROR, "Can't allocate world\n");
         return (-1);
     }
 
     /* Grab a reference of the syscall table. */
-    struct syscall_table *sys_table = get_syscall_table();
+    struct syscall_table *sys_table = get_syscall_table(output, allocator);
     if(sys_table == NULL)
     {
-        output(ERROR, "Can't get system table\n");
+        output->write(ERROR, "Can't get system table\n");
         return (-1);
     }
 
@@ -98,11 +99,11 @@ static int32_t init_world(void)
     world->current_generation = 0;
 
     /* Allocate index of species context pointers. */
-    world->species = mem_alloc((world->total_species) * sizeof(struct species_ctx *));
+    world->species = allocator->alloc((world->total_species) * sizeof(struct species_ctx *));
     if(world->species == NULL)
     {
-        output(ERROR, "Can't create species index\n");
-        cleanup_syscall_table(&sys_table);
+        output->write(ERROR, "Can't create species index\n");
+        cleanup_syscall_table(&sys_table, allocator);
         return (-1);
     }
 
@@ -125,10 +126,10 @@ static int32_t init_world(void)
 
         struct species_ctx *specie = NULL;
 
-        specie = mem_alloc(sizeof(struct species_ctx));
+        specie = allocator->alloc(sizeof(struct species_ctx));
         if(specie == NULL)
         {
-            output(ERROR, "Can't allocate species_ctx\n");
+            output->write(ERROR, "Can't allocate species_ctx\n");
             return (-1);
         }
 
@@ -140,18 +141,18 @@ static int32_t init_world(void)
         {
             struct organism_ctx *organism = NULL;
 
-            organism = mem_alloc(sizeof(struct organism_ctx));
+            organism = allocator->alloc(sizeof(struct organism_ctx));
             if(organism == NULL)
             {
-                output(ERROR, "Can't allocate organism context\n");
+                output->write(ERROR, "Can't allocate organism context\n");
                 return (-1);
             }
 
-            organism->chromosome = mem_alloc(sizeof(struct chromosome_ctx));
+            organism->chromosome = allocator->alloc(sizeof(struct chromosome_ctx));
             if(organism->chromosome == NULL)
             {
-                output(ERROR, "Can't allocate chromosome context\n");
-                mem_free((void **)&organism);
+                output->write(ERROR, "Can't allocate chromosome context\n");
+                allocator->free((void **)&organism);
                 return (-1);
             }
 
@@ -166,15 +167,16 @@ static int32_t init_world(void)
     return (0);
 }
 
-static int32_t create_first_generation(void)
+static int32_t create_first_generation(struct output_writter *output,
+                                       struct memory_allocator *allocator)
 {
-    output(STD, "Creating first generation\n");
+    output->write(STD, "Creating first generation\n");
 
     /* Grab a copy of the syscall table. */
-    struct syscall_table *sys_table = get_syscall_table();
+    struct syscall_table *sys_table = get_syscall_table(output, allocator);
     if(sys_table == NULL)
     {
-        output(ERROR, "Can't get system table\n");
+        output->write(ERROR, "Can't get system table\n");
         return (-1);
     }
 
@@ -189,28 +191,29 @@ static int32_t create_first_generation(void)
         }
     }
 
-    cleanup_syscall_table(&sys_table);
+    cleanup_syscall_table(&sys_table, allocator);
 
     return (0);
 }
 
-static int32_t genesis(void)
+static int32_t genesis(struct output_writter *output,
+                       struct memory_allocator *allocator)
 {
     int32_t rtrn = 0;
 
     /* Allocate and initialize all the data structures needed by the genetic alorithm. */
-    rtrn = init_world();
+    rtrn = init_world(output, allocator);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't init world\n");
+        output->write(ERROR, "Can't init world\n");
         return (-1);
     }
 
     /* Create the first generation of organisms aka test cases. */
-    rtrn = create_first_generation();
+    rtrn = create_first_generation(output, allocator);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't create first generation\n");
+        output->write(ERROR, "Can't create first generation\n");
         return (-1);
     }
 
@@ -221,12 +224,13 @@ static void *god_loop(void *arg)
 {
     (void)arg;
     int32_t rtrn = 0;
+    struct output_writter *output = get_console_writter();
 
     /* genesis() init's all the needed data structures and creates the first population. */
-    rtrn = genesis();
+    rtrn = genesis(output, get_default_allocator());
     if(rtrn < 0)
     {
-        output(ERROR, "Can't init ga\n");
+        output->write(ERROR, "Can't init ga\n");
         return (NULL);
     }
 
@@ -241,14 +245,15 @@ static void *god_loop(void *arg)
 
 int32_t setup_genetic_module(enum genetic_mode mode,
                              pthread_t *thread,
-                             int32_t *stop_ptr)
+                             int32_t *stop_ptr,
+                             struct output_writter *output)
 {
     int32_t rtrn = 0;
 
     rtrn = pthread_create(thread, NULL, god_loop, NULL);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't create thread\n");
+        output->write(ERROR, "Can't create thread\n");
         return (-1);
     }
 

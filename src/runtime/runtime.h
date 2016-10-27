@@ -18,20 +18,23 @@
 
 #include "nextgen.h"
 #include "fuzzer.h"
+#include "io/io.h"
 #include <stdint.h>
 
 /* Calling this function will cause all nextgen processes to start exiting. */
 extern int32_t shutdown(void);
 
-extern int32_t setup_runtime(struct shared_map *mapping);
-
-extern int32_t start_runtime(void);
-
+/**
+ * Get the fuzzer selected in the shared memory mapping.
+ * @param mapping The shared memory map where nextgen's config is stored.
+ * @return The fuzzer instance object that was selected.
+ */
 extern struct fuzzer_instance *get_fuzzer(struct shared_map *mapping);
 
 /**
  * Return a string with the name of the operating system
  * nextgen is running on.
+ * @return A string with the name of the operating system we are currently running on.
  */
 extern const char *get_os(void);
 

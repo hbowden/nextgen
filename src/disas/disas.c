@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
- * 
+ *
  * Permission to use, copy, modify, and/or distribute this software for any purpose
- * with or without fee is hereby granted, provided that the above copyright notice 
+ * with or without fee is hereby granted, provided that the above copyright notice
  * and this permission notice appear in all copies.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH 
- * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY 
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, 
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
  * WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
@@ -19,6 +19,8 @@
 #include "io/io.h"
 #include "memory/memory.h"
 #include "utils/utils.h"
+#include "utils/autoclose.h"
+#include "utils/autofree.h"
 
 #include <errno.h>
 #include <fcntl.h>
@@ -28,7 +30,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
-int32_t disas_executable_and_examine(void)
+int32_t disas_executable_and_examine(struct output_writter *output)
 {
     int32_t rtrn;
     uint64_t file_size;
@@ -38,10 +40,10 @@ int32_t disas_executable_and_examine(void)
     char *exec_path auto_free = NULL;
 
     /* Ask the file module for the path of the binary to test. */
-    rtrn = get_exec_path(&exec_path);
+    rtrn = get_exec_path(&exec_path, output);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't get exec path\n");
+        output->write(ERROR, "Can't get exec path\n");
         return -1;
     }
 
@@ -49,15 +51,15 @@ int32_t disas_executable_and_examine(void)
     file = open(exec_path, O_RDONLY);
     if(file < 0)
     {
-        output(ERROR, "open: %s\n", strerror(errno));
+        output->write(ERROR, "open: %s\n", strerror(errno));
         return (-1);
     }
 
     /* Read file in to memory. */
-    rtrn = map_file_in(file, &file_buffer, &file_size, READ);
+    rtrn = map_file_in(file, &file_buffer, &file_size, READ, output);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't memory map file\n");
+        output->write(ERROR, "Can't memory map file\n");
         return (-1);
     }
 
@@ -238,7 +240,7 @@ int32_t disas_executable_and_examine(void)
     rtrn = set_end_offset(insn[0].address);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't set end offset\n");
+        output->write(ERROR, "Can't set end offset\n");
         return -1;
     }
 
