@@ -36,7 +36,7 @@ static void test_get_syscall_fuzzer(void)
     struct random_generator *random = NULL;
     random = get_default_random_generator(allocator, output);
 
-    rtrn = fuzzer->setup(random);
+    rtrn = fuzzer->setup(random, output);
     TEST_ASSERT(rtrn == 0);
 
     return;

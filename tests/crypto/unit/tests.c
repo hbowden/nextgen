@@ -19,6 +19,28 @@
 
 static uint32_t iterations = 1000;
 
+static void test_seed_random_generator(void)
+{
+	  int32_t rtrn = 0;
+    struct random_generator *random = NULL;
+    struct memory_allocator *allocator = NULL;
+    struct output_writter *output = NULL;
+
+    output = get_console_writter();
+    TEST_ASSERT_NOT_NULL(output);
+
+    allocator = get_default_allocator();
+    TEST_ASSERT_NOT_NULL(allocator);
+
+    random = get_default_random_generator(allocator, output);
+    TEST_ASSERT_NOT_NULL(random);
+    TEST_ASSERT_NOT_NULL(random->range);
+		TEST_ASSERT_NOT_NULL(random->seed);
+
+		rtrn = random->seed();
+		TEST_ASSERT(rtrn == 0);
+}
+
 static void test_get_random_generator(void)
 {
     struct random_generator *random = NULL;
@@ -172,6 +194,7 @@ int main(void)
 	test_rand_bytes();
 	test_rand_range();
 	test_get_random_generator();
+	test_seed_random_generator();
 
 	return (0);
 }
