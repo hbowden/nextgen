@@ -44,7 +44,6 @@ int main(int argc, char *argv[])
     ctx = parse_cmd_line(argc, argv);
     if(ctx == NULL)
     {
-        output(ERROR, "Can't parse command line.\n");
         return (-1);
     }
 
