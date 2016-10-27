@@ -14,8 +14,8 @@
  **/
 
 #include "runtime/nextgen.h"
-#include "memory/memory.h"
 #include "runtime/runtime.h"
+#include "memory/memory.h"
 #include "io/io.h"
 
 /**
@@ -30,25 +30,43 @@ int main(int argc, char *argv[])
 {
     int32_t rtrn = 0;
     struct parser_ctx *ctx = NULL;
+    //struct fuzzer *nextgen = NULL;
+    struct output_writter *output = NULL;
+    struct memory_allocator *allocator = NULL;
 
-    /* Create a shared memory map so that we can share state with other threads and procceses. */
-    map = mem_alloc_shared(sizeof(struct shared_map));
+    output = get_console_writter();
+    if(output == NULL)
+    {
+        /* Default to the console if we fail to create a output writter. */
+        printf("Failed to get console writter\n");
+        return (-1);
+    }
+
+    allocator = get_default_allocator();
+    if(allocator == NULL)
+    {
+        output->write(ERROR, "Failed to get memory allocator\n");
+        return (-1);
+    }
+
+    map = allocator->shared(sizeof(struct shared_map));
     if(map == NULL)
     {
-        output(ERROR, "Can't create shared object.\n");
+        output->write(ERROR, "Can't create shared mapping.\n");
         return (-1);
     }
 
     /* Parse the command line for user input. parse_cmd_line() will set variables
     in map, the shared memory mapping. This will tell the fuzzer how to run. */
-    ctx = parse_cmd_line(argc, argv);
+    ctx = parse_cmd_line(argc, argv, output, allocator);
     if(ctx == NULL)
         return (-1);
 
+    /* Make sure we have root. */
     rtrn = check_root();
     if(rtrn != 0)
     {
-        output(STD, "Run nextgen as root\n");
+        output->write(STD, "Run nextgen as root\n");
         return (-1);
     }
 
@@ -56,24 +74,7 @@ int main(int argc, char *argv[])
     rtrn = init_shared_mapping(&map, ctx);
     if(rtrn < 0)
     {
-        output(ERROR, "Can't initialize.\n");
-        return (-1);
-    }
-
-    /* Setup the fuzzer running enviroment. */
-    rtrn = setup_runtime(map);
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't setup runtime enviroment.\n");
-        return (-1);
-    }
-
-    /* Start the main fuzzing loop. */
-    rtrn = start_runtime();
-    if(rtrn < 0)
-    {
-        output(ERROR, "Can't start runtime enviroment.\n");
-        clean_shared_mapping();
+        output->write(ERROR, "Can't initialize.\n");
         return (-1);
     }
 
