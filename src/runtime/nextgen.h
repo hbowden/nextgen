@@ -29,8 +29,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-struct parser_ctx;
-
 struct fuzzer_config;
 
 enum fuzz_mode { MODE_FILE, MODE_SYSCALL, MODE_NETWORK };
@@ -79,10 +77,16 @@ struct shared_map
 
 extern struct shared_map *map;
 
-extern int32_t init_shared_mapping(struct shared_map **mapping, struct parser_ctx *ctx);
-
-extern void clean_shared_mapping(void);
-
-extern struct fuzzer_config *parse_cmd_line(int32_t argc, char *argv[], struct output_writter *output, struct memory_allocator *allocator);
-
+/**
+ * This function parses the command line for various options passed by the user.
+ * @param argc The number of command line options passed.
+ * @param argv An array with the command line options.
+ * @param A output writter object.
+ * @param A memory allocator object.
+ * @return A fuzzer_config object on success and NULL on failure.
+ */
+extern struct fuzzer_config *parse_cmd_line(int32_t argc,
+                                            char *argv[],
+                                            struct output_writter *output,
+                                            struct memory_allocator *allocator);
 #endif
