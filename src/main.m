@@ -21,8 +21,7 @@
 
 int main(int argc, const char * argv[])
 {
-    int32_t rtrn = 0;
-    struct parser_ctx *ctx = NULL;
+    struct fuzzer_config *config = NULL;
     struct output_writter *output = NULL;
     struct memory_allocator *allocator = NULL;
 
@@ -43,33 +42,11 @@ int main(int argc, const char * argv[])
         return (-1);
     }
 
-    /* Parse the command line for user input. parse_cmd_line() will set variables
-    in map, the shared memory mapping. This will tell the fuzzer how to run. */
-    ctx = parse_cmd_line(argc, argv, output, allocator);
-    if(ctx == NULL)
-    {
-        output->write(ERROR, "Can't parse command line.\n");
+    /* Parse the command line and return the fuzzer configuration object.
+      The config object will tell us how to setup the nextgen fuzzer. */
+    config = parse_cmd_line(argc, argv, output, allocator);
+    if(config == NULL)
         return (-1);
-    }
-
-    /* Make sure we have root. */
-    rtrn = check_root();
-    if(rtrn != 0)
-    {
-        output->write(STD, "Run nextgen as root\n");
-        return (-1);
-    }
-
-    /* Setup the shared map now that we got our options from the command line. */
-    rtrn = init_shared_mapping(&map, ctx);
-    if(rtrn < 0)
-    {
-        output->write(ERROR, "Can't initialize.\n");
-        return (-1);
-    }
-
-    /* We should only reach here on ctrl-c. */
-    clean_shared_mapping();
 
     return (0);
 }
