@@ -22,8 +22,6 @@ find_package(Sanitizers)
 INCLUDE(CodeCoverage)
 
 # Turn on coverage for debug builds.
-SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
-SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
 
 # Create a coverage target.
 SETUP_TARGET_FOR_COVERAGE(coverage ctest coverage)
