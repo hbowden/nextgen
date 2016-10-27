@@ -14,7 +14,7 @@
  **/
 
 #include "runtime/nextgen.h"
-#include "runtime/runtime.h"
+#include "runtime/fuzzer.h"
 #include "memory/memory.h"
 #include "objc/objc-utils.h"
 #include "io/io.h"

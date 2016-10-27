@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
+ * Copyright (c) 2016, Harrison Bowden, Minneapolis, MN
  *
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice
@@ -13,23 +13,10 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#include "runtime.h"
+#include "fuzzer.h"
 
-struct fuzzer_instance *get_fuzzer(struct shared_map *mapping)
+struct fuzzer_instance *get_fuzzer(struct fuzzer_config *config)
 {
-    (void)mapping;
+    (void)config;
     return (NULL);
-}
-
-int32_t shutdown(void)
-{
-    /* Set the atomic flag so that other processes know to start their shutdown procedure. */
-    cas_loop_int32(&map->stop, TRUE);
-
-    return (0);
-}
-
-const char *get_os(void)
-{
-    return (OPERATING_SYSTEM);
 }

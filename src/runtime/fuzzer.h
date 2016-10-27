@@ -17,6 +17,7 @@
 #define NX_FUZZER_H
 
 #include <stdint.h>
+#include "nextgen.h"
 #include "io/io.h"
 #include "memory/memory.h"
 #include "crypto/crypto.h"
@@ -28,6 +29,16 @@ struct fuzzer_instance
     int32_t (*start)(void);
 };
 
+/**
+ *
+ */
+struct fuzzer_instance *get_fuzzer(struct fuzzer_config *config);
+
+/**
+ * @param A memory allocator object.
+ * @param A output writter object.
+ * @return A syscall fuzzer object.
+ */
 struct fuzzer_instance *get_syscall_fuzzer(struct memory_allocator *,
                                            struct output_writter *);
 

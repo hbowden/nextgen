@@ -30,7 +30,6 @@
 #include "memory/memory.h"
 #include "plugins/plugin.h"
 #include "resource/resource.h"
-#include "runtime/runtime.h"
 
 #include <errno.h>
 #include <getopt.h>

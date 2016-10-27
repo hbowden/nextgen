@@ -16,7 +16,6 @@
 #include "signals.h"
 #include "io/io.h"
 #include "runtime/nextgen.h"
-#include "runtime/runtime.h"
 #include "syscall/syscall.h"
 
 #include <signal.h>
@@ -53,7 +52,7 @@ static void child_exit_handler(int sig)
 static void ctrlc_handler(int sig)
 {
     (void)sig;
-    shutdown();
+    //shutdown();
     return;
 }
 
