@@ -31,6 +31,8 @@
 
 struct parser_ctx;
 
+struct fuzzer_config;
+
 enum fuzz_mode { MODE_FILE, MODE_SYSCALL, MODE_NETWORK };
 
 /* This struct is mapped as shared anonymous memory and is used to communicate between
@@ -81,6 +83,6 @@ extern int32_t init_shared_mapping(struct shared_map **mapping, struct parser_ct
 
 extern void clean_shared_mapping(void);
 
-extern struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[], struct output_writter *output, struct memory_allocator *allocator);
+extern struct fuzzer_config *parse_cmd_line(int32_t argc, char *argv[], struct output_writter *output, struct memory_allocator *allocator);
 
 #endif

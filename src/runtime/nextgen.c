@@ -43,7 +43,7 @@
 
 struct shared_map *map;
 
-struct parser_ctx
+struct fuzzer_config
 {
     char *exec_path;
     char *input_path;
@@ -92,29 +92,26 @@ static void display_help_banner(void)
     return;
 }
 
-static int32_t init_parser_ctx(struct parser_ctx **ctx, struct memory_allocator *allocator)
+static struct fuzzer_config * init_fuzzer_config(struct output_writter *output,
+                                                 struct memory_allocator *allocator)
 {
-    if((*ctx) != NULL)
+    struct fuzzer_config *config = NULL;
+
+    config = allocator->alloc(sizeof(struct fuzzer_config));
+    if(config == NULL)
     {
-        output(ERROR, "Non NULL parser context pointer passed\n");
-        return (-1);
+        output->write(ERROR, "Failed to allocate fuzzer config\n");
+        return (NULL);
     }
 
-    (*ctx) = allocator->alloc(sizeof(struct parser_ctx));
-    if((*ctx) == NULL)
-    {
-        output(ERROR, "Can't allocate parser context\n");
-        return (-1);
-    }
-
-    return (0);
+    return (config);
 }
 
-static int32_t set_input_path(struct parser_ctx *ctx, char *path)
+static int32_t set_input_path(struct fuzzer_config *config, char *path)
 {
     /* Make sure we have a valid parser context. If
     not return an error and print to stderr. */
-    if(ctx == NULL)
+    if(config == NULL)
     {
         output(ERROR, "Parser context is not allocated\n");
         return (-1);
@@ -142,7 +139,7 @@ static int32_t set_input_path(struct parser_ctx *ctx, char *path)
     if(sb.st_mode & S_IFDIR)
     {
         /* We were passed a directory so set the input path in the context. */
-        ctx->input_path = path;
+        config->input_path = path;
         return (0);
     }
     else
@@ -152,11 +149,11 @@ static int32_t set_input_path(struct parser_ctx *ctx, char *path)
     }
 }
 
-static int32_t set_output_path(struct parser_ctx *ctx, char *path)
+static int32_t set_output_path(struct fuzzer_config *config, char *path)
 {
     /* Make sure we have a valid parser context. If
     not return an error and print to stderr. */
-    if(ctx == NULL)
+    if(config == NULL)
     {
         output(ERROR, "Parser context is not allocated\n");
         return (-1);
@@ -179,16 +176,16 @@ static int32_t set_output_path(struct parser_ctx *ctx, char *path)
         return (-1);
     }
 
-    ctx->output_path = path;
+    config->output_path = path;
 
     return (0);
 }
 
-static int32_t set_exec_path(struct parser_ctx *ctx, char *path)
+static int32_t set_exec_path(struct fuzzer_config *config, char *path)
 {
     /* Make sure we have a valid parser context. If
     not return an error and print to stderr. */
-    if(ctx == NULL)
+    if(config == NULL)
     {
         output(ERROR, "Parser context is not allocated\n");
         return (-1);
@@ -216,7 +213,7 @@ static int32_t set_exec_path(struct parser_ctx *ctx, char *path)
     if(sb.st_mode & S_IXUSR)
     {
         /* We were passed a excutable so set the exec path in the context. */
-        ctx->exec_path = path;
+        config->exec_path = path;
         return (0);
     }
     else
@@ -226,7 +223,7 @@ static int32_t set_exec_path(struct parser_ctx *ctx, char *path)
     }
 }
 
-static int32_t set_fuzz_mode(struct parser_ctx *ctx, enum fuzz_mode mode)
+static int32_t set_fuzz_mode(struct fuzzer_config *config, enum fuzz_mode mode)
 {
     /* Make sure the mode passed is legit. */
     switch((int32_t)mode)
@@ -242,12 +239,12 @@ static int32_t set_fuzz_mode(struct parser_ctx *ctx, enum fuzz_mode mode)
     }
 
     /* Set fuzz mode to mode passed by user. */
-    ctx->mode = mode;
+    config->mode = mode;
 
     return (0);
 }
 
-static int32_t set_crypto_method(struct parser_ctx *ctx, enum crypto_method method)
+static int32_t set_crypto_method(struct fuzzer_config *config, enum crypto_method method)
 {
     switch((int32_t)method)
     {
@@ -260,14 +257,14 @@ static int32_t set_crypto_method(struct parser_ctx *ctx, enum crypto_method meth
             return (-1);
     }
 
-    ctx->method = method;
+    config->method = method;
 
     return (0);
 }
 
-struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[],
-                                  struct output_writter *output,
-                                  struct memory_allocator *allocator)
+struct fuzzer_config *parse_cmd_line(int32_t argc, char *argv[],
+                                     struct output_writter *output,
+                                     struct memory_allocator *allocator)
 {
     if(argc == 1)
     {
@@ -277,22 +274,23 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[],
 
     int32_t ch = 0;
     int32_t rtrn = 0;
-    struct parser_ctx *ctx = NULL;
+    struct fuzzer_config *config = NULL;
     int32_t iFlag = FALSE, oFlag = FALSE, fFlag = FALSE, nFlag = FALSE,
             eFlag = FALSE, pFlag = FALSE, aFlag = FALSE, tFlag = FALSE,
             sFlag = FALSE;
 
     /* Allocate the parser context. */
-    rtrn = init_parser_ctx(&ctx, allocator);
-    if(rtrn < 0)
+    config = init_fuzzer_config(output, allocator);
+    if(config == NULL)
     {
         output->write(ERROR, "Can't init parser context\n");
         return (NULL);
     }
 
     /* Default to smart_mode and crypto numbers. */
-    ctx->smart_mode = TRUE;
-    rtrn = set_crypto_method(ctx, CRYPTO);
+    config->smart_mode = TRUE;
+
+    rtrn = set_crypto_method(config, CRYPTO);
     if(rtrn < 0)
     {
         output->write(ERROR, "Can't set crypto method\n");
@@ -307,7 +305,7 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[],
             /* Display banner and exit. */
             case 'h':
                 display_help_banner();
-                mem_free((void **)&ctx);
+                allocator->free((void **)&config);
                 return (NULL);
 
             case 'p':
@@ -325,11 +323,11 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[],
 
             /* Set the path of the executable to fuzz test. */
             case 'e':
-                rtrn = set_exec_path(ctx, optarg);
+                rtrn = set_exec_path(config, optarg);
                 if(rtrn < 0)
                 {
                     output->write(ERROR, "Can't set exec path\n");
-                    mem_free((void **)&ctx);
+                    allocator->free((void **)&config);
                     return (NULL);
                 }
 
@@ -338,11 +336,11 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[],
 
             /* Set the directory path of input files. */
             case 'i':
-                rtrn = set_input_path(ctx, optarg);
+                rtrn = set_input_path(config, optarg);
                 if(rtrn < 0)
                 {
                     output->write(ERROR, "Can't set input path\n");
-                    mem_free((void **)&ctx);
+                    allocator->free((void **)&config);
                     return (NULL);
                 }
 
@@ -352,11 +350,11 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[],
             /* Set the output path of where the user wan't us to
             create a output directory to store our output data. */
             case 'o':
-                rtrn = set_output_path(ctx, optarg);
+                rtrn = set_output_path(config, optarg);
                 if(rtrn < 0)
                 {
                     output->write(ERROR, "Can't set output path\n");
-                    mem_free((void **)&ctx);
+                    allocator->free((void **)&config);
                     return (NULL);
                 }
 
@@ -365,33 +363,33 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[],
 
             case 'f':
                 fFlag = TRUE;
-                rtrn = set_fuzz_mode(ctx, MODE_FILE);
+                rtrn = set_fuzz_mode(config, MODE_FILE);
                 if(rtrn < 0)
                 {
                     output->write(ERROR, "Can't set fuzz mode\n");
-                    mem_free((void **)&ctx);
+                    allocator->free((void **)&config);
                     return (NULL);
                 }
                 break;
 
             case 'n':
                 nFlag = TRUE;
-                rtrn = set_fuzz_mode(ctx, MODE_NETWORK);
+                rtrn = set_fuzz_mode(config, MODE_NETWORK);
                 if(rtrn < 0)
                 {
                     output->write(ERROR, "Can't set fuzz mode\n");
-                    mem_free((void **)&ctx);
+                    allocator->free((void **)&config);
                     return (NULL);
                 }
                 break;
 
             case 's':
                 sFlag = TRUE;
-                rtrn = set_fuzz_mode(ctx, MODE_SYSCALL);
+                rtrn = set_fuzz_mode(config, MODE_SYSCALL);
                 if(rtrn < 0)
                 {
                     output->write(ERROR, "Can't set fuzz mode\n");
-                    mem_free((void **)&ctx);
+                    allocator->free((void **)&config);
                     return (NULL);
                 }
                 break;
@@ -399,17 +397,17 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[],
             case 'c':
                 /* This option allows users to specify the method in which they want to derive
                 the random numbers that will be used in fuzzing the application. */
-                rtrn = set_crypto_method(ctx, NO_CRYPTO);
+                rtrn = set_crypto_method(config, NO_CRYPTO);
                 if(rtrn < 0)
                 {
                     output->write(ERROR, "Can't set crypto method\n");
-                    mem_free((void **)&ctx);
+                    allocator->free((void **)&config);
                     return (NULL);
                 }
                 break;
 
             case 'd':
-                ctx->smart_mode = FALSE;
+                config->smart_mode = FALSE;
                 break;
 
             case 'v':
@@ -418,18 +416,18 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[],
                 break;
 
             case 'x':
-                rtrn = asprintf(&ctx->args, "%s", optarg);
+                rtrn = asprintf(&config->args, "%s", optarg);
                 if(rtrn < 0)
                 {
                     output->write(ERROR, "asprintf: %s\n", strerror(errno));
-                    mem_free((void **)&ctx);
+                    allocator->free((void **)&config);
                     return (NULL);
                 }
                 break;
 
             default:
                 display_help_banner();
-                mem_free((void **)&ctx);
+                allocator->free((void **)&config);
                 return (NULL);
         }
     }
@@ -438,8 +436,8 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[],
     if(fFlag != TRUE && nFlag != TRUE && sFlag != TRUE)
     {
         display_help_banner();
-        mem_free((void **)&ctx);
-        return NULL;
+        allocator->free((void **)&config);
+        return (NULL);
     }
 
     /* If file mode was selected lets make sure all the right args were passed.*/
@@ -448,8 +446,8 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[],
         if(iFlag == FALSE || oFlag == FALSE || eFlag == FALSE)
         {
             output->write(STD, "Pass --exec , --in and --out for file mode\n");
-            mem_free((void **)&ctx);
-            return NULL;
+            allocator->free((void **)&config);
+            return (NULL);
         }
     }
 
@@ -459,8 +457,8 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[],
         {
             output->write(STD, "Pass --address , --port, --protocol, and --out for "
                         "network mode\n");
-            mem_free((void **)&ctx);
-            return NULL;
+            allocator->free((void **)&config);
+            return (NULL);
         }
     }
 
@@ -471,146 +469,10 @@ struct parser_ctx *parse_cmd_line(int32_t argc, char *argv[],
         if(oFlag != TRUE)
         {
             output->write(STD, "Pass --out for syscall mode\n");
-            mem_free((void **)&ctx);
-            return NULL;
+            allocator->free((void **)&config);
+            return (NULL);
         }
     }
 
-    return ctx;
-}
-
-static void clean_syscall_mapping(void)
-{
-    mem_free((void **)&map->output_path);
-
-    return;
-}
-
-static void clean_file_mapping(void)
-{
-    mem_free((void **)&map->output_path);
-    mem_free((void **)&map->input_path);
-    mem_free((void **)&map->exec_path);
-
-    return;
-}
-
-void clean_shared_mapping(void)
-{
-    /* Do mode specific shared mapping cleanup. */
-    switch((int32_t)map->mode)
-    {
-        case MODE_SYSCALL:
-            clean_syscall_mapping();
-            break;
-
-        case MODE_FILE:
-            clean_file_mapping();
-            break;
-
-        case MODE_NETWORK:
-
-            break;
-
-        default:
-            output(ERROR, "Unknown fuzzing mode\n");
-            return;
-    }
-    return;
-}
-
-static int32_t init_file_mapping(struct shared_map **mapping,
-                                 struct parser_ctx *ctx)
-{
-    /* Set the input and output directories. */
-    (*mapping)->output_path = ctx->output_path;
-    (*mapping)->input_path = ctx->input_path;
-
-    (*mapping)->exec_path = ctx->exec_path;
-
-    return 0;
-}
-
-static int32_t init_network_mapping(struct shared_map **mapping,
-                                    struct parser_ctx *ctx)
-{
-    (void)mapping;
-    (void)ctx;
-
-    return 0;
-}
-
-static int32_t init_syscall_mapping(struct shared_map **mapping,
-                                    struct parser_ctx *ctx)
-{
-    /* Set the outpath directory. */
-    (*mapping)->output_path = ctx->output_path;
-
-    /* Intialize socket server values.*/
-    (*mapping)->socket_server_port = 0;
-
-    /* Set this counter to zero. */
-    ck_pr_store_32(&(*mapping)->test_counter, 0);
-
-    return (0);
-}
-
-/**
- * We use this function to initialize all the shared maps member values.
- **/
-int32_t init_shared_mapping(struct shared_map **mapping, struct parser_ctx *ctx)
-{
-    int32_t rtrn = 0;
-
-    /* Set the fuzzing mode selected by the user. */
-    (*mapping)->mode = ctx->mode;
-
-    /* Set the crypto method. */
-    (*mapping)->method = ctx->method;
-
-    /* Set intelligence mode. */
-    (*mapping)->smart_mode = ctx->smart_mode;
-
-    /* Initialize the epoch object. */
-    epoch_init(&(*mapping)->epoch);
-
-    /* Set the stop flag to FALSE, when set to TRUE all processes start their exit routines and eventually exit. */
-    ck_pr_store_int(&(*mapping)->stop, FALSE);
-
-    /* Do mode specific shared mapping setup. */
-    switch((int32_t)ctx->mode)
-    {
-        case MODE_SYSCALL:
-            rtrn = init_syscall_mapping(mapping, ctx);
-            if(rtrn < 0)
-            {
-                output(ERROR, "Can't init syscall mapping\n");
-                return (-1);
-            }
-            break;
-
-        case MODE_FILE:
-            rtrn = init_file_mapping(mapping, ctx);
-            if(rtrn < 0)
-            {
-                output(ERROR, "Can't init file mapping\n");
-                return (-1);
-            }
-            break;
-
-        case MODE_NETWORK:
-            rtrn = init_network_mapping(mapping, ctx);
-            if(rtrn < 0)
-            {
-                output(ERROR, "Can't init network mapping\n");
-                return (-1);
-            }
-            break;
-
-        default:
-            output(ERROR, "Unknown fuzzing mode\n");
-            return (-1);
-    }
-
-    return (0);
+    return (config);
 }
