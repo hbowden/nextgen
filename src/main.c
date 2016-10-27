@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
- * 
+ *
  * Permission to use, copy, modify, and/or distribute this software for any purpose
- * with or without fee is hereby granted, provided that the above copyright notice 
+ * with or without fee is hereby granted, provided that the above copyright notice
  * and this permission notice appear in all copies.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH 
- * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY 
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, 
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
  * WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
@@ -20,7 +20,7 @@
 
 /**
  * Main is the entry point to nextgen. In main we check for root, unfortunetly we need root to execute.
- * This is because we have to use dtrace, as well as bypass sandboxes, inject code into processes and 
+ * This is because we have to use dtrace, as well as bypass sandboxes, inject code into processes and
  * other activities that require root access. We then create shared memory so we can share information
  * between processes. Next we parse the command line for user arguments and we stick the results in the
  * shared memory map. After parsing we set up the enviroment to the user's specfications and then finnaly
@@ -43,9 +43,7 @@ int main(int argc, char *argv[])
     in map, the shared memory mapping. This will tell the fuzzer how to run. */
     ctx = parse_cmd_line(argc, argv);
     if(ctx == NULL)
-    {
         return (-1);
-    }
 
     rtrn = check_root();
     if(rtrn != 0)
@@ -78,7 +76,7 @@ int main(int argc, char *argv[])
         clean_shared_mapping();
         return (-1);
     }
-    
+
     /* We should only reach here on ctrl-c. */
     clean_shared_mapping();
     return (0);
