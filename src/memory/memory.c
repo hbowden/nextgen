@@ -311,6 +311,33 @@ void mem_free_shared_block(struct memory_block *block,
     return;
 }
 
+static void default_mem_free(void **ptr)
+{
+    /* Return early if the pointer is already NULL. */
+    if((*ptr) == NULL)
+        return;
+
+    /* Free buffer. */
+    free((*ptr));
+
+    /* Set pointer to NULL. */
+    (*ptr) = NULL;
+
+    return;
+}
+
+static void default_mem_free_shared(void **ptr, uint64_t nbytes)
+{
+    if((*ptr) == NULL)
+        return;
+
+    munmap((*ptr), nbytes);
+
+    (*ptr) = NULL;
+
+    return;
+}
+
 struct memory_allocator *get_default_allocator(void)
 {
     struct memory_allocator *allocator = NULL;
@@ -321,6 +348,8 @@ struct memory_allocator *get_default_allocator(void)
 
     allocator->alloc = &default_mem_alloc;
     allocator->shared = &default_mem_alloc_shared;
+    allocator->free = &default_mem_free;
+    allocator->free_shared = &default_mem_free_shared;
 
     return (allocator);
 }
