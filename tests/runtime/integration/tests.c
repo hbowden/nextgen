@@ -13,7 +13,6 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include "runtime/runtime.h"
 #include "runtime/fuzzer.h"
 #include "memory/memory.h"
 #include "crypto/crypto.h"
@@ -53,18 +52,10 @@ static void test_get_fuzzer(void)
     return;
 }
 
-static void test_get_os(void)
-{
-    const char *os = get_os();
-    TEST_ASSERT_NOT_NULL(os);
-
-    return;
-}
-
 int main(void)
 {
-    test_get_os();
     test_get_syscall_fuzzer();
+    test_get_fuzzer();
 
     return (0);
 }
