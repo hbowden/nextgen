@@ -136,7 +136,7 @@ static void test_shared_pool(void)
     rtrn = pthread_join(thread3, &buf);
     TEST_ASSERT(rtrn == 0)
 
-	return;
+	  return;
 }
 
 int main()

@@ -42,6 +42,17 @@ static void test_get_syscall_fuzzer(void)
     return;
 }
 
+static void test_get_fuzzer(void)
+{
+    struct fuzzer_config *config = NULL;
+    struct fuzzer_instance *fuzzer = NULL;
+
+    fuzzer = get_fuzzer(config);
+    TEST_ASSERT_NOT_NULL(fuzzer);
+
+    return;
+}
+
 static void test_get_os(void)
 {
     const char *os = get_os();
