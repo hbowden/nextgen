@@ -15,8 +15,29 @@
 
 #include "fuzzer.h"
 
-struct fuzzer_instance *get_fuzzer(struct fuzzer_config *config)
+struct fuzzer_instance *get_fuzzer(struct fuzzer_config *config,
+                                   struct memory_allocator *allocator,
+                                   struct output_writter *output)
 {
-    (void)config;
-    return (NULL);
+    if(config == NULL)
+    {
+        output->write(ERROR, "Config is NULL\n");
+        return (NULL);
+    }
+
+    struct fuzzer_instance *fuzzer = NULL;
+
+    fuzzer = allocator->alloc(sizeof(struct fuzzer_instance));
+    if(fuzzer == NULL)
+    {
+        output->write(ERROR, "Failed to allocate fuzzer instance\n");
+        return (NULL);
+    }
+
+    if(config->smart_mode == TRUE)
+    {
+
+    }
+
+    return (fuzzer);
 }

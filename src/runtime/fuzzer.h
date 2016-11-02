@@ -32,7 +32,9 @@ struct fuzzer_instance
 /**
  *
  */
-struct fuzzer_instance *get_fuzzer(struct fuzzer_config *config);
+struct fuzzer_instance *get_fuzzer(struct fuzzer_config *config,
+                                   struct memory_allocator *allocator,
+                                   struct output_writter *output);
 
 /**
  * @param A memory allocator object.
