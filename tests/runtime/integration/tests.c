@@ -13,6 +13,7 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include "runtime/nextgen.c" // Include the .c file so we can test static functions.
 #include "runtime/fuzzer.h"
 #include "memory/memory.h"
 #include "crypto/crypto.h"
@@ -43,11 +44,31 @@ static void test_get_syscall_fuzzer(void)
 
 static void test_get_fuzzer(void)
 {
+    //int32_t rtrn = 0;
     struct fuzzer_config *config = NULL;
     struct fuzzer_instance *fuzzer = NULL;
+    struct output_writter *output = NULL;
+    struct memory_allocator *allocator = NULL;
 
-    fuzzer = get_fuzzer(config);
-    TEST_ASSERT_NOT_NULL(fuzzer);
+    output = get_console_writter();
+    TEST_ASSERT_NOT_NULL(output);
+
+    allocator = get_default_allocator();
+    TEST_ASSERT_NOT_NULL(allocator);
+
+    /* Return NULL when config is NULL. */
+    fuzzer = get_fuzzer(config, allocator, output);
+    TEST_ASSERT_NULL(fuzzer);
+
+    /* Create a vaild config and pass it to get_fuzzer() and
+      check for a vaild fuzzer instance being returned. */
+    config = init_fuzzer_config(output, allocator);
+    TEST_ASSERT_NOT_NULL(config);
+
+    set_fuzz_mode(config, MODE_SYSCALL, output);
+
+    // rtrn = fuzzer->start();
+    // TEST_ASSERT(rtrn > -1);
 
     return;
 }
