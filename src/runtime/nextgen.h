@@ -29,9 +29,19 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-struct fuzzer_config;
-
 enum fuzz_mode { MODE_FILE, MODE_SYSCALL, MODE_NETWORK };
+
+struct fuzzer_config
+{
+    char *exec_path;
+    char *input_path;
+    char *output_path;
+    char *args;
+    int32_t smart_mode;
+    enum crypto_method method;
+    enum fuzz_mode mode;
+    const char padding[4];
+};
 
 /* This struct is mapped as shared anonymous memory and is used to communicate between
 the various process and threads created by nextgen. */
