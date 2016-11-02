@@ -35,6 +35,12 @@ enum name_type { DIR_NAME, FILE_NAME };
 
 int32_t run_syscall(int32_t number, ...);
 
+#ifndef FREEBSD
+
+extern void *reallocarray(void *optr, size_t nmemb, size_t size);
+
+#endif
+
 /**
  * This function as the name implies gets the file size.
  * @param fd A file descriptor to get the size of.
@@ -119,8 +125,6 @@ extern int32_t count_files_directory(uint32_t *count, char *dir);
  * @param name The name to set the currently running processe's name to.
  */
 extern void set_process_name(char *);
-
-extern void *reallocarray(void *optr, size_t nmemb, size_t size);
 
 extern int32_t generate_file_name(char **, char *, struct output_writter *, struct random_generator *);
 
