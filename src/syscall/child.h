@@ -16,8 +16,8 @@
 #ifndef NX_SYSCALL_CHILD_H
 #define NX_SYSCALL_CHILD_H
 
-#include "memory/memory.h"
 #include "io/io.h"
+#include "memory/memory.h"
 
 struct syscall_child
 {
