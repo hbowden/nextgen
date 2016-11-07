@@ -16,7 +16,6 @@
 #include "runtime/nextgen.c" // Include the .c file so we can test static functions.
 #include "runtime/fuzzer.h"
 #include "memory/memory.h"
-#include "crypto/crypto.h"
 #include "io/io.h"
 #include "unity.h"
 
@@ -27,16 +26,13 @@ static void test_get_syscall_fuzzer(void)
     struct output_writter *output = get_console_writter();
     struct memory_allocator *allocator = get_default_allocator();
 
-    fuzzer = get_syscall_fuzzer("/tmp", "/tmp/results", allocator, output);
+    fuzzer = get_syscall_fuzzer("/tmp/results", allocator, output);
     TEST_ASSERT_NOT_NULL(fuzzer);
     TEST_ASSERT_NOT_NULL(fuzzer->setup);
     TEST_ASSERT_NOT_NULL(fuzzer->start);
     TEST_ASSERT_NOT_NULL(fuzzer->stop);
 
-    struct random_generator *random = NULL;
-    random = get_default_random_generator(allocator, output);
-
-    rtrn = fuzzer->setup(random, output);
+    rtrn = fuzzer->setup();
     TEST_ASSERT(rtrn == 0);
 
     return;
@@ -44,7 +40,7 @@ static void test_get_syscall_fuzzer(void)
 
 static void test_get_fuzzer(void)
 {
-    //int32_t rtrn = 0;
+    int32_t rtrn = 0;
     struct fuzzer_config *config = NULL;
     struct fuzzer_instance *fuzzer = NULL;
     struct output_writter *output = NULL;
@@ -74,8 +70,16 @@ static void test_get_fuzzer(void)
     fuzzer = get_fuzzer(config, allocator, output);
     TEST_ASSERT_NULL(fuzzer);
 
-    // rtrn = fuzzer->start();
-    // TEST_ASSERT(rtrn > -1);
+    set_output_path(config, "/tmp/results/", output);
+
+    fuzzer = get_fuzzer(config, allocator, output);
+    TEST_ASSERT_NOT_NULL(fuzzer);
+
+    rtrn = fuzzer->setup();
+    TEST_ASSERT(rtrn == 0);
+
+    rtrn = fuzzer->start();
+    TEST_ASSERT(rtrn == 0);
 
     return;
 }
