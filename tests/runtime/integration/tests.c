@@ -27,7 +27,7 @@ static void test_get_syscall_fuzzer(void)
     struct output_writter *output = get_console_writter();
     struct memory_allocator *allocator = get_default_allocator();
 
-    fuzzer = get_syscall_fuzzer(allocator, output);
+    fuzzer = get_syscall_fuzzer("/tmp", "/tmp/results", allocator, output);
     TEST_ASSERT_NOT_NULL(fuzzer);
     TEST_ASSERT_NOT_NULL(fuzzer->setup);
     TEST_ASSERT_NOT_NULL(fuzzer->start);
@@ -60,12 +60,19 @@ static void test_get_fuzzer(void)
     fuzzer = get_fuzzer(config, allocator, output);
     TEST_ASSERT_NULL(fuzzer);
 
-    /* Create a vaild config and pass it to get_fuzzer() and
-      check for a vaild fuzzer instance being returned. */
     config = init_fuzzer_config(output, allocator);
     TEST_ASSERT_NOT_NULL(config);
 
+    /* Should return NULL because no options were set on
+    the fuzzer config. */
+    fuzzer = get_fuzzer(config, allocator, output);
+    TEST_ASSERT_NULL(fuzzer);
+
     set_fuzz_mode(config, MODE_SYSCALL, output);
+
+    /* Should return NULL because no input or output paths are selected. */
+    fuzzer = get_fuzzer(config, allocator, output);
+    //TEST_ASSERT_NULL(fuzzer);
 
     // rtrn = fuzzer->start();
     // TEST_ASSERT(rtrn > -1);
@@ -73,8 +80,29 @@ static void test_get_fuzzer(void)
     return;
 }
 
+static void test_init_fuzzer_config(void)
+{
+    struct fuzzer_config *config = NULL;
+    struct output_writter *output = NULL;
+    struct memory_allocator *allocator = NULL;
+
+    output = get_console_writter();
+    TEST_ASSERT_NOT_NULL(output);
+
+    allocator = get_default_allocator();
+    TEST_ASSERT_NOT_NULL(allocator);
+
+    config = init_fuzzer_config(output, allocator);
+    TEST_ASSERT_NOT_NULL(config);
+    TEST_ASSERT_NULL(config->exec_path);
+    TEST_ASSERT_NULL(config->input_path);
+    TEST_ASSERT_NULL(config->output_path);
+    TEST_ASSERT_NULL(config->args);
+}
+
 int main(void)
 {
+    test_init_fuzzer_config();
     test_get_syscall_fuzzer();
     test_get_fuzzer();
 

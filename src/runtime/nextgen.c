@@ -86,6 +86,11 @@ static struct fuzzer_config *init_fuzzer_config(struct output_writter *output,
         return (NULL);
     }
 
+    config->exec_path = NULL;
+    config->input_path = NULL;
+    config->output_path = NULL;
+    config->args = NULL;
+
     return (config);
 }
 
