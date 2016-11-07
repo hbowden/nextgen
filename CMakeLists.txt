@@ -111,7 +111,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     target_link_libraries(nxlog ${CMAKE_SOURCE_DIR}/deps/sqlite/sqlite3.so)
 
     AUX_SOURCE_DIRECTORY(src/syscall/freebsd ENTRY_SOURCES)
-    add_library(nxsyscall SHARED src/syscall/syscall.c src/syscall/syscall-freebsd.c src/syscall/signals.c src/syscall/set_test.c src/syscall/generate.c src/syscall/arg_types.c ${ENTRY_SOURCES})
+    add_library(nxsyscall SHARED src/syscall/syscall.c src/syscall/syscall-freebsd.c src/syscall/signals.c src/syscall/set_test.c src/syscall/generate.c src/syscall/arg_types.c src/syscall/child.c ${ENTRY_SOURCES})
     include_directories(src/syscall/freebsd)
 
     add_library(nxgenetic SHARED src/genetic/genetic.c)
@@ -179,7 +179,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
     AUX_SOURCE_DIRECTORY(src/syscall/mac ENTRY_SOURCES)
 
-    add_library(nxsyscall SHARED src/syscall/syscall.c src/syscall/syscall-mac.c src/syscall/signals.c src/syscall/set_test.c src/syscall/generate.c src/syscall/generate-macos.c src/syscall/arg_types.c ${ENTRY_SOURCES})
+    add_library(nxsyscall SHARED src/syscall/syscall.c src/syscall/syscall-mac.c src/syscall/signals.c src/syscall/set_test.c src/syscall/generate.c src/syscall/generate-macos.c src/syscall/arg_types.c src/syscall/child.c ${ENTRY_SOURCES})
 
     include_directories(src/syscall/mac)
 
@@ -222,7 +222,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     target_link_libraries(nxlog sqlite3)
 
     AUX_SOURCE_DIRECTORY(src/syscall/linux ENTRY_SOURCES)
-    add_library(nxsyscall SHARED src/syscall/syscall.c src/syscall/syscall-linux.c src/syscall/signals.c src/syscall/set_test.c src/syscall/generate.c src/syscall/arg_types.c ${ENTRY_SOURCES})
+    add_library(nxsyscall SHARED src/syscall/syscall.c src/syscall/syscall-linux.c src/syscall/signals.c src/syscall/set_test.c src/syscall/generate.c src/syscall/arg_types.c src/syscall/child.c ${ENTRY_SOURCES})
     include_directories(src/syscall/linux)
 
     add_library(nxgenetic SHARED src/genetic/genetic.c)
@@ -366,6 +366,8 @@ add_executable(runtime-integration-test EXCLUDE_FROM_ALL tests/runtime/integrati
 target_link_libraries(runtime-integration-test nxruntime)
 
 add_executable(syscall-unit-test EXCLUDE_FROM_ALL tests/syscall/unit/tests.c deps/${UNITY}/src/unity.c)
+target_link_libraries(syscall-unit-test nxmemory)
+target_link_libraries(syscall-unit-test nxio)
 
 add_sanitizers(runtime-integration-test)
 add_sanitizers(utils-unit-test)

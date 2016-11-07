@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (c) 2016, Harrison Bowden, Minneapolis, MN
  *
  * Permission to use, copy, modify, and/or distribute this software for any purpose
@@ -11,33 +11,36 @@
  * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
  * WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
+ **/
 
-#include "unity.h"
-#include "syscall/child.c"
+#include "child.h"
+#include <stdio.h>
+#include <stdint.h>
 
-static void test_get_syscall_child(void)
+static int32_t start_child(void)
 {
-    int32_t rtrn = 0;
-    struct syscall_child *child = NULL;
-
-    struct output_writter *output = get_console_writter();
-    struct memory_allocator *allocator = get_default_allocator();
-
-    child = get_syscall_child(allocator, output);
-    TEST_ASSERT_NOT_NULL(child);
-
-    rtrn = child->setup();
-    TEST_ASSERT(rtrn == 0);
-
-    rtrn = child->start();
-    TEST_ASSERT(rtrn == 0);
-
-    return;
+    return (0);
 }
 
-int main(void)
+static int32_t setup_child(void)
 {
-    test_get_syscall_child();
     return (0);
+}
+
+struct syscall_child *get_syscall_child(struct memory_allocator *allocator,
+                                        struct output_writter *output)
+{
+    struct syscall_child *child = NULL;
+
+    child = allocator->shared(sizeof(struct syscall_child));
+    if(child == NULL)
+    {
+        output->write(ERROR, "Syscall child allocation failed\n");
+        return (NULL);
+    }
+
+    child->setup = &setup_child;
+    child->start = &start_child;
+
+    return (child);
 }

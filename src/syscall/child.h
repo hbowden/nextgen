@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (c) 2016, Harrison Bowden, Minneapolis, MN
  *
  * Permission to use, copy, modify, and/or distribute this software for any purpose
@@ -11,33 +11,22 @@
  * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
  * WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
+ **/
 
-#include "unity.h"
-#include "syscall/child.c"
+#ifndef NX_SYSCALL_CHILD_H
+#define NX_SYSCALL_CHILD_H
 
-static void test_get_syscall_child(void)
+#include "memory/memory.h"
+#include "io/io.h"
+
+struct syscall_child
 {
-    int32_t rtrn = 0;
-    struct syscall_child *child = NULL;
+    int32_t (*setup)(void);
+    int32_t (*start)(void);
+    int32_t (*stop)(void);
+};
 
-    struct output_writter *output = get_console_writter();
-    struct memory_allocator *allocator = get_default_allocator();
+extern struct syscall_child *get_syscall_child(struct memory_allocator *allocator,
+                                               struct output_writter *output);
 
-    child = get_syscall_child(allocator, output);
-    TEST_ASSERT_NOT_NULL(child);
-
-    rtrn = child->setup();
-    TEST_ASSERT(rtrn == 0);
-
-    rtrn = child->start();
-    TEST_ASSERT(rtrn == 0);
-
-    return;
-}
-
-int main(void)
-{
-    test_get_syscall_child();
-    return (0);
-}
+#endif
