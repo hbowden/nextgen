@@ -25,19 +25,13 @@ struct fuzzer_instance *get_fuzzer(struct fuzzer_config *config,
         return (NULL);
     }
 
-    struct fuzzer_instance *fuzzer = NULL;
-
-    fuzzer = allocator->alloc(sizeof(struct fuzzer_instance));
-    if(fuzzer == NULL)
+    switch((int32_t)config->mode)
     {
-        output->write(ERROR, "Failed to allocate fuzzer instance\n");
-        return (NULL);
+        case MODE_SYSCALL:
+            return(get_syscall_fuzzer(config->input_path, config->output_path, allocator, output));
+
+        default:
+            output->write(ERROR, "No fuzzer type selected\n");
+            return (NULL);
     }
-
-    if(config->smart_mode == TRUE)
-    {
-
-    }
-
-    return (fuzzer);
 }

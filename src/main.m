@@ -21,8 +21,10 @@
 
 int main(int argc, const char * argv[])
 {
+    int32_t rtrn = 0;
     struct fuzzer_config *config = NULL;
     struct output_writter *output = NULL;
+    struct fuzzer_instance *fuzzer = NULL;
     struct memory_allocator *allocator = NULL;
 
     /* Use the console/terminal for our output device. */
@@ -47,6 +49,21 @@ int main(int argc, const char * argv[])
     config = parse_cmd_line(argc, argv, output, allocator);
     if(config == NULL)
         return (-1);
+
+    /* Get fuzzer that was selected from configuration.  */
+    fuzzer = get_fuzzer(config, allocator, output);
+    if(fuzzer == NULL)
+    {
+       output->write(ERROR, "Failed to get fuzzer\n");
+       return (-1);
+    }
+
+    rtrn = fuzzer->setup();
+    if(rtrn < 0)
+    {
+        output->write(ERROR, "Failed to setup fuzzer\n");
+        return (-1);
+    }
 
     return (0);
 }
