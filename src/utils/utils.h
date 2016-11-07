@@ -31,8 +31,6 @@ enum csp { SET, UNSET };
 
 enum name_type { DIR_NAME, FILE_NAME };
 
-#define NX_NO_RETURN __attribute__((noreturn))
-
 int32_t run_syscall(int32_t number, ...);
 
 #ifndef FREEBSD

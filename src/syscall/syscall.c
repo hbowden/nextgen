@@ -30,6 +30,7 @@
 #include "set_test.h"
 #include "syscall_table.h"
 #include "utils/utils.h"
+#include "utils/noreturn.h"
 #include "concurrent/concurrent.h"
 
 #include <errno.h>
