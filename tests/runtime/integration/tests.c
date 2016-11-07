@@ -72,7 +72,7 @@ static void test_get_fuzzer(void)
 
     /* Should return NULL because no input or output paths are selected. */
     fuzzer = get_fuzzer(config, allocator, output);
-    //TEST_ASSERT_NULL(fuzzer);
+    TEST_ASSERT_NULL(fuzzer);
 
     // rtrn = fuzzer->start();
     // TEST_ASSERT(rtrn > -1);
