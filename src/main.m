@@ -65,5 +65,12 @@ int main(int argc, const char * argv[])
         return (-1);
     }
 
+    rtrn = fuzzer->start();
+    if(rtrn < 0)
+    {
+        output->write(ERROR, "Failed to start fuzzer\n");
+        return (-1);
+    }
+
     return (0);
 }

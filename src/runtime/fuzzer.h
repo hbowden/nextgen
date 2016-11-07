@@ -41,7 +41,6 @@ struct fuzzer_instance *get_fuzzer(struct fuzzer_config *config,
  * @return A syscall fuzzer object.
  */
 struct fuzzer_instance *get_syscall_fuzzer(char *,
-                                           char *,
                                            struct memory_allocator *,
                                            struct output_writter *);
 

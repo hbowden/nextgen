@@ -38,17 +38,10 @@ static int32_t setup_syscall_fuzzer(void)
     return (0);
 }
 
-struct fuzzer_instance *get_syscall_fuzzer(char *input_path,
-                                           char *output_path,
+struct fuzzer_instance *get_syscall_fuzzer(char *output_path,
                                            struct memory_allocator *allocator,
                                            struct output_writter *output)
 {
-    if(input_path == NULL)
-    {
-        output->write(ERROR, "Input path is NULL\n");
-        return (NULL);
-    }
-
     if(output_path == NULL)
     {
         output->write(ERROR, "Output path is NULL\n");

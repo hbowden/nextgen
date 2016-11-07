@@ -70,7 +70,7 @@ static void test_get_fuzzer(void)
 
     set_fuzz_mode(config, MODE_SYSCALL, output);
 
-    /* Should return NULL because no input or output paths are selected. */
+    /* Should return NULL because no output path are selected. */
     fuzzer = get_fuzzer(config, allocator, output);
     TEST_ASSERT_NULL(fuzzer);
 

@@ -28,7 +28,7 @@ struct fuzzer_instance *get_fuzzer(struct fuzzer_config *config,
     switch((int32_t)config->mode)
     {
         case MODE_SYSCALL:
-            return(get_syscall_fuzzer(config->input_path, config->output_path, allocator, output));
+            return(get_syscall_fuzzer(config->output_path, allocator, output));
 
         default:
             output->write(ERROR, "No fuzzer type selected\n");
