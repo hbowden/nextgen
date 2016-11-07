@@ -100,8 +100,39 @@ static void test_init_fuzzer_config(void)
     TEST_ASSERT_NULL(config->args);
 }
 
+static void test_set_fuzz_mode(void)
+{
+    int32_t rtrn = 0;
+    struct fuzzer_config *config = NULL;
+    struct output_writter *output = NULL;
+    struct memory_allocator *allocator = NULL;
+
+    output = get_console_writter();
+    TEST_ASSERT_NOT_NULL(output);
+
+    allocator = get_default_allocator();
+    TEST_ASSERT_NOT_NULL(allocator);
+
+    config = init_fuzzer_config(output, allocator);
+    TEST_ASSERT_NOT_NULL(config);
+    TEST_ASSERT_NULL(config->exec_path);
+    TEST_ASSERT_NULL(config->input_path);
+    TEST_ASSERT_NULL(config->output_path);
+    TEST_ASSERT_NULL(config->args);
+
+    /* Should fail when passed unknown fuzz mode. */
+    rtrn = set_fuzz_mode(config, (enum fuzz_mode)99, output);
+    TEST_ASSERT(rtrn == -1);
+
+    rtrn = set_fuzz_mode(config, MODE_SYSCALL, output);
+    TEST_ASSERT(rtrn == 0);
+
+    return;
+}
+
 int main(void)
 {
+    test_set_fuzz_mode();
     test_init_fuzzer_config();
     test_get_syscall_fuzzer();
     test_get_fuzzer();
