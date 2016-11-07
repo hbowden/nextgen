@@ -47,5 +47,27 @@ int main(int argc, const char * argv[])
     if(config == NULL)
         return (-1);
 
+    /* Get fuzzer that was selected from configuration.  */
+    fuzzer = get_fuzzer(config, allocator, output);
+    if(fuzzer == NULL)
+    {
+        output->write(ERROR, "Failed to get fuzzer\n");
+        return (-1);
+    }
+
+    rtrn = fuzzer->setup();
+    if(rtrn < 0)
+    {
+        output->write(ERROR, "Failed to setup fuzzer\n");
+        return (-1);
+    }
+
+    rtrn = fuzzer->start();
+    if(rtrn < 0)
+    {
+        output->write(ERROR, "Failed to start fuzzer\n");
+        return (-1);
+    }
+
     return (0);
 }
