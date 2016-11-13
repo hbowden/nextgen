@@ -17,11 +17,70 @@
 #include "concurrent/concurrent.h"
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
+#include <errno.h>
 
-// static int32_t start_child(void)
-// {
-//     return (0);
-// }
+static int32_t child_loop(void)
+{
+    while(1)
+    {
+
+    }
+}
+
+static int32_t start_child(struct syscall_child *child,
+                           struct output_writter *output)
+{
+    pid_t pid = 0;
+    int32_t fd[2];
+
+    int32_t rtrn = pipe(fd);
+    if(rtrn < 0)
+    {
+        output->write(ERROR, "Message pipe creation failed\n");
+        return (-1);
+    }
+
+    pid = fork();
+    if(pid == 0)
+    {
+        atomic_store_int32(&child->pid, getpid());
+
+        /* Let the parent process know it's safe to continue. */
+        ssize_t ret = write(fd[1], "!", 1);
+        if(ret < 1)
+        {
+            output->write(ERROR, "Write: %s\n", strerror(errno));
+            return (-1);
+        }
+
+        child_loop();
+
+        _exit(0);
+    }
+    else if(pid > 0)
+    {
+        char *buf[1] = {0};
+
+        /* Wait for a byte from the child saying it's safe to return. */
+        ssize_t ret = read(fd[0], buf, 1);
+        if(ret < 1)
+        {
+            output->write(ERROR, "Read: %s\n", strerror(errno));
+            return (-1);
+        }
+
+        /* Clean up pipe descriptors and return. */
+        (void)close(fd[0]);
+        (void)close(fd[1]);
+        return (0);
+    }
+    else
+    {
+        output->write(ERROR, "Failed to create child process: %s\n", strerror(errno));
+        return (-1);
+    }
+}
 
 struct syscall_child *create_syscall_child(struct children_state *child_state)
 {
@@ -79,6 +138,8 @@ struct children_state *create_children_state(struct memory_allocator *allocator,
             output->write(ERROR, "Child allocation failed\n");
             return (NULL);
         }
+
+        child_state->children[i]->start = &start_child;
     }
 
     return (child_state);

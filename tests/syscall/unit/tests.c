@@ -16,6 +16,8 @@
 #include "unity.h"
 #include "syscall/child.c"
 
+#include <signal.h>
+
 static void test_create_children_state(void)
 {
     uint32_t total_children = 8;
@@ -42,6 +44,7 @@ static void test_create_children_state(void)
 
 static void test_create_syscall_child(void)
 {
+    int32_t rtrn = 0;
     uint32_t total_children = 8;
     struct syscall_child *child = NULL;
     struct children_state *child_state = NULL;
@@ -64,6 +67,13 @@ static void test_create_syscall_child(void)
     }
 
     TEST_ASSERT(counter == 1);
+
+    rtrn = child->start(child, output);
+    TEST_ASSERT(rtrn == 0);
+    TEST_ASSERT(atomic_load_int32(&child->pid) > 0);
+
+    rtrn = kill(child->pid, SIGKILL);
+    TEST_ASSERT(rtrn == 0);
 
     return;
 }
