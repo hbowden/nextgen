@@ -31,7 +31,7 @@
 //     return (0);
 // }
 
-int32_t create_syscall_child(struct output_writter *output,
+pid_t create_syscall_child(struct output_writter *output,
                              struct children_state *child_state)
 {
     uint32_t i;
@@ -42,13 +42,9 @@ int32_t create_syscall_child(struct output_writter *output,
     {
         if(atomic_load_int32(&child_state->children[i]->pid) == EMPTY)
         {
-            /* Try setting this child object to initializing so other threads won't try and change it. */
+            /* Try setting this child object to INITIALIZING so other threads won't try and change it. */
             if(ck_pr_cas_int(&child_state->children[i]->pid, EMPTY, INITIALIZING) == true)
                 break;
-
-            // struct syscall_child *child = NULL;
-
-            // memmove()
         }
     }
 

@@ -56,8 +56,8 @@ struct children_state
  * @param Pass a children state object so it can be updated.
  * @return Zero on success and -1 is returned on failure.
  */
-extern int32_t create_syscall_child(struct output_writter *,
-                                    struct children_state *);
+extern pid_t create_syscall_child(struct output_writter *,
+                                  struct children_state *);
 
 extern struct children_state *create_children_state(struct memory_allocator *allocator,
                                                     struct output_writter *,
