@@ -23,7 +23,7 @@
 //     return (0);
 // }
 
-int32_t create_syscall_child(struct children_state *child_state)
+struct syscall_child *create_syscall_child(struct children_state *child_state)
 {
     uint32_t i;
 
@@ -35,11 +35,11 @@ int32_t create_syscall_child(struct children_state *child_state)
         {
             /* Try setting this child object to INITIALIZING so other threads won't try and change it. */
             if(ck_pr_cas_int(&child->pid, EMPTY, INITIALIZING) == true)
-                return (0);
+                return (child);
         }
     }
 
-    return (-1);
+    return (NULL);
 }
 
 struct children_state *create_children_state(struct memory_allocator *allocator,

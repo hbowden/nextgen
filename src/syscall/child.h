@@ -52,9 +52,9 @@ struct children_state
  * This function creates and starts a syscall child process. Only call this function from
  * the main program thread, or at least not from any child processes.
  * @param Pass a children state object so it can be updated.
- * @return Zero on success and -1 is returned on failure.
+ * @return A child object on success and NULL on failure.
  */
-extern int32_t create_syscall_child(struct children_state *);
+extern struct syscall_child *create_syscall_child(struct children_state *);
 
 extern struct children_state *create_children_state(struct memory_allocator *allocator,
                                                     struct output_writter *,

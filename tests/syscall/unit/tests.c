@@ -42,9 +42,8 @@ static void test_create_children_state(void)
 
 static void test_create_syscall_child(void)
 {
-    int32_t rtrn = 0;
     uint32_t total_children = 8;
-    // struct syscall_child *child = NULL;
+    struct syscall_child *child = NULL;
     struct children_state *child_state = NULL;
     struct output_writter *output = get_console_writter();
     struct memory_allocator *allocator = get_default_allocator();
@@ -52,8 +51,8 @@ static void test_create_syscall_child(void)
     child_state = create_children_state(allocator, output, total_children);
     TEST_ASSERT_NOT_NULL(child_state);
 
-    rtrn = create_syscall_child(child_state);
-    TEST_ASSERT(rtrn == 0);
+    child = create_syscall_child(child_state);
+    TEST_ASSERT_NOT_NULL(child);
 
     uint32_t i;
     uint32_t counter = 0;
