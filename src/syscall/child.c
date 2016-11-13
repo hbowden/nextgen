@@ -18,25 +18,14 @@
 #include <stdio.h>
 #include <stdint.h>
 
-// static struct children_state *state;
-
 // static int32_t start_child(void)
 // {
 //     return (0);
 // }
-//
-// static int32_t setup_child(void)
-// {
-//     (void)state;
-//     return (0);
-// }
 
-int32_t create_syscall_child(struct output_writter *output,
-                             struct children_state *child_state)
+int32_t create_syscall_child(struct children_state *child_state)
 {
     uint32_t i;
-
-    (void)output;
 
     for(i = 0; i < child_state->total_children; i++)
     {

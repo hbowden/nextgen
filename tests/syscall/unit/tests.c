@@ -52,7 +52,7 @@ static void test_create_syscall_child(void)
     child_state = create_children_state(allocator, output, total_children);
     TEST_ASSERT_NOT_NULL(child_state);
 
-    rtrn = create_syscall_child(output, child_state);
+    rtrn = create_syscall_child(child_state);
     TEST_ASSERT(rtrn == 0);
 
     uint32_t i;
