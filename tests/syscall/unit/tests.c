@@ -55,14 +55,6 @@ static void test_create_syscall_child(void)
     rtrn = create_syscall_child(output, child_state);
     TEST_ASSERT(rtrn == 0);
 
-    // /* Should fail if state object is NULL. */
-    // rtrn = child->setup();
-    // TEST_ASSERT(rtrn == -1);
-    // // TEST_ASSERT_NOT_NULL(state);
-    //
-    // rtrn = child->start();
-    // TEST_ASSERT(rtrn == 0);
-
     return;
 }
 

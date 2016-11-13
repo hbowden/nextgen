@@ -31,7 +31,7 @@
 //     return (0);
 // }
 
-pid_t create_syscall_child(struct output_writter *output,
+int32_t create_syscall_child(struct output_writter *output,
                              struct children_state *child_state)
 {
     uint32_t i;
