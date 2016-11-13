@@ -55,6 +55,17 @@ static void test_create_syscall_child(void)
     rtrn = create_syscall_child(output, child_state);
     TEST_ASSERT(rtrn == 0);
 
+    uint32_t i;
+    uint32_t counter = 0;
+
+    for(i = 0; i < total_children; i++)
+    {
+        if(atomic_load_int32(&child_state->children[i]->pid) == INITIALIZING)
+            counter++;
+    }
+
+    TEST_ASSERT(counter == 1);
+
     return;
 }
 
