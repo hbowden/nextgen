@@ -49,7 +49,7 @@ struct children_state
 };
 
 /**
- * This function creates and starts a syscall child process. Only call this function from
+ * This function creates a syscall child process. Only call this function from
  * the main program thread, or at least not from any child processes.
  * @param Pass a children state object so it can be updated.
  * @return A child object on success and NULL on failure.
