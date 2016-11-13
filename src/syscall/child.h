@@ -24,7 +24,6 @@ enum child_state {EMPTY, INITIALIZING};
 struct syscall_child
 {
     pid_t pid;
-    int32_t (*setup)(void);
     int32_t (*start)(void);
     int32_t (*stop)(void);
 };
