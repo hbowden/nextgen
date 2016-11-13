@@ -40,10 +40,12 @@ int32_t create_syscall_child(struct output_writter *output,
 
     for(i = 0; i < child_state->total_children; i++)
     {
-        if(atomic_load_int32(&child_state->children[i]->pid) == EMPTY)
+        struct syscall_child *child = child_state->children[i];
+
+        if(atomic_load_int32(&child->pid) == EMPTY)
         {
             /* Try setting this child object to INITIALIZING so other threads won't try and change it. */
-            if(ck_pr_cas_int(&child_state->children[i]->pid, EMPTY, INITIALIZING) == true)
+            if(ck_pr_cas_int(&child->pid, EMPTY, INITIALIZING) == true)
                 break;
         }
     }
