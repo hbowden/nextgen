@@ -19,14 +19,48 @@
 #include "io/io.h"
 #include "memory/memory.h"
 
+enum child_state {EMPTY, INITIALIZING};
+
 struct syscall_child
 {
+    pid_t pid;
     int32_t (*setup)(void);
     int32_t (*start)(void);
     int32_t (*stop)(void);
 };
 
-extern struct syscall_child *get_syscall_child(struct memory_allocator *allocator,
-                                               struct output_writter *output);
+/* This child state state object is used for sharing
+  information about running syscall child processes.
+  This object will be allocated as shared memory so
+  multiple processes can view it. */
+struct children_state
+{
+    /* The number of children processes currently running. */
+    uint32_t running_children;
+
+    /* Counter for number of syscall test that have been completed. */
+    uint32_t test_counter;
+
+    /* The total number of children processes to run. */
+    const uint32_t total_children;
+
+    /* An array of child context structures. These structures track variables
+       local to the child process. */
+    struct syscall_child **children;
+};
+
+/**
+ * This function creates and starts a syscall child process. Only call this function from
+ * the main program thread, or at least not from any child processes.
+ * @param Pass an output writter so create_syscall_child can write errors to the output interface.
+ * @param Pass a children state object so it can be updated.
+ * @return Zero on success and -1 is returned on failure.
+ */
+extern int32_t create_syscall_child(struct output_writter *,
+                                    struct children_state *);
+
+extern struct children_state *create_children_state(struct memory_allocator *allocator,
+                                                    struct output_writter *,
+                                                    uint32_t);
 
 #endif

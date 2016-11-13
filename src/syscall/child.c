@@ -14,33 +14,85 @@
  **/
 
 #include "child.h"
+#include "concurrent/concurrent.h"
 #include <stdio.h>
 #include <stdint.h>
 
-static int32_t start_child(void)
-{
-    return (0);
-}
+// static struct children_state *state;
 
-static int32_t setup_child(void)
-{
-    return (0);
-}
+// static int32_t start_child(void)
+// {
+//     return (0);
+// }
+//
+// static int32_t setup_child(void)
+// {
+//     (void)state;
+//     return (0);
+// }
 
-struct syscall_child *get_syscall_child(struct memory_allocator *allocator,
-                                        struct output_writter *output)
+int32_t create_syscall_child(struct output_writter *output,
+                             struct children_state *child_state)
 {
-    struct syscall_child *child = NULL;
+    uint32_t i;
 
-    child = allocator->shared(sizeof(struct syscall_child));
-    if(child == NULL)
+    (void)output;
+
+    for(i = 0; i < child_state->total_children; i++)
     {
-        output->write(ERROR, "Syscall child allocation failed\n");
+        if(atomic_load_int32(&child_state->children[i]->pid) == EMPTY)
+        {
+            /* Try setting this child object to initializing so other threads won't try and change it. */
+            if(ck_pr_cas_int(&child_state->children[i]->pid, EMPTY, INITIALIZING) == true)
+                break;
+
+            // struct syscall_child *child = NULL;
+
+            // memmove()
+        }
+    }
+
+    return (0);
+}
+
+struct children_state *create_children_state(struct memory_allocator *allocator,
+                                             struct output_writter *output,
+                                             uint32_t total_children)
+{
+    struct children_state *child_state = NULL;
+    struct children_state tmp_state = {
+      .total_children = total_children,
+      .test_counter = 0,
+      .running_children = 0
+    };
+
+    child_state = allocator->shared(sizeof(struct children_state));
+    if(child_state == NULL)
+    {
+        output->write(ERROR, "child_state child state object allocation failed\n");
         return (NULL);
     }
 
-    child->setup = &setup_child;
-    child->start = &start_child;
+    memmove(child_state, &tmp_state, sizeof(struct children_state));
 
-    return (child);
+    child_state->children = allocator->shared(sizeof(struct syscall_child *) * total_children);
+    if(child_state->children == NULL)
+    {
+        output->write(ERROR, "child_state child array allocation failed\n");
+        return (NULL);
+    }
+
+    uint32_t i;
+
+    for(i = 0; i < total_children; i++)
+    {
+        child_state->children[i] = allocator->shared(sizeof(struct syscall_child));
+        if(child_state->children[i] == NULL)
+        {
+            output->write(ERROR, "Child allocation failed\n");
+            return (NULL);
+        }
+    }
+
+    return (child_state);
 }
