@@ -14,6 +14,7 @@
  **/
 
 #include "signals.h"
+#include "child.h"
 #include "io/io.h"
 #include "runtime/nextgen.h"
 #include "syscall/syscall.h"

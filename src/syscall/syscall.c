@@ -14,6 +14,7 @@
  **/
 
 #include "syscall.h"
+#include "child.h"
 #include "arg_types.h"
 #include "crypto/crypto.h"
 #include "entry.h"
