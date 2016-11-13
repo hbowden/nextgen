@@ -36,8 +36,6 @@
 
 struct child_ctx;
 
-enum child_state {EMPTY};
-
 /**
 *    This function places the total number of syscalls available
 *    on the current platform in the parameter total. This includes
