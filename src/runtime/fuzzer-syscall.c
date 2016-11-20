@@ -14,6 +14,7 @@
  **/
 
 #include "fuzzer.h"
+#include "syscall/child.h"
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
@@ -25,11 +26,33 @@ static int32_t stop_syscall_fuzzer(void)
     return (0);
 }
 
-static int32_t start_syscall_fuzzer(void)
+static int32_t start_syscall_fuzzer(struct output_writter *output, struct memory_allocator *allocator)
 {
+    int32_t rtrn = 0;
+    uint32_t core_count = 0;
+    struct children_state *state = NULL;
 
+    rtrn = get_core_count(&core_count);
+    if(rtrn < 0)
+    {
+        output->write(ERROR, "Failed to get core count\n");
+        return (-1);
+    }
 
-    return (0);
+    state = create_children_state(allocator, output, core_count);
+    if(state == NULL)
+    {
+        output->write(ERROR, "Can't create children state\n");
+        return (-1);
+    }
+
+    while(1)
+    {
+        struct syscall_child *child = NULL;
+        child = create_syscall_child(state);
+        if(state == NULL)
+            continue;
+    }
 }
 
 static int32_t setup_syscall_fuzzer(void)
