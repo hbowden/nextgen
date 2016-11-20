@@ -65,7 +65,7 @@ int main(int argc, const char * argv[])
         return (-1);
     }
 
-    rtrn = fuzzer->start();
+    rtrn = fuzzer->start(output, allocator);
     if(rtrn < 0)
     {
         output->write(ERROR, "Failed to start fuzzer\n");
