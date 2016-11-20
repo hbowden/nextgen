@@ -28,7 +28,7 @@ struct syscall_child
     int32_t (*stop)(void);
 };
 
-/* This child state state object is used for sharing
+/* This child state object is used for sharing
   information about running syscall child processes.
   This object will be allocated as shared memory so
   multiple processes can view it. */
