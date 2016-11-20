@@ -35,3 +35,12 @@ struct fuzzer_instance *get_fuzzer(struct fuzzer_config *config,
             return (NULL);
     }
 }
+
+struct fuzzer_control *init_fuzzer_control(struct output_writter *output,
+                                           struct memory_allocator *allocator)
+{
+    (void)output;
+    (void)allocator;
+
+    return (NULL);
+}

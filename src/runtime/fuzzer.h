@@ -21,11 +21,16 @@
 #include "io/io.h"
 #include "memory/memory.h"
 
+struct fuzzer_control
+{
+    uint32_t stop;
+};
+
 struct fuzzer_instance
 {
     int32_t (*stop)(void);
     int32_t (*setup)(void);
-    int32_t (*start)(void);
+    int32_t (*start)(struct output_writter *output, struct memory_allocator *allocator);
 };
 
 /**
@@ -43,5 +48,10 @@ struct fuzzer_instance *get_fuzzer(struct fuzzer_config *config,
 struct fuzzer_instance *get_syscall_fuzzer(char *,
                                            struct memory_allocator *,
                                            struct output_writter *);
+
+/**
+ *
+ */
+struct fuzzer_control *init_fuzzer_control(struct output_writter *, struct memory_allocator *);
 
 #endif
