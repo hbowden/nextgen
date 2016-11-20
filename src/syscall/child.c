@@ -20,8 +20,10 @@
 #include <string.h>
 #include <errno.h>
 
-static int32_t child_loop(void)
+static int32_t child_loop(struct syscall_child *child)
 {
+    (void)child;
+
     while(1)
     {
 
@@ -54,7 +56,7 @@ static int32_t start_child(struct syscall_child *child,
             return (-1);
         }
 
-        child_loop();
+        child_loop(child);
 
         _exit(0);
     }
