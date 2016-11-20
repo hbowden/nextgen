@@ -78,8 +78,11 @@ static void test_get_fuzzer(void)
     rtrn = fuzzer->setup();
     TEST_ASSERT(rtrn == 0);
 
-    rtrn = fuzzer->start();
-    TEST_ASSERT(rtrn == 0);
+    // rtrn = fuzzer->start(output, allocator);
+    // TEST_ASSERT(rtrn == 0);
+    //
+    // rtrn = fuzzer->stop();
+    // TEST_ASSERT(rtrn == 0);
 
     return;
 }
@@ -134,12 +137,31 @@ static void test_set_fuzz_mode(void)
     return;
 }
 
+static void test_init_fuzzer_control(void)
+{
+    struct output_writter *output = NULL;
+    // struct fuzzer_control *control = NULL;
+    struct memory_allocator *allocator = NULL;
+
+    output = get_console_writter();
+    TEST_ASSERT_NOT_NULL(output);
+
+    allocator = get_default_allocator();
+    TEST_ASSERT_NOT_NULL(allocator);
+
+    // control = init_fuzzer_control(output, allocator);
+    // TEST_ASSERT_NOT_NULL(control);
+
+    return;
+}
+
 int main(void)
 {
     test_set_fuzz_mode();
     test_init_fuzzer_config();
     test_get_syscall_fuzzer();
     test_get_fuzzer();
+    test_init_fuzzer_control();
 
     return (0);
 }
