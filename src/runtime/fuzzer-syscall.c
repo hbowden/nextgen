@@ -52,7 +52,7 @@ static int32_t start_syscall_fuzzer(struct output_writter *output, struct memory
         {
             struct syscall_child *child = NULL;
             child = create_syscall_child(state);
-            if(state == NULL)
+            if(child == NULL)
                continue;
         }
     }
