@@ -48,10 +48,13 @@ static int32_t start_syscall_fuzzer(struct output_writter *output, struct memory
 
     while(1)
     {
-        struct syscall_child *child = NULL;
-        child = create_syscall_child(state);
-        if(state == NULL)
-            continue;
+        if(state->running_children < state->total_children)
+        {
+            struct syscall_child *child = NULL;
+            child = create_syscall_child(state);
+            if(state == NULL)
+               continue;
+        }
     }
 }
 
