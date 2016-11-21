@@ -30,7 +30,9 @@ struct fuzzer_instance
 {
     int32_t (*stop)(void);
     int32_t (*setup)(void);
-    int32_t (*start)(struct output_writter *output, struct memory_allocator *allocator);
+    int32_t (*start)(struct output_writter *,
+                     struct memory_allocator *,
+                     struct fuzzer_control *);
 };
 
 /**

@@ -26,7 +26,9 @@ static int32_t stop_syscall_fuzzer(void)
     return (0);
 }
 
-static int32_t start_syscall_fuzzer(struct output_writter *output, struct memory_allocator *allocator)
+static int32_t start_syscall_fuzzer(struct output_writter *output,
+                                    struct memory_allocator *allocator,
+                                    struct fuzzer_control *control)
 {
     int32_t rtrn = 0;
     uint32_t core_count = 0;
@@ -46,7 +48,7 @@ static int32_t start_syscall_fuzzer(struct output_writter *output, struct memory
         return (-1);
     }
 
-    while(1)
+    while(control->stop != TRUE)
     {
         if(state->running_children < state->total_children)
         {
@@ -56,6 +58,8 @@ static int32_t start_syscall_fuzzer(struct output_writter *output, struct memory
                continue;
         }
     }
+
+    return (0);
 }
 
 static int32_t setup_syscall_fuzzer(void)
