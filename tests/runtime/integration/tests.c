@@ -140,7 +140,7 @@ static void test_set_fuzz_mode(void)
 static void test_init_fuzzer_control(void)
 {
     struct output_writter *output = NULL;
-    // struct fuzzer_control *control = NULL;
+    struct fuzzer_control *control = NULL;
     struct memory_allocator *allocator = NULL;
 
     output = get_console_writter();
@@ -149,8 +149,9 @@ static void test_init_fuzzer_control(void)
     allocator = get_default_allocator();
     TEST_ASSERT_NOT_NULL(allocator);
 
-    // control = init_fuzzer_control(output, allocator);
-    // TEST_ASSERT_NOT_NULL(control);
+    control = init_fuzzer_control(output, allocator);
+    TEST_ASSERT_NOT_NULL(control);
+    TEST_ASSERT(control->stop == FALSE);
 
     return;
 }

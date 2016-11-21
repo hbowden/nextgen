@@ -39,8 +39,16 @@ struct fuzzer_instance *get_fuzzer(struct fuzzer_config *config,
 struct fuzzer_control *init_fuzzer_control(struct output_writter *output,
                                            struct memory_allocator *allocator)
 {
-    (void)output;
-    (void)allocator;
+    struct fuzzer_control *control = NULL;
 
-    return (NULL);
+    control = allocator->alloc(sizeof(struct fuzzer_control));
+    if(control == NULL)
+    {
+        output->write(ERROR, "Failed to allocate fuzzer control\n");
+        return (NULL);
+    }
+
+    control->stop = FALSE;
+
+    return (control);
 }
