@@ -44,8 +44,13 @@
 #include <err.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
-#include <sys/sysctl.h>
 #include <sys/wait.h>
+
+#ifndef CYGWIN
+
+#include <sys/sysctl.h>
+
+#endif
 
 /* Compile in run_syscall() for macOS because syscall(2) is deprecated
    since macOS sierra (10.12). */
@@ -237,7 +242,7 @@ int32_t get_extension(char *path, char **extension)
     return (0);
 }
 
-#ifndef LINUX
+#if defined(FREEBSD) || defined(MACOS)
 
 int32_t get_core_count(uint32_t *core_count)
 {
@@ -261,13 +266,25 @@ int32_t get_core_count(uint32_t *core_count)
     return (0);
 }
 
-#else
+#elif defined(LINUX)
 
 int32_t get_core_count(uint32_t *core_count)
 {
     (*core_count) = (uint32_t) sysconf(_SC_NPROCESSORS_ONLN);
     return (0);
 }
+
+#elif defined(CYGWIN)
+
+int32_t get_core_count(uint32_t *core_count)
+{
+    (*core_count) = (uint32_t) sysconf(_SC_NPROCESSORS_ONLN);
+    return (0);
+}
+
+#else
+
+#error "get_core_count() not yet implemented for this platform"
 
 #endif
 
