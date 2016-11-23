@@ -53,4 +53,16 @@ static const char OPERATING_SYSTEM[] = "LINUX";
 
 #endif /* End of Linux. */
 
+#ifdef CYGWIN
+
+/* Define TRUE and FALSE. */
+enum local_bool { FALSE, TRUE };
+
+static const uint32_t ARG_LIMIT = 7;
+static const uint32_t ARG_BUF_LEN = 4096;
+static const uint32_t POOL_SIZE = 1024;
+static const char OPERATING_SYSTEM[] = "CYGWIN";
+
+#endif /* End of cygwin. */
+
 #endif /* End of header file. */
