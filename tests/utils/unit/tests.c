@@ -15,6 +15,7 @@
 
 #include "unity.h"
 #include "utils/utils.h"
+#include "utils/autofree.h"
 #include "crypto/crypto.h"
 #include "memory/memory.h"
 
@@ -277,6 +278,34 @@ static void test_create_random_directory(void)
     return;
 }
 
+static void test_create_random_file(void)
+{
+    struct output_writter *output = get_console_writter();
+    TEST_ASSERT_NOT_NULL(output);
+
+    struct memory_allocator *allocator = get_default_allocator();
+    TEST_ASSERT_NOT_NULL(allocator);
+
+    struct random_generator *random = get_default_random_generator(allocator, output);
+    TEST_ASSERT_NOT_NULL(random);
+
+    char *path auto_free = NULL;
+    uint64_t size = 0;
+
+    int32_t rtrn = create_random_file("/tmp", ".txt", &path, &size, random, allocator, output);
+    TEST_ASSERT(rtrn == 0);
+    TEST_ASSERT_NOT_NULL(path);
+    TEST_ASSERT(size > 0);
+
+    struct stat sb;
+
+    rtrn = stat(path, &sb);
+    TEST_ASSERT(rtrn == 0);
+    TEST_ASSERT(sb.st_mode & S_IFREG);
+
+    return;
+}
+
 int main(void)
 {
     /* We have to setup the crypto module before using
@@ -296,6 +325,7 @@ int main(void)
     test_create_random_directory();
     delete_dir_contents("/tmp");
     test_run_syscall();
+    test_create_random_file();
 
     _exit(0);
 }
