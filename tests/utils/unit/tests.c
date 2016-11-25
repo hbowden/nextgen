@@ -308,10 +308,6 @@ static void test_create_random_file(void)
 
 int main(void)
 {
-    /* We have to setup the crypto module before using
-     some utils module api/functions. */
-    setup_crypto_module(CRYPTO);
-
     /* Delete the contents of temp before testing.
     If we don't clear the contents some test may fail. */
     delete_dir_contents("/tmp");
