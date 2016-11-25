@@ -13,11 +13,37 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <unistd.h>
+#include "unity.h"
+#include "memory/memory.h"
+#include "crypto/crypto.h"
+#include "resource/resource.c"
+#include "io/io.h"
+
+static void test_resource_generator(void)
+{
+	  int32_t fd = 0;
+	  struct resource_generator *rsrc_gen = NULL;
+		struct output_writter *output = get_console_writter();
+		TEST_ASSERT_NOT_NULL(output);
+
+    struct memory_allocator *allocator = get_default_allocator();
+		TEST_ASSERT_NOT_NULL(allocator);
+
+		struct random_generator *random = get_default_random_generator(allocator, output);
+		TEST_ASSERT_NOT_NULL(random);
+
+		rsrc_gen = get_resource_generator(allocator, output);
+		TEST_ASSERT_NOT_NULL(rsrc_gen);
+
+		fd = rsrc_gen->get_desc(allocator, output, random);
+    TEST_ASSERT(fd > 0);
+
+	  return;
+}
 
 int main(void)
 {
-
+    test_resource_generator();
 
 	  _exit(0);
 }
