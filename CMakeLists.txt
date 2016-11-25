@@ -179,7 +179,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
     AUX_SOURCE_DIRECTORY(src/syscall/mac ENTRY_SOURCES)
 
-    add_library(nxsyscall SHARED src/syscall/syscall.c src/syscall/syscall-mac.c src/syscall/signals.c src/syscall/set_test.c src/syscall/generate.c src/syscall/generate-macos.c src/syscall/arg_types.c src/syscall/child.c ${ENTRY_SOURCES})
+    add_library(nxsyscall SHARED src/syscall/set_test.c src/syscall/arg_types.c src/syscall/child.c)
 
     include_directories(src/syscall/mac)
 
