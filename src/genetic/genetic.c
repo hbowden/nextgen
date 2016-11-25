@@ -25,7 +25,7 @@
 #include <errno.h>
 #include <string.h>
 
-#define SPECIES_POP 1000
+//#define SPECIES_POP 1000
 
 static int32_t *stop;
 
@@ -84,85 +84,85 @@ static int32_t init_world(struct output_writter *output,
         return (-1);
     }
 
-    /* Grab a reference of the syscall table. */
-    struct syscall_table *sys_table = get_syscall_table(output, allocator);
-    if(sys_table == NULL)
-    {
-        output->write(ERROR, "Can't get system table\n");
-        return (-1);
-    }
-
-    /* Set the number of species to the number of syscalls. */
-    world->total_species = sys_table->total_syscalls;
-
-    /* Set current generation to zero because we haven't created one yet. */
-    world->current_generation = 0;
-
-    /* Allocate index of species context pointers. */
-    world->species = allocator->alloc((world->total_species) * sizeof(struct species_ctx *));
-    if(world->species == NULL)
-    {
-        output->write(ERROR, "Can't create species index\n");
-        cleanup_syscall_table(&sys_table, allocator);
-        return (-1);
-    }
-
-    uint32_t i;
-
-    for(i = 0; i < world->total_species - 1; i++)
-    {
-        struct species_ctx ctx = {
-
-            /* Set population to zero. */
-            .species_population = 0,
-
-            /* Set fitness to zero. */
-            .average_species_fitness = 0,
-
-            /* Init the organism list. */
-            .organism_list = NX_SLIST_HEAD_INITIALIZER(ctx->organism_list)
-
-        };
-
-        struct species_ctx *specie = NULL;
-
-        specie = allocator->alloc(sizeof(struct species_ctx));
-        if(specie == NULL)
-        {
-            output->write(ERROR, "Can't allocate species_ctx\n");
-            return (-1);
-        }
-
-        memmove(specie, &ctx, sizeof(struct species_ctx));
-
-        uint32_t ii;
-
-        for(ii = 0; ii < SPECIES_POP; ii++)
-        {
-            struct organism_ctx *organism = NULL;
-
-            organism = allocator->alloc(sizeof(struct organism_ctx));
-            if(organism == NULL)
-            {
-                output->write(ERROR, "Can't allocate organism context\n");
-                return (-1);
-            }
-
-            organism->chromosome = allocator->alloc(sizeof(struct chromosome_ctx));
-            if(organism->chromosome == NULL)
-            {
-                output->write(ERROR, "Can't allocate chromosome context\n");
-                allocator->free((void **)&organism);
-                return (-1);
-            }
-
-            organism->fitness = 0;
-
-            NX_SLIST_INSERT_HEAD(&specie->organism_list, organism);
-        }
-
-        world->species[i] = specie;
-    }
+    // /* Grab a reference of the syscall table. */
+    // struct syscall_table *sys_table = get_syscall_table(output, allocator);
+    // if(sys_table == NULL)
+    // {
+    //     output->write(ERROR, "Can't get system table\n");
+    //     return (-1);
+    // }
+    //
+    // /* Set the number of species to the number of syscalls. */
+    // world->total_species = sys_table->total_syscalls;
+    //
+    // /* Set current generation to zero because we haven't created one yet. */
+    // world->current_generation = 0;
+    //
+    // /* Allocate index of species context pointers. */
+    // world->species = allocator->alloc((world->total_species) * sizeof(struct species_ctx *));
+    // if(world->species == NULL)
+    // {
+    //     output->write(ERROR, "Can't create species index\n");
+    //     //cleanup_syscall_table(&sys_table, allocator);
+    //     return (-1);
+    // }
+    //
+    // uint32_t i;
+    //
+    // for(i = 0; i < world->total_species - 1; i++)
+    // {
+    //     struct species_ctx ctx = {
+    //
+    //         /* Set population to zero. */
+    //         .species_population = 0,
+    //
+    //         /* Set fitness to zero. */
+    //         .average_species_fitness = 0,
+    //
+    //         /* Init the organism list. */
+    //         .organism_list = NX_SLIST_HEAD_INITIALIZER(ctx->organism_list)
+    //
+    //     };
+    //
+    //     struct species_ctx *specie = NULL;
+    //
+    //     specie = allocator->alloc(sizeof(struct species_ctx));
+    //     if(specie == NULL)
+    //     {
+    //         output->write(ERROR, "Can't allocate species_ctx\n");
+    //         return (-1);
+    //     }
+    //
+    //     memmove(specie, &ctx, sizeof(struct species_ctx));
+    //
+    //     uint32_t ii;
+    //
+    //     for(ii = 0; ii < SPECIES_POP; ii++)
+    //     {
+    //         struct organism_ctx *organism = NULL;
+    //
+    //         organism = allocator->alloc(sizeof(struct organism_ctx));
+    //         if(organism == NULL)
+    //         {
+    //             output->write(ERROR, "Can't allocate organism context\n");
+    //             return (-1);
+    //         }
+    //
+    //         organism->chromosome = allocator->alloc(sizeof(struct chromosome_ctx));
+    //         if(organism->chromosome == NULL)
+    //         {
+    //             output->write(ERROR, "Can't allocate chromosome context\n");
+    //             allocator->free((void **)&organism);
+    //             return (-1);
+    //         }
+    //
+    //         organism->fitness = 0;
+    //
+    //         NX_SLIST_INSERT_HEAD(&specie->organism_list, organism);
+    //     }
+    //
+    //     world->species[i] = specie;
+    // }
 
     return (0);
 }
@@ -172,26 +172,28 @@ static int32_t create_first_generation(struct output_writter *output,
 {
     output->write(STD, "Creating first generation\n");
 
-    /* Grab a copy of the syscall table. */
-    struct syscall_table *sys_table = get_syscall_table(output, allocator);
-    if(sys_table == NULL)
-    {
-        output->write(ERROR, "Can't get system table\n");
-        return (-1);
-    }
+    (void)allocator;
 
-    uint32_t i, ii;
+    // /* Grab a copy of the syscall table. */
+    // struct syscall_table *sys_table = get_syscall_table(output, allocator);
+    // if(sys_table == NULL)
+    // {
+    //     output->write(ERROR, "Can't get system table\n");
+    //     return (-1);
+    // }
+    //
+    // uint32_t i, ii;
+    //
+    // /* Loop for each syscall in the syscall table. */
+    // for(i = 0; i < sys_table->total_syscalls; i++)
+    // {
+    //     for(ii = 0; ii < SPECIES_POP; ii++)
+    //     {
+    //
+    //     }
+    // }
 
-    /* Loop for each syscall in the syscall table. */
-    for(i = 0; i < sys_table->total_syscalls; i++)
-    {
-        for(ii = 0; ii < SPECIES_POP; ii++)
-        {
-
-        }
-    }
-
-    cleanup_syscall_table(&sys_table, allocator);
+    //cleanup_syscall_table(&sys_table, allocator);
 
     return (0);
 }
