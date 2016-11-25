@@ -21,10 +21,12 @@
 
 enum child_state {EMPTY, INITIALIZING};
 
+struct children_state;
+
 struct syscall_child
 {
     pid_t pid;
-    int32_t (*start)(struct syscall_child *, struct output_writter *);
+    int32_t (*start)(struct syscall_child *, struct children_state *, struct output_writter *);
     int32_t (*stop)(void);
 };
 

@@ -31,6 +31,7 @@ static int32_t child_loop(struct syscall_child *child)
 }
 
 static int32_t start_child(struct syscall_child *child,
+                           struct children_state *state,
                            struct output_writter *output)
 {
     pid_t pid = 0;
@@ -47,6 +48,7 @@ static int32_t start_child(struct syscall_child *child,
     if(pid == 0)
     {
         atomic_store_int32(&child->pid, getpid());
+        atomic_add_uint32(&state->running_children, 1);
 
         /* Let the parent process know it's safe to continue. */
         ssize_t ret = write(fd[1], "!", 1);

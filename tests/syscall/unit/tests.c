@@ -68,9 +68,10 @@ static void test_create_syscall_child(void)
 
     TEST_ASSERT(counter == 1);
 
-    rtrn = child->start(child, output);
+    rtrn = child->start(child, child_state, output);
     TEST_ASSERT(rtrn == 0);
     TEST_ASSERT(atomic_load_int32(&child->pid) > 0);
+    TEST_ASSERT(child_state->running_children == 1);
 
     rtrn = kill(child->pid, SIGKILL);
     TEST_ASSERT(rtrn == 0);
