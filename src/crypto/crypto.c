@@ -37,6 +37,31 @@ static int32_t software_prng;
 
 static int32_t crypto_setup;
 
+static int32_t default_rand_bytes(struct memory_allocator *allocator,
+                                  struct output_writter *output,
+                                  char **buf,
+                                  uint32_t length)
+{
+    (*buf) = allocator->alloc(length + 1);
+    if((*buf) == NULL)
+    {
+        output->write(ERROR, "Buffer allocation failed\n");
+        return (-1);
+    }
+
+    int32_t rtrn = RAND_bytes((unsigned char *)*buf, (int32_t)length);
+    if(rtrn != 1)
+    {
+        output->write(ERROR, "Can't get random bytes\n");
+        return (-1);
+    }
+
+    /* null terminate the string. */
+    (*buf)[length] = '\0';
+
+    return (0);
+}
+
 static int32_t default_rand_range(uint32_t range, uint32_t *number)
 {
     int32_t rtrn = 0;
@@ -82,11 +107,6 @@ static int32_t default_rand_range(uint32_t range, uint32_t *number)
     return (0);
 }
 
-static int32_t default_seed_prng(void)
-{
-     return (0);
-}
-
 struct random_generator *get_default_random_generator(struct memory_allocator *allocator,
                                                       struct output_writter *output)
 {
@@ -100,7 +120,7 @@ struct random_generator *get_default_random_generator(struct memory_allocator *a
     }
 
     random->range = &default_rand_range;
-    random->seed = &default_seed_prng;
+    random->bytes = &default_rand_bytes;
 
     return (random);
 }
