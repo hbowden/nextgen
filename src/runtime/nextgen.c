@@ -47,7 +47,6 @@ static const char *optstring = "p:e:";
 static struct option longopts[] = {{"in", required_argument, NULL, 'i'},
                                    {"out", required_argument, NULL, 'o'},
                                    {"exec", required_argument, NULL, 'e'},
-                                   {"crypto", required_argument, NULL, 'c'},
                                    {"port", required_argument, NULL, 'p'},
                                    {"address", required_argument, NULL, 'a'},
                                    {"protocol", required_argument, NULL, 'c'},
@@ -239,26 +238,6 @@ static int32_t set_fuzz_mode(struct fuzzer_config *config,
     return (0);
 }
 
-static int32_t set_crypto_method(struct fuzzer_config *config,
-                                 enum crypto_method method,
-                                 struct output_writter *output)
-{
-    switch((int32_t)method)
-    {
-        case CRYPTO:
-        case NO_CRYPTO:
-            break;
-
-        default:
-            output->write(ERROR, "Unknown crypto method\n");
-            return (-1);
-    }
-
-    config->method = method;
-
-    return (0);
-}
-
 struct fuzzer_config *parse_cmd_line(int32_t argc, char *argv[],
                                      struct output_writter *output,
                                      struct memory_allocator *allocator)
@@ -284,15 +263,8 @@ struct fuzzer_config *parse_cmd_line(int32_t argc, char *argv[],
         return (NULL);
     }
 
-    /* Default to smart_mode and crypto numbers. */
+    /* Default to smart_mode. */
     config->smart_mode = TRUE;
-
-    rtrn = set_crypto_method(config, CRYPTO, output);
-    if(rtrn < 0)
-    {
-        output->write(ERROR, "Can't set crypto method\n");
-        return (NULL);
-    }
 
     /* Parse the command line. */
     while((ch = getopt_long(argc, argv, optstring, longopts, NULL)) != -1)
@@ -386,18 +358,6 @@ struct fuzzer_config *parse_cmd_line(int32_t argc, char *argv[],
                 if(rtrn < 0)
                 {
                     output->write(ERROR, "Can't set fuzz mode\n");
-                    allocator->free((void **)&config);
-                    return (NULL);
-                }
-                break;
-
-            case 'c':
-                /* This option allows users to specify the method in which they want to derive
-                the random numbers that will be used in fuzzing the application. */
-                rtrn = set_crypto_method(config, NO_CRYPTO, output);
-                if(rtrn < 0)
-                {
-                    output->write(ERROR, "Can't set crypto method\n");
                     allocator->free((void **)&config);
                     return (NULL);
                 }

@@ -128,8 +128,5 @@ extern int32_t generate_file_name(char **, char *, struct output_writter *, stru
 
 extern int32_t generate_directory_name(char **, struct output_writter *);
 
-/* Can be used to create random file and directory names. */
-extern DEPRECATED int32_t generate_name(char **name, char *extension, enum name_type type);
-
 /* End of header. */
 #endif

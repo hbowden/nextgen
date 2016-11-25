@@ -19,7 +19,6 @@
 #define NEXTGEN_H
 
 #include "platform.h"
-#include "crypto/crypto.h"
 #include "concurrent/concurrent.h"
 #include "syscall/syscall_table.h"
 
@@ -38,7 +37,6 @@ struct fuzzer_config
     char *output_path;
     char *args;
     int32_t smart_mode;
-    enum crypto_method method;
     enum fuzz_mode mode;
     const char padding[4];
 };
@@ -49,9 +47,6 @@ struct shared_map
 {
     /* This tells us what fuzzing mode to execute. */
     enum fuzz_mode mode;
-
-    /* The method with which to derive the random numbers. */
-    enum crypto_method method;
 
     /* The input and output directory paths. */
     char *input_path;

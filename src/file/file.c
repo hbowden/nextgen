@@ -338,13 +338,13 @@ void start_main_file_loop(struct output_writter *output,
             return;
         }
 
-        /* Generate random file name. */
-        rtrn = generate_name(&file_name, file_extension, FILE_NAME);
-        if(rtrn < 0)
-        {
-            output->write(ERROR, "Can't generate random file name\n");
-            return;
-        }
+        // /* Generate random file name. */
+        // rtrn = generate_name(&file_name, file_extension, FILE_NAME);
+        // if(rtrn < 0)
+        // {
+        //     output->write(ERROR, "Can't generate random file name\n");
+        //     return;
+        // }
 
         /* Create out path. */
         rtrn = asprintf(&file_path, "/tmp/%s", file_name);
