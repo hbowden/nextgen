@@ -1,5 +1,5 @@
 # nextgen
-A Genetic File, Syscall and Network Fuzzer for Unix systems.
+A Genetic File, Syscall and Network Fuzzer for modern systems.
 
 <a href="https://scan.coverity.com/projects/2trill2spill-nextgen">
   <img alt="Coverity Scan Build Status"
@@ -7,11 +7,14 @@ A Genetic File, Syscall and Network Fuzzer for Unix systems.
 </a>
 [![Build Status](https://travis-ci.org/2trill2spill/nextgen.svg?branch=master)](https://travis-ci.org/2trill2spill/nextgen)
 
+# OS-Support
+Currently only 64bit versions of FreeBSD, Linux, MacOS and Windows with Cygwin are supported.
+
 # Build-FreeBSD
 To build `nextgen` on `FreeBSD` you will need to install a few dependencies and have the `FreeBSD` source tree installed at `/usr/src` as well. Use the command below to install the needed dependencies.
 
     sudo pkg install gmake autotools cmake
-    
+
 Use the command below if you don't have the `FreeBSD` source tree installed. The command below assumes your running `FreeBSD` 10.3, if you are not change the command accordingly.
 
     sudo svnlite co https://svn0.us-west.freebsd.org/base/release/10.3.0/ /usr/src
@@ -23,11 +26,11 @@ Next run the setup script, this will build any dependencies needed for nextgen o
 Create a directory called build and change to it.
 
     mkdir build && cd build
-    
+
 Run `cmake` and pass the path to the main source directory.
 
     cmake ..
-    
+
 Finally use `make` or `gmake` to build `nextgen`.
 
     make
@@ -37,15 +40,15 @@ Finally use `make` or `gmake` to build `nextgen`.
 To build nextgen on `OSX` or `macOS` you will need to install command line tools if they are not already installed on your system. Run the command below in terminal to install the command line tools. Note this command only works for `OSX` 10.9 and later.
 
     xcode-select --install
-    
+
 Now you will need to install a few dependencies before building nextgen. The recommended way to get these dependencies is to use homebrew. To install homebrew use.
 
     /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-    
+
 Next install cmake and automake using homebrew.
 
     brew install cmake automake
-    
+
 Run the setup script to build the nextgen dependencies.
 
     ./setup.sh
@@ -53,11 +56,11 @@ Run the setup script to build the nextgen dependencies.
 Create a directory called build and change to it.
 
     mkdir build && cd build
-    
+
 Run `cmake` and pass the path to the main source directory.
 
     cmake ..
-    
+
 Finally use `make` or `gmake` to build `nextgen`.
 
     make
@@ -69,25 +72,25 @@ have `aclocal-1.15`, the easiest way to get it is to run the get-aclocal script 
 needs to be run with root privileges and installs the `automake-1.15` package to `/usr/local/bin/` and includes `aclocal-1.15`.
 
     sudo ./get-aclocal.sh
-    
+
 Next run the setup script, this will build any dependencies needed for nextgen on `Linux`.
 
      ./setup.sh
-     
+
 Create a directory called build and change to it.
 
     mkdir build && cd build
-    
+
 Run `cmake` and pass the path to the main source directory.
 
     cmake ..
-    
+
 Finally use `make` to build `nextgen`.
 
     make
-    
+
 On some distributions of `Linux` such as ubuntu you will have to raise the ulimit on your system because it is set low.
-    
+
     ulimit -n 15743
 
 # Install
@@ -101,7 +104,7 @@ To run nextgen use the binary in the nextgen directory, if you run nextgen outsi
 To build the documentation for nextgen you will need `doxygen` installed on your system, then just run...
 
     doxygen Doxyfile
-    
+
 Then you can open the file index.html in the newly generated folder html in your browser.
 
 # Example
@@ -113,4 +116,4 @@ To use the syscall fuzzer without probes and the genetic algo pass --dumb.
 
 `sudo ./nextgen --syscall --dumb --out /file/path/to/create/output/directory`
 
-Nextgen will be ported to other operating systems besides `FreeBSD`, `Linux` and `OSX` and will be implemented in this order `illumos`, `OpenBSD`, and finally `NetBSD`. Porting `Nextgen` is mainly a matter of having a working libdtrace available on your platform. 
+Nextgen will be ported to other operating systems besides `FreeBSD`, `Linux` and `OSX` and will be implemented in this order `illumos`, `OpenBSD`, and finally `NetBSD`. Porting `Nextgen` is mainly a matter of having a working libdtrace available on your platform.
