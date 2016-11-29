@@ -31,11 +31,16 @@
 #include <errno.h>
 #include <inttypes.h>
 #include <string.h>
-#include <sys/ptrace.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 
-#ifndef LINUX
+#ifndef CYGWIN
+
+#include <sys/ptrace.h>
+
+#endif
+
+#if defined(FREEBSD) || defined(MACOS)
 
 #include <dtrace.h>
 
