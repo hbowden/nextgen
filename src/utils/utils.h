@@ -31,7 +31,11 @@ enum csp { SET, UNSET };
 
 enum name_type { DIR_NAME, FILE_NAME };
 
-int32_t run_syscall(int32_t number, ...);
+#ifdef CYGWIN
+
+int32_t syscall(int32_t number, ...);
+
+#endif
 
 #ifndef FREEBSD
 
