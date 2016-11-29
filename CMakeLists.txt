@@ -27,15 +27,15 @@ INCLUDE(CodeCoverage)
 SETUP_TARGET_FOR_COVERAGE(coverage ctest coverage)
 
 # The warnings to ignore for src/syscall/generate.* .
-set(GENERATE_IGNORE_WARNINGS "-Wno-deprecated-declarations -Wno-cast-align")
+set(GENERATE_IGNORE_WARNINGS "-Wno-cast-align")
 
 # Ignore deprecated ptrace symbols because we need to test ptrace.
 set_source_files_properties(src/syscall/generate.c PROPERTIES COMPILE_FLAGS ${GENERATE_IGNORE_WARNINGS})
 set_source_files_properties(src/syscall/generate-macos.c PROPERTIES COMPILE_FLAGS ${GENERATE_IGNORE_WARNINGS})
 
 SET(SET_TEST_IGNORE_FLAGS "-Wno-deprecated-declarations -Wno-unused-function")
-SET(SET_FILE_IGNORE_FLAGS "-Wno-deprecated-declarations -Wno-cast-qual")
-SET(SET_RUNTIME_IGNORE_FLAGS "-Wno-deprecated-declarations -Wno-incompatible-pointer-types-discards-qualifiers")
+SET(SET_FILE_IGNORE_FLAGS "-Wno-cast-qual")
+SET(SET_RUNTIME_IGNORE_FLAGS "-Wno-incompatible-pointer-types-discards-qualifiers")
 
 set_source_files_properties(src/io/io.c PROPERTIES COMPILE_FLAGS -Wno-format-nonliteral)
 set_source_files_properties(src/plugins/plugin.c PROPERTIES COMPILE_FLAGS -Wno-cast-qual)
