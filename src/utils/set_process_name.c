@@ -7,7 +7,7 @@
 #include "utils.h"
 #include "io/io.h"
 
-void set_process_name(char *name)
+void set_process_name(char *name, struct output_writter *output)
 {
 
   CFStringRef process_name;
@@ -44,28 +44,28 @@ void set_process_name(char *name)
         CFBundleGetBundleWithIdentifier(CFSTR("com.apple.LaunchServices"));
     if(!launch_services_bundle)
     {
-      output(ERROR, "Failed to look up LaunchServices bundle\n");
+      output->write(ERROR, "Failed to look up LaunchServices bundle\n");
       return;
     }
 
     ls_get_current_application_asn_func = CFBundleGetFunctionPointerForName(launch_services_bundle,
                                                                             CFSTR("_LSGetCurrentApplicationASN"));
     if(!ls_get_current_application_asn_func)
-      output(ERROR, "Could not find _LSGetCurrentApplicationASN\n");
+      output->write(ERROR, "Could not find _LSGetCurrentApplicationASN\n");
 
     ls_set_application_information_item_func =
             CFBundleGetFunctionPointerForName(
                 launch_services_bundle,
                 CFSTR("_LSSetApplicationInformationItem"));
     if (!ls_set_application_information_item_func)
-      output(ERROR, "Could not find _LSSetApplicationInformationItem\n");
+      output->write(ERROR, "Could not find _LSSetApplicationInformationItem\n");
 
     CFStringRef* key_pointer =
         CFBundleGetDataPointerForName(launch_services_bundle,
                                       CFSTR("_kLSDisplayNameKey"));
     ls_display_name_key = key_pointer ? *key_pointer : NULL;
     if (!ls_display_name_key)
-      output(ERROR, "Could not find _kLSDisplayNameKey\n");
+      output->write(ERROR, "Could not find _kLSDisplayNameKey\n");
 
     // Internally, this call relies on the Mach ports that are started up by the
     // Carbon Process Manager.  In debug builds this usually happens due to how

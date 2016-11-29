@@ -56,12 +56,10 @@ static struct option longopts[] = {{"in", required_argument, NULL, 'i'},
                                    {"syscall", 0, NULL, 's'},
                                    {"help", 0, NULL, 'h'},
                                    {"dumb", 0, NULL, 'd'},
-                                   {"verbose", 0, NULL, 'v'},
                                    {NULL, 0, NULL, 0}};
 
 static void display_help_banner(struct output_writter *output)
 {
-    set_verbosity(TRUE);
     output->write(STD, "Nextgen is a Genetic File, Syscall, and Network Fuzzer.\n");
     output->write(STD, "To use the file fuzzer in smart mode run the command below.\n");
     output->write(STD, "sudo ./nextgen --file --in /path/to/in/directory --out "
@@ -365,11 +363,6 @@ struct fuzzer_config *parse_cmd_line(int32_t argc, char *argv[],
 
             case 'd':
                 config->smart_mode = FALSE;
-                break;
-
-            case 'v':
-                /* Have the IO module dump output to stdout. */
-                set_verbosity(TRUE);
                 break;
 
             case 'x':

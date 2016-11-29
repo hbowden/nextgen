@@ -121,8 +121,9 @@ extern int32_t count_files_directory(uint32_t *count, char *dir);
 /*
  * Call to set the name of the process we are currently running in.
  * @param name The name to set the currently running processe's name to.
+ * @param output An output_writter object/struct for logging purposes.
  */
-extern void set_process_name(char *);
+extern void set_process_name(char *, struct output_writter *);
 
 extern int32_t generate_file_name(char **, char *, struct output_writter *, struct random_generator *);
 

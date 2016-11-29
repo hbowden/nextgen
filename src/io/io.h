@@ -43,9 +43,6 @@ struct output_writter
 
 extern struct output_writter *get_console_writter(void);
 
-/* This function replaces printf and perror in the code so we can aggregate output to one point. */
-DEPRECATED void output(enum out_type type, const char *format, ...);
-
 extern void set_verbosity(int32_t val);
 
 #endif
