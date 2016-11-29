@@ -89,10 +89,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     include_directories(SYSTEM /usr/src/sys/cddl/compat/opensolaris)
     include_directories(SYSTEM /usr/src/sys/cddl/contrib/opensolaris/uts/common)
 
-    add_library(nxprobe SHARED src/probe/probe.c src/probe/probe-freebsd.c)
-
-    target_link_libraries(nxprobe dtrace)
-
     add_library(nxnetwork SHARED src/network/network.c src/network/network-bsd.c)
 
     add_library(nxplugin SHARED src/plugins/plugin.c)
@@ -103,7 +99,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     target_link_libraries(nxlog ${CMAKE_SOURCE_DIR}/deps/sqlite/sqlite3.so)
 
     AUX_SOURCE_DIRECTORY(src/syscall/freebsd ENTRY_SOURCES)
-    add_library(nxsyscall SHARED src/syscall/syscall.c src/syscall/syscall-freebsd.c src/syscall/signals.c src/syscall/set_test.c src/syscall/generate.c src/syscall/arg_types.c src/syscall/child.c ${ENTRY_SOURCES})
+    add_library(nxsyscall SHARED src/syscall/syscall-freebsd.c src/syscall/signals.c src/syscall/set_test.c src/syscall/generate.c src/syscall/arg_types.c src/syscall/child.c ${ENTRY_SOURCES})
     include_directories(src/syscall/freebsd)
 
     add_library(nxgenetic SHARED src/genetic/genetic.c)
@@ -151,10 +147,6 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
     add_library(nxcrypto SHARED src/crypto/crypto.c)
 
-    add_library(nxprobe SHARED src/probe/probe.c src/probe/probe-mac.c)
-
-    target_link_libraries(nxprobe dtrace)
-
     add_library(nxnetwork SHARED src/network/network.c src/network/network-bsd.c)
 
     add_library(nxplugin SHARED src/plugins/plugin.c)
@@ -187,9 +179,8 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     add_definitions(-DLINUX)
     add_definitions(-DCOMMON)
 
-    add_library(nxutils SHARED src/utils/utils.c src/utils/reallocarray.c)
+    add_library(nxutils SHARED src/utils/utils.c src/utils/reallocarray.c src/utils/utils-win.c)
     add_library(nxcrypto SHARED src/crypto/crypto.c)
-    add_library(nxprobe SHARED src/probe/probe.c src/probe/probe-linux.c)
     add_library(nxnetwork SHARED src/network/network.c src/network/network-linux.c)
     add_library(nxplugin SHARED src/plugins/plugin.c)
     target_link_libraries(nxplugin dl)
@@ -201,7 +192,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     target_link_libraries(nxlog sqlite3)
 
     AUX_SOURCE_DIRECTORY(src/syscall/linux ENTRY_SOURCES)
-    add_library(nxsyscall SHARED src/syscall/syscall.c src/syscall/syscall-linux.c src/syscall/signals.c src/syscall/set_test.c src/syscall/generate.c src/syscall/arg_types.c src/syscall/child.c ${ENTRY_SOURCES})
+    add_library(nxsyscall SHARED src/syscall/syscall-linux.c src/syscall/signals.c src/syscall/set_test.c src/syscall/generate.c src/syscall/arg_types.c src/syscall/child.c ${ENTRY_SOURCES})
     include_directories(src/syscall/linux)
 
     add_library(nxgenetic SHARED src/genetic/genetic.c)
@@ -220,7 +211,6 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
     add_library(nxutils SHARED src/utils/utils.c src/utils/reallocarray.c)
     add_library(nxcrypto SHARED src/crypto/crypto.c)
-    add_library(nxprobe SHARED src/probe/probe.c src/probe/probe-linux.c)
     add_library(nxnetwork SHARED src/network/network.c src/network/network-linux.c)
     add_library(nxplugin SHARED src/plugins/plugin.c)
     target_link_libraries(nxplugin dl)
@@ -231,13 +221,11 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     add_library(nxlog SHARED src/log/log.c src/log/log-freebsd.c)
     target_link_libraries(nxlog ${CMAKE_SOURCE_DIR}/deps/sqlite/libsqlite3.dll)
 
-    AUX_SOURCE_DIRECTORY(src/syscall/linux ENTRY_SOURCES)
-    add_library(nxsyscall SHARED src/syscall/syscall.c src/syscall/syscall-linux.c src/syscall/signals.c src/syscall/set_test.c src/syscall/generate.c src/syscall/arg_types.c src/syscall/child.c ${ENTRY_SOURCES})
-    include_directories(src/syscall/linux)
+    AUX_SOURCE_DIRECTORY(src/syscall/windows ENTRY_SOURCES)
+    add_library(nxsyscall SHARED src/syscall/signals.c src/syscall/set_test.c src/syscall/generate.c src/syscall/arg_types.c src/syscall/child.c ${ENTRY_SOURCES})
+    include_directories(src/syscall/windows)
 
     add_library(nxgenetic SHARED src/genetic/genetic.c)
-
-    add_library(nxfile SHARED src/file/file.c src/file/file-linux.c)
 
     add_library(nxdisas SHARED src/disas/disas.c src/disas/disas-linux.c)
     target_link_libraries(nxdisas ${CMAKE_SOURCE_DIR}/deps/capstone-3.0.4/libcapstone.so)
@@ -262,8 +250,6 @@ target_link_libraries(nxconcurrent ${CMAKE_SOURCE_DIR}/deps/${CK}/src/libck.so)
 target_link_libraries(nxcrypto crypto)
 target_link_libraries(nxcrypto nxio)
 target_link_libraries(nxcrypto nxmemory)
-target_link_libraries(nxprobe nxio)
-target_link_libraries(nxprobe nxutils)
 target_link_libraries(nxnetwork nxcrypto)
 target_link_libraries(nxnetwork nxio)
 target_link_libraries(nxnetwork nxmemory)
@@ -286,7 +272,6 @@ target_link_libraries(nxsyscall ${CMAKE_SOURCE_DIR}/deps/${CK}/src/libck.so)
 target_link_libraries(nxsyscall nxio)
 target_link_libraries(nxsyscall nxmemory)
 target_link_libraries(nxsyscall nxconcurrent)
-target_link_libraries(nxsyscall nxprobe)
 target_link_libraries(nxsyscall nxresource)
 target_link_libraries(nxsyscall nxutils)
 target_link_libraries(nxsyscall nxlog)
@@ -300,7 +285,6 @@ target_link_libraries(nxruntime ${CMAKE_SOURCE_DIR}/deps/${CK}/src/libck.so)
 target_link_libraries(nxruntime nxio)
 target_link_libraries(nxruntime nxmemory)
 target_link_libraries(nxruntime nxconcurrent)
-target_link_libraries(nxruntime nxprobe)
 target_link_libraries(nxruntime nxresource)
 target_link_libraries(nxruntime nxutils)
 target_link_libraries(nxruntime nxlog)
@@ -308,14 +292,13 @@ target_link_libraries(nxruntime nxmutate)
 target_link_libraries(nxruntime nxnetwork)
 target_link_libraries(nxruntime nxcrypto)
 target_link_libraries(nxruntime nxsyscall)
-target_link_libraries(nxruntime nxprobe)
 target_link_libraries(nxruntime nxgenetic)
 target_link_libraries(nextgen nxutils)
 target_link_libraries(nextgen nxruntime)
 target_link_libraries(nextgen nxmemory)
 target_link_libraries(nextgen nxio)
 
-install(TARGETS nextgen nxio nxmemory nxconcurrent nxcrypto nxutils nxprobe nxnetwork nxplugin nxmutate nxresource nxlog nxsyscall nxgenetic nxruntime
+install(TARGETS nextgen nxio nxmemory nxconcurrent nxcrypto nxutils nxnetwork nxplugin nxmutate nxresource nxlog nxsyscall nxgenetic nxruntime
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib/static)
