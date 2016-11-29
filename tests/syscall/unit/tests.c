@@ -155,7 +155,6 @@ static void test_setup_ctrlc_handler(void)
     pid = fork();
     if(pid == 0)
     {
-        printf("Getpid: %d\n", getpid());
         uint32_t total_children = 1;
         struct children_state *children_state = NULL;
         struct output_writter *output = get_console_writter();
@@ -189,7 +188,7 @@ static void test_setup_ctrlc_handler(void)
 
         while(1 == 1)
         {
-
+            /* Just loop until the parent kills this process. */
         }
     }
     else if(pid > 0)
