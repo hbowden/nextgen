@@ -116,11 +116,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
 
     add_library(nxgenetic SHARED src/genetic/genetic.c)
 
-    add_library(nxfile SHARED src/file/file.c src/file/file-freebsd.c)
-
-    add_library(nxdisas SHARED src/disas/disas.c src/disas/disas-freebsd.c)
-    target_link_libraries(nxdisas ${CMAKE_SOURCE_DIR}/deps/capstone-3.0.4/libcapstone.so)
-
     add_library(nxruntime SHARED src/runtime/fuzzer.c src/runtime/fuzzer-syscall.c src/runtime/nextgen.c)
 
     add_executable(nextgen src/main.c)
@@ -191,14 +186,6 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     target_link_libraries(nxobjcutils ${APP_KIT})
     target_link_libraries(nxobjcutils ${FOUNDATION})
 
-    add_library(nxfile SHARED src/file/file.c src/file/file-mac.m)
-    target_link_libraries(nxfile objc)
-    target_link_libraries(nxfile nxobjcutils)
-
-    add_library(nxdisas SHARED src/disas/disas.c src/disas/disas-mac.c)
-    target_link_libraries(nxfile objc)
-    target_link_libraries(nxdisas ${CMAKE_SOURCE_DIR}/deps/capstone-3.0.4/libcapstone.dylib)
-
     add_library(nxruntime SHARED src/runtime/fuzzer.c src/runtime/fuzzer-syscall.c src/runtime/nextgen.c)
 
     add_executable(nextgen src/main.m)
@@ -226,11 +213,6 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     include_directories(src/syscall/linux)
 
     add_library(nxgenetic SHARED src/genetic/genetic.c)
-
-    add_library(nxfile SHARED src/file/file.c src/file/file-linux.c)
-
-    add_library(nxdisas SHARED src/disas/disas.c src/disas/disas-linux.c)
-    target_link_libraries(nxdisas ${CMAKE_SOURCE_DIR}/deps/capstone-3.0.4/libcapstone.so)
 
     add_library(nxruntime SHARED src/runtime/fuzzer.c src/runtime/fuzzer-syscall.c src/runtime/nextgen.c)
     target_link_libraries(nxruntime pthread)
@@ -286,12 +268,6 @@ target_link_libraries(nxsyscall nxcrypto)
 target_link_libraries(nxgenetic nxsyscall)
 target_link_libraries(nxgenetic nxio)
 target_link_libraries(nxgenetic nxmemory)
-target_link_libraries(nxfile nxsyscall)
-target_link_libraries(nxfile nxio)
-target_link_libraries(nxfile nxmemory)
-target_link_libraries(nxdisas nxio)
-target_link_libraries(nxdisas nxfile)
-target_link_libraries(nxdisas nxmemory)
 target_link_libraries(nxruntime ${CMAKE_SOURCE_DIR}/deps/${CK}/src/libck.so)
 target_link_libraries(nxruntime nxio)
 target_link_libraries(nxruntime nxmemory)
@@ -303,9 +279,7 @@ target_link_libraries(nxruntime nxlog)
 target_link_libraries(nxruntime nxmutate)
 target_link_libraries(nxruntime nxnetwork)
 target_link_libraries(nxruntime nxcrypto)
-target_link_libraries(nxruntime nxdisas)
 target_link_libraries(nxruntime nxsyscall)
-target_link_libraries(nxruntime nxfile)
 target_link_libraries(nxruntime nxprobe)
 target_link_libraries(nxruntime nxgenetic)
 target_link_libraries(nextgen nxutils)
@@ -313,7 +287,7 @@ target_link_libraries(nextgen nxruntime)
 target_link_libraries(nextgen nxmemory)
 target_link_libraries(nextgen nxio)
 
-install(TARGETS nextgen nxio nxmemory nxconcurrent nxcrypto nxutils nxprobe nxnetwork nxplugin nxmutate nxresource nxlog nxsyscall nxgenetic nxfile nxdisas nxruntime
+install(TARGETS nextgen nxio nxmemory nxconcurrent nxcrypto nxutils nxprobe nxnetwork nxplugin nxmutate nxresource nxlog nxsyscall nxgenetic nxruntime
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib/static)

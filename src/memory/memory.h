@@ -74,17 +74,4 @@ extern void mem_free_shared_block(struct memory_block *block, struct mem_pool_sh
 
 extern struct mem_pool_shared *mem_create_shared_pool(uint32_t block_size, uint32_t block_count);
 
-/* General purpose heap memory allocator. */
-DEPRECATED extern void *mem_alloc(uint64_t nbytes);
-
-DEPRECATED extern void *mem_calloc(uint64_t nbytes);
-
-DEPRECATED extern void mem_free(void **ptr);
-
-DEPRECATED extern void *mem_alloc_shared(uint64_t nbytes);
-
-DEPRECATED extern void *mem_calloc_shared(uint64_t nbytes);
-
-DEPRECATED extern void mem_free_shared(void **ptr, uint64_t nbytes);
-
 #endif
