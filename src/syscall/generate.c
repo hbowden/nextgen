@@ -31,7 +31,6 @@
 #include <sys/mman.h>
 #include <sys/mount.h>
 #include <sys/param.h>
-#include <sys/ptrace.h>
 #include <sys/resource.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
@@ -39,6 +38,12 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+
+#ifndef CYGWIN
+
+#include <sys/ptrace.h>
+
+#endif
 
 #ifdef LINUX
 
