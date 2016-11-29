@@ -60,25 +60,11 @@ extern int32_t generate_arguments(struct child_ctx *ctx, struct output_writter *
 
 extern int32_t test_syscall(struct child_ctx *ctx, struct output_writter *output);
 
-extern void jump(struct child_ctx *child);
-
-extern void set_child_pid(struct child_ctx *child, int32_t pid);
-
-extern void set_had_error(struct child_ctx *child, int32_t val);
-
-extern void set_ret_value(struct child_ctx *child, int32_t val);
-
-extern void set_sig_num(struct child_ctx *child, int32_t num);
-
-extern void set_did_jump(struct child_ctx *child, int32_t val);
-
-extern void set_arg_size(struct child_ctx *child, uint64_t size);
-
 extern int32_t get_arg_size(struct child_ctx *child, uint32_t arg_num, uint64_t *size, struct output_writter *output);
 
 extern uint32_t get_current_arg(struct child_ctx *child);
 
-extern void kill_all_children(struct output_writter *output);
+// extern void kill_all_children(struct output_writter *output);
 
 extern struct syscall_entry *get_entry(uint32_t syscall_number);
 

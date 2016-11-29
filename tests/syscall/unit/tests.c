@@ -21,25 +21,26 @@
 static void test_create_children_state(void)
 {
     uint32_t total_children = 8;
-    struct children_state *child_state = NULL;
-
+    struct children_state *children_state = NULL;
     struct output_writter *output = get_console_writter();
-    struct memory_allocator *allocator = get_default_allocator();
+    TEST_ASSERT_NOT_NULL(output);
 
-    child_state = create_children_state(allocator, output, total_children);
-    TEST_ASSERT_NOT_NULL(child_state);
-    TEST_ASSERT_NOT_NULL(child_state->children);
+    struct memory_allocator *allocator = get_default_allocator();
+    TEST_ASSERT_NOT_NULL(allocator);
+
+    children_state = create_children_state(allocator, output, total_children);
+    TEST_ASSERT_NOT_NULL(children_state);
 
     uint32_t i;
 
     for(i = 0; i < total_children; i++)
     {
-        TEST_ASSERT_NOT_NULL(child_state->children[i]);
+        TEST_ASSERT_NOT_NULL(children_state->children[i]);
     }
 
-    TEST_ASSERT(child_state->total_children == total_children);
-    TEST_ASSERT(child_state->test_counter == 0);
-    TEST_ASSERT(child_state->running_children == 0);
+    TEST_ASSERT(children_state->total_children == total_children);
+    TEST_ASSERT(children_state->test_counter == 0);
+    TEST_ASSERT(children_state->running_children == 0);
 }
 
 static void test_create_syscall_child(void)
@@ -47,14 +48,19 @@ static void test_create_syscall_child(void)
     int32_t rtrn = 0;
     uint32_t total_children = 8;
     struct syscall_child *child = NULL;
-    struct children_state *child_state = NULL;
+    struct children_state *children_state = NULL;
     struct output_writter *output = get_console_writter();
+    TEST_ASSERT_NOT_NULL(output);
+
     struct memory_allocator *allocator = get_default_allocator();
+    TEST_ASSERT_NOT_NULL(allocator);
 
-    child_state = create_children_state(allocator, output, total_children);
-    TEST_ASSERT_NOT_NULL(child_state);
+    children_state = create_children_state(allocator, output, total_children);
+    TEST_ASSERT_NOT_NULL(children_state);
 
-    child = create_syscall_child(child_state);
+    set_children_state(children_state);
+
+    child = create_syscall_child();
     TEST_ASSERT_NOT_NULL(child);
 
     uint32_t i;
@@ -62,16 +68,16 @@ static void test_create_syscall_child(void)
 
     for(i = 0; i < total_children; i++)
     {
-        if(atomic_load_int32(&child_state->children[i]->pid) == INITIALIZING)
+        if(atomic_load_int32(&children_state->children[i]->pid) == INITIALIZING)
             counter++;
     }
 
     TEST_ASSERT(counter == 1);
 
-    rtrn = child->start(child, child_state, output);
+    rtrn = child->start(child, output);
     TEST_ASSERT(rtrn == 0);
     TEST_ASSERT(atomic_load_int32(&child->pid) > 0);
-    TEST_ASSERT(child_state->running_children == 1);
+    TEST_ASSERT(children_state->running_children == 1);
 
     rtrn = kill(child->pid, SIGKILL);
     TEST_ASSERT(rtrn == 0);
@@ -79,9 +85,188 @@ static void test_create_syscall_child(void)
     return;
 }
 
+static void test_set_children_state(void)
+{
+    uint32_t total_children = 8;
+    struct children_state *children_state = NULL;
+    struct output_writter *output = get_console_writter();
+    TEST_ASSERT_NOT_NULL(output);
+
+    struct memory_allocator *allocator = get_default_allocator();
+    TEST_ASSERT_NOT_NULL(allocator);
+
+    children_state = create_children_state(allocator, output, total_children);
+    TEST_ASSERT_NOT_NULL(children_state);
+
+    TEST_ASSERT_NULL(state);
+    set_children_state(children_state);
+    TEST_ASSERT_NOT_NULL(state);
+
+    return;
+}
+
+static void test_get_child_with_pid(void)
+{
+    int32_t rtrn = 0;
+    uint32_t total_children = 8;
+    struct children_state *children_state = NULL;
+    struct output_writter *output = get_console_writter();
+    TEST_ASSERT_NOT_NULL(output);
+
+    struct memory_allocator *allocator = get_default_allocator();
+    TEST_ASSERT_NOT_NULL(allocator);
+
+    children_state = create_children_state(allocator, output, total_children);
+    TEST_ASSERT_NOT_NULL(children_state);
+
+    set_children_state(children_state);
+    TEST_ASSERT_NOT_NULL(state);
+
+    struct syscall_child *child = NULL;
+    struct syscall_child *test_child = NULL;
+
+    child = create_syscall_child();
+    TEST_ASSERT_NOT_NULL(child);
+
+    rtrn = child->start(child, output);
+    TEST_ASSERT(rtrn == 0);
+    TEST_ASSERT(atomic_load_int32(&child->pid) > 0);
+    TEST_ASSERT(children_state->running_children == 1);
+
+    test_child = get_child_with_pid(child->pid);
+    TEST_ASSERT_NOT_NULL(test_child);
+    TEST_ASSERT(child->pid == test_child->pid);
+
+    rtrn = kill(child->pid, SIGKILL);
+    TEST_ASSERT(rtrn == 0);
+
+    return;
+}
+
+static void test_setup_ctrlc_handler(void)
+{
+    pid_t pid = 0;
+
+    int32_t fd[2];
+
+    int32_t rtrn = pipe(fd);
+    TEST_ASSERT(rtrn == 0);
+
+    pid = fork();
+    if(pid == 0)
+    {
+        printf("Getpid: %d\n", getpid());
+        uint32_t total_children = 1;
+        struct children_state *children_state = NULL;
+        struct output_writter *output = get_console_writter();
+        TEST_ASSERT_NOT_NULL(output);
+
+        struct memory_allocator *allocator = get_default_allocator();
+        TEST_ASSERT_NOT_NULL(allocator);
+
+        children_state = create_children_state(allocator, output, total_children);
+        TEST_ASSERT_NOT_NULL(children_state);
+
+        set_children_state(children_state);
+        TEST_ASSERT_NOT_NULL(state);
+
+        rtrn = setup_ctrlc_handler(output);
+        TEST_ASSERT(rtrn == 0);
+
+        struct syscall_child *child = NULL;
+
+        child = create_syscall_child();
+        TEST_ASSERT_NOT_NULL(child);
+
+        rtrn = child->start(child, output);
+        TEST_ASSERT(rtrn == 0);
+        TEST_ASSERT(atomic_load_int32(&child->pid) > 0);
+        TEST_ASSERT(children_state->running_children == 1);
+
+        /* Let the parent process know it's safe to continue. */
+        ssize_t ret = write(fd[1], "!", 1);
+        TEST_ASSERT(ret == 1);
+
+        while(1 == 1)
+        {
+
+        }
+    }
+    else if(pid > 0)
+    {
+        char *buf[1] = {0};
+
+        /* Wait for a byte from the child saying it's safe to return. */
+        ssize_t ret = read(fd[0], buf, 1);
+        TEST_ASSERT(ret == 1);
+
+        rtrn = kill(pid, SIGINT);
+        TEST_ASSERT(rtrn == 0);
+
+        TEST_ASSERT(state->children[0]->pid == EMPTY);
+
+        (void)close(fd[0]);
+        (void)close(fd[1]);
+
+        return;
+    }
+    else
+    {
+        TEST_ABORT();
+    }
+}
+
+static void test_kill_all_children(void)
+{
+    int32_t rtrn = 0;
+    uint32_t total_children = 2;
+    struct children_state *children_state = NULL;
+    struct output_writter *output = get_console_writter();
+    TEST_ASSERT_NOT_NULL(output);
+
+    struct memory_allocator *allocator = get_default_allocator();
+    TEST_ASSERT_NOT_NULL(allocator);
+
+    children_state = create_children_state(allocator, output, total_children);
+    TEST_ASSERT_NOT_NULL(children_state);
+
+    set_children_state(children_state);
+    TEST_ASSERT_NOT_NULL(state);
+
+    struct syscall_child *child_one = NULL;
+    struct syscall_child *child_two = NULL;
+
+    child_one = create_syscall_child();
+    TEST_ASSERT_NOT_NULL(child_one);
+
+    rtrn = child_one->start(child_one, output);
+    TEST_ASSERT(rtrn == 0);
+    TEST_ASSERT(atomic_load_int32(&child_one->pid) > 0);
+    TEST_ASSERT(children_state->running_children == 1);
+
+    child_two = create_syscall_child();
+    TEST_ASSERT_NOT_NULL(child_two);
+
+    rtrn = child_two->start(child_two, output);
+    TEST_ASSERT(rtrn == 0);
+    TEST_ASSERT(atomic_load_int32(&child_two->pid) > 0);
+    TEST_ASSERT(children_state->running_children == 2);
+
+    kill_all_children();
+
+    TEST_ASSERT(state->children[0]->pid == EMPTY);
+    TEST_ASSERT(state->children[1]->pid == EMPTY);
+
+    return;
+}
+
 int main(void)
 {
+    test_set_children_state();
     test_create_children_state();
     test_create_syscall_child();
+    test_get_child_with_pid();
+    test_kill_all_children();
+    test_setup_ctrlc_handler();
     return (0);
 }

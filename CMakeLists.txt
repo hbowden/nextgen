@@ -179,7 +179,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
     AUX_SOURCE_DIRECTORY(src/syscall/mac ENTRY_SOURCES)
 
-    add_library(nxsyscall SHARED src/syscall/set_test.c src/syscall/arg_types.c src/syscall/child.c)
+    add_library(nxsyscall SHARED src/syscall/set_test.c src/syscall/signals.c src/syscall/arg_types.c src/syscall/child.c)
 
     include_directories(src/syscall/mac)
 
@@ -365,9 +365,10 @@ target_link_libraries(resource-integration-test crypto)
 add_executable(runtime-integration-test EXCLUDE_FROM_ALL tests/runtime/integration/tests.c deps/${UNITY}/src/unity.c)
 target_link_libraries(runtime-integration-test nxruntime)
 
-add_executable(syscall-unit-test EXCLUDE_FROM_ALL tests/syscall/unit/tests.c deps/${UNITY}/src/unity.c)
+add_executable(syscall-unit-test EXCLUDE_FROM_ALL tests/syscall/unit/tests.c src/syscall/signals.c deps/${UNITY}/src/unity.c)
 target_link_libraries(syscall-unit-test nxmemory)
 target_link_libraries(syscall-unit-test nxio)
+target_link_libraries(syscall-unit-test nxconcurrent)
 
 add_sanitizers(runtime-integration-test)
 add_sanitizers(utils-unit-test)
