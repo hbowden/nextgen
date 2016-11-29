@@ -19,5 +19,11 @@ COMMAND = cc -shared -fPIC -O3 -o libsqlite3.so sqlite3.c
 
 endif
 
+ifeq ($(shell uname -o), Cygwin)
+
+COMMAND = cc -shared -O3 -o libsqlite3.dll sqlite3.c
+
+endif
+
 all:
 	$(COMMAND)
