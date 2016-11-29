@@ -18,14 +18,6 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/deps/cmake_modules" ${CMAKE_MODULE_PA
 # Look for the compiler sanitizers cmake module.
 find_package(Sanitizers)
 
-# Include the lcov cmake module so we can generate code coverage reports.
-INCLUDE(CodeCoverage)
-
-# Turn on coverage for debug builds.
-
-# Create a coverage target.
-SETUP_TARGET_FOR_COVERAGE(coverage ctest coverage)
-
 # The warnings to ignore for src/syscall/generate.* .
 set(GENERATE_IGNORE_WARNINGS "-Wno-deprecated-declarations -Wno-cast-align")
 
@@ -220,6 +212,42 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     # The freebsd log file works on linux so we use it.
     add_library(nxlog SHARED src/log/log.c src/log/log-freebsd.c)
     target_link_libraries(nxlog sqlite3)
+
+    AUX_SOURCE_DIRECTORY(src/syscall/linux ENTRY_SOURCES)
+    add_library(nxsyscall SHARED src/syscall/syscall.c src/syscall/syscall-linux.c src/syscall/signals.c src/syscall/set_test.c src/syscall/generate.c src/syscall/arg_types.c src/syscall/child.c ${ENTRY_SOURCES})
+    include_directories(src/syscall/linux)
+
+    add_library(nxgenetic SHARED src/genetic/genetic.c)
+
+    add_library(nxfile SHARED src/file/file.c src/file/file-linux.c)
+
+    add_library(nxdisas SHARED src/disas/disas.c src/disas/disas-linux.c)
+    target_link_libraries(nxdisas ${CMAKE_SOURCE_DIR}/deps/capstone-3.0.4/libcapstone.so)
+
+    add_library(nxruntime SHARED src/runtime/fuzzer.c src/runtime/fuzzer-syscall.c src/runtime/nextgen.c)
+    target_link_libraries(nxruntime pthread)
+
+    add_executable(nextgen src/main.c)
+    target_link_libraries(nextgen pthread)
+    target_link_libraries(nextgen dl)
+
+    elseif(${CMAKE_SYSTEM_NAME} STREQUAL "CYGWIN")
+
+    add_definitions(-DCYGWIN)
+    add_definitions(-DCOMMON)
+
+    add_library(nxutils SHARED src/utils/utils.c src/utils/reallocarray.c)
+    add_library(nxcrypto SHARED src/crypto/crypto.c)
+    add_library(nxprobe SHARED src/probe/probe.c src/probe/probe-linux.c)
+    add_library(nxnetwork SHARED src/network/network.c src/network/network-linux.c)
+    add_library(nxplugin SHARED src/plugins/plugin.c)
+    target_link_libraries(nxplugin dl)
+    add_library(nxmutate SHARED src/mutate/mutate.c)
+    add_library(nxresource SHARED src/resource/resource.c)
+
+    # The freebsd log file works on linux so we use it.
+    add_library(nxlog SHARED src/log/log.c src/log/log-freebsd.c)
+    target_link_libraries(nxlog ${CMAKE_SOURCE_DIR}/deps/sqlite/libsqlite3.dll)
 
     AUX_SOURCE_DIRECTORY(src/syscall/linux ENTRY_SOURCES)
     add_library(nxsyscall SHARED src/syscall/syscall.c src/syscall/syscall-linux.c src/syscall/signals.c src/syscall/set_test.c src/syscall/generate.c src/syscall/arg_types.c src/syscall/child.c ${ENTRY_SOURCES})
