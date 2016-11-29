@@ -22,10 +22,11 @@
 enum logging_type { POINTER, PATH, NUMBER };
 
 extern int32_t log_arguments(uint32_t total_args,
-	                         const char *syscall_name,
-	                         uint64_t **arg_value_array,
-	                         struct arg_context **arg_context_array,
-												   struct memory_allocator *allocator);
+	                           const char *syscall_name,
+	                           uint64_t **arg_value_array,
+	                           struct arg_context **arg_context_array,
+												     struct memory_allocator *allocator,
+													   struct output_writter *output);
 
 extern int32_t write_arguments_to_log(uint32_t total_args,
                                       uint64_t **arg_value_array,
