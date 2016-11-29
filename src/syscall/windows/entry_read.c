@@ -18,21 +18,9 @@
 #include "syscall_list.h"
 
 struct syscall_entry entry_read = {
-
     .syscall_name = "read",
-    .syscall_symbol = SYS_read,
     .total_args = 3,
     .status = ON,
     .requires_root = NX_NO,
-    .need_alarm = NX_YES,
-
-    .arg_type_array[FIRST_ARG] = FILE_DESC,
-    .get_arg_array[FIRST_ARG] = &generate_fd,
-
-    .arg_type_array[SECOND_ARG] = VOID_BUF,
-    .get_arg_array[SECOND_ARG] = generate_buf,
-
-    .arg_type_array[THIRD_ARG] = SIZE,
-    .get_arg_array[THIRD_ARG] = &generate_length
-
+    .need_alarm = NX_YES
 };

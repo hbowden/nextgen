@@ -99,7 +99,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     target_link_libraries(nxlog ${CMAKE_SOURCE_DIR}/deps/sqlite/sqlite3.so)
 
     AUX_SOURCE_DIRECTORY(src/syscall/freebsd ENTRY_SOURCES)
-    add_library(nxsyscall SHARED src/syscall/syscall-freebsd.c src/syscall/signals.c src/syscall/set_test.c src/syscall/generate.c src/syscall/arg_types.c src/syscall/child.c ${ENTRY_SOURCES})
+    add_library(nxsyscall SHARED src/syscall/syscall-freebsd.c src/syscall/signals.c src/syscall/set_test.c src/syscall/arg_types.c src/syscall/child.c ${ENTRY_SOURCES})
     include_directories(src/syscall/freebsd)
 
     add_library(nxgenetic SHARED src/genetic/genetic.c)
@@ -192,7 +192,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     target_link_libraries(nxlog sqlite3)
 
     AUX_SOURCE_DIRECTORY(src/syscall/linux ENTRY_SOURCES)
-    add_library(nxsyscall SHARED src/syscall/syscall-linux.c src/syscall/signals.c src/syscall/set_test.c src/syscall/generate.c src/syscall/arg_types.c src/syscall/child.c ${ENTRY_SOURCES})
+    add_library(nxsyscall SHARED src/syscall/syscall-linux.c src/syscall/signals.c src/syscall/set_test.c src/syscall/arg_types.c src/syscall/child.c ${ENTRY_SOURCES})
     include_directories(src/syscall/linux)
 
     add_library(nxgenetic SHARED src/genetic/genetic.c)
@@ -209,7 +209,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     add_definitions(-DCYGWIN)
     add_definitions(-DCOMMON)
 
-    add_library(nxutils SHARED src/utils/utils.c src/utils/reallocarray.c)
+    add_library(nxutils SHARED src/utils/utils.c src/utils/utils-win.c src/utils/reallocarray.c)
     add_library(nxcrypto SHARED src/crypto/crypto.c)
     add_library(nxnetwork SHARED src/network/network.c src/network/network-linux.c)
     add_library(nxplugin SHARED src/plugins/plugin.c)
@@ -222,13 +222,10 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     target_link_libraries(nxlog ${CMAKE_SOURCE_DIR}/deps/sqlite/libsqlite3.dll)
 
     AUX_SOURCE_DIRECTORY(src/syscall/windows ENTRY_SOURCES)
-    add_library(nxsyscall SHARED src/syscall/signals.c src/syscall/set_test.c src/syscall/generate.c src/syscall/arg_types.c src/syscall/child.c ${ENTRY_SOURCES})
+    add_library(nxsyscall SHARED src/syscall/signals.c src/syscall/set_test.c src/syscall/arg_types.c src/syscall/child.c ${ENTRY_SOURCES})
     include_directories(src/syscall/windows)
 
     add_library(nxgenetic SHARED src/genetic/genetic.c)
-
-    add_library(nxdisas SHARED src/disas/disas.c src/disas/disas-linux.c)
-    target_link_libraries(nxdisas ${CMAKE_SOURCE_DIR}/deps/capstone-3.0.4/libcapstone.so)
 
     add_library(nxruntime SHARED src/runtime/fuzzer.c src/runtime/fuzzer-syscall.c src/runtime/nextgen.c)
     target_link_libraries(nxruntime pthread)

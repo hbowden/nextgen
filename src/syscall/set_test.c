@@ -17,6 +17,7 @@
 
 #include "set_test.h"
 #include "log/log.h"
+#include "utils/utils.h"
 
 static int32_t test_val_ptr_val_ptr(int32_t symbol, uint64_t **array)
 {
