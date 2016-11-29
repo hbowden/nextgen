@@ -22,13 +22,8 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 
-static int32_t verbose = FALSE;
-
 static void console_output(enum out_type type, const char *format, ...)
 {
-    // if(type == STD && verbose == FALSE)
-    //     return;
-
     va_list args;
 
     va_start(args, format);
@@ -71,42 +66,4 @@ struct output_writter *get_console_writter(void)
     console->write = &console_output;
 
     return (console);
-}
-
-void set_verbosity(int32_t val)
-{
-    verbose = val;
-}
-
-void output(enum out_type type, const char *format, ...)
-{
-    // if(type == STD && verbose == FALSE)
-    //     return;
-
-    va_list args;
-
-    va_start(args, format);
-
-    switch((int32_t)type)
-    {
-        case ERROR:
-            vfprintf(stderr, format, args);
-            break;
-
-        case STD:
-            vfprintf(stdout, format, args);
-            break;
-
-        /* We default to stdout when ERROR or STD is not set so that
-        we don't have any errors. */
-        default:
-            vfprintf(stdout, format, args);
-            break;
-    }
-
-    va_end(args);
-
-    (void)fflush(stdout);
-
-    return;
 }

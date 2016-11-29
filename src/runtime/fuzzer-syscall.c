@@ -15,6 +15,7 @@
 
 #include "fuzzer.h"
 #include "syscall/child.h"
+#include "syscall/signals.h"
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
@@ -26,7 +27,9 @@ static int32_t stop_syscall_fuzzer(void)
     return (0);
 }
 
-static int32_t start_syscall_fuzzer(struct output_writter *output, struct memory_allocator *allocator)
+static int32_t start_syscall_fuzzer(struct output_writter *output,
+                                    struct memory_allocator *allocator,
+                                    struct fuzzer_control *control)
 {
     int32_t rtrn = 0;
     uint32_t core_count = 0;
@@ -39,6 +42,10 @@ static int32_t start_syscall_fuzzer(struct output_writter *output, struct memory
         return (-1);
     }
 
+    /* Set the max number of children processes to create as the number of
+      processors(CPUS) present on the system we are running on.
+      This currently counts intel hyper threading and other similar
+      technologies as it's own core. */
     state = create_children_state(allocator, output, core_count);
     if(state == NULL)
     {
@@ -46,16 +53,32 @@ static int32_t start_syscall_fuzzer(struct output_writter *output, struct memory
         return (-1);
     }
 
-    while(1)
+    set_children_state(state);
+
+    /* Setup our own signal handler for SIGINT or ctrl-c so we can
+       cleanup the child processes before this, the main process exits.   */
+    setup_ctrlc_handler(output);
+
+    while(control->stop != TRUE)
     {
         if(state->running_children < state->total_children)
         {
             struct syscall_child *child = NULL;
-            child = create_syscall_child(state);
+
+            child = create_syscall_child();
             if(child == NULL)
                continue;
+
+            rtrn = child->start(child, output);
+            if(rtrn < 0)
+            {
+                output->write(ERROR, "Child process failed to start\n");
+                return (-1);
+            }
         }
     }
+
+    return (0);
 }
 
 static int32_t setup_syscall_fuzzer(void)

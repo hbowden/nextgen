@@ -304,103 +304,6 @@ int32_t generate_directory_name(char **name, struct output_writter *output)
     return (0);
 }
 
-int32_t generate_name(char **name, char *extension, enum name_type type)
-{
-    if(extension == NULL && type != DIR_NAME)
-    {
-        printf("File extension is NULL\n");
-        return (-1);
-    }
-
-    /* Declare some variables. */
-    int32_t rtrn = 0;
-    char *random_data auto_free = NULL;
-    char *tmp_buf auto_free = NULL;
-
-    /* Create some space in memory. */
-    random_data = malloc(PATH_MAX + 1);
-    if(random_data == NULL)
-    {
-        printf("Can't Allocate Space\n");
-        return (-1);
-    }
-
-    /* Grab some random bytes. */
-    rtrn = rand_bytes(&random_data, (PATH_MAX));
-    if(rtrn < 0)
-    {
-        printf("Can't get random bytes\n");
-        return (-1);
-    }
-
-    /* Null terminate the random byte string. */
-    random_data[PATH_MAX] = '\0';
-
-    /* SHA256 hash the random output string. */
-    rtrn = sha256(random_data, &tmp_buf);
-    if(rtrn < 0)
-    {
-        printf("Can't Hash Random Data\n");
-        return (-1);
-    }
-
-    char *pointer = NULL;
-
-    switch((int32_t)type)
-    {
-        case DIR_NAME:
-            rtrn = asprintf(name, "%s", tmp_buf);
-            if(rtrn < 0)
-            {
-                printf("Can't create dir path: %s\n", strerror(errno));
-                return (-1);
-            }
-            break;
-
-        case FILE_NAME:
-
-            pointer = strrchr(extension, '.');
-
-            /* Check for a period in the extension string passed by the user. */
-            if(pointer == NULL)
-            {
-                char *ext auto_free = NULL;
-
-                /* There's no period so let's create one. */
-                rtrn = asprintf(&ext, ".%s", extension);
-                if(rtrn < 0)
-                {
-                    printf("Can't create extension string\n");
-                    return (-1);
-                }
-
-                rtrn = asprintf(name, "%s%s", tmp_buf, ext);
-                if(rtrn < 0)
-                {
-                    printf("Can't create file path: %s\n",
-                           strerror(errno));
-                    return (-1);
-                }
-
-                break;
-            }
-
-            rtrn = asprintf(name, "%s%s", tmp_buf, extension);
-            if(rtrn < 0)
-            {
-                printf("Can't create file path: %s\n", strerror(errno));
-                return (-1);
-            }
-            break;
-
-        default:
-            printf("Should not get here\n");
-            return (-1);
-    }
-
-    return (0);
-}
-
 int32_t get_home(char **home)
 {
     uid_t uid = 0;
@@ -549,7 +452,7 @@ int32_t create_random_file(char *root,
     }
 
     /* Put some junk in a buffer. */
-    rtrn = random->bytes(&junk, (uint32_t)(*size));
+    rtrn = random->bytes(allocator, output, &junk, (uint32_t)(*size));
     if(rtrn < 0)
     {
         output->write(ERROR, "Can't alloc junk buf: %s\n", strerror(errno));

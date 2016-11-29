@@ -14,6 +14,7 @@
  */
 
 #include "unity.h"
+#include "utils/autofree.h"
 #include "crypto/crypto.h"
 #include "memory/memory.h"
 
@@ -44,6 +45,13 @@ static void test_get_random_generator(void)
 				rtrn = random->range(1000, &number);
 				TEST_ASSERT(rtrn == 0);
 				TEST_ASSERT(number <= 1000);
+
+        char *buf auto_free = NULL;
+
+        rtrn = random->bytes(allocator, output, &buf, number);
+        TEST_ASSERT(rtrn == 0);
+        TEST_ASSERT_NOT_NULL(buf);
+        TEST_ASSERT(strlen(buf) <= number);
 		}
 }
 

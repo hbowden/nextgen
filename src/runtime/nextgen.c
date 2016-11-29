@@ -47,7 +47,6 @@ static const char *optstring = "p:e:";
 static struct option longopts[] = {{"in", required_argument, NULL, 'i'},
                                    {"out", required_argument, NULL, 'o'},
                                    {"exec", required_argument, NULL, 'e'},
-                                   {"crypto", required_argument, NULL, 'c'},
                                    {"port", required_argument, NULL, 'p'},
                                    {"address", required_argument, NULL, 'a'},
                                    {"protocol", required_argument, NULL, 'c'},
@@ -57,12 +56,10 @@ static struct option longopts[] = {{"in", required_argument, NULL, 'i'},
                                    {"syscall", 0, NULL, 's'},
                                    {"help", 0, NULL, 'h'},
                                    {"dumb", 0, NULL, 'd'},
-                                   {"verbose", 0, NULL, 'v'},
                                    {NULL, 0, NULL, 0}};
 
 static void display_help_banner(struct output_writter *output)
 {
-    set_verbosity(TRUE);
     output->write(STD, "Nextgen is a Genetic File, Syscall, and Network Fuzzer.\n");
     output->write(STD, "To use the file fuzzer in smart mode run the command below.\n");
     output->write(STD, "sudo ./nextgen --file --in /path/to/in/directory --out "
@@ -239,26 +236,6 @@ static int32_t set_fuzz_mode(struct fuzzer_config *config,
     return (0);
 }
 
-static int32_t set_crypto_method(struct fuzzer_config *config,
-                                 enum crypto_method method,
-                                 struct output_writter *output)
-{
-    switch((int32_t)method)
-    {
-        case CRYPTO:
-        case NO_CRYPTO:
-            break;
-
-        default:
-            output->write(ERROR, "Unknown crypto method\n");
-            return (-1);
-    }
-
-    config->method = method;
-
-    return (0);
-}
-
 struct fuzzer_config *parse_cmd_line(int32_t argc, char *argv[],
                                      struct output_writter *output,
                                      struct memory_allocator *allocator)
@@ -284,15 +261,8 @@ struct fuzzer_config *parse_cmd_line(int32_t argc, char *argv[],
         return (NULL);
     }
 
-    /* Default to smart_mode and crypto numbers. */
+    /* Default to smart_mode. */
     config->smart_mode = TRUE;
-
-    rtrn = set_crypto_method(config, CRYPTO, output);
-    if(rtrn < 0)
-    {
-        output->write(ERROR, "Can't set crypto method\n");
-        return (NULL);
-    }
 
     /* Parse the command line. */
     while((ch = getopt_long(argc, argv, optstring, longopts, NULL)) != -1)
@@ -391,25 +361,8 @@ struct fuzzer_config *parse_cmd_line(int32_t argc, char *argv[],
                 }
                 break;
 
-            case 'c':
-                /* This option allows users to specify the method in which they want to derive
-                the random numbers that will be used in fuzzing the application. */
-                rtrn = set_crypto_method(config, NO_CRYPTO, output);
-                if(rtrn < 0)
-                {
-                    output->write(ERROR, "Can't set crypto method\n");
-                    allocator->free((void **)&config);
-                    return (NULL);
-                }
-                break;
-
             case 'd':
                 config->smart_mode = FALSE;
-                break;
-
-            case 'v':
-                /* Have the IO module dump output to stdout. */
-                set_verbosity(TRUE);
                 break;
 
             case 'x':

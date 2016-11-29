@@ -19,15 +19,15 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/deps/cmake_modules" ${CMAKE_MODULE_PA
 find_package(Sanitizers)
 
 # The warnings to ignore for src/syscall/generate.* .
-set(GENERATE_IGNORE_WARNINGS "-Wno-deprecated-declarations -Wno-cast-align")
+set(GENERATE_IGNORE_WARNINGS "-Wno-cast-align")
 
 # Ignore deprecated ptrace symbols because we need to test ptrace.
 set_source_files_properties(src/syscall/generate.c PROPERTIES COMPILE_FLAGS ${GENERATE_IGNORE_WARNINGS})
 set_source_files_properties(src/syscall/generate-macos.c PROPERTIES COMPILE_FLAGS ${GENERATE_IGNORE_WARNINGS})
 
 SET(SET_TEST_IGNORE_FLAGS "-Wno-deprecated-declarations -Wno-unused-function")
-SET(SET_FILE_IGNORE_FLAGS "-Wno-deprecated-declarations -Wno-cast-qual")
-SET(SET_RUNTIME_IGNORE_FLAGS "-Wno-deprecated-declarations -Wno-incompatible-pointer-types-discards-qualifiers")
+SET(SET_FILE_IGNORE_FLAGS "-Wno-cast-qual")
+SET(SET_RUNTIME_IGNORE_FLAGS "-Wno-incompatible-pointer-types-discards-qualifiers")
 
 set_source_files_properties(src/io/io.c PROPERTIES COMPILE_FLAGS -Wno-format-nonliteral)
 set_source_files_properties(src/plugins/plugin.c PROPERTIES COMPILE_FLAGS -Wno-cast-qual)
@@ -108,11 +108,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
 
     add_library(nxgenetic SHARED src/genetic/genetic.c)
 
-    add_library(nxfile SHARED src/file/file.c src/file/file-freebsd.c)
-
-    add_library(nxdisas SHARED src/disas/disas.c src/disas/disas-freebsd.c)
-    target_link_libraries(nxdisas ${CMAKE_SOURCE_DIR}/deps/capstone-3.0.4/libcapstone.so)
-
     add_library(nxruntime SHARED src/runtime/fuzzer.c src/runtime/fuzzer-syscall.c src/runtime/nextgen.c)
 
     add_executable(nextgen src/main.c)
@@ -171,7 +166,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
     AUX_SOURCE_DIRECTORY(src/syscall/mac ENTRY_SOURCES)
 
-    add_library(nxsyscall SHARED src/syscall/syscall.c src/syscall/syscall-mac.c src/syscall/signals.c src/syscall/set_test.c src/syscall/generate.c src/syscall/generate-macos.c src/syscall/arg_types.c src/syscall/child.c ${ENTRY_SOURCES})
+    add_library(nxsyscall SHARED src/syscall/set_test.c src/syscall/signals.c src/syscall/arg_types.c src/syscall/child.c)
 
     include_directories(src/syscall/mac)
 
@@ -182,14 +177,6 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     add_library(nxobjcutils SHARED src/objc/objc-utils.m src/objc/AppDelegate.m)
     target_link_libraries(nxobjcutils ${APP_KIT})
     target_link_libraries(nxobjcutils ${FOUNDATION})
-
-    add_library(nxfile SHARED src/file/file.c src/file/file-mac.m)
-    target_link_libraries(nxfile objc)
-    target_link_libraries(nxfile nxobjcutils)
-
-    add_library(nxdisas SHARED src/disas/disas.c src/disas/disas-mac.c)
-    target_link_libraries(nxfile objc)
-    target_link_libraries(nxdisas ${CMAKE_SOURCE_DIR}/deps/capstone-3.0.4/libcapstone.dylib)
 
     add_library(nxruntime SHARED src/runtime/fuzzer.c src/runtime/fuzzer-syscall.c src/runtime/nextgen.c)
 
@@ -218,11 +205,6 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     include_directories(src/syscall/linux)
 
     add_library(nxgenetic SHARED src/genetic/genetic.c)
-
-    add_library(nxfile SHARED src/file/file.c src/file/file-linux.c)
-
-    add_library(nxdisas SHARED src/disas/disas.c src/disas/disas-linux.c)
-    target_link_libraries(nxdisas ${CMAKE_SOURCE_DIR}/deps/capstone-3.0.4/libcapstone.so)
 
     add_library(nxruntime SHARED src/runtime/fuzzer.c src/runtime/fuzzer-syscall.c src/runtime/nextgen.c)
     target_link_libraries(nxruntime pthread)
@@ -314,12 +296,6 @@ target_link_libraries(nxsyscall nxcrypto)
 target_link_libraries(nxgenetic nxsyscall)
 target_link_libraries(nxgenetic nxio)
 target_link_libraries(nxgenetic nxmemory)
-target_link_libraries(nxfile nxsyscall)
-target_link_libraries(nxfile nxio)
-target_link_libraries(nxfile nxmemory)
-target_link_libraries(nxdisas nxio)
-target_link_libraries(nxdisas nxfile)
-target_link_libraries(nxdisas nxmemory)
 target_link_libraries(nxruntime ${CMAKE_SOURCE_DIR}/deps/${CK}/src/libck.so)
 target_link_libraries(nxruntime nxio)
 target_link_libraries(nxruntime nxmemory)
@@ -331,9 +307,7 @@ target_link_libraries(nxruntime nxlog)
 target_link_libraries(nxruntime nxmutate)
 target_link_libraries(nxruntime nxnetwork)
 target_link_libraries(nxruntime nxcrypto)
-target_link_libraries(nxruntime nxdisas)
 target_link_libraries(nxruntime nxsyscall)
-target_link_libraries(nxruntime nxfile)
 target_link_libraries(nxruntime nxprobe)
 target_link_libraries(nxruntime nxgenetic)
 target_link_libraries(nextgen nxutils)
@@ -341,7 +315,7 @@ target_link_libraries(nextgen nxruntime)
 target_link_libraries(nextgen nxmemory)
 target_link_libraries(nextgen nxio)
 
-install(TARGETS nextgen nxio nxmemory nxconcurrent nxcrypto nxutils nxprobe nxnetwork nxplugin nxmutate nxresource nxlog nxsyscall nxgenetic nxfile nxdisas nxruntime
+install(TARGETS nextgen nxio nxmemory nxconcurrent nxcrypto nxutils nxprobe nxnetwork nxplugin nxmutate nxresource nxlog nxsyscall nxgenetic nxruntime
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib/static)
@@ -393,9 +367,10 @@ target_link_libraries(resource-integration-test crypto)
 add_executable(runtime-integration-test EXCLUDE_FROM_ALL tests/runtime/integration/tests.c deps/${UNITY}/src/unity.c)
 target_link_libraries(runtime-integration-test nxruntime)
 
-add_executable(syscall-unit-test EXCLUDE_FROM_ALL tests/syscall/unit/tests.c deps/${UNITY}/src/unity.c)
+add_executable(syscall-unit-test EXCLUDE_FROM_ALL tests/syscall/unit/tests.c src/syscall/signals.c deps/${UNITY}/src/unity.c)
 target_link_libraries(syscall-unit-test nxmemory)
 target_link_libraries(syscall-unit-test nxio)
+target_link_libraries(syscall-unit-test nxconcurrent)
 
 add_sanitizers(runtime-integration-test)
 add_sanitizers(utils-unit-test)

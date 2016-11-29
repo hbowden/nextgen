@@ -16,8 +16,8 @@
 #include "signals.h"
 #include "child.h"
 #include "io/io.h"
+#include "utils/noreturn.h"
 #include "runtime/nextgen.h"
-#include "syscall/syscall.h"
 
 #include <signal.h>
 #include <string.h>
@@ -37,9 +37,9 @@ static void child_exit_handler(int sig)
     {
         if(WIFEXITED(status))
         {
-            struct child_ctx *child = NULL;
+            struct syscall_child *child = NULL;
 
-            child = get_child_ctx_from_pid(pid);
+            child = get_child_with_pid(pid);
             if(child == NULL)
                 return;
 
@@ -50,14 +50,14 @@ static void child_exit_handler(int sig)
     return;
 }
 
-static void ctrlc_handler(int sig)
+NX_NO_RETURN static void ctrlc_handler(int sig)
 {
     (void)sig;
-    //shutdown();
-    return;
+    kill_all_children();
+    _exit(0);
 }
 
-static int32_t setup_ctrlc_handler(struct output_writter *output)
+int32_t setup_ctrlc_handler(struct output_writter *output)
 {
     int32_t rtrn = 0;
     struct sigaction sa;
@@ -122,8 +122,8 @@ static void child_signal_handler(int sig, siginfo_t *info, void *context)
       child context so we can let the child
       know it's jumping back from a signal
       handler. */
-    struct child_ctx *child = NULL;
-    child = get_child_ctx_from_pid(info->si_pid);
+    struct syscall_child *child = NULL;
+    child = get_child_with_pid(info->si_pid);
 
     /* Check what kind of signal got us here. */
     switch(sig)

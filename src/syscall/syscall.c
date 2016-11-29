@@ -131,40 +131,6 @@ static int8_t table_set;
 
 static epoch_ctx *epoch;
 
-void set_had_error(struct child_ctx *child, int32_t val)
-{
-    atomic_store_int32(&child->had_error, val);
-}
-
-void set_ret_value(struct child_ctx *child, int32_t val)
-{
-    atomic_store_int32(&child->ret_value, val);
-}
-
-void set_sig_num(struct child_ctx *child, int32_t num)
-{
-    atomic_store_int32(&child->sig_num, num);
-}
-
-void set_did_jump(struct child_ctx *child, int32_t val)
-{
-    atomic_store_int32(&child->did_jump, val);
-}
-
-NX_NO_RETURN void jump(struct child_ctx *child)
-{
-    /* Jump to the return point saved earlier.
-      No need for a return because it will not be executed. */
-    longjmp(child->return_jump, 0);
-}
-
-void set_child_pid(struct child_ctx *child, int32_t pid)
-{
-    cas_loop_int32(&child->pid, pid);
-
-    return;
-}
-
 int32_t get_arg_size(struct child_ctx *child, uint32_t arg_num, uint64_t *size, struct output_writter *output)
 {
     /* Make sure the argument number requested is in bounds. */
@@ -670,25 +636,25 @@ int32_t test_syscall(struct child_ctx *ctx, struct output_writter *output)
     return (0);
 }
 
-void kill_all_children(struct output_writter *output)
-{
-    uint32_t i = 0;
-    int32_t rtrn = 0;
-
-    for(i = 0; i < total_children; i++)
-    {
-        int32_t pid = atomic_load_int32(&children[i]->pid);
-
-        rtrn = kill(pid, SIGKILL);
-        if(rtrn < 0)
-        {
-            output->write(ERROR, "Can't kill child: %s\n", strerror(errno));
-            return;
-        }
-    }
-
-    return;
-}
+// void kill_all_children(struct output_writter *output)
+// {
+//     uint32_t i = 0;
+//     int32_t rtrn = 0;
+//
+//     for(i = 0; i < total_children; i++)
+//     {
+//         int32_t pid = atomic_load_int32(&children[i]->pid);
+//
+//         rtrn = kill(pid, SIGKILL);
+//         if(rtrn < 0)
+//         {
+//             output->write(ERROR, "Can't kill child: %s\n", strerror(errno));
+//             return;
+//         }
+//     }
+//
+//     return;
+// }
 
 /**
  * This is the fuzzing loop for syscall fuzzing in dumb mode.
