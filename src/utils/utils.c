@@ -46,12 +46,6 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 
-#ifndef CYGWIN
-
-#include <sys/sysctl.h>
-
-#endif
-
 // /* Compile in run_syscall() for macOS because syscall(2) is deprecated
 //    since macOS sierra (10.12). */
 // #if __x86_64__
@@ -241,52 +235,6 @@ int32_t get_extension(char *path, char **extension)
 
     return (0);
 }
-
-#if defined(FREEBSD) || defined(MACOS)
-
-int32_t get_core_count(uint32_t *core_count)
-{
-    int32_t mib[4];
-
-    mib[0] = CTL_HW;
-    mib[1] = HW_NCPU;
-
-    size_t len = sizeof(uint32_t);
-
-    int32_t rtrn = sysctl(mib, 2, core_count, &len, NULL, 0);
-    if(rtrn < 0)
-    {
-        printf("sysctl: %s\n", strerror(errno));
-        return (-1);
-    }
-
-    if((*core_count) < 1)
-        (*core_count) = (uint32_t)1;
-
-    return (0);
-}
-
-#elif defined(LINUX)
-
-int32_t get_core_count(uint32_t *core_count)
-{
-    (*core_count) = (uint32_t) sysconf(_SC_NPROCESSORS_ONLN);
-    return (0);
-}
-
-#elif defined(CYGWIN)
-
-int32_t get_core_count(uint32_t *core_count)
-{
-    (*core_count) = (uint32_t) sysconf(_SC_NPROCESSORS_ONLN);
-    return (0);
-}
-
-#else
-
-#error "get_core_count() not yet implemented for this platform"
-
-#endif
 
 int32_t generate_file_name(char **name, char *extension, struct output_writter *output, struct random_generator *random)
 {

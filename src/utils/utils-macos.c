@@ -14,19 +14,27 @@
  **/
 
 #include "utils.h"
-
-int32_t syscall(int32_t number, ...)
-{
-    (void)number;
-    __asm__ ( "movl $10, %eax;"
-              "movl $20, %ebx;"
-              "addl %ebx, %eax;"
-    );
-    return (0);
-}
+#include <sys/sysctl.h>
+#include <errno.h>
 
 int32_t get_core_count(uint32_t *core_count)
 {
-    (*core_count) = (uint32_t) sysconf(_SC_NPROCESSORS_ONLN);
+    int32_t mib[4];
+
+    mib[0] = CTL_HW;
+    mib[1] = HW_NCPU;
+
+    size_t len = sizeof(uint32_t);
+
+    int32_t rtrn = sysctl(mib, 2, core_count, &len, NULL, 0);
+    if(rtrn < 0)
+    {
+        printf("sysctl: %s\n", strerror(errno));
+        return (-1);
+    }
+
+    if((*core_count) < 1)
+        (*core_count) = (uint32_t)1;
+
     return (0);
 }
