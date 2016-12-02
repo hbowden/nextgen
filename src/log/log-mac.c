@@ -22,8 +22,11 @@ int32_t log_arguments(uint32_t total_args,
                       const char *syscall_name,
                       uint64_t **arg_value_array,
                       struct arg_context **arg_context_array,
-                      struct memory_allocator *allocator)
+                      struct memory_allocator *allocator,
+                      struct output_writter *output)
 {
+
+    (void)output;
     char *arg_value auto_free = allocator->alloc(1024);
     if(arg_value == NULL)
     {
