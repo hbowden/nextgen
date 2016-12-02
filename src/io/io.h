@@ -43,6 +43,4 @@ struct output_writter
 
 extern struct output_writter *get_console_writter(void);
 
-extern void set_verbosity(int32_t val);
-
 #endif
