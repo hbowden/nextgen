@@ -80,7 +80,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     SET( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Weverything -std=c11 -Wno-covered-switch-default")
     SET( CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -Weverything -std=c11 -Wno-covered-switch-default")
 
-    add_library(nxutils SHARED src/utils/utils.c src/utils/reallocarray.c)
+    add_library(nxutils SHARED src/utils/utils.c src/utils/utils-bsd.c src/utils/reallocarray.c)
 
     add_library(nxcrypto SHARED src/crypto/crypto.c)
 
@@ -141,7 +141,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
     FIND_LIBRARY(CARBON Carbon)
     FIND_LIBRARY(CORE_FOUNDATION CoreFoundation)
-    add_library(nxutils SHARED src/utils/utils.c src/utils/set_process_name.c src/utils/reallocarray.c)
+    add_library(nxutils SHARED src/utils/utils.c src/utils/utils-macos.c src/utils/set_process_name.c src/utils/reallocarray.c)
     target_link_libraries(nxutils ${CORE_FOUNDATION})
     target_link_libraries(nxutils ${CARBON})
 
@@ -179,7 +179,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     add_definitions(-DLINUX)
     add_definitions(-DCOMMON)
 
-    add_library(nxutils SHARED src/utils/utils.c src/utils/reallocarray.c src/utils/utils-win.c)
+    add_library(nxutils SHARED src/utils/utils.c src/utils/utils-linux.c src/utils/reallocarray.c src/utils/utils-win.c)
     add_library(nxcrypto SHARED src/crypto/crypto.c)
     add_library(nxnetwork SHARED src/network/network.c src/network/network-linux.c)
     add_library(nxplugin SHARED src/plugins/plugin.c)
