@@ -9,7 +9,7 @@
 #include "unity_fixture.h"
 #include "unity_internals.h"
 
-struct _UnityFixture UnityFixture;
+struct UNITY_FIXTURE_T UnityFixture;
 
 /* If you decide to use the function pointer approach.
  * Build with -D UNITY_OUTPUT_CHAR=outputChar and include <stdio.h>
@@ -41,7 +41,7 @@ int UnityMain(int argc, const char* argv[], void (*runAllTests)(void))
         UnityBegin(argv[0]);
         announceTestRun(r);
         runAllTests();
-        UNITY_PRINT_EOL();
+        if (!UnityFixture.Verbose) UNITY_PRINT_EOL();
         UnityEnd();
     }
 
