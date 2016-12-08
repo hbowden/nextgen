@@ -52,8 +52,6 @@ struct dependency_context *create_dependency_ctx(struct dependency *dependency, 
     ctx->count = count - 1;
     ctx->array = array;
 
-    printf("ctx->count: %u\n", ctx->count);
-
     return (ctx);
 }
 

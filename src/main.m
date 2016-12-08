@@ -15,6 +15,7 @@
 
 #include "runtime/nextgen.h"
 #include "runtime/fuzzer.h"
+#include "runtime/runtime.h"
 #include "memory/memory.h"
 #include "objc/objc-utils.h"
 #include "io/io.h"
@@ -44,6 +45,8 @@ int main(int argc, const char * argv[])
         output->write(ERROR, "Failed to get memory allocator\n");
         return (-1);
     }
+
+    inject_deps(output, allocator);
 
     /* Parse the command line and return the fuzzer configuration object.
       The config object will tell us how to setup the nextgen fuzzer. */

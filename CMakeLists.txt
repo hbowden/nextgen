@@ -105,7 +105,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
 
     add_library(nxgenetic SHARED src/genetic/genetic.c)
 
-    add_library(nxruntime SHARED src/runtime/fuzzer.c src/runtime/fuzzer-syscall.c src/runtime/nextgen.c)
+    add_library(nxruntime SHARED src/runtime/runtime.c src/runtime/fuzzer.c src/runtime/fuzzer-syscall.c src/runtime/nextgen.c)
 
     add_executable(nextgen src/main.c)
     target_link_libraries(nextgen dtrace)
@@ -171,7 +171,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     target_link_libraries(nxobjcutils ${APP_KIT})
     target_link_libraries(nxobjcutils ${FOUNDATION})
 
-    add_library(nxruntime SHARED src/runtime/fuzzer.c src/runtime/fuzzer-syscall.c src/runtime/nextgen.c)
+    add_library(nxruntime SHARED src/runtime/runtime.c src/runtime/fuzzer.c src/runtime/fuzzer-syscall.c src/runtime/nextgen.c)
 
     add_executable(nextgen src/main.m)
     add_sanitizers(nextgen)
@@ -198,7 +198,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
     add_library(nxgenetic SHARED src/genetic/genetic.c)
 
-    add_library(nxruntime SHARED src/runtime/fuzzer.c src/runtime/fuzzer-syscall.c src/runtime/nextgen.c)
+    add_library(nxruntime SHARED src/runtime/runtime.c src/runtime/fuzzer.c src/runtime/fuzzer-syscall.c src/runtime/nextgen.c)
     target_link_libraries(nxruntime pthread)
 
     add_executable(nextgen src/main.c)
@@ -228,7 +228,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
     add_library(nxgenetic SHARED src/genetic/genetic.c)
 
-    add_library(nxruntime SHARED src/runtime/fuzzer.c src/runtime/fuzzer-syscall.c src/runtime/nextgen.c)
+    add_library(nxruntime SHARED src/runtime/runtime.c src/runtime/fuzzer.c src/runtime/fuzzer-syscall.c src/runtime/nextgen.c)
     target_link_libraries(nxruntime pthread)
 
     add_executable(nextgen src/main.c)

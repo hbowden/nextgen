@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
+ * Copyright (c) 2016, Harrison Bowden, Minneapolis, MN
  *
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice
@@ -13,26 +13,16 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#include "runtime.h"
-#include "platform.h"
-#include "crypto/crypto.h"
-#include "depend-inject/depend-inject.h"
+#ifndef NX_RUNTIME_H
+#define NX_RUNTIME_H
 
-void inject_deps(struct output_writter *output,
-                 struct memory_allocator *allocator)
-{
-    struct dependency_context *ctx = NULL;
+#include <stdint.h>
+#include "io/io.h"
+#include "memory/memory.h"
 
-    ctx = create_dependency_ctx(create_dependency(output, OUTPUT),
-                                create_dependency(allocator, ALLOCATOR),
-                                NULL);
+extern void inject_deps(struct output_writter *output,
+                        struct memory_allocator *allocator);
 
-    inject_crypto_deps(ctx);
+const char *get_os(void);
 
-    return;
-}
-
-const char *get_os(void)
-{
-    return (OPERATING_SYSTEM);
-}
+#endif
