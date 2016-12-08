@@ -17,7 +17,6 @@
 #define NX_RANDOM_H
 
 #include <stdint.h>
-#include "utils/private.h"
 #include "depend-inject/depend-inject.h"
 
 struct random_generator
@@ -28,7 +27,7 @@ struct random_generator
 
 extern struct random_generator *get_default_random_generator(void);
 
-extern private void inject_random_deps(struct dependency_context *ctx);
+extern void inject_random_deps(struct dependency_context *ctx);
 
 
 #endif /* End of header file. */

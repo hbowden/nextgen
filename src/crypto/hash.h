@@ -17,7 +17,6 @@
 #define NX_HASH_H
 
 #include <stdint.h>
-#include "utils/private.h"
 #include "depend-inject/depend-inject.h"
 
 struct hasher
@@ -28,6 +27,6 @@ struct hasher
 
 extern struct hasher *get_hasher(void);
 
-extern private void inject_hash_deps(struct dependency_context *ctx);
+extern void inject_hash_deps(struct dependency_context *ctx);
 
 #endif /* End of header file. */
