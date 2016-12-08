@@ -24,7 +24,7 @@
 #define SYSCALL_H
 
 #include "io/io.h"
-#include "crypto/crypto.h"
+#include "crypto/random.h"
 #include "resource/resource.h"
 #include "concurrent/concurrent.h"
 #include "concurrent/epoch.h"

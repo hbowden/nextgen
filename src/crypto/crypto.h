@@ -18,24 +18,9 @@
 #ifndef CRYPTO_H
 #define CRYPTO_H
 
-#include <stdint.h>
-#include "io/io.h"
-#include "utils/deprecate.h"
-#include "memory/memory.h"
+#include "depend-inject/depend-inject.h"
 
-struct random_generator
-{
-    int32_t (*range)(uint32_t, uint32_t *);
-    int32_t (*bytes)(struct memory_allocator *, struct output_writter *, char **, uint32_t);
-};
+extern void inject_crypto_deps(struct dependency_context *ctx);
 
-/* Fill the buffer out with the sha256 hash of in. */
-DEPRECATED extern int32_t sha256(char *in, char **out);
-
-/* Fill the buffer out with the sha512 hash of in. */
-DEPRECATED extern int32_t sha512(char *in, char **out);
-
-extern struct random_generator *get_default_random_generator(struct memory_allocator *,
-                                                             struct output_writter *);
 
 #endif /* End of header file. */

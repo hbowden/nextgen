@@ -30,7 +30,7 @@
 #include "utils.h"
 #include "autoclose.h"
 #include "autofree.h"
-#include "crypto/crypto.h"
+#include "crypto/random.h"
 #include "io/io.h"
 #include "memory/memory.h"
 
@@ -45,6 +45,10 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+
+static struct memory_allocator *allocator;
+static struct output_writter *output;
+static struct random_generator *random_gen;
 
 // /* Compile in run_syscall() for macOS because syscall(2) is deprecated
 //    since macOS sierra (10.12). */
@@ -64,12 +68,12 @@
 //
 // #endif
 
-int32_t map_file_in(int32_t fd, char **buf, uint64_t *size, int32_t perm, struct output_writter *output)
+int32_t map_file_in(int32_t fd, char **buf, uint64_t *size, int32_t perm)
 {
     int32_t rtrn = 0;
 
     /* Get the file's size. */
-    rtrn = get_file_size(fd, size, output);
+    rtrn = get_file_size(fd, size);
     if(rtrn < 0)
     {
         output->write(ERROR, "Can't get file size\n");
@@ -87,7 +91,7 @@ int32_t map_file_in(int32_t fd, char **buf, uint64_t *size, int32_t perm, struct
     return (0);
 }
 
-int32_t map_file_out(char *path, char *buf, uint64_t size, struct output_writter *output)
+int32_t map_file_out(char *path, char *buf, uint64_t size)
 {
     int32_t fd auto_close = 0;
 
@@ -124,7 +128,7 @@ int32_t map_file_out(char *path, char *buf, uint64_t size, struct output_writter
     return (0);
 }
 
-int32_t get_file_size(int32_t fd, uint64_t *size, struct output_writter *output)
+int32_t get_file_size(int32_t fd, uint64_t *size)
 {
     struct stat stbuf;
 
@@ -139,7 +143,7 @@ int32_t get_file_size(int32_t fd, uint64_t *size, struct output_writter *output)
     return (0);
 }
 
-int32_t copy_file_to(char *src, char *dst, struct output_writter *output)
+int32_t copy_file_to(char *src, char *dst)
 {
     int32_t rtrn = 0;
     uint64_t file_size = 0;
@@ -154,14 +158,14 @@ int32_t copy_file_to(char *src, char *dst, struct output_writter *output)
         return (-1);
     }
 
-    rtrn = map_file_in(file, &file_buffer, &file_size, READ, output);
+    rtrn = map_file_in(file, &file_buffer, &file_size, READ);
     if(rtrn < 0)
     {
         output->write(ERROR, "Can't read file to memory\n");
         return (-1);
     }
 
-    rtrn = map_file_out(dst, file_buffer, file_size, output);
+    rtrn = map_file_out(dst, file_buffer, file_size);
     if(rtrn < 0)
     {
         output->write(ERROR, "Can't write file to disk\n");
@@ -236,7 +240,7 @@ int32_t get_extension(char *path, char **extension)
     return (0);
 }
 
-int32_t generate_file_name(char **name, char *extension, struct output_writter *output, struct random_generator *random)
+int32_t generate_file_name(char **name, char *extension)
 {
     (void)name;
     (void)extension;
@@ -245,7 +249,7 @@ int32_t generate_file_name(char **name, char *extension, struct output_writter *
     return (0);
 }
 
-int32_t generate_directory_name(char **name, struct output_writter *output)
+int32_t generate_directory_name(char **name)
 {
     (void)name;
     (void)output;
@@ -322,13 +326,7 @@ int32_t ascii_to_binary(char *input, char **out, uint64_t input_len,
     return (0);
 }
 
-int32_t create_random_file(char *root,
-                           char *ext,
-                           char **path,
-                           uint64_t *size,
-                           struct random_generator *random,
-                           struct memory_allocator *allocator,
-                           struct output_writter *output)
+int32_t create_random_file(char *root, char *ext, char **path, uint64_t *size)
 {
     int32_t rtrn = 0;
     int32_t no_period = 0;
@@ -354,7 +352,7 @@ int32_t create_random_file(char *root,
     if(no_period == 1)
     {
         /* Generate random file name. */
-        rtrn = generate_file_name(&name, extension, output, random);
+        rtrn = generate_file_name(&name, extension);
         if(rtrn < 0)
         {
             output->write(ERROR, "Can't generate random file name\n");
@@ -364,7 +362,7 @@ int32_t create_random_file(char *root,
     else
     {
         /* Generate random file name. */
-        rtrn = generate_file_name(&name, ext, output, random);
+        rtrn = generate_file_name(&name, ext);
         if(rtrn < 0)
         {
             output->write(ERROR, "Can't generate random file name\n");
@@ -381,7 +379,7 @@ int32_t create_random_file(char *root,
     }
 
     /* Pick a random size between zero and 4 kilobytes. */
-    rtrn = random->range(4095, (uint32_t *)size);
+    rtrn = random_gen->range(4095, (uint32_t *)size);
     if(rtrn < 0)
     {
         output->write(ERROR, "Can't choose random number\n");
@@ -400,7 +398,7 @@ int32_t create_random_file(char *root,
     }
 
     /* Put some junk in a buffer. */
-    rtrn = random->bytes(allocator, output, &junk, (uint32_t)(*size));
+    rtrn = random_gen->bytes(&junk, (uint32_t)(*size));
     if(rtrn < 0)
     {
         output->write(ERROR, "Can't alloc junk buf: %s\n", strerror(errno));
@@ -408,7 +406,7 @@ int32_t create_random_file(char *root,
     }
 
     /* Write that junk to the file so that the file is not just blank. */
-    rtrn = map_file_out((*path), junk, (*size), output);
+    rtrn = map_file_out((*path), junk, (*size));
     if(rtrn < 0)
     {
         output->write(ERROR, "Can't write junk to disk\n");
@@ -631,12 +629,12 @@ int32_t count_files_directory(uint32_t *count, char *dir)
     return (0);
 }
 
-int32_t create_random_directory(char *root, char **path, struct output_writter *output)
+int32_t create_random_directory(char *root, char **path)
 {
     int32_t rtrn = 0;
     char *name = NULL;
 
-    rtrn = generate_directory_name(&name, output);
+    rtrn = generate_directory_name(&name);
     if(rtrn < 0)
     {
         printf("Failed to generate directory name\n");
@@ -658,4 +656,28 @@ int32_t create_random_directory(char *root, char **path, struct output_writter *
     }
 
     return (0);
+}
+
+void inject_utils_deps(struct dependency_context *ctx)
+{
+    uint32_t i;
+
+    for(i = 0; i < ctx->count; i++)
+    {
+        switch((int32_t)ctx->array[i]->name)
+        {
+            case ALLOCATOR:
+                allocator = (struct memory_allocator *)ctx->array[i]->interface;
+                break;
+
+            case OUTPUT:
+                output = (struct output_writter *)ctx->array[i]->interface;
+                break;
+
+            case RANDOM_GEN:
+                random_gen = (struct random_generator *)ctx->array[i]->interface;
+                break;
+
+        }
+    }
 }

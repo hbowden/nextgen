@@ -23,8 +23,10 @@
 #endif
 
 #include "resource.h"
+#include "io/io.h"
 #include "concurrent/concurrent.h"
 #include "crypto/crypto.h"
+#include "memory/memory.h"
 #include "network/network.h"
 #include "runtime/platform.h"
 #include "utils/utils.h"
@@ -34,6 +36,10 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <string.h>
+
+static struct memory_allocator *allocator;
+static struct output_writter *output;
+static struct random_generator *random_gen;
 
 /* Shared memory pools. */
 // static struct mem_pool_shared *desc_pool;
@@ -176,16 +182,14 @@
 //     return (sock);
 // }
 //
-static int32_t get_desc_nocached(struct memory_allocator *allocator,
-                                 struct output_writter *output,
-                                 struct random_generator *random)
+static int32_t get_desc_nocached(void)
 {
     int32_t fd = 0;
     int32_t rtrn = 0;
     uint64_t size = 0;
     char *path auto_free = NULL;
 
-    rtrn = create_random_file("/tmp", ".txt", &path, &size, random, allocator, output);
+    rtrn = create_random_file("/tmp", ".txt", &path, &size);
     if(rtrn < 0)
     {
         output->write(ERROR, "Can't create random file\n");
@@ -197,7 +201,7 @@ static int32_t get_desc_nocached(struct memory_allocator *allocator,
     fd = open(path, O_RDWR);
     if(fd < 0)
     {
-        output->write(ERROR, "Can't open file: %s", strerror(errno));
+        output->write(ERROR, "Can't open file: %s\n", strerror(errno));
         return (-1);
     }
 
@@ -1026,8 +1030,7 @@ static int32_t free_desc_nocached(int32_t *fd)
 //     return (pool);
 // }
 
-struct resource_generator *get_resource_generator(struct memory_allocator *allocator,
-                                                  struct output_writter *output)
+struct resource_generator *get_resource_generator(void)
 {
     struct resource_generator *rsrc_gen = NULL;
 
@@ -1044,8 +1047,7 @@ struct resource_generator *get_resource_generator(struct memory_allocator *alloc
     return (rsrc_gen);
 }
 
-struct desc_generator *get_default_desc_generator(struct memory_allocator *allocator,
-                                                  struct output_writter *output)
+struct desc_generator *get_default_desc_generator(void)
 {
     struct desc_generator *desc_gen = allocator->alloc(sizeof(struct desc_generator));
     if(desc_gen == NULL)
@@ -1058,4 +1060,29 @@ struct desc_generator *get_default_desc_generator(struct memory_allocator *alloc
     desc_gen->free_desc = &free_desc_nocached;
 
     return (desc_gen);
+}
+
+void inject_resource_deps(struct dependency_context *ctx)
+{
+    uint32_t i;
+
+    for(i = 0; i < ctx->count; i++)
+    {
+        printf("i: %u\n", i);
+        switch((int32_t)ctx->array[i]->name)
+        {
+            case ALLOCATOR:
+                allocator = (struct memory_allocator *)ctx->array[i]->interface;
+                break;
+
+            case OUTPUT:
+                output = (struct output_writter *)ctx->array[i]->interface;
+                break;
+
+            case RANDOM_GEN:
+                random_gen = (struct random_generator *)ctx->array[i]->interface;
+                break;
+        }
+    }
+    return;
 }

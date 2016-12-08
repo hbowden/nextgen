@@ -18,10 +18,8 @@
 #ifndef RESOURCE_H
 #define RESOURCE_H
 
+#include "depend-inject/depend-inject.h"
 #include "utils/deprecate.h"
-#include "memory/memory.h"
-#include "crypto/crypto.h"
-#include "io/io.h"
 #include <stdint.h>
 
 enum rsrc_gen_type { CACHE, NO_CACHE };
@@ -35,9 +33,7 @@ struct resource_ctx
 
 struct desc_generator
 {
-    int32_t (*get_desc)(struct memory_allocator *,
-                        struct output_writter *,
-                        struct random_generator *);
+    int32_t (*get_desc)(void);
     int32_t (*free_desc)(int32_t *);
 };
 
@@ -67,11 +63,11 @@ struct resource_generator
     struct filepath_generator;
 };
 
-extern struct desc_generator *get_default_desc_generator(struct memory_allocator *,
-                                                         struct output_writter *);
+extern struct desc_generator *get_default_desc_generator(void);
 
 /* */
-extern struct resource_generator *get_resource_generator(struct memory_allocator *,
-                                                         struct output_writter *);
+extern struct resource_generator *get_resource_generator(void);
+
+extern void inject_resource_deps(struct dependency_context *ctx);
 
 #endif

@@ -14,8 +14,10 @@
  */
 
 #include "unity.h"
+#include "io/io.h"
 #include "utils/autofree.h"
 #include "crypto/crypto.h"
+#include "crypto/random.h"
 #include "memory/memory.h"
 
 static uint32_t iterations = 1000;
@@ -32,7 +34,7 @@ static void test_get_random_generator(void)
 		allocator = get_default_allocator();
 	  TEST_ASSERT_NOT_NULL(allocator);
 
-		random = get_default_random_generator(allocator, output);
+		random = get_default_random_generator();
 		TEST_ASSERT_NOT_NULL(random);
 	  TEST_ASSERT_NOT_NULL(random->range);
 
@@ -48,7 +50,7 @@ static void test_get_random_generator(void)
 
         char *buf auto_free = NULL;
 
-        rtrn = random->bytes(allocator, output, &buf, number);
+        rtrn = random->bytes(&buf, number);
         TEST_ASSERT(rtrn == 0);
         TEST_ASSERT_NOT_NULL(buf);
         TEST_ASSERT(strlen(buf) <= number);
@@ -57,6 +59,23 @@ static void test_get_random_generator(void)
 
 int main(void)
 {
+    struct memory_allocator *allocator = NULL;
+    struct dependency_context *ctx = NULL;
+    struct output_writter *output = NULL;
+
+    output = get_console_writter();
+    TEST_ASSERT_NOT_NULL(output);
+
+    allocator = get_default_allocator();
+    TEST_ASSERT_NOT_NULL(allocator);
+
+    ctx = create_dependency_ctx(create_dependency(output, OUTPUT),
+                                create_dependency(allocator, ALLOCATOR),
+                                NULL);
+    TEST_ASSERT_NOT_NULL(ctx->array);
+    TEST_ASSERT(ctx->count == 2);
+
+    inject_crypto_deps(ctx);
     test_get_random_generator();
 
 	  return (0);

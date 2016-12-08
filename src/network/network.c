@@ -15,7 +15,8 @@
 
 #include "network.h"
 #include "concurrent/concurrent.h"
-#include "crypto/crypto.h"
+#include "crypto/random.h"
+#include "memory/memory.h"
 #include "io/io.h"
 #include "runtime/platform.h"
 
@@ -218,26 +219,8 @@ static int32_t pick_random_port(uint32_t *port)
     int32_t rtrn = 0;
     uint32_t offset = 0;
 
-    /* Should not be grabbing allocator, console writter and random
-      generator here should be passed in. However this function is
-      depreacted so it will be deleted soon. */
-    struct memory_allocator *allocator = NULL;
-    allocator = get_default_allocator();
-    if(allocator == NULL)
-    {
-        printf("Failed to get allocator\n");
-        return (-1);
-    }
-    struct output_writter *output = NULL;
-    output = get_console_writter();
-    if(output == NULL)
-    {
-        printf("Failed to get console writter\n");
-        return (-1);
-    }
-
     struct random_generator *random = NULL;
-    random = get_default_random_generator(allocator, output);
+    random = get_default_random_generator();
     if(random == NULL)
     {
         printf("Failed to get random number generator\n");

@@ -67,6 +67,7 @@ link_directories(${CMAKE_SOURCE_DIR}/deps/${CK}/src)
 link_directories(${CMAKE_SOURCE_DIR}/deps/capstone-3.0.4)
 
 # Build and link libraries that don't need os specific build instructions.
+add_library(nxdependinject SHARED src/depend-inject/depend-inject.c)
 add_library(nxio SHARED src/io/io.c)
 add_library(nxmemory SHARED src/memory/memory.c)
 add_library(nxconcurrent SHARED src/concurrent/concurrent.c src/concurrent/epoch.c)
@@ -82,7 +83,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
 
     add_library(nxutils SHARED src/utils/utils.c src/utils/utils-bsd.c src/utils/reallocarray.c)
 
-    add_library(nxcrypto SHARED src/crypto/crypto.c)
+    add_library(nxcrypto SHARED src/crypto/crypto.c src/crypto/hash.c src/crypto/random.c)
 
     include_directories(SYSTEM /usr/src/cddl/compat/opensolaris/include)
     include_directories(SYSTEM /usr/src/cddl/contrib/opensolaris/lib/libdtrace/common)
@@ -145,7 +146,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     target_link_libraries(nxutils ${CORE_FOUNDATION})
     target_link_libraries(nxutils ${CARBON})
 
-    add_library(nxcrypto SHARED src/crypto/crypto.c)
+    add_library(nxcrypto SHARED src/crypto/crypto.c src/crypto/hash.c src/crypto/random.c)
 
     add_library(nxnetwork SHARED src/network/network.c src/network/network-bsd.c)
 
@@ -180,7 +181,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     add_definitions(-DCOMMON)
 
     add_library(nxutils SHARED src/utils/utils.c src/utils/utils-linux.c src/utils/reallocarray.c src/utils/utils-win.c)
-    add_library(nxcrypto SHARED src/crypto/crypto.c)
+    add_library(nxcrypto SHARED src/crypto/crypto.c src/crypto/hash.c src/crypto/random.c)
     add_library(nxnetwork SHARED src/network/network.c src/network/network-linux.c)
     add_library(nxplugin SHARED src/plugins/plugin.c)
     target_link_libraries(nxplugin dl)
@@ -210,7 +211,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     add_definitions(-DCOMMON)
 
     add_library(nxutils SHARED src/utils/utils.c src/utils/utils-win.c src/utils/reallocarray.c)
-    add_library(nxcrypto SHARED src/crypto/crypto.c)
+    add_library(nxcrypto SHARED src/crypto/crypto.c src/crypto/hash.c src/crypto/random.c)
     add_library(nxnetwork SHARED src/network/network.c src/network/network-linux.c)
     add_library(nxplugin SHARED src/plugins/plugin.c)
     target_link_libraries(nxplugin dl)
@@ -238,6 +239,7 @@ endif()
 
 # Do os agnostic linking.
 target_link_libraries(nxutils nxcrypto)
+target_link_libraries(nxutils nxdependinject)
 target_link_libraries(nxutils nxio)
 target_link_libraries(nxutils nxmemory)
 target_link_libraries(nxconcurrent nxio)
@@ -361,6 +363,7 @@ add_sanitizers(concurrent-unit-test)
 add_sanitizers(resource-integration-test)
 add_sanitizers(syscall-unit-test)
 
+add_test(utils-unit-test utils-unit-test)
 add_test(runtime-integration-test runtime-integration-test)
 add_test(resource-integration-test resource-integration-test)
 add_test(memory-unit-test memory-unit-test)
@@ -369,6 +372,7 @@ add_test(crypto-unit-test crypto-unit-test)
 add_test(concurrent-unit-test concurrent-unit-test)
 add_test(syscall-unit-test syscall-unit-test)
 
+add_dependencies(check utils-unit-test)
 add_dependencies(check runtime-integration-test)
 add_dependencies(check resource-integration-test)
 add_dependencies(check memory-intergration-test)

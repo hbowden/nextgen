@@ -18,12 +18,13 @@
 #include "utils/autofree.h"
 #include "memory/memory.h"
 
+static struct memory_allocator *allocator;
+static struct output_writter *output;
+
 int32_t log_arguments(uint32_t total_args,
                       const char *syscall_name,
                       uint64_t **arg_value_array,
-                      struct arg_context **arg_context_array,
-                      struct memory_allocator *allocator,
-                      struct output_writter *output)
+                      struct arg_context **arg_context_array)
 {
 
     (void)output;
@@ -78,4 +79,23 @@ int32_t log_arguments(uint32_t total_args,
     printf("%s", syscall_log_buf);
 
     return (0);
+}
+
+void inject_log_deps_os(struct dependency_context *ctx)
+{
+    uint32_t i;
+
+    for(i = 0; i < ctx->count; i++)
+    {
+        switch((int32_t)ctx->array[i]->name)
+        {
+            case ALLOCATOR:
+                allocator = (struct memory_allocator *)ctx->array[i]->interface;
+                break;
+
+            case OUTPUT:
+                output = (struct output_writter *)ctx->array[i]->interface;
+                break;
+        }
+    }
 }

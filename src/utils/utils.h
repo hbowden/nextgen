@@ -16,9 +16,8 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include "io/io.h"
 #include "deprecate.h"
-#include "crypto/crypto.h"
+#include "depend-inject/depend-inject.h"
 
 #include <stdio.h>
 #include <stdint.h>
@@ -47,10 +46,9 @@ extern void *reallocarray(void *optr, size_t nmemb, size_t size);
  * This function as the name implies gets the file size.
  * @param fd A file descriptor to get the size of.
  * @param size A pointer to a unsigned 64 bit integer where the file size will be placed.
- * @param output The output writter to write error messages to.
  * @return A zero on success or negative one on failure.
  */
-extern int32_t get_file_size(int32_t, uint64_t *, struct output_writter *);
+extern int32_t get_file_size(int32_t, uint64_t *);
 
 /**
  * This function will memory map a file into memory.
@@ -58,16 +56,15 @@ extern int32_t get_file_size(int32_t, uint64_t *, struct output_writter *);
  * @param buf The buffer were the file will be mapped into memory. This buffer will be allocated by map_file_in().
  * @param size The size of the file and memory buffer, this param will be set by map_file_in().
  * @param perm The permissions to set on the memory buffer, buf.
- * @param output The output writter where error messages will be written.
  * @return Zero on success, negative one in an error.
  */
-extern int32_t map_file_in(int32_t, char **, uint64_t *, int32_t, struct output_writter *);
+extern int32_t map_file_in(int32_t, char **, uint64_t *, int32_t);
 
 /* This function maps a buffer of size to a file path.  */
-extern int32_t map_file_out(char *path, char *buf, uint64_t size, struct output_writter *output);
+extern int32_t map_file_out(char *path, char *buf, uint64_t size);
 
 /* Copy a file from one file path to another. */
-extern int32_t copy_file_to(char *src, char *dst, struct output_writter *output);
+extern int32_t copy_file_to(char *src, char *dst);
 
 /* Get file extension */
 extern int32_t get_extension(char *path, char **extension);
@@ -93,22 +90,13 @@ extern int32_t check_root(void);
  * @param ext The file extension to give the new random file.
  * @param path On success an allocated buffer with the full file path will be placed here.
  * @param size The size of the newly created file will be set here on success.
- * @param random The random number generator interface used for creating the new file.
- * @param allocator The memory allocator interface to use for allocating memory.
- * @param output The output writter to write error messages to.
  * @return Zero on success and negative one when an error occurs.
  */
-extern int32_t create_random_file(char *,
-                                  char *,
-                                  char **,
-                                  uint64_t *,
-                                  struct random_generator *,
-                                  struct memory_allocator *,
-                                  struct output_writter *);
+extern int32_t create_random_file(char *root, char *ext, char **path, uint64_t *size);
 
 /* Create a random directory at path root the path created
  will be put in the buffer path. */
-extern int32_t create_random_directory(char *, char **, struct output_writter *);
+extern int32_t create_random_directory(char *, char **);
 
 /* Drop privileges.  */
 extern int32_t drop_privileges(void);
@@ -127,11 +115,13 @@ extern int32_t count_files_directory(uint32_t *count, char *dir);
  * @param name The name to set the currently running processe's name to.
  * @param output An output_writter object/struct for logging purposes.
  */
-extern void set_process_name(char *, struct output_writter *);
+extern void set_process_name(char *);
 
-extern int32_t generate_file_name(char **, char *, struct output_writter *, struct random_generator *);
+extern int32_t generate_file_name(char **, char *);
 
-extern int32_t generate_directory_name(char **, struct output_writter *);
+extern int32_t generate_directory_name(char **);
+
+extern void inject_utils_deps(struct dependency_context *ctx);
 
 /* End of header. */
 #endif

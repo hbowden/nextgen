@@ -7,7 +7,9 @@
 #include "utils.h"
 #include "io/io.h"
 
-void set_process_name(char *name, struct output_writter *output)
+static struct output_writter *output;
+
+void set_process_name(char *name)
 {
 
   CFStringRef process_name;

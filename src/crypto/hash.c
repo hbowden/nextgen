@@ -13,29 +13,36 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#include "utils.h"
-#include <sys/sysctl.h>
-#include <string.h>
-#include <errno.h>
+#include "hash.h"
+#include "memory/memory.h"
+#include "io/io.h"
+#include <stdio.h>
 
-int32_t get_core_count(uint32_t *core_count)
+static struct memory_allocator *allocator;
+static struct output_writter *output;
+
+struct hasher *get_hasher(void)
 {
-    int32_t mib[4];
+    struct hasher *hasher = NULL;
 
-    mib[0] = CTL_HW;
-    mib[1] = HW_NCPU;
+    return (hasher);
+}
 
-    size_t len = sizeof(uint32_t);
+void inject_hash_deps(struct dependency_context *ctx)
+{
+    uint32_t i;
 
-    int32_t rtrn = sysctl(mib, 2, core_count, &len, NULL, 0);
-    if(rtrn < 0)
+    for(i = 0; i < ctx->count; i++)
     {
-        printf("sysctl: %s\n", strerror(errno));
-        return (-1);
+        switch((int32_t)ctx->array[i]->name)
+        {
+            case ALLOCATOR:
+                allocator = (struct memory_allocator *)ctx->array[i]->interface;
+                break;
+
+            case OUTPUT:
+                output = (struct output_writter *)ctx->array[i]->interface;
+                break;
+        }
     }
-
-    if((*core_count) < 1)
-        (*core_count) = (uint32_t)1;
-
-    return (0);
 }
