@@ -16,7 +16,6 @@
 #include "unity.h"
 #include "io/io.h"
 #include "utils/utils.h"
-#include "depend-inject/depend-inject.h"
 #include "utils/autofree.h"
 #include "crypto/crypto.h"
 #include "memory/memory.h"
@@ -308,53 +307,6 @@
 //     return;
 // }
 
-static void test_create_dependency(void)
-{
-    struct dependency *dep = NULL;
-    struct output_writter *output = NULL;
-
-    output = get_console_writter();
-    TEST_ASSERT_NOT_NULL(output);
-
-    dep = create_dependency(output, OUTPUT);
-    TEST_ASSERT_NOT_NULL(dep);
-    TEST_ASSERT_NOT_NULL(dep->interface);
-    TEST_ASSERT((int)dep->name > -1);
-}
-
-static void test_create_dependency_array(void)
-{
-    struct dependency_context *ctx = NULL;
-    struct output_writter *output = NULL;
-
-    output = get_console_writter();
-    TEST_ASSERT_NOT_NULL(output);
-
-    struct memory_allocator *allocator = NULL;
-
-    allocator = get_default_allocator();
-    TEST_ASSERT_NOT_NULL(allocator);
-
-    ctx = create_dependency_ctx(create_dependency(output, OUTPUT),
-                                create_dependency(allocator, ALLOCATOR),
-                                NULL);
-    TEST_ASSERT_NOT_NULL(ctx->array);
-    TEST_ASSERT(ctx->count == 2);
-    uint32_t i;
-    for(i = 0; i < ctx->count; i++)
-    {
-        TEST_ASSERT_NOT_NULL(ctx->array[i]);
-    }
-
-    TEST_ASSERT(ctx->array[0]->name == OUTPUT);
-    TEST_ASSERT(ctx->array[1]->name == ALLOCATOR);
-
-    void (*write)(enum out_type type, const char *format, ...);
-    write = (void (*)(enum out_type type, const char *format, ...)) ctx->array[0]->interface;
-
-    return;
-}
-
 int main(void)
 {
     /* Delete the contents of temp before testing.
@@ -371,8 +323,6 @@ int main(void)
     // delete_dir_contents("/tmp");
     // test_run_syscall();
     // test_create_random_file();
-    test_create_dependency();
-    test_create_dependency_array();
 
     _exit(0);
 }
