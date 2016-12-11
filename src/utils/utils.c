@@ -31,6 +31,7 @@
 #include "autoclose.h"
 #include "autofree.h"
 #include "crypto/random.h"
+#include "crypto/hash.h"
 #include "io/io.h"
 #include "memory/memory.h"
 
@@ -49,6 +50,7 @@
 static struct memory_allocator *allocator;
 static struct output_writter *output;
 static struct random_generator *random_gen;
+static struct hasher *hasher;
 
 // /* Compile in run_syscall() for macOS because syscall(2) is deprecated
 //    since macOS sierra (10.12). */
@@ -242,10 +244,31 @@ int32_t get_extension(char *path, char **extension)
 
 int32_t generate_file_name(char **name, char *extension)
 {
-    (void)name;
-    (void)extension;
-    (void)output;
-    (void)random;
+    int32_t rtrn = 0;
+    char *bytes auto_free = NULL;
+    char *hash auto_free = NULL;
+
+    rtrn = random_gen->bytes(&bytes, 64);
+    if(rtrn < 0)
+    {
+        output->write(ERROR, "\n");
+        return (-1);
+    }
+
+    rtrn = hasher->sha256(bytes, &hash);
+    if(rtrn < 0)
+    {
+        output->write(ERROR, "SHA256 hash failed\n");
+        return (-1);
+    }
+
+    rtrn = asprintf(name, "%s.%s", hash, extension);
+    if(rtrn < 0)
+    {
+        output->write(ERROR, "\n");
+        return (-1);
+    }
+
     return (0);
 }
 
@@ -404,6 +427,8 @@ int32_t create_random_file(char *root, char *ext, char **path, uint64_t *size)
         output->write(ERROR, "Can't alloc junk buf: %s\n", strerror(errno));
         return (-1);
     }
+
+    printf("path: %s\n", (*path));
 
     /* Write that junk to the file so that the file is not just blank. */
     rtrn = map_file_out((*path), junk, (*size));
@@ -678,6 +703,9 @@ void inject_utils_deps(struct dependency_context *ctx)
                 random_gen = (struct random_generator *)ctx->array[i]->interface;
                 break;
 
+            case HASHER:
+                hasher = (struct hasher *)ctx->array[i]->interface;
+                break;
         }
     }
 }
