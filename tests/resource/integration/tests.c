@@ -16,6 +16,7 @@
 #include "unity.h"
 #include "memory/memory.h"
 #include "crypto/random.h"
+#include "crypto/hash.h"
 #include "resource/resource.c"
 #include "io/io.h"
 
@@ -55,9 +56,14 @@ static void test_inject_resource_deps(void)
 		struct random_generator *random = get_default_random_generator();
 		TEST_ASSERT_NOT_NULL(random);
 
+		struct hasher *hasher = NULL;
+		hasher = get_hasher();
+		TEST_ASSERT_NOT_NULL(hasher);
+
 		ctx = create_dependency_ctx(create_dependency(output_writter, OUTPUT),
 																create_dependency(mem_allocator, ALLOCATOR),
 																create_dependency(random, RANDOM_GEN),
+																create_dependency(hasher, HASHER),
 															  NULL);
 		TEST_ASSERT_NOT_NULL(ctx->array);
 
