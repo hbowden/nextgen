@@ -71,3 +71,19 @@ struct dependency *create_dependency(void *interface, enum dependency_name name)
 
     return (dep);
 }
+
+int32_t add_dep(struct dependency_context *ctx, struct dependency *dep)
+{
+    ctx->count = ctx->count + 1;
+
+    ctx->array = realloc(ctx->array, sizeof(struct dependency *) * ctx->count);
+    if(ctx->array == NULL)
+    {
+        printf("Malloc: %s\n", strerror(errno));
+        return (-1);
+    }
+
+    ctx->array[ctx->count - 1] = dep;
+
+    return (0);
+}

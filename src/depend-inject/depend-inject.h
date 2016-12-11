@@ -18,7 +18,7 @@
 
 #include <stdint.h>
 
-enum dependency_name {OUTPUT, ALLOCATOR, RANDOM_GEN};
+enum dependency_name {OUTPUT, ALLOCATOR, RANDOM_GEN, HASHER};
 
 struct dependency
 {
@@ -35,5 +35,7 @@ struct dependency_context
 extern struct dependency_context *create_dependency_ctx(struct dependency *, ...);
 
 extern struct dependency *create_dependency(void *interface, enum dependency_name name);
+
+extern int32_t add_dep(struct dependency_context *, struct dependency *);
 
 #endif
