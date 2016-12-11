@@ -18,6 +18,7 @@
 #include "utils/autofree.h"
 #include "crypto/crypto.h"
 #include "crypto/random.h"
+#include "crypto/hash.h"
 #include "memory/memory.h"
 
 static uint32_t iterations = 1000;
@@ -57,7 +58,44 @@ static void test_get_random_generator(void)
 		}
 }
 
-int main(void)
+static void test_get_hasher(void)
+{
+    struct hasher *hasher = NULL;
+    struct memory_allocator *allocator = NULL;
+    struct random_generator *random_gen = NULL;
+
+    hasher = get_hasher();
+    TEST_ASSERT_NOT_NULL(hasher);
+
+    random_gen = get_default_random_generator();
+    TEST_ASSERT_NOT_NULL(random_gen);
+
+    allocator = get_default_allocator();
+    TEST_ASSERT_NOT_NULL(allocator);
+
+    uint32_t i;
+    int32_t rtrn = 0;
+    char *buf = NULL;
+    char *hash = NULL;
+
+    for(i = 0; i < iterations; i++)
+    {
+        rtrn = random_gen->bytes(&buf, 1024);
+        TEST_ASSERT(rtrn == 0);
+        TEST_ASSERT_NOT_NULL(buf);
+
+        rtrn = hasher->sha256(buf, &hash);
+        TEST_ASSERT(rtrn == 0);
+        TEST_ASSERT_NOT_NULL(hash);
+
+        TEST_ASSERT(strlen(hash) == 64);
+
+        allocator->free((void **)&hash);
+        allocator->free((void **)&buf);
+    }
+}
+
+static void setup_test(void)
 {
     struct memory_allocator *allocator = NULL;
     struct dependency_context *ctx = NULL;
@@ -74,9 +112,15 @@ int main(void)
                                 NULL);
     TEST_ASSERT_NOT_NULL(ctx->array);
     TEST_ASSERT(ctx->count == 2);
-
     inject_crypto_deps(ctx);
+}
+
+int main(void)
+{
+    setup_test();
+
     test_get_random_generator();
+    test_get_hasher();
 
 	  return (0);
 }

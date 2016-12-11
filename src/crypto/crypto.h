@@ -22,5 +22,4 @@
 
 extern void inject_crypto_deps(struct dependency_context *ctx);
 
-
 #endif /* End of header file. */

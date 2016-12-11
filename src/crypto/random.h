@@ -29,5 +29,4 @@ extern struct random_generator *get_default_random_generator(void);
 
 extern void inject_random_deps(struct dependency_context *ctx);
 
-
 #endif /* End of header file. */
