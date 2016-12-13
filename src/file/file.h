@@ -17,7 +17,7 @@
 #define FILE_H
 
 #include "io/io.h"
-#include "crypto/crypto.h"
+#include "crypto/random.h"
 #include <stdint.h>
 
 /* File type symbols. */

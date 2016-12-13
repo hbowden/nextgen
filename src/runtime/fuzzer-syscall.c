@@ -16,6 +16,8 @@
 #include "fuzzer.h"
 #include "syscall/child.h"
 #include "syscall/signals.h"
+#include "utils/utils.h"
+#include "platform.h"
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>

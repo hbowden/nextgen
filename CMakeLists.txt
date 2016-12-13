@@ -100,7 +100,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     target_link_libraries(nxlog ${CMAKE_SOURCE_DIR}/deps/sqlite/sqlite3.so)
 
     AUX_SOURCE_DIRECTORY(src/syscall/freebsd ENTRY_SOURCES)
-    add_library(nxsyscall SHARED src/syscall/syscall-freebsd.c src/syscall/signals.c src/syscall/set_test.c src/syscall/arg_types.c src/syscall/child.c ${ENTRY_SOURCES})
+    add_library(nxsyscall SHARED src/syscall/syscall.c src/syscall/syscall-freebsd.c src/syscall/signals.c src/syscall/set_test.c src/syscall/arg_types.c src/syscall/child.c ${ENTRY_SOURCES})
     include_directories(src/syscall/freebsd)
 
     add_library(nxgenetic SHARED src/genetic/genetic.c)
@@ -159,7 +159,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
     AUX_SOURCE_DIRECTORY(src/syscall/mac ENTRY_SOURCES)
 
-    add_library(nxsyscall SHARED src/syscall/set_test.c src/syscall/signals.c src/syscall/arg_types.c src/syscall/child.c)
+    add_library(nxsyscall SHARED src/syscall/syscall.c src/syscall/set_test.c src/syscall/signals.c src/syscall/arg_types.c src/syscall/child.c)
 
     include_directories(src/syscall/mac)
 
@@ -193,7 +193,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     target_link_libraries(nxlog sqlite3)
 
     AUX_SOURCE_DIRECTORY(src/syscall/linux ENTRY_SOURCES)
-    add_library(nxsyscall SHARED src/syscall/syscall-linux.c src/syscall/signals.c src/syscall/set_test.c src/syscall/arg_types.c src/syscall/child.c ${ENTRY_SOURCES})
+    add_library(nxsyscall SHARED src/syscall/syscall.c src/syscall/syscall-linux.c src/syscall/signals.c src/syscall/set_test.c src/syscall/arg_types.c src/syscall/child.c ${ENTRY_SOURCES})
     include_directories(src/syscall/linux)
 
     add_library(nxgenetic SHARED src/genetic/genetic.c)
@@ -223,7 +223,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     target_link_libraries(nxlog ${CMAKE_SOURCE_DIR}/deps/sqlite/libsqlite3.dll)
 
     AUX_SOURCE_DIRECTORY(src/syscall/windows ENTRY_SOURCES)
-    add_library(nxsyscall SHARED src/syscall/signals.c src/syscall/set_test.c src/syscall/arg_types.c src/syscall/child.c ${ENTRY_SOURCES})
+    add_library(nxsyscall SHARED src/syscall/syscall.c src/syscall/signals.c src/syscall/set_test.c src/syscall/arg_types.c src/syscall/child.c ${ENTRY_SOURCES})
     include_directories(src/syscall/windows)
 
     add_library(nxgenetic SHARED src/genetic/genetic.c)

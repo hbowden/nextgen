@@ -41,23 +41,7 @@ struct syscall_entry
     const int32_t need_alarm;
     const int32_t requires_root;
 
-    const char padding[2];
-    int32_t arg_type_array[7];
-
-    const uint32_t total_args;
-    const uint32_t entry_number;
-
-    const char padding2[8];
-
-    struct arg_context *arg_context_array[7];
-
-    int32_t (*get_arg_array[7])(uint64_t **, struct child_ctx *);
-
     int32_t (*test_syscall)(int32_t, uint64_t **);
-
-    enum test_id id;
-
-    const char padding3[4];
 };
 
 #endif

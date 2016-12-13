@@ -24,6 +24,7 @@
 #endif
 
 #include "nextgen.h"
+#include "platform.h"
 #include "crypto/crypto.h"
 #include "file/file.h"
 #include "io/io.h"
@@ -42,8 +43,6 @@
 
 static struct output_writter *output;
 static struct memory_allocator *allocator;
-
-struct shared_map *map;
 
 static const char *optstring = "p:e:";
 

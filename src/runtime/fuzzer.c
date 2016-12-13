@@ -14,6 +14,11 @@
  **/
 
 #include "fuzzer.h"
+#include "io/io.h"
+#include "memory/memory.h"
+#include "platform.h"
+#include <stdio.h>
+
 
 static struct output_writter *output;
 static struct memory_allocator *allocator;

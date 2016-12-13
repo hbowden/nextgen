@@ -14,8 +14,10 @@
  **/
 
 #include "signals.h"
+#include "utils/utils.h"
 #include "child.h"
 #include "io/io.h"
+#include "platform.h"
 #include "utils/noreturn.h"
 #include "runtime/nextgen.h"
 
