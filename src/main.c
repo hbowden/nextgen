@@ -45,7 +45,12 @@ int main(int argc, const char * argv[])
         return (-1);
     }
 
-    inject_deps(output, allocator);
+    rtrn = inject_deps(output, allocator);
+    if(rtrn < 0)
+    {
+        output->write(ERROR, "Couldn't inject dependencies\n");
+        return (-1);
+    }
 
     /* Parse the command line and return the fuzzer configuration object.
       The config object will tell us how to setup the nextgen fuzzer. */

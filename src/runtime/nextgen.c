@@ -40,6 +40,9 @@
 #include <sys/mount.h>
 #include <sys/stat.h>
 
+static struct output_writter *output;
+static struct memory_allocator *allocator;
+
 struct shared_map *map;
 
 static const char *optstring = "p:e:";
@@ -58,7 +61,7 @@ static struct option longopts[] = {{"in", required_argument, NULL, 'i'},
                                    {"dumb", 0, NULL, 'd'},
                                    {NULL, 0, NULL, 0}};
 
-static void display_help_banner(struct output_writter *output)
+static void display_help_banner(void)
 {
     output->write(STD, "Nextgen is a Genetic File, Syscall, and Network Fuzzer.\n");
     output->write(STD, "To use the file fuzzer in smart mode run the command below.\n");
@@ -71,8 +74,7 @@ static void display_help_banner(struct output_writter *output)
     return;
 }
 
-static struct fuzzer_config *init_fuzzer_config(struct output_writter *output,
-                                                struct memory_allocator *allocator)
+static struct fuzzer_config *init_fuzzer_config(void)
 {
     struct fuzzer_config *config = NULL;
 
@@ -91,9 +93,7 @@ static struct fuzzer_config *init_fuzzer_config(struct output_writter *output,
     return (config);
 }
 
-static int32_t set_input_path(struct fuzzer_config *config,
-                              char *path,
-                              struct output_writter *output)
+static int32_t set_input_path(struct fuzzer_config *config, char *path)
 {
     /* Make sure we have a valid parser context. If
     not return an error and print to stderr. */
@@ -135,9 +135,7 @@ static int32_t set_input_path(struct fuzzer_config *config,
     }
 }
 
-static int32_t set_output_path(struct fuzzer_config *config,
-                               char *path,
-                               struct output_writter *output)
+static int32_t set_output_path(struct fuzzer_config *config, char *path)
 {
     /* Make sure we have a valid parser context. If
     not return an error and print to stderr. */
@@ -169,9 +167,7 @@ static int32_t set_output_path(struct fuzzer_config *config,
     return (0);
 }
 
-static int32_t set_exec_path(struct fuzzer_config *config,
-                             char *path,
-                             struct output_writter *output)
+static int32_t set_exec_path(struct fuzzer_config *config, char *path)
 {
     /* Make sure we have a valid parser context. If
     not return an error and print to stderr. */
@@ -213,9 +209,7 @@ static int32_t set_exec_path(struct fuzzer_config *config,
     }
 }
 
-static int32_t set_fuzz_mode(struct fuzzer_config *config,
-                             enum fuzz_mode mode,
-                             struct output_writter *output)
+static int32_t set_fuzz_mode(struct fuzzer_config *config, enum fuzz_mode mode)
 {
     /* Make sure the mode passed is legit. */
     switch((int32_t)mode)
@@ -236,13 +230,11 @@ static int32_t set_fuzz_mode(struct fuzzer_config *config,
     return (0);
 }
 
-struct fuzzer_config *parse_cmd_line(int32_t argc, char *argv[],
-                                     struct output_writter *output,
-                                     struct memory_allocator *allocator)
+struct fuzzer_config *parse_cmd_line(int32_t argc, char *argv[])
 {
     if(argc == 1)
     {
-        display_help_banner(output);
+        display_help_banner();
         return (NULL);
     }
 
@@ -254,7 +246,7 @@ struct fuzzer_config *parse_cmd_line(int32_t argc, char *argv[],
             sFlag = FALSE;
 
     /* Allocate the parser context. */
-    config = init_fuzzer_config(output, allocator);
+    config = init_fuzzer_config();
     if(config == NULL)
     {
         output->write(ERROR, "Can't init parser context\n");
@@ -271,7 +263,7 @@ struct fuzzer_config *parse_cmd_line(int32_t argc, char *argv[],
         {
             /* Display banner and exit. */
             case 'h':
-                display_help_banner(output);
+                display_help_banner();
                 allocator->free((void **)&config);
                 return (NULL);
 
@@ -290,7 +282,7 @@ struct fuzzer_config *parse_cmd_line(int32_t argc, char *argv[],
 
             /* Set the path of the executable to fuzz test. */
             case 'e':
-                rtrn = set_exec_path(config, optarg, output);
+                rtrn = set_exec_path(config, optarg);
                 if(rtrn < 0)
                 {
                     output->write(ERROR, "Can't set exec path\n");
@@ -303,7 +295,7 @@ struct fuzzer_config *parse_cmd_line(int32_t argc, char *argv[],
 
             /* Set the directory path of input files. */
             case 'i':
-                rtrn = set_input_path(config, optarg, output);
+                rtrn = set_input_path(config, optarg);
                 if(rtrn < 0)
                 {
                     output->write(ERROR, "Can't set input path\n");
@@ -317,7 +309,7 @@ struct fuzzer_config *parse_cmd_line(int32_t argc, char *argv[],
             /* Set the output path of where the user wan't us to
             create a output directory to store our output data. */
             case 'o':
-                rtrn = set_output_path(config, optarg, output);
+                rtrn = set_output_path(config, optarg);
                 if(rtrn < 0)
                 {
                     output->write(ERROR, "Can't set output path\n");
@@ -330,7 +322,7 @@ struct fuzzer_config *parse_cmd_line(int32_t argc, char *argv[],
 
             case 'f':
                 fFlag = TRUE;
-                rtrn = set_fuzz_mode(config, MODE_FILE, output);
+                rtrn = set_fuzz_mode(config, MODE_FILE);
                 if(rtrn < 0)
                 {
                     output->write(ERROR, "Can't set fuzz mode\n");
@@ -341,7 +333,7 @@ struct fuzzer_config *parse_cmd_line(int32_t argc, char *argv[],
 
             case 'n':
                 nFlag = TRUE;
-                rtrn = set_fuzz_mode(config, MODE_NETWORK, output);
+                rtrn = set_fuzz_mode(config, MODE_NETWORK);
                 if(rtrn < 0)
                 {
                     output->write(ERROR, "Can't set fuzz mode\n");
@@ -352,7 +344,7 @@ struct fuzzer_config *parse_cmd_line(int32_t argc, char *argv[],
 
             case 's':
                 sFlag = TRUE;
-                rtrn = set_fuzz_mode(config, MODE_SYSCALL, output);
+                rtrn = set_fuzz_mode(config, MODE_SYSCALL);
                 if(rtrn < 0)
                 {
                     output->write(ERROR, "Can't set fuzz mode\n");
@@ -376,7 +368,7 @@ struct fuzzer_config *parse_cmd_line(int32_t argc, char *argv[],
                 break;
 
             default:
-                display_help_banner(output);
+                display_help_banner();
                 allocator->free((void **)&config);
                 return (NULL);
         }
@@ -385,7 +377,7 @@ struct fuzzer_config *parse_cmd_line(int32_t argc, char *argv[],
     /* Make sure a fuzzing mode was selected. */
     if(fFlag != TRUE && nFlag != TRUE && sFlag != TRUE)
     {
-        display_help_banner(output);
+        display_help_banner();
         allocator->free((void **)&config);
         return (NULL);
     }
@@ -425,4 +417,23 @@ struct fuzzer_config *parse_cmd_line(int32_t argc, char *argv[],
     }
 
     return (config);
+}
+
+void inject_nextgen_deps(struct dependency_context *ctx)
+{
+    uint32_t i;
+
+    for(i = 0; i < ctx->count; i++)
+    {
+        switch((int32_t)ctx->array[i]->name)
+        {
+            case ALLOCATOR:
+                allocator = (struct memory_allocator *)ctx->array[i]->interface;
+                break;
+
+            case OUTPUT:
+                output = (struct output_writter *)ctx->array[i]->interface;
+                break;
+        }
+    }
 }

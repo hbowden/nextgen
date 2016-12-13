@@ -18,8 +18,7 @@
 
 #include <stdint.h>
 #include "nextgen.h"
-#include "io/io.h"
-#include "memory/memory.h"
+#include "depend-inject/depend-inject.h"
 
 struct fuzzer_control
 {
@@ -30,30 +29,29 @@ struct fuzzer_instance
 {
     int32_t (*stop)(void);
     int32_t (*setup)(void);
-    int32_t (*start)(struct output_writter *,
-                     struct memory_allocator *,
-                     struct fuzzer_control *);
+    int32_t (*start)(void);
 };
 
 /**
  *
  */
-struct fuzzer_instance *get_fuzzer(struct fuzzer_config *config,
-                                   struct memory_allocator *allocator,
-                                   struct output_writter *output);
+struct fuzzer_instance *get_fuzzer(struct fuzzer_config *config);
 
 /**
  * @param A memory allocator object.
  * @param A output writter object.
  * @return A syscall fuzzer object.
  */
-struct fuzzer_instance *get_syscall_fuzzer(char *,
-                                           struct memory_allocator *,
-                                           struct output_writter *);
+struct fuzzer_instance *get_syscall_fuzzer(char *);
 
 /**
  *
  */
-struct fuzzer_control *init_fuzzer_control(struct output_writter *, struct memory_allocator *);
+struct fuzzer_control *init_fuzzer_control(void);
+
+/* */
+extern void inject_fuzzer_deps(struct dependency_context *ctx);
+
+extern void inject_syscall_fuzzer_deps(struct dependency_context *ctx);
 
 #endif

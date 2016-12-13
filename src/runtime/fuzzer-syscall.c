@@ -20,6 +20,10 @@
 #include <errno.h>
 #include <string.h>
 
+static struct output_writter *output;
+static struct memory_allocator *allocator;
+static struct fuzzer_control *control;
+
 static int32_t stop_syscall_fuzzer(void)
 {
 
@@ -27,9 +31,7 @@ static int32_t stop_syscall_fuzzer(void)
     return (0);
 }
 
-static int32_t start_syscall_fuzzer(struct output_writter *output,
-                                    struct memory_allocator *allocator,
-                                    struct fuzzer_control *control)
+static int32_t start_syscall_fuzzer(void)
 {
     int32_t rtrn = 0;
     uint32_t core_count = 0;
@@ -87,9 +89,7 @@ static int32_t setup_syscall_fuzzer(void)
     return (0);
 }
 
-struct fuzzer_instance *get_syscall_fuzzer(char *output_path,
-                                           struct memory_allocator *allocator,
-                                           struct output_writter *output)
+struct fuzzer_instance *get_syscall_fuzzer(char *output_path)
 {
     if(output_path == NULL)
     {
@@ -111,4 +111,27 @@ struct fuzzer_instance *get_syscall_fuzzer(char *output_path,
     fuzzer->stop = &stop_syscall_fuzzer;
 
     return (fuzzer);
+}
+
+void inject_syscall_fuzzer_deps(struct dependency_context *ctx)
+{
+    uint32_t i;
+
+    for(i = 0; i < ctx->count; i++)
+    {
+        switch((int32_t)ctx->array[i]->name)
+        {
+            case ALLOCATOR:
+                allocator = (struct memory_allocator *)ctx->array[i]->interface;
+                break;
+
+            case OUTPUT:
+                output = (struct output_writter *)ctx->array[i]->interface;
+                break;
+
+            case CONTROL:
+                control = (struct fuzzer_control *)ctx->array[i]->interface;
+                break;
+        }
+    }
 }

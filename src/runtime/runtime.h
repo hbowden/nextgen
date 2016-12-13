@@ -20,8 +20,8 @@
 #include "io/io.h"
 #include "memory/memory.h"
 
-extern void inject_deps(struct output_writter *output,
-                        struct memory_allocator *allocator);
+extern int32_t inject_deps(struct output_writter *output,
+                           struct memory_allocator *allocator);
 
 const char *get_os(void);
 

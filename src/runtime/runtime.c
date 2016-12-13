@@ -14,23 +14,65 @@
  **/
 
 #include "runtime.h"
+#include "fuzzer.h"
 #include "platform.h"
 #include "crypto/crypto.h"
+#include "crypto/random.h"
+#include "crypto/hash.h"
+#include "utils/utils.h"
+#include "resource/resource.h"
 #include "depend-inject/depend-inject.h"
 
-void inject_deps(struct output_writter *output,
-                 struct memory_allocator *allocator)
+static int32_t inject_runtime_deps(struct dependency_context *ctx)
+{
+    inject_fuzzer_deps(ctx);
+    inject_syscall_fuzzer_deps(ctx);
+    inject_nextgen_deps(ctx);
+
+    return (0);
+}
+
+int32_t inject_deps(struct output_writter *output,
+                    struct memory_allocator *allocator)
 {
     struct dependency_context *ctx = NULL;
 
     ctx = create_dependency_ctx(create_dependency(output, OUTPUT),
                                 create_dependency(allocator, ALLOCATOR),
                                 NULL);
+    if(ctx == NULL)
+    {
+        output->write(ERROR, "Failed to create dependency context\n");
+        return (-1);
+    }
 
     inject_crypto_deps(ctx);
 
+    struct random_generator *random_gen = NULL;
+    struct hasher *hasher = NULL;
 
-    return;
+    random_gen = get_default_random_generator();
+    if(random_gen == NULL)
+    {
+        output->write(ERROR, "Can't get random generator\n");
+        return (-1);
+    }
+
+    hasher = get_hasher();
+    if(hasher == NULL)
+    {
+        output->write(ERROR, "Failed to get hasher\n");
+        return (-1);
+    }
+
+    add_dep(ctx, create_dependency(hasher, HASHER));
+    add_dep(ctx, create_dependency(random_gen, RANDOM_GEN));
+
+    inject_utils_deps(ctx);
+    inject_resource_deps(ctx);
+    inject_runtime_deps(ctx);
+
+    return (0);
 }
 
 const char *get_os(void)

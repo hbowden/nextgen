@@ -15,9 +15,10 @@
 
 #include "fuzzer.h"
 
-struct fuzzer_instance *get_fuzzer(struct fuzzer_config *config,
-                                   struct memory_allocator *allocator,
-                                   struct output_writter *output)
+static struct output_writter *output;
+static struct memory_allocator *allocator;
+
+struct fuzzer_instance *get_fuzzer(struct fuzzer_config *config)
 {
     if(config == NULL)
     {
@@ -28,7 +29,7 @@ struct fuzzer_instance *get_fuzzer(struct fuzzer_config *config,
     switch((int32_t)config->mode)
     {
         case MODE_SYSCALL:
-            return(get_syscall_fuzzer(config->output_path, allocator, output));
+            return(get_syscall_fuzzer(config->output_path));
 
         default:
             output->write(ERROR, "No fuzzer type selected\n");
@@ -36,8 +37,7 @@ struct fuzzer_instance *get_fuzzer(struct fuzzer_config *config,
     }
 }
 
-struct fuzzer_control *init_fuzzer_control(struct output_writter *output,
-                                           struct memory_allocator *allocator)
+struct fuzzer_control *init_fuzzer_control(void)
 {
     struct fuzzer_control *control = NULL;
 
@@ -51,4 +51,23 @@ struct fuzzer_control *init_fuzzer_control(struct output_writter *output,
     control->stop = FALSE;
 
     return (control);
+}
+
+void inject_fuzzer_deps(struct dependency_context *ctx)
+{
+    uint32_t i;
+
+    for(i = 0; i < ctx->count; i++)
+    {
+        switch((int32_t)ctx->array[i]->name)
+        {
+            case ALLOCATOR:
+                allocator = (struct memory_allocator *)ctx->array[i]->interface;
+                break;
+
+            case OUTPUT:
+                output = (struct output_writter *)ctx->array[i]->interface;
+                break;
+        }
+    }
 }

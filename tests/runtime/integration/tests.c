@@ -16,6 +16,7 @@
 #include "runtime/nextgen.c" // Include the .c file so we can test static functions.
 #include "runtime/fuzzer.h"
 #include "memory/memory.h"
+#include "depend-inject/depend-inject.h"
 #include "io/io.h"
 #include "unity.h"
 
@@ -23,10 +24,8 @@ static void test_get_syscall_fuzzer(void)
 {
     int32_t rtrn = 0;
     struct fuzzer_instance *fuzzer = NULL;
-    struct output_writter *output = get_console_writter();
-    struct memory_allocator *allocator = get_default_allocator();
 
-    fuzzer = get_syscall_fuzzer("/tmp/results", allocator, output);
+    fuzzer = get_syscall_fuzzer("/tmp/results");
     TEST_ASSERT_NOT_NULL(fuzzer);
     TEST_ASSERT_NOT_NULL(fuzzer->setup);
     TEST_ASSERT_NOT_NULL(fuzzer->start);
@@ -43,36 +42,27 @@ static void test_get_fuzzer(void)
     int32_t rtrn = 0;
     struct fuzzer_config *config = NULL;
     struct fuzzer_instance *fuzzer = NULL;
-    struct output_writter *output = NULL;
-    struct memory_allocator *allocator = NULL;
-
-    output = get_console_writter();
-    TEST_ASSERT_NOT_NULL(output);
-
-    allocator = get_default_allocator();
-    TEST_ASSERT_NOT_NULL(allocator);
 
     /* Return NULL when config is NULL. */
-    fuzzer = get_fuzzer(config, allocator, output);
+    fuzzer = get_fuzzer(config);
     TEST_ASSERT_NULL(fuzzer);
 
-    config = init_fuzzer_config(output, allocator);
+    config = init_fuzzer_config();
     TEST_ASSERT_NOT_NULL(config);
 
-    /* Should return NULL because no options were set on
-    the fuzzer config. */
-    fuzzer = get_fuzzer(config, allocator, output);
+    /* Should return NULL because no options were set on the fuzzer config. */
+    fuzzer = get_fuzzer(config);
     TEST_ASSERT_NULL(fuzzer);
 
-    set_fuzz_mode(config, MODE_SYSCALL, output);
+    set_fuzz_mode(config, MODE_SYSCALL);
 
     /* Should return NULL because no output path are selected. */
-    fuzzer = get_fuzzer(config, allocator, output);
+    fuzzer = get_fuzzer(config);
     TEST_ASSERT_NULL(fuzzer);
 
-    set_output_path(config, "/tmp/results/", output);
+    set_output_path(config, "/tmp/results/");
 
-    fuzzer = get_fuzzer(config, allocator, output);
+    fuzzer = get_fuzzer(config);
     TEST_ASSERT_NOT_NULL(fuzzer);
 
     rtrn = fuzzer->setup();
@@ -90,16 +80,8 @@ static void test_get_fuzzer(void)
 static void test_init_fuzzer_config(void)
 {
     struct fuzzer_config *config = NULL;
-    struct output_writter *output = NULL;
-    struct memory_allocator *allocator = NULL;
 
-    output = get_console_writter();
-    TEST_ASSERT_NOT_NULL(output);
-
-    allocator = get_default_allocator();
-    TEST_ASSERT_NOT_NULL(allocator);
-
-    config = init_fuzzer_config(output, allocator);
+    config = init_fuzzer_config();
     TEST_ASSERT_NOT_NULL(config);
     TEST_ASSERT_NULL(config->exec_path);
     TEST_ASSERT_NULL(config->input_path);
@@ -111,16 +93,8 @@ static void test_set_fuzz_mode(void)
 {
     int32_t rtrn = 0;
     struct fuzzer_config *config = NULL;
-    struct output_writter *output = NULL;
-    struct memory_allocator *allocator = NULL;
 
-    output = get_console_writter();
-    TEST_ASSERT_NOT_NULL(output);
-
-    allocator = get_default_allocator();
-    TEST_ASSERT_NOT_NULL(allocator);
-
-    config = init_fuzzer_config(output, allocator);
+    config = init_fuzzer_config();
     TEST_ASSERT_NOT_NULL(config);
     TEST_ASSERT_NULL(config->exec_path);
     TEST_ASSERT_NULL(config->input_path);
@@ -128,10 +102,10 @@ static void test_set_fuzz_mode(void)
     TEST_ASSERT_NULL(config->args);
 
     /* Should fail when passed unknown fuzz mode. */
-    rtrn = set_fuzz_mode(config, (enum fuzz_mode)99, output);
+    rtrn = set_fuzz_mode(config, (enum fuzz_mode)99);
     TEST_ASSERT(rtrn == -1);
 
-    rtrn = set_fuzz_mode(config, MODE_SYSCALL, output);
+    rtrn = set_fuzz_mode(config, MODE_SYSCALL);
     TEST_ASSERT(rtrn == 0);
 
     return;
@@ -139,25 +113,48 @@ static void test_set_fuzz_mode(void)
 
 static void test_init_fuzzer_control(void)
 {
-    struct output_writter *output = NULL;
     struct fuzzer_control *control = NULL;
-    struct memory_allocator *allocator = NULL;
 
-    output = get_console_writter();
-    TEST_ASSERT_NOT_NULL(output);
-
-    allocator = get_default_allocator();
-    TEST_ASSERT_NOT_NULL(allocator);
-
-    control = init_fuzzer_control(output, allocator);
+    control = init_fuzzer_control();
     TEST_ASSERT_NOT_NULL(control);
     TEST_ASSERT(control->stop == FALSE);
 
     return;
 }
 
+static int32_t inject_runtime_deps(struct dependency_context *ctx)
+{
+    inject_fuzzer_deps(ctx);
+    inject_syscall_fuzzer_deps(ctx);
+    inject_nextgen_deps(ctx);
+
+    return (0);
+}
+
+static void setup_tests(void)
+{
+    struct output_writter *output_writter = NULL;
+    struct memory_allocator *mem_allocator = NULL;
+
+    output_writter = get_console_writter();
+    TEST_ASSERT_NOT_NULL(output_writter);
+
+    mem_allocator = get_default_allocator();
+    TEST_ASSERT_NOT_NULL(mem_allocator);
+
+    struct dependency_context *ctx = NULL;
+
+    ctx = create_dependency_ctx(create_dependency(output_writter, OUTPUT),
+                                create_dependency(mem_allocator, ALLOCATOR),
+                                NULL);
+    TEST_ASSERT_NOT_NULL(ctx);
+
+    inject_runtime_deps(ctx);
+}
+
 int main(void)
 {
+    setup_tests();
     test_set_fuzz_mode();
     test_init_fuzzer_config();
     test_get_syscall_fuzzer();

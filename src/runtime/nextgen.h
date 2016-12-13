@@ -86,12 +86,10 @@ extern struct shared_map *map;
  * This function parses the command line for various options passed by the user.
  * @param argc The number of command line options passed.
  * @param argv An array with the command line options.
- * @param A output writter object.
- * @param A memory allocator object.
  * @return A fuzzer_config object on success and NULL on failure.
  */
-extern struct fuzzer_config *parse_cmd_line(int32_t argc,
-                                            char *argv[],
-                                            struct output_writter *output,
-                                            struct memory_allocator *allocator);
+extern struct fuzzer_config *parse_cmd_line(int32_t argc, char *argv[]);
+
+void inject_nextgen_deps(struct dependency_context *ctx);
+
 #endif
