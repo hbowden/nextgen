@@ -55,11 +55,11 @@ int main(int argc, const char * argv[])
 
     /* Parse the command line and return the fuzzer configuration object.
       The config object will tell us how to setup the nextgen fuzzer. */
-    config = parse_cmd_line(argc, argv, output, allocator);
+    config = parse_cmd_line(argc, argv);
     if(config == NULL)
         return (-1);
 
-    control = init_fuzzer_control(output, allocator);
+    control = init_fuzzer_control();
     if(control == NULL)
     {
         output->write(ERROR, "Fuzzer control object initialation failed\n");
@@ -67,7 +67,7 @@ int main(int argc, const char * argv[])
     }
 
     /* Get fuzzer that was selected from configuration.  */
-    fuzzer = get_fuzzer(config, allocator, output);
+    fuzzer = get_fuzzer(config);
     if(fuzzer == NULL)
     {
        output->write(ERROR, "Failed to get fuzzer\n");
@@ -81,7 +81,7 @@ int main(int argc, const char * argv[])
         return (-1);
     }
 
-    rtrn = fuzzer->start(output, allocator, control);
+    rtrn = fuzzer->start();
     if(rtrn < 0)
     {
         output->write(ERROR, "Failed to start fuzzer\n");
