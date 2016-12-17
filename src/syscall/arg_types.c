@@ -17,6 +17,8 @@
 #include "io/io.h"
 #include "log/log.h"
 
+static struct output_writter *output;
+
 struct arg_context file_desc_ctx = {
 
     .name = "FILE_DESC",
@@ -255,7 +257,22 @@ struct arg_context chflags_ctx = {
     .log_type = NUMBER
 };
 
-struct arg_context *get_arg_context(enum arg_type type, struct output_writter *output)
+void inject_arg_types_deps(struct dependency_context *ctx)
+{
+    uint32_t i;
+
+    for(i = 0; i < ctx->count; i++)
+    {
+        switch((int32_t)ctx->array[i]->name)
+        {
+            case OUTPUT:
+                output = (struct output_writter *)ctx->array[i]->interface;
+                break;
+        }
+    }
+}
+
+struct arg_context *get_arg_context(enum arg_type type)
 {
     switch((int32_t)type)
     {

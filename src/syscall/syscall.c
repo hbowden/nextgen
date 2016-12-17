@@ -14,9 +14,15 @@
  **/
 
 #include "syscall.h"
+#include "arg_types.h"
+#include "child.h"
+#include "signals.h"
 
 void inject_syscall_deps(struct dependency_context *ctx)
 {
-    (void)ctx;
+    inject_arg_types_deps(ctx);
+    inject_child_deps(ctx);
+    inject_signal_deps(ctx);
+
     return;
 }

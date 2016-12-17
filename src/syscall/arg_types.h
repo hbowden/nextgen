@@ -65,7 +65,9 @@ struct arg_context
     const char padding[4];
 };
 
-extern struct arg_context *get_arg_context(enum arg_type type, struct output_writter *);
+extern void inject_arg_types_deps(struct dependency_context *ctx);
+
+extern struct arg_context *get_arg_context(enum arg_type type);
 
 extern struct arg_context file_desc_ctx;
 

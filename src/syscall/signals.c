@@ -28,6 +28,8 @@
 #include <sys/wait.h>
 #include <setjmp.h>
 
+static struct output_writter *output;
+
 static void child_exit_handler(int sig)
 {
     pid_t pid = 0;
@@ -59,7 +61,7 @@ NX_NO_RETURN static void ctrlc_handler(int sig)
     _exit(0);
 }
 
-int32_t setup_ctrlc_handler(struct output_writter *output)
+int32_t setup_ctrlc_handler(void)
 {
     int32_t rtrn = 0;
     struct sigaction sa;
@@ -82,11 +84,11 @@ int32_t setup_ctrlc_handler(struct output_writter *output)
     return (0);
 }
 
-int32_t setup_signal_handler(struct output_writter *output)
+int32_t setup_signal_handler(void)
 {
     int32_t rtrn = 0;
 
-    rtrn = setup_ctrlc_handler(output);
+    rtrn = setup_ctrlc_handler();
     if(rtrn < 0)
     {
         output->write(ERROR, "Can't handle SIGINT\n");
@@ -152,11 +154,11 @@ static void child_signal_handler(int sig, siginfo_t *info, void *context)
     jump(child);
 }
 
-int32_t setup_child_signal_handler(struct output_writter *output)
+int32_t setup_child_signal_handler(void)
 {
     int32_t rtrn = 0;
 
-    rtrn = setup_ctrlc_handler(output);
+    rtrn = setup_ctrlc_handler();
     if(rtrn < 0)
     {
         output->write(ERROR, "Can't handle SIGINT\n");
@@ -195,4 +197,19 @@ int32_t setup_child_signal_handler(struct output_writter *output)
     }
 
     return (0);
+}
+
+void inject_signal_deps(struct dependency_context *ctx)
+{
+    uint32_t i;
+
+    for(i = 0; i < ctx->count; i++)
+    {
+        switch((int32_t)ctx->array[i]->name)
+        {
+            case OUTPUT:
+                output = (struct output_writter *)ctx->array[i]->interface;
+                break;
+        }
+    }
 }

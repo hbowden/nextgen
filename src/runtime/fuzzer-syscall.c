@@ -14,7 +14,9 @@
  **/
 
 #include "fuzzer.h"
+#include "io/io.h"
 #include "syscall/child.h"
+#include "memory/memory.h"
 #include "syscall/signals.h"
 #include "utils/utils.h"
 #include "platform.h"
@@ -50,7 +52,7 @@ static int32_t start_syscall_fuzzer(void)
       processors(CPUS) present on the system we are running on.
       This currently counts intel hyper threading and other similar
       technologies as it's own core. */
-    state = create_children_state(allocator, output, core_count);
+    state = create_children_state(core_count);
     if(state == NULL)
     {
         output->write(ERROR, "Can't create children state\n");
@@ -61,7 +63,7 @@ static int32_t start_syscall_fuzzer(void)
 
     /* Setup our own signal handler for SIGINT or ctrl-c so we can
        cleanup the child processes before this, the main process exits.   */
-    setup_ctrlc_handler(output);
+    setup_ctrlc_handler();
 
     while(control->stop != TRUE)
     {
@@ -73,7 +75,7 @@ static int32_t start_syscall_fuzzer(void)
             if(child == NULL)
                continue;
 
-            rtrn = child->start(child, output);
+            rtrn = child->start(child);
             if(rtrn < 0)
             {
                 output->write(ERROR, "Child process failed to start\n");

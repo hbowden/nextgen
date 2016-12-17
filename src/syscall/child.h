@@ -16,8 +16,10 @@
 #ifndef NX_SYSCALL_CHILD_H
 #define NX_SYSCALL_CHILD_H
 
-#include "io/io.h"
-#include "memory/memory.h"
+#include "depend-inject/depend-inject.h"
+
+#include <stdlib.h>
+#include <stdint.h>
 #include <setjmp.h>
 
 enum child_state {EMPTY, INITIALIZING};
@@ -27,7 +29,7 @@ struct children_state;
 struct syscall_child
 {
     pid_t pid;
-    int32_t (*start)(struct syscall_child *, struct output_writter *);
+    int32_t (*start)(struct syscall_child *);
     int32_t (*stop)(void);
     int32_t ret_value;
     int32_t had_error;
@@ -67,13 +69,9 @@ extern struct syscall_child *create_syscall_child(void);
  * Use this function to create a children state object.
  * This state object is used to track info about running syscall children,
  * and is required to create syscall children.
- * @param Pass a memory_allocator so create_children_state() can allocate the state object.
- * @param Pass a output_writter so create_children_state() can log poetential errors.
  * @return A children_state object/struct is returned on success and NULL on error.
  */
-extern struct children_state *create_children_state(struct memory_allocator *allocator,
-                                                    struct output_writter *,
-                                                    uint32_t);
+extern struct children_state *create_children_state(uint32_t);
 /**
  * Return the syscall child object/struct that coresponds with the pid passed.
  * @param The pid of the child process who's child object you wan't.
@@ -148,5 +146,7 @@ extern void set_did_jump(struct syscall_child *child, int32_t val);
  * @return Does not fail, so no return value.
  */
 extern void set_arg_size(struct syscall_child *child, uint64_t size);
+
+extern void inject_child_deps(struct dependency_context *ctx);
 
 #endif

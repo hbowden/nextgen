@@ -14,8 +14,10 @@
  **/
 
 #include "child.h"
+#include "io/io.h"
 #include "signals.h"
 #include "utils/noreturn.h"
+#include "memory/memory.h"
 #include "concurrent/concurrent.h"
 #include <stdio.h>
 #include <stdint.h>
@@ -23,13 +25,15 @@
 #include <errno.h>
 #include <signal.h>
 
+static struct memory_allocator *allocator;
+static struct output_writter *output;
 static struct children_state *state = NULL;
 
-static int32_t child_loop(struct syscall_child *child, struct output_writter *output)
+static int32_t child_loop(struct syscall_child *child)
 {
     (void)child;
 
-    setup_child_signal_handler(output);
+    setup_child_signal_handler();
 
     while(1)
     {
@@ -37,8 +41,7 @@ static int32_t child_loop(struct syscall_child *child, struct output_writter *ou
     }
 }
 
-static int32_t start_child(struct syscall_child *child,
-                           struct output_writter *output)
+static int32_t start_child(struct syscall_child *child)
 {
     pid_t pid = 0;
     int32_t fd[2];
@@ -64,7 +67,7 @@ static int32_t start_child(struct syscall_child *child,
             return (-1);
         }
 
-        child_loop(child, output);
+        child_loop(child);
 
         _exit(0);
     }
@@ -128,9 +131,7 @@ struct syscall_child *create_syscall_child(void)
     return (NULL);
 }
 
-struct children_state *create_children_state(struct memory_allocator *allocator,
-                                             struct output_writter *output,
-                                             uint32_t total_children)
+struct children_state *create_children_state(uint32_t total_children)
 {
     struct children_state *child_state = NULL;
     struct children_state tmp_state = {
@@ -142,7 +143,7 @@ struct children_state *create_children_state(struct memory_allocator *allocator,
     child_state = allocator->shared(sizeof(struct children_state));
     if(child_state == NULL)
     {
-        output->write(ERROR, "child_state child state object allocation failed\n");
+        output->write(ERROR, "child_state object allocation failed\n");
         return (NULL);
     }
 
@@ -159,6 +160,7 @@ struct children_state *create_children_state(struct memory_allocator *allocator,
 
     for(i = 0; i < total_children; i++)
     {
+
         child_state->children[i] = allocator->shared(sizeof(struct syscall_child));
         if(child_state->children[i] == NULL)
         {
@@ -225,4 +227,23 @@ void set_child_pid(struct syscall_child *child, int32_t pid)
     cas_loop_int32(&child->pid, pid);
 
     return;
+}
+
+void inject_child_deps(struct dependency_context *ctx)
+{
+    uint32_t i;
+
+    for(i = 0; i < ctx->count; i++)
+    {
+        switch((int32_t)ctx->array[i]->name)
+        {
+            case ALLOCATOR:
+                allocator = (struct memory_allocator *)ctx->array[i]->interface;
+                break;
+
+            case OUTPUT:
+                output = (struct output_writter *)ctx->array[i]->interface;
+                break;
+        }
+    }
 }

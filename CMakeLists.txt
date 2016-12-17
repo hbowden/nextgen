@@ -10,7 +10,7 @@ enable_testing()
 SET(CK "ck-0.5.2")
 SET(UNITY "Unity")
 
-SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-documentation -fms-extensions -Wno-microsoft-anon-tag")
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-strict-aliasing -Wno-documentation -fms-extensions -Wno-microsoft-anon-tag")
 
 # Set the cmake module path to deps/cmake_modules.
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/deps/cmake_modules" ${CMAKE_MODULE_PATH})
@@ -355,7 +355,7 @@ target_link_libraries(depend-inject-integration-test nxdependinject)
 target_link_libraries(depend-inject-integration-test nxmemory)
 target_link_libraries(depend-inject-integration-test nxcrypto)
 
-add_executable(syscall-unit-test EXCLUDE_FROM_ALL tests/syscall/unit/tests.c src/syscall/signals.c deps/${UNITY}/src/unity.c)
+add_executable(syscall-unit-test EXCLUDE_FROM_ALL tests/syscall/unit/tests.c src/syscall/syscall.c src/syscall/arg_types.c src/syscall/signals.c deps/${UNITY}/src/unity.c)
 target_link_libraries(syscall-unit-test nxmemory)
 target_link_libraries(syscall-unit-test nxio)
 target_link_libraries(syscall-unit-test nxconcurrent)

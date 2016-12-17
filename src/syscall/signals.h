@@ -18,13 +18,15 @@
 #ifndef SIGNAL_H
 #define SIGNAL_H
 
-#include "io/io.h"
+#include "depend-inject/depend-inject.h"
 #include <stdint.h>
 
-extern int32_t setup_signal_handler(struct output_writter *output);
+extern int32_t setup_signal_handler(void);
 
-extern int32_t setup_child_signal_handler(struct output_writter *output);
+extern int32_t setup_child_signal_handler(void);
 
-extern int32_t setup_ctrlc_handler(struct output_writter *output);
+extern int32_t setup_ctrlc_handler(void);
+
+extern void inject_signal_deps(struct dependency_context *ctx);
 
 #endif
