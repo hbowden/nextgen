@@ -356,13 +356,15 @@ target_link_libraries(depend-inject-integration-test nxdependinject)
 target_link_libraries(depend-inject-integration-test nxmemory)
 target_link_libraries(depend-inject-integration-test nxcrypto)
 
-add_executable(syscall-unit-test EXCLUDE_FROM_ALL tests/syscall/unit/tests.c src/syscall/syscall.c src/syscall/arg_types.c src/syscall/signals.c deps/${UNITY}/src/unity.c)
+add_executable(syscall-unit-test EXCLUDE_FROM_ALL tests/syscall/unit/tests.c src/syscall/syscall.c src/syscall/arg_types.c src/syscall/signals.c src/syscall/generate.c deps/${UNITY}/src/unity.c)
 target_link_libraries(syscall-unit-test nxmemory)
+target_link_libraries(syscall-unit-test nxdependinject)
 target_link_libraries(syscall-unit-test nxio)
 target_link_libraries(syscall-unit-test nxconcurrent)
 
 add_executable(syscall-integration-test EXCLUDE_FROM_ALL tests/syscall/integration/tests.c src/syscall/syscall-macos.c src/syscall/syscall.c src/syscall/arg_types.c src/syscall/signals.c src/syscall/generate.c ${ENTRY_SOURCES} deps/${UNITY}/src/unity.c)
 target_link_libraries(syscall-integration-test nxmemory)
+target_link_libraries(syscall-integration-test nxdependinject)
 target_link_libraries(syscall-integration-test nxio)
 target_link_libraries(syscall-integration-test nxconcurrent)
 

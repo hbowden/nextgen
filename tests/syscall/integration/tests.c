@@ -17,6 +17,7 @@
 #include "io/io.h"
 #include "memory/memory.h"
 #include "syscall/syscall.h"
+#include "syscall/generate.h"
 #include "syscall/child.c"
 
 #include <signal.h>
