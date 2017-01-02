@@ -834,6 +834,6 @@ struct syscall_table mac_osx_syscall_table = {
 
 .sys_entry[399] = &entry_abort_with_payload,
 
-}
+};
 
 #endif
