@@ -22,35 +22,7 @@
 #include "runtime/nextgen.h"
 #include "utils/utils.h"
 
-#include <arpa/inet.h>
 #include <errno.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/mman.h>
-#include <sys/mount.h>
-#include <sys/param.h>
-#include <sys/resource.h>
-#include <sys/socket.h>
-#include <sys/stat.h>
-#include <netinet/in.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <unistd.h>
-
-#ifndef CYGWIN
-
-#include <sys/ptrace.h>
-
-#endif
-
-#ifdef LINUX
-
-#include <sys/vfs.h>
-#include <sys/sysmacros.h>
-
-#endif
 
 static struct output_writter *output;
 static struct memory_allocator *allocator;
