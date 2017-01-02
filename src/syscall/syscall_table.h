@@ -24,7 +24,7 @@ struct syscall_table
 {
     uint32_t total_syscalls;
     const char padding[4];
-    struct syscall_entry *sys_entry[56];
+    struct syscall_entry *sys_entry[400];
 };
 
 extern struct syscall_table *get_table(void);
