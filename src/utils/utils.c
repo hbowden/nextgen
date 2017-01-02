@@ -428,8 +428,6 @@ int32_t create_random_file(char *root, char *ext, char **path, uint64_t *size)
         return (-1);
     }
 
-    printf("path: %s\n", (*path));
-
     /* Write that junk to the file so that the file is not just blank. */
     rtrn = map_file_out((*path), junk, (*size));
     if(rtrn < 0)
