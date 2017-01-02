@@ -22,39 +22,7 @@
 #include "io/io.h"
 #include "utils/utils.h"
 
-enum arg_type {
-
-    FILE_DESC,
-    VOID_BUF,
-    SIZE,
-    FILE_PATH,
-    OPEN_FLAG,
-    MODE,
-    STAT_FS,
-    STAT_FLAG,
-    INT,
-    RUSAGE,
-    PID,
-    WAIT_OPTION,
-    SOCKET,
-    WHENCE,
-    OFFSET,
-    MOUNT_TYPE,
-    DIR_PATH,
-    MOUNT_FLAG,
-    UNMOUNT_FLAG,
-    RECV_FLAG,
-    REQUEST,
-    MOUNT_PATH,
-    DEV,
-    PTRACE_REQUEST,
-    MESSAGE,
-    SEND_FLAG,
-    SOCKADDR,
-    SOCKLEN,
-    AMODE,
-    CHFLAGS
-};
+enum arg_type { ADDRESS, INT, PID };
 
 struct arg_context
 {
@@ -69,64 +37,10 @@ extern void inject_arg_types_deps(struct dependency_context *ctx);
 
 extern struct arg_context *get_arg_context(enum arg_type type);
 
-extern struct arg_context file_desc_ctx;
-
-extern struct arg_context void_buf_ctx;
-
-extern struct arg_context size_ctx;
-
-extern struct arg_context file_path_ctx;
-
-extern struct arg_context open_flag_ctx;
-
-extern struct arg_context mode_ctx;
-
-extern struct arg_context stat_fs_ctx;
-
-extern struct arg_context stat_flag_ctx;
+extern struct arg_context address_ctx;
 
 extern struct arg_context int_ctx;
 
-extern struct arg_context rusage_ctx;
-
 extern struct arg_context pid_ctx;
-
-extern struct arg_context wait_option_ctx;
-
-extern struct arg_context socket_ctx;
-
-extern struct arg_context whence_ctx;
-
-extern struct arg_context offset_ctx;
-
-extern struct arg_context mount_type_ctx;
-
-extern struct arg_context dir_path_ctx;
-
-extern struct arg_context mount_flag_ctx;
-
-extern struct arg_context unmount_flag_ctx;
-
-extern struct arg_context recv_flag_ctx;
-
-extern struct arg_context request_ctx;
-
-extern struct arg_context mount_path_ctx;
-
-extern struct arg_context dev_ctx;
-
-extern struct arg_context message_ctx;
-
-extern struct arg_context recv_flags_ctx;
-
-extern struct arg_context send_flags_ctx;
-
-extern struct arg_context sockaddr_ctx;
-
-extern struct arg_context socklen_ctx;
-
-extern struct arg_context amode_ctx;
-
-extern struct arg_context chflags_ctx;
 
 #endif

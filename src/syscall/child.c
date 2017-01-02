@@ -229,6 +229,12 @@ void set_child_pid(struct syscall_child *child, int32_t pid)
     return;
 }
 
+void set_arg_size(struct syscall_child *child, uint64_t size)
+{
+    (void)child;
+    (void)size;
+}
+
 void inject_child_deps(struct dependency_context *ctx)
 {
     uint32_t i;

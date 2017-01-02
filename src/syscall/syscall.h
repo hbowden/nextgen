@@ -23,7 +23,14 @@
 #ifndef SYSCALL_H
 #define SYSCALL_H
 
+#include "syscall_table.h"
 #include "depend-inject/depend-inject.h"
+
+struct test_case;
+
+extern struct syscall_table *get_table(void);
+
+extern struct test_case *create_test_case(void);
 
 extern void inject_syscall_deps(struct dependency_context *ctx);
 

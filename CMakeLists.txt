@@ -159,9 +159,10 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
     AUX_SOURCE_DIRECTORY(src/syscall/mac ENTRY_SOURCES)
 
-    add_library(nxsyscall SHARED src/syscall/syscall.c src/syscall/set_test.c src/syscall/signals.c src/syscall/arg_types.c src/syscall/child.c)
+    add_library(nxsyscall SHARED ${ENTRY_SOURCES} src/syscall/syscall.c src/syscall/generate.c src/syscall/set_test.c src/syscall/signals.c src/syscall/arg_types.c src/syscall/child.c)
 
     include_directories(src/syscall/mac)
+    include_directories(src/syscall)
 
     add_library(nxgenetic SHARED src/genetic/genetic.c)
 
@@ -360,6 +361,11 @@ target_link_libraries(syscall-unit-test nxmemory)
 target_link_libraries(syscall-unit-test nxio)
 target_link_libraries(syscall-unit-test nxconcurrent)
 
+add_executable(syscall-integration-test EXCLUDE_FROM_ALL tests/syscall/integration/tests.c src/syscall/syscall-macos.c src/syscall/syscall.c src/syscall/arg_types.c src/syscall/signals.c src/syscall/generate.c ${ENTRY_SOURCES} deps/${UNITY}/src/unity.c)
+target_link_libraries(syscall-integration-test nxmemory)
+target_link_libraries(syscall-integration-test nxio)
+target_link_libraries(syscall-integration-test nxconcurrent)
+
 add_sanitizers(depend-inject-integration-test)
 add_sanitizers(runtime-integration-test)
 add_sanitizers(utils-unit-test)
@@ -369,6 +375,7 @@ add_sanitizers(crypto-unit-test)
 add_sanitizers(concurrent-unit-test)
 add_sanitizers(resource-integration-test)
 add_sanitizers(syscall-unit-test)
+add_sanitizers(syscall-integration-test)
 
 add_test(depend-inject-integration-test depend-inject-integration-test)
 add_test(utils-unit-test utils-unit-test)
@@ -379,7 +386,9 @@ add_test(memory-intergration-test memory-intergration-test)
 add_test(crypto-unit-test crypto-unit-test)
 add_test(concurrent-unit-test concurrent-unit-test)
 add_test(syscall-unit-test syscall-unit-test)
+add_test(syscall-integration-test syscall-integration-test)
 
+add_dependencies(check syscall-integration-test)
 add_dependencies(check depend-inject-integration-test)
 add_dependencies(check utils-unit-test)
 add_dependencies(check runtime-integration-test)

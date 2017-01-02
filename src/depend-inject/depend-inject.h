@@ -18,7 +18,7 @@
 
 #include <stdint.h>
 
-enum dependency_name {OUTPUT, ALLOCATOR, RANDOM_GEN, HASHER, CONTROL};
+enum dependency_name {OUTPUT, ALLOCATOR, RANDOM_GEN, HASHER, CONTROL, RESOURCE_GEN};
 
 struct dependency
 {

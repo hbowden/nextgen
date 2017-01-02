@@ -17,12 +17,54 @@
 #include "arg_types.h"
 #include "child.h"
 #include "signals.h"
+#include "generate.h"
+#include "memory/memory.h"
+#include "io/io.h"
+
+static struct memory_allocator *allocator;
+static struct output_writter *output;
+
+struct test_case
+{
+    int value;
+};
+
+struct test_case *create_test_case(void)
+{
+    struct test_case *test = NULL;
+
+    test = allocator->alloc(sizeof(struct test_case));
+    if(test == NULL)
+    {
+        output->write(ERROR, "Failed to allocate test case\n");
+        return (NULL);
+    }
+
+    return (test);
+}
 
 void inject_syscall_deps(struct dependency_context *ctx)
 {
     inject_arg_types_deps(ctx);
     inject_child_deps(ctx);
     inject_signal_deps(ctx);
+    inject_generate_deps(ctx);
+
+    uint32_t i;
+
+    for(i = 0; i < ctx->count; i++)
+    {
+        switch((int32_t)ctx->array[i]->name)
+        {
+            case ALLOCATOR:
+                allocator = (struct memory_allocator *)ctx->array[i]->interface;
+                break;
+
+            case OUTPUT:
+                output = (struct output_writter *)ctx->array[i]->interface;
+                break;
+        }
+    }
 
     return;
 }
