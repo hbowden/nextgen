@@ -1,4 +1,4 @@
 
-This sqlite library is version: `sqlite-amalgamation-3150200`
+This sqlite library is version: `sqlite-amalgamation-3160000`
 
 MAKE SURE TO UPDATE THIS VERSION STRING IF SQLITE IS UPDATED, SO WE KNOW WHAT VERSION SQLITE IS.
