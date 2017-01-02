@@ -18,27 +18,26 @@
 #ifndef GENERATE_H
 #define GENERATE_H
 
-#include "child.h"
 #include "depend-inject/depend-inject.h"
 
 #include <stdint.h>
 
 extern void inject_generate_deps(struct dependency_context *ctx);
 
-extern int32_t generate_int(uint64_t **num, struct syscall_child *child);
+extern int32_t generate_int(uint64_t **num);
 
-extern int32_t generate_mach_port(uint64_t **ptr, struct syscall_child *child);
+extern int32_t generate_mach_port(uint64_t **ptr);
 
-extern int32_t generate_ptr(uint64_t **ptr, struct syscall_child *child);
+extern int32_t generate_ptr(uint64_t **ptr);
 
-extern int32_t generate_fd(uint64_t **fd, struct syscall_child *child);
+extern int32_t generate_fd(uint64_t **fd);
 
-extern int32_t generate_socket(uint64_t **sock, struct syscall_child *child);
+extern int32_t generate_socket(uint64_t **sock);
 
-extern int32_t generate_buf(uint64_t **buf, struct syscall_child *child);
+extern int32_t generate_buf(uint64_t **buf);
 
-extern int32_t generate_pid(uint64_t **pid, struct syscall_child *child);
+extern int32_t generate_pid(uint64_t **pid);
 
-extern int32_t generate_path(uint64_t **path, struct syscall_child *child);
+extern int32_t generate_path(uint64_t **path);
 
 #endif

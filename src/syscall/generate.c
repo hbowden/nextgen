@@ -84,23 +84,23 @@ void inject_generate_deps(struct dependency_context *ctx)
     }
 }
 
-int32_t generate_mach_port(uint64_t **ptr, struct syscall_child *child)
+int32_t generate_mach_port(uint64_t **ptr)
 {
   (void)ptr;
-  (void)child;
+
 
     return (0);
 }
 
-int32_t generate_ptr(uint64_t **ptr, struct syscall_child *child)
+int32_t generate_ptr(uint64_t **ptr)
 {
   (void)ptr;
-  (void)child;
+
 
     return (0);
 }
 
-int32_t generate_fd(uint64_t **fd, struct syscall_child *child)
+int32_t generate_fd(uint64_t **fd)
 {
     /* Allocate the descriptor. */
     (*fd) = allocator->alloc(sizeof(int32_t));
@@ -120,15 +120,10 @@ int32_t generate_fd(uint64_t **fd, struct syscall_child *child)
 
     memmove((*fd), &desc, sizeof(int32_t));
 
-    //printf("OG_DESC: %d\n", (int32_t)(**fd));
-
-    /* Set the argument size. */
-    set_arg_size(child, sizeof(int32_t));
-
     return (0);
 }
 
-int32_t generate_socket(uint64_t **sock, struct syscall_child *child)
+int32_t generate_socket(uint64_t **sock)
 {
     (*sock) = allocator->alloc(sizeof(int32_t));
     if((*sock) == NULL)
@@ -148,12 +143,10 @@ int32_t generate_socket(uint64_t **sock, struct syscall_child *child)
 
     memmove((*sock), &sock_fd, sizeof(int32_t));
 
-    set_arg_size(child, sizeof(int32_t));
-
     return (0);
 }
 
-int32_t generate_buf(uint64_t **buf, struct syscall_child *child)
+int32_t generate_buf(uint64_t **buf)
 {
     int32_t rtrn = 0;
     uint32_t number = 0;
@@ -214,12 +207,10 @@ int32_t generate_buf(uint64_t **buf, struct syscall_child *child)
             return (-1);
     }
 
-    set_arg_size(child, nbytes);
-
     return (0);
 }
 
-int32_t generate_path(uint64_t **path, struct syscall_child *child)
+int32_t generate_path(uint64_t **path)
 {
     (*path) = (uint64_t *)rsrc_gen->get_filepath();
     if((*path) == NULL)
@@ -228,23 +219,21 @@ int32_t generate_path(uint64_t **path, struct syscall_child *child)
         return (-1);
     }
 
-    set_arg_size(child, strlen((char *)(*path)));
-
     return (0);
 }
 
-int32_t generate_int(uint64_t **num, struct syscall_child *child)
+int32_t generate_int(uint64_t **num)
 {
     (void)num;
-    (void)child;
+
 
     return (0);
 }
 
-int32_t generate_pid(uint64_t **pid, struct syscall_child *child)
+int32_t generate_pid(uint64_t **pid)
 {
     (void)pid;
-    (void)child;
+
 
     return (0);
 }

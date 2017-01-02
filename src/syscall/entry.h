@@ -52,7 +52,7 @@ struct syscall_entry
 
   struct arg_context *arg_context_array[9];
 
-  int32_t (*get_arg_array[9])(uint64_t **, struct syscall_child *);
+  int32_t (*get_arg_array[9])(uint64_t **);
 
   int32_t (*test_syscall)(int32_t, uint64_t **);
 
