@@ -15,13 +15,19 @@
 
 #include "unity.h"
 #include "memory/memory.h"
+#include "crypto/crypto.h"
 #include "crypto/random.h"
 #include "crypto/hash.h"
 #include "resource/resource.c"
 #include "io/io.h"
 
+#include <pthread.h>
+
+static uint32_t iterations = 1000;
+
 static void test_resource_generator(void)
 {
+	  uint32_t i;
 	  int32_t fd = 0;
 		struct resource_generator *rsrc_gen = NULL;
 
@@ -30,6 +36,45 @@ static void test_resource_generator(void)
 
 		fd = rsrc_gen->get_desc();
     TEST_ASSERT(fd > 0);
+
+		for(i = 0; i < iterations; i++)
+    {
+				fd = rsrc_gen->get_desc();
+		    TEST_ASSERT(fd > 0);
+
+        rsrc_gen->free_desc(&fd);
+    }
+
+		// int32_t sock = 0;
+		//
+		// for(i = 0; i < iterations; i++)
+    // {
+		// 	  printf("u: %d\n", i);
+		// 		sock = rsrc_gen->get_socket();
+		// 		printf("sock: %d\n", sock);
+		//     TEST_ASSERT(sock > 0);
+		//
+    //     rsrc_gen->free_socket(&sock);
+    // }
+
+    char *file = NULL;
+
+		for(i = 0; i < iterations; i++)
+		{
+			  file = rsrc_gen->get_filepath();
+				TEST_ASSERT_NOT_NULL(file);
+				TEST_ASSERT(close(open(file, O_RDWR)) == 0);
+				rsrc_gen->free_filepath(&file);
+		}
+
+		char *dir = NULL;
+
+		for(i = 0; i < iterations; i++)
+		{
+			  dir = rsrc_gen->get_dirpath();
+				TEST_ASSERT_NOT_NULL(dir);
+				rsrc_gen->free_dirpath(&dir);
+		}
 
 	  return;
 }
@@ -73,6 +118,10 @@ static void test_inject_resource_deps(void)
 
 int main(void)
 {
+
+	  /* Cleanup tmp before we start so filepath and dirpath tests don't fail. */
+		delete_dir_contents("/tmp");
+
 	  test_inject_resource_deps();
     test_resource_generator();
 
