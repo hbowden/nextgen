@@ -67,6 +67,7 @@ extern struct desc_generator *get_default_desc_generator(void);
 
 /* */
 extern struct resource_generator *get_resource_generator(void);
+extern struct resource_generator *get_cached_resource_generator(void);
 
 extern void inject_resource_deps(struct dependency_context *ctx);
 
