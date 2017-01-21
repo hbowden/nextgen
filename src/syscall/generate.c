@@ -66,8 +66,64 @@ int32_t generate_mach_port(uint64_t **ptr)
 
 int32_t generate_ptr(uint64_t **ptr)
 {
-  (void)ptr;
+  int32_t rtrn = 0;
+  uint32_t number = 0;
+  uint32_t nbytes = 0;
 
+  rtrn = random_gen->range(1023, &nbytes);
+  if(rtrn < 0)
+  {
+      output->write(ERROR, "Can't pick random size\n");
+      return (-1);
+  }
+
+  /* Add one to nbytes so that we don't have a zero.
+  Which would cause mmap to fail on some platforms. */
+  nbytes = nbytes + 1;
+
+  rtrn = random_gen->range(2, &number);
+  if(rtrn < 0)
+  {
+      output->write(ERROR, "Can't pick random number\n");
+      return (-1);
+  }
+
+  switch(number)
+  {
+      case 0:
+          (*ptr) = mmap(NULL, nbytes, PROT_READ | PROT_WRITE,
+                        MAP_ANON | MAP_PRIVATE, -1, 0);
+          if(*ptr == MAP_FAILED)
+          {
+              output->write(ERROR, "mmap: %s\n", strerror(errno));
+              return (-1);
+          }
+          break;
+
+      case 1:
+          (*ptr) =
+              mmap(NULL, nbytes, PROT_READ, MAP_ANON | MAP_PRIVATE, -1, 0);
+          if(*ptr == MAP_FAILED)
+          {
+              output->write(ERROR, "mmap: %s\n", strerror(errno));
+              return (-1);
+          }
+          break;
+
+      case 2:
+          (*ptr) =
+              mmap(NULL, nbytes, PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
+          if(*ptr == MAP_FAILED)
+          {
+              output->write(ERROR, "mmap: %s\n", strerror(errno));
+              return (-1);
+          }
+          break;
+
+      default:
+          output->write(ERROR, "Should not get here\n");
+          return (-1);
+  }
 
     return (0);
 }
@@ -196,16 +252,56 @@ int32_t generate_path(uint64_t **path)
 
 int32_t generate_int(uint64_t **num)
 {
-    (void)num;
+    int32_t rtrn = 0;
+    uint32_t number = 0;
 
+    rtrn = random_gen->range(INT32_MAX, &number);
+    if(rtrn < 0)
+    {
+        output->write(ERROR, "Failed to generate random number\n");
+        return (-1);
+    }
+
+    (*num) = allocator->alloc(sizeof(uint64_t));
+    if((*num) == NULL)
+    {
+        output->write(ERROR, "Failed to allocate buffer\n");
+        return (-1);
+    }
+
+    (**num) = number;
 
     return (0);
 }
 
 int32_t generate_pid(uint64_t **pid)
 {
-    (void)pid;
+    pid_t id = 0;
 
+    (*pid) = allocator->alloc(sizeof(uint64_t));
+    if((*pid) == NULL)
+    {
+        output->write(ERROR, "Failed to allocate buffer\n");
+        return (-1);
+    }
 
-    return (0);
+    id = fork();
+    if(id == 0)
+    {
+        while(1)
+        {
+            usleep(1000);
+        }
+    }
+    else if(id > 0)
+    {
+        (**pid) = (uint64_t) id;
+
+        return (0);
+    }
+    else
+    {
+        output->write(ERROR, "Failed to create child process: %s\n", strerror(errno));
+        return (-1);
+    }
 }
