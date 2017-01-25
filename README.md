@@ -5,7 +5,7 @@ A Genetic File, Syscall and Network Fuzzer for modern systems.
   <img alt="Coverity Scan Build Status"
        src="https://scan.coverity.com/projects/9072/badge.svg"/>
 </a>
-[![Build Status](https://travis-ci.org/2trill2spill/nextgen.svg?branch=master)](https://travis-ci.org/2trill2spill/nextgen)
+[![Build Status](https://travis-ci.org/hbowden/nextgen.svg?branch=master)](https://travis-ci.org/hbowden/nextgen)
 
 # OS-Support
 Currently only 64bit versions of FreeBSD, Linux, MacOS and Windows with Cygwin are supported.
