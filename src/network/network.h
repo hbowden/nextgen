@@ -24,7 +24,7 @@
 
 enum network_mode { SOCKET_SERVER };
 
-extern DEPRECATED int32_t setup_network_module(enum network_mode mode);
+extern int32_t start_socket_server(void);
 
 extern private void get_server_port(uint32_t *port);
 

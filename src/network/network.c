@@ -33,9 +33,7 @@
 #include <unistd.h>
 
 static uint32_t ss_port;
-
 static int32_t stop;
-
 static int32_t listen_fd4;
 static int32_t listen_fd6;
 
@@ -146,7 +144,12 @@ static int32_t accept_client(int listenFd)
         return (-1);
     }
 
-    close(clientFd);
+    int32_t rtrn = close(clientFd);
+    if(rtrn < 0)
+    {
+        printf("close: %s\n", strerror(errno));
+        return (-1);
+    }
 
     return (0);
 }
@@ -158,7 +161,7 @@ static void *accept_thread_start(void *obj)
 
     while(ck_pr_load_int(&stop) != TRUE)
     {
-        rtrn = listen(*sockFd, 1024);
+        rtrn = listen(*sockFd, 10000);
         if(rtrn < 0)
         {
             printf("listen: %s\n", strerror(errno));
@@ -194,7 +197,7 @@ static void *start_thread(void *arg)
 
     while(ck_pr_load_int(&stop) != TRUE)
     {
-        rtrn = listen(listen_fd4, 1024);
+        rtrn = listen(listen_fd4, 10000);
         if(rtrn < 0)
         {
             printf("listen: %s\n", strerror(errno));
@@ -253,7 +256,7 @@ static int32_t select_port_number(void)
     return (0);
 }
 
-static int32_t start_socket_server(void)
+int32_t start_socket_server(void)
 {
     int32_t rtrn = 0;
     pthread_t thread = 0;
@@ -280,31 +283,6 @@ static int32_t start_socket_server(void)
     {
         printf("Can't start socket server thread\n");
         return (-1);
-    }
-
-    return (0);
-}
-
-int32_t setup_network_module(enum network_mode mode)
-{
-    int32_t rtrn = 0;
-
-    switch((int32_t)mode)
-    {
-        case SOCKET_SERVER:
-
-            rtrn = start_socket_server();
-            if(rtrn < 0)
-            {
-                printf("Can't setup the socket server\n");
-                return (-1);
-            }
-
-            break;
-
-        default:
-            printf("Unknown setup option\n");
-            return (-1);
     }
 
     return (0);
