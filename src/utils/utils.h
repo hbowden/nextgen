@@ -24,6 +24,12 @@
 #include <stdarg.h>
 #include <stdlib.h>
 
+/* MACROS for map_file_in(). */
+#define READ PROT_READ
+#define WRITE PROT_WRITE
+#define EXEC PROT_EXEC
+#define NONE PROT_NONE
+
 enum yes_no { NX_YES, NX_NO };
 
 enum csp { SET, UNSET };

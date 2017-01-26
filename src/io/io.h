@@ -27,12 +27,6 @@
 #include <sys/types.h>
 #include <sys/param.h>
 
-/* MACROS for map_file_in(). */
-#define READ PROT_READ
-#define WRITE PROT_WRITE
-#define EXEC PROT_EXEC
-#define NONE PROT_NONE
-
 /* The enum used to tell output how to output the message. */
 enum out_type { ERROR, STD };
 
