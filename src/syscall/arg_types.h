@@ -19,7 +19,6 @@
 #define ARG_TYPES_H
 
 #include <stdint.h>
-#include "io/io.h"
 #include "utils/utils.h"
 
 enum arg_type { ADDRESS, INT, PID };
