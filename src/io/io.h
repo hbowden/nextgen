@@ -16,18 +16,10 @@
 #ifndef IO_H
 #define IO_H
 
-#include "utils/deprecate.h"
-#include <stdio.h>
 #include <stdint.h>
-#include <unistd.h>
-#include <fcntl.h>
 #include <stdarg.h>
-#include <dirent.h>
-#include <sys/mman.h>
-#include <sys/types.h>
-#include <sys/param.h>
 
-/* The enum used to tell output how to output the message. */
+/* Use ERROR for error messages and STD for normal logging. */
 enum out_type { ERROR, STD };
 
 struct output_writter

@@ -14,13 +14,8 @@
  **/
 
 #include "io.h"
-#include "utils/utils.h"
-#include "runtime/platform.h"
-
-#include <errno.h>
-#include <string.h>
+#include <stdio.h>
 #include <stdlib.h>
-#include <sys/stat.h>
 
 static void console_output(enum out_type type, const char *format, ...)
 {
@@ -39,7 +34,7 @@ static void console_output(enum out_type type, const char *format, ...)
             break;
 
         /* We default to stdout when ERROR or STD is not set so that
-        we don't have any errors. */
+          this function does not fail. */
         default:
             vfprintf(stdout, format, args);
             break;

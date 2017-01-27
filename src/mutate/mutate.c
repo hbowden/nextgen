@@ -18,6 +18,7 @@
 #include "runtime/platform.h"
 
 #include <stdbool.h>
+#include <stdio.h>
 
 static int32_t flip_byte_mutator(char **file,
                                  uint64_t *file_size,

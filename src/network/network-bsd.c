@@ -17,6 +17,7 @@
 #include "io/io.h"
 
 #include <stdint.h>
+#include <stdio.h>
 #include <arpa/inet.h>
 #include <errno.h>
 #include <netdb.h>

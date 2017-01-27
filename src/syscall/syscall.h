@@ -28,6 +28,9 @@
 
 struct test_case;
 
+/**
+ *
+ */
 extern struct syscall_table *get_table(void);
 
 extern struct test_case *create_test_case(void);

@@ -22,6 +22,7 @@
 #include "runtime/nextgen.h"
 #include "utils/utils.h"
 
+#include <sys/mman.h>
 #include <errno.h>
 
 static struct output_writter *output;

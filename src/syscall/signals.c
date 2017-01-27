@@ -21,6 +21,7 @@
 #include "utils/noreturn.h"
 #include "runtime/nextgen.h"
 
+#include <unistd.h>
 #include <signal.h>
 #include <string.h>
 #include <errno.h>
