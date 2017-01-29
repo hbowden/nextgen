@@ -26,10 +26,8 @@
 #include "nextgen.h"
 #include "platform.h"
 #include "crypto/crypto.h"
-#include "file/file.h"
 #include "io/io.h"
 #include "memory/memory.h"
-#include "plugins/plugin.h"
 #include "resource/resource.h"
 
 #include <errno.h>
@@ -229,7 +227,7 @@ static int32_t set_fuzz_mode(struct fuzzer_config *config, enum fuzz_mode mode)
     return (0);
 }
 
-struct fuzzer_config *parse_cmd_line(int32_t argc, char *argv[])
+struct fuzzer_config *parse_cmd_line(int32_t argc, const char *argv[])
 {
     if(argc == 1)
     {
@@ -256,7 +254,7 @@ struct fuzzer_config *parse_cmd_line(int32_t argc, char *argv[])
     config->smart_mode = TRUE;
 
     /* Parse the command line. */
-    while((ch = getopt_long(argc, argv, optstring, longopts, NULL)) != -1)
+    while((ch = getopt_long(argc, (char *const *)argv, optstring, longopts, NULL)) != -1)
     {
         switch(ch)
         {

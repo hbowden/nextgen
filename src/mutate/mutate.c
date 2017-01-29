@@ -14,175 +14,105 @@
  **/
 
 #include "mutate.h"
-#include "plugins/plugin.h"
 #include "runtime/platform.h"
 
 #include <stdbool.h>
 #include <stdio.h>
 
-static int32_t flip_byte_mutator(char **file,
-                                 uint64_t *file_size,
-                                 struct random_generator *random,
-                                 struct output_writter *output)
-{
-    int32_t rtrn = 0;
-    uint32_t offset = 0;
+// static int32_t flip_byte_mutator(char **file,
+//                                  uint64_t *file_size,
+//                                  struct random_generator *random,
+//                                  struct output_writter *output)
+// {
+//     int32_t rtrn = 0;
+//     uint32_t offset = 0;
+//
+//     rtrn = random->range((uint32_t)(*file_size), &offset);
+//     if(rtrn < 0)
+//     {
+//         output->write(ERROR, "Can't pick random file offset\n");
+//         return (-1);
+//     }
+//
+//     /* Flip the randomly choosen byte. */
+//     (*file)[offset] = ~(*file)[offset];
+//
+//     return (0);
+// }
+//
+// static int32_t flip_bit_mutator(char **file,
+//                                 uint64_t *file_size,
+//                                 struct random_generator *random,
+//                                 struct output_writter *output)
+// {
+//     int32_t rtrn = 0;
+//     uint32_t offset = 0;
+//     uint32_t bit = 0;
+//
+//     rtrn = random->range((uint32_t)(*file_size), &offset);
+//     if(rtrn < 0)
+//     {
+//         output->write(ERROR, "Can't pick random file offset\n");
+//         return (-1);
+//     }
+//
+//     rtrn = random->range(8, &bit);
+//     if(rtrn < 0)
+//     {
+//         output->write(ERROR, "Can't pick random bit to flip\n");
+//         return (-1);
+//     }
+//
+//     /* Flip the randomly choosen bit. */
+//     (*file)[offset] ^= 1 << bit;
+//
+//     return (0);
+// }
+//
+// static int32_t xor_mutator(char **file, uint64_t *file_size, struct random_generator *random, struct output_writter *output)
+// {
+//     (void)file;
+//     (void)file_size;
+//     (void)random;
+//     (void)output;
+//     return (0);
+// }
+//
+// static uint32_t number_of_mutators = 3;
+//
+// /* Array of file mutator function pointers. */
+// static int32_t (*mutator_array[])(char **, uint64_t *, struct random_generator *, struct output_writter *) = {
+//     flip_byte_mutator, flip_bit_mutator, xor_mutator};
 
-    rtrn = random->range((uint32_t)(*file_size), &offset);
-    if(rtrn < 0)
-    {
-        output->write(ERROR, "Can't pick random file offset\n");
-        return (-1);
-    }
+// static int32_t mutate_file_randomly(char **file, uint64_t *file_size, struct random_generator *random, struct output_writter *output)
+// {
+//     int32_t rtrn = 0;
+//     uint32_t offset = 0;
+//
+//     /* Pick a mutator function offset at random. */
+//     rtrn = random->range((number_of_mutators - 1), &offset);
+//     if(rtrn < 0)
+//     {
+//         output->write(ERROR, "Can't pick random offset\n");
+//         return (-1);
+//     }
+//
+//     /* Call the mutator selected and return the result. */
+//     return (mutator_array[offset](file, file_size, random, output));
+// }
 
-    /* Flip the randomly choosen byte. */
-    (*file)[offset] = ~(*file)[offset];
-
-    return (0);
-}
-
-static int32_t flip_bit_mutator(char **file,
-                                uint64_t *file_size,
-                                struct random_generator *random,
-                                struct output_writter *output)
-{
-    int32_t rtrn = 0;
-    uint32_t offset = 0;
-    uint32_t bit = 0;
-
-    rtrn = random->range((uint32_t)(*file_size), &offset);
-    if(rtrn < 0)
-    {
-        output->write(ERROR, "Can't pick random file offset\n");
-        return (-1);
-    }
-
-    rtrn = random->range(8, &bit);
-    if(rtrn < 0)
-    {
-        output->write(ERROR, "Can't pick random bit to flip\n");
-        return (-1);
-    }
-
-    /* Flip the randomly choosen bit. */
-    (*file)[offset] ^= 1 << bit;
-
-    return (0);
-}
-
-static int32_t xor_mutator(char **file, uint64_t *file_size, struct random_generator *random, struct output_writter *output)
-{
-    (void)file;
-    (void)file_size;
-    (void)random;
-    (void)output;
-    return (0);
-}
-
-static uint32_t number_of_mutators = 3;
-
-/* Array of file mutator function pointers. */
-static int32_t (*mutator_array[])(char **, uint64_t *, struct random_generator *, struct output_writter *) = {
-    flip_byte_mutator, flip_bit_mutator, xor_mutator};
-
-static int32_t mutate_file_randomly(char **file, uint64_t *file_size, struct random_generator *random, struct output_writter *output)
-{
-    int32_t rtrn = 0;
-    uint32_t offset = 0;
-
-    /* Pick a mutator function offset at random. */
-    rtrn = random->range((number_of_mutators - 1), &offset);
-    if(rtrn < 0)
-    {
-        output->write(ERROR, "Can't pick random offset\n");
-        return (-1);
-    }
-
-    /* Call the mutator selected and return the result. */
-    return (mutator_array[offset](file, file_size, random, output));
-}
-
-int32_t mutate_file(char **file,
-                    const char *file_extension,
-                    uint64_t *file_size,
-                    struct random_generator *random,
-                    struct output_writter *output)
-{
-    int32_t rtrn = 0;
-    //bool understand_file_format = FALSE;
-    uint32_t plugin_offset = 0;
-    uint32_t number_of_features = 0;
-    uint32_t feature = 0;
-    uint32_t number = 0;
-
-    /* Check if we understand the file format so we can provide context
-    to the mutation engine. */
-    if(supported_file(file_extension, &plugin_offset) == TRUE)
-    {
-        /* Some plugin understands this file format, let's use the plugin for more
-        accurate fuzzing. Check how many features the plugin know's about. */
-        features_supported(plugin_offset, &number_of_features);
-
-        /* Sometimes randomly mutate the file instead of using the plugin. */
-        rtrn = random->range(10, &number);
-        if(rtrn < 0)
-        {
-            output->write(ERROR, "Can't randomly select number\n");
-            return (-1);
-        }
-
-        /* If the number is equal to ten mutate the file completly randomly. */
-        if(number == 10)
-        {
-            rtrn = mutate_file_randomly(file, file_size, random, output);
-            if(rtrn < 0)
-            {
-                output->write(ERROR, "Can't mutate file randomly\n");
-                return (-1);
-            }
-
-            /* Exit early. */
-            return (0);
-        }
-
-        /* Randomly select a file format feature to test. */
-        rtrn = random->range(number_of_features, &feature);
-        if(rtrn < 0)
-        {
-            output->write(ERROR, "Can't randomly select feature to test\n");
-            return (-1);
-        }
-
-        struct feature_constraints *constraints = NULL;
-
-        /* Get feature constraints.*/
-        rtrn = feature_constraints(plugin_offset, constraints);
-        if(rtrn < 0)
-        {
-            output->write(ERROR, "Can't get feature constraints\n");
-            return (-1);
-        }
-    }
-    else
-    {
-        /* We don't know this file type, so let's just randomly mutate
-        the file. */
-        rtrn = mutate_file_randomly(file, file_size, random, output);
-        if(rtrn < 0)
-        {
-            output->write(ERROR, "Can't mutate file randomly\n");
-            return (-1);
-        }
-    }
-
-    return (0);
-}
-
-int32_t mutate_arguments(uint64_t **args, uint64_t *size, struct random_generator *random, struct output_writter *output)
-{
-    (void)args;
-    (void)size;
-    (void)random;
-    (void)output;
-    return (0);
-}
+// int32_t mutate_file(void)
+// {
+//
+//
+//     return (0);
+// }
+//
+// int32_t mutate_arguments(uint64_t **args, uint64_t *size, struct random_generator *random, struct output_writter *output)
+// {
+//     (void)args;
+//     (void)size;
+//     (void)random;
+//     (void)output;
+//     return (0);
+// }

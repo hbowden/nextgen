@@ -22,10 +22,10 @@
 #include "crypto/random.h"
 #include <stdint.h>
 
-/* The mutator for syscall arguments. */
-extern int32_t mutate_arguments(uint64_t **, uint64_t *, struct random_generator *, struct output_writter *);
-
-/* File mutator function. */
-extern int32_t mutate_file(char **file, const char *file_extension, uint64_t *file_size, struct random_generator *, struct output_writter *);
+// /* The mutator for syscall arguments. */
+// extern int32_t mutate_arguments(uint64_t **, uint64_t *, struct random_generator *, struct output_writter *);
+//
+// /* File mutator function. */
+// extern int32_t mutate_file(void);
 
 #endif

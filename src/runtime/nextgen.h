@@ -39,7 +39,7 @@ struct fuzzer_config
  * @param argv An array with the command line options.
  * @return A fuzzer_config object on success and NULL on failure.
  */
-extern struct fuzzer_config *parse_cmd_line(int32_t argc, char *argv[]);
+extern struct fuzzer_config *parse_cmd_line(int32_t argc, const char *argv[]);
 
 void inject_nextgen_deps(struct dependency_context *ctx);
 

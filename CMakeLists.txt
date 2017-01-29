@@ -1,304 +1,107 @@
 cmake_minimum_required (VERSION 3.0)
 
-# Project name and programming language.
 project (Nextgen C)
 
-# Turn on testing.
-enable_testing()
-
-# Save concurrencykit name as a variable.
 SET(CK "ck-0.5.2")
 SET(UNITY "Unity")
+SET(LIBRESSL "libressl-2.5.0")
+SET(CAPSTONE "capstone-3.0.4")
 
-SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-strict-aliasing -Wno-documentation -fms-extensions -Wno-microsoft-anon-tag")
-
-# Set the cmake module path to deps/cmake_modules.
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/deps/cmake_modules" ${CMAKE_MODULE_PATH})
 
-# Look for the compiler sanitizers cmake module.
 find_package(Sanitizers)
 
-# The warnings to ignore for src/syscall/generate.* .
-set(GENERATE_IGNORE_WARNINGS "-Wno-cast-align")
-
-# Ignore deprecated ptrace symbols because we need to test ptrace.
-set_source_files_properties(src/syscall/generate.c PROPERTIES COMPILE_FLAGS ${GENERATE_IGNORE_WARNINGS})
-set_source_files_properties(src/syscall/generate-macos.c PROPERTIES COMPILE_FLAGS ${GENERATE_IGNORE_WARNINGS})
-
-SET(SET_TEST_IGNORE_FLAGS "-Wno-deprecated-declarations -Wno-unused-function")
-SET(SET_FILE_IGNORE_FLAGS "-Wno-cast-qual")
-SET(SET_RUNTIME_IGNORE_FLAGS "-Wno-incompatible-pointer-types-discards-qualifiers")
-
-set_source_files_properties(src/io/io.c PROPERTIES COMPILE_FLAGS -Wno-format-nonliteral)
-set_source_files_properties(src/plugins/plugin.c PROPERTIES COMPILE_FLAGS -Wno-cast-qual)
-set_source_files_properties(src/syscall/set_test.c PROPERTIES COMPILE_FLAGS ${SET_TEST_IGNORE_FLAGS})
-set_source_files_properties(src/file/file.c PROPERTIES COMPILE_FLAGS ${SET_FILE_IGNORE_FLAGS})
-set_source_files_properties(src/probe/probe-freebsd.c PROPERTIES COMPILE_FLAGS -Wno-incompatible-pointer-types-discards-qualifiers)
-set_source_files_properties(src/runtime/nextgen.c PROPERTIES COMPILE_FLAGS ${SET_RUNTIME_IGNORE_FLAGS})
-set_source_files_properties(src/resource/resource.c PROPERTIES COMPILE_FLAGS -Wno-incompatible-pointer-types-discards-qualifiers)
-set_source_files_properties(src/concurrent/concurrent-freebsd.c PROPERTIES COMPILE_FLAGS -Wno-unused-parameter)
-set_source_files_properties(src/main.m PROPERTIES COMPILE_FLAGS -Wno-incompatible-pointer-types-discards-qualifiers)
-
-# Check the compiler and set compiler specific options.
-if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
-  # using Clang
-  MESSAGE( WARNING "Using clang")
-  SET( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Weverything -std=c11")
-  SET( CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -Weverything -std=c11")
+if("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
+  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Weverything -std=c11")
+  SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -Weverything -std=c11")
 elseif ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
-  # using GCC
   add_definitions("-Wextra -std=gnu11")
-elseif ("${CMAKE_C_COMPILER_ID}" STREQUAL "Intel")
-  # using Intel C++
-elseif ("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
-  # using Visual Studio C++
 endif()
 
-# Set include directories so we can find headers.
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -O3 -g -Werror \
+-fno-strict-aliasing \
+-Wno-documentation \
+-fms-extensions \
+-Wno-microsoft-anon-tag \
+-fno-omit-frame-pointer \
+-fstack-protector-all \
+-D_FORTIFY_SOURCE=2 \
+-Wno-unknown-warning-option \
+-fPIC \
+-std=c11 \
+-Wno-macro-redefined")
+
 include_directories(src)
-include_directories(SYSTEM deps/sqlite)
-include_directories(SYSTEM deps/libressl-2.5.0/include)
+include_directories(SYSTEM deps/${SQLITE})
+include_directories(SYSTEM deps/${LIBRESSL}/include)
 include_directories(SYSTEM deps/${CK}/include)
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/deps/capstone-3.0.4/include SYSTEM)
+include_directories(SYSTEM deps/${CAPSTONE}/include)
+include_directories(src/syscall)
 
-link_directories(${CMAKE_SOURCE_DIR}/deps/libressl-2.5.0/crypto/.libs)
-link_directories(${CMAKE_SOURCE_DIR}/deps/sqlite)
-link_directories(${CMAKE_SOURCE_DIR}/deps/${CK}/src)
-link_directories(${CMAKE_SOURCE_DIR}/deps/capstone-3.0.4)
+SET(SET_TEST_IGNORE_FLAGS "-Wno-deprecated-declarations -Wno-unused-function")
+set_source_files_properties(src/syscall/set_test.c PROPERTIES COMPILE_FLAGS ${SET_TEST_IGNORE_FLAGS})
 
-# Build and link libraries that don't need os specific build instructions.
+if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
+  add_definitions(-DFREEBSD)
+  SET(UTILS_OS_FILE "src/utils/utils-bsd.c")
+  SET(NETWORK_OS_FILE "src/network/network-bsd.c")
+  SET(MAIN "src/main.c")
+  AUX_SOURCE_DIRECTORY(src/syscall/freebsd ENTRY_SOURCES)
+  include_directories(src/syscall/freebsd)
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  add_definitions(-DMAC_OS)
+  SET(UTILS_OS_FILE "src/utils/utils-macos.c")
+  SET(NETWORK_OS_FILE "src/network/network-bsd.c")
+  SET(LOG_OS_FILES "src/log/log-mac.c")
+  SET(MAIN "src/main.m")
+  AUX_SOURCE_DIRECTORY(src/syscall/mac ENTRY_SOURCES)
+  include_directories(src/syscall/mac)
+  SET(OBJC_IGNORE_FLAGS "${CMAKE_C_FLAGS} -Wno-direct-ivar-access -Wno-objc-interface-ivars -Wno-unused-parameter")
+  set_source_files_properties(src/objc/AppDelegate.m PROPERTIES COMPILE_FLAGS ${OBJC_IGNORE_FLAGS})
+  set_source_files_properties(src/objc/AppDelegate.h PROPERTIES COMPILE_FLAGS ${OBJC_IGNORE_FLAGS})
+  set_source_files_properties(src/objc/objc-utils.m PROPERTIES COMPILE_FLAGS ${OBJC_IGNORE_FLAGS})
+  FIND_LIBRARY(CARBON Carbon)
+  FIND_LIBRARY(CORE_FOUNDATION CoreFoundation)
+  FIND_LIBRARY(APP_KIT AppKit)
+  FIND_LIBRARY(FOUNDATION Foundation)
+  add_library(nxobjcutils SHARED src/objc/objc-utils.m src/objc/AppDelegate.m)
+  target_link_libraries(nxobjcutils ${APP_KIT})
+  target_link_libraries(nxobjcutils ${FOUNDATION})
+  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-deprecated-declarations")
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+  add_definitions(-DLINUX)
+  SET(UTILS_OS_FILE "src/utils/utils-linux.c")
+  AUX_SOURCE_DIRECTORY(src/syscall/linux ENTRY_SOURCES)
+  include_directories(src/syscall/linux)
+endif()
+
 add_library(nxdependinject SHARED src/depend-inject/depend-inject.c)
 add_library(nxio SHARED src/io/io.c)
 add_library(nxmemory SHARED src/memory/memory.c)
+add_library(nxcrypto SHARED src/crypto/crypto.c src/crypto/hash.c src/crypto/random.c)
+add_library(nxutils SHARED ${UTILS_OS_FILE} src/utils/utils.c src/utils/reallocarray.c)
 add_library(nxconcurrent SHARED src/concurrent/concurrent.c src/concurrent/epoch.c)
-target_link_libraries(nxmemory nxio)
+add_library(nxmutate SHARED src/mutate/mutate.c)
+add_library(nxnetwork SHARED src/network/network.c ${NETWORK_OS_FILE})
+add_library(nxresource SHARED src/resource/resource.c)
+add_library(nxlog SHARED src/log/log.c ${LOG_OS_FILES})
+add_library(nxsyscall SHARED ${ENTRY_SOURCES} src/syscall/syscall.c src/syscall/generate.c src/syscall/set_test.c src/syscall/signals.c src/syscall/arg_types.c src/syscall/child.c)
+add_library(nxgenetic SHARED src/genetic/genetic.c)
+add_library(nxruntime SHARED src/runtime/runtime.c src/runtime/fuzzer.c src/runtime/fuzzer-syscall.c src/runtime/nextgen.c)
 
-# Check the operating system and set flags that are os specific.
-if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
-    # We need this to conditionally compile freebsd only sources.
-    add_definitions(-DFREEBSD)
-
-    SET( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Weverything -std=c11 -Wno-covered-switch-default")
-    SET( CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -Weverything -std=c11 -Wno-covered-switch-default")
-
-    add_library(nxutils SHARED src/utils/utils.c src/utils/utils-bsd.c src/utils/reallocarray.c)
-
-    add_library(nxcrypto SHARED src/crypto/crypto.c src/crypto/hash.c src/crypto/random.c)
-
-    include_directories(SYSTEM /usr/src/cddl/compat/opensolaris/include)
-    include_directories(SYSTEM /usr/src/cddl/contrib/opensolaris/lib/libdtrace/common)
-    include_directories(SYSTEM /usr/src/sys/cddl/compat/opensolaris)
-    include_directories(SYSTEM /usr/src/sys/cddl/contrib/opensolaris/uts/common)
-
-    add_library(nxnetwork SHARED src/network/network.c src/network/network-bsd.c)
-
-    add_library(nxplugin SHARED src/plugins/plugin.c)
-    add_library(nxmutate SHARED src/mutate/mutate.c)
-    add_library(nxresource SHARED src/resource/resource.c)
-
-    add_library(nxlog SHARED src/log/log.c src/log/log-freebsd.c)
-    target_link_libraries(nxlog ${CMAKE_SOURCE_DIR}/deps/sqlite/sqlite3.so)
-
-    AUX_SOURCE_DIRECTORY(src/syscall/freebsd ENTRY_SOURCES)
-    add_library(nxsyscall SHARED src/syscall/syscall.c src/syscall/syscall-freebsd.c src/syscall/signals.c src/syscall/set_test.c src/syscall/arg_types.c src/syscall/child.c ${ENTRY_SOURCES})
-    include_directories(src/syscall/freebsd)
-
-    add_library(nxgenetic SHARED src/genetic/genetic.c)
-
-    add_library(nxruntime SHARED src/runtime/runtime.c src/runtime/fuzzer.c src/runtime/fuzzer-syscall.c src/runtime/nextgen.c)
-
-    add_executable(nextgen src/main.c)
-    target_link_libraries(nextgen dtrace)
-    target_link_libraries(nextgen proc)
-    target_link_libraries(nextgen ctf)
-    target_link_libraries(nextgen elf)
-    target_link_libraries(nextgen z)
-    target_link_libraries(nextgen rtld_db)
-    target_link_libraries(nextgen pthread)
-    target_link_libraries(nextgen util)
-
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-
-    # We need this to conditionally compile macOS only sources.
-    add_definitions(-DMAC_OS)
-
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Weverything -std=c11 -Wno-covered-switch-default -Wno-switch-enum")
-    SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -Weverything -std=c11 -Wno-covered-switch-default  -Wno-switch-enum")
-
-    SET(UTILS_IGNORE_FLAGS "-Wno-reserved-id-macro -Wno-unused-macros")
-    set_source_files_properties(src/utils/utils.c PROPERTIES COMPILE_FLAGS ${UTILS_IGNORE_FLAGS})
-
-    # We currently need a deprecated carbon function to set a process name on OSX.
-    set_source_files_properties(src/utils/set_process_name.c PROPERTIES COMPILE_FLAGS "-Wno-deprecated-declarations -Wno-pedantic")
-
-    # Set standard compiler flags for all files.
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -fstack-protector-all -fPIE -D_FORTIFY_SOURCE=2 -Wno-macro-redefined -fno-strict-aliasing -Werror -Wno-unknown-warning-option -Wno-used-but-marked-unused -Wno-padded")
-
-    # Ignore some objective-c specific warnings.
-    set(OBJC_IGNORE_FLAGS "${CMAKE_C_FLAGS} -Wno-direct-ivar-access -Wno-objc-interface-ivars -Wno-unused-parameter")
-    set_source_files_properties(src/objc/AppDelegate.m PROPERTIES COMPILE_FLAGS ${OBJC_IGNORE_FLAGS})
-    set_source_files_properties(src/objc/AppDelegate.h PROPERTIES COMPILE_FLAGS ${OBJC_IGNORE_FLAGS})
-    set_source_files_properties(src/objc/objc-utils.m PROPERTIES COMPILE_FLAGS ${OBJC_IGNORE_FLAGS})
-
-    FIND_LIBRARY(CARBON Carbon)
-    FIND_LIBRARY(CORE_FOUNDATION CoreFoundation)
-    add_library(nxutils SHARED src/utils/utils.c src/utils/utils-macos.c src/utils/set_process_name.c src/utils/reallocarray.c)
-    target_link_libraries(nxutils ${CORE_FOUNDATION})
-    target_link_libraries(nxutils ${CARBON})
-
-    add_library(nxcrypto SHARED src/crypto/crypto.c src/crypto/hash.c src/crypto/random.c)
-
-    add_library(nxnetwork SHARED src/network/network.c src/network/network-bsd.c)
-
-    add_library(nxplugin SHARED src/plugins/plugin.c)
-    add_library(nxmutate SHARED src/mutate/mutate.c)
-    add_library(nxresource SHARED src/resource/resource.c)
-
-    add_library(nxlog SHARED src/log/log.c src/log/log-mac.c)
-    target_link_libraries(nxlog ${CMAKE_SOURCE_DIR}/deps/sqlite/libsqlite3.0.dylib)
-
-    AUX_SOURCE_DIRECTORY(src/syscall/mac ENTRY_SOURCES)
-
-    add_library(nxsyscall SHARED ${ENTRY_SOURCES} src/syscall/syscall.c src/syscall/generate.c src/syscall/set_test.c src/syscall/signals.c src/syscall/arg_types.c src/syscall/child.c)
-
-    include_directories(src/syscall/mac)
-    include_directories(src/syscall)
-
-    add_library(nxgenetic SHARED src/genetic/genetic.c)
-
-    FIND_LIBRARY(APP_KIT AppKit)
-    FIND_LIBRARY(FOUNDATION Foundation)
-    add_library(nxobjcutils SHARED src/objc/objc-utils.m src/objc/AppDelegate.m)
-    target_link_libraries(nxobjcutils ${APP_KIT})
-    target_link_libraries(nxobjcutils ${FOUNDATION})
-
-    add_library(nxruntime SHARED src/runtime/runtime.c src/runtime/fuzzer.c src/runtime/fuzzer-syscall.c src/runtime/nextgen.c)
-
-    add_executable(nextgen src/main.m)
-    add_sanitizers(nextgen)
-
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    add_definitions(-DLINUX)
-    add_definitions(-DCOMMON)
-
-    add_library(nxutils SHARED src/utils/utils.c src/utils/utils-linux.c src/utils/reallocarray.c src/utils/utils-win.c)
-    add_library(nxcrypto SHARED src/crypto/crypto.c src/crypto/hash.c src/crypto/random.c)
-    add_library(nxnetwork SHARED src/network/network.c src/network/network-linux.c)
-    add_library(nxplugin SHARED src/plugins/plugin.c)
-    target_link_libraries(nxplugin dl)
-    add_library(nxmutate SHARED src/mutate/mutate.c)
-    add_library(nxresource SHARED src/resource/resource.c)
-
-    # The freebsd log file works on linux so we use it.
-    add_library(nxlog SHARED src/log/log.c src/log/log-freebsd.c)
-    target_link_libraries(nxlog sqlite3)
-
-    AUX_SOURCE_DIRECTORY(src/syscall/linux ENTRY_SOURCES)
-    add_library(nxsyscall SHARED src/syscall/syscall.c src/syscall/syscall-linux.c src/syscall/signals.c src/syscall/set_test.c src/syscall/arg_types.c src/syscall/child.c ${ENTRY_SOURCES})
-    include_directories(src/syscall/linux)
-
-    add_library(nxgenetic SHARED src/genetic/genetic.c)
-
-    add_library(nxruntime SHARED src/runtime/runtime.c src/runtime/fuzzer.c src/runtime/fuzzer-syscall.c src/runtime/nextgen.c)
-    target_link_libraries(nxruntime pthread)
-
-    add_executable(nextgen src/main.c)
-    target_link_libraries(nextgen pthread)
-    target_link_libraries(nextgen dl)
-
-    elseif(${CMAKE_SYSTEM_NAME} STREQUAL "CYGWIN")
-
-    add_definitions(-DCYGWIN)
-    add_definitions(-DCOMMON)
-
-    add_library(nxutils SHARED src/utils/utils.c src/utils/utils-win.c src/utils/reallocarray.c)
-    add_library(nxcrypto SHARED src/crypto/crypto.c src/crypto/hash.c src/crypto/random.c)
-    add_library(nxnetwork SHARED src/network/network.c src/network/network-linux.c)
-    add_library(nxplugin SHARED src/plugins/plugin.c)
-    target_link_libraries(nxplugin dl)
-    add_library(nxmutate SHARED src/mutate/mutate.c)
-    add_library(nxresource SHARED src/resource/resource.c)
-
-    # The freebsd log file works on linux so we use it.
-    add_library(nxlog SHARED src/log/log.c src/log/log-freebsd.c)
-    target_link_libraries(nxlog ${CMAKE_SOURCE_DIR}/deps/sqlite/libsqlite3.dll)
-
-    AUX_SOURCE_DIRECTORY(src/syscall/windows ENTRY_SOURCES)
-    add_library(nxsyscall SHARED src/syscall/syscall.c src/syscall/signals.c src/syscall/set_test.c src/syscall/arg_types.c src/syscall/child.c ${ENTRY_SOURCES})
-    include_directories(src/syscall/windows)
-
-    add_library(nxgenetic SHARED src/genetic/genetic.c)
-
-    add_library(nxruntime SHARED src/runtime/runtime.c src/runtime/fuzzer.c src/runtime/fuzzer-syscall.c src/runtime/nextgen.c)
-    target_link_libraries(nxruntime pthread)
-
-    add_executable(nextgen src/main.c)
-    target_link_libraries(nextgen pthread)
-    target_link_libraries(nextgen dl)
-
-endif()
-
-# Do os agnostic linking.
-target_link_libraries(nxutils nxcrypto)
-target_link_libraries(nxutils nxdependinject)
-target_link_libraries(nxutils nxio)
-target_link_libraries(nxutils nxmemory)
-target_link_libraries(nxconcurrent nxio)
-target_link_libraries(nxconcurrent nxmemory)
-target_link_libraries(nxconcurrent nxutils)
-target_link_libraries(nxconcurrent ${CMAKE_SOURCE_DIR}/deps/${CK}/src/libck.so)
-target_link_libraries(nxcrypto crypto)
-target_link_libraries(nxcrypto nxio)
-target_link_libraries(nxcrypto nxmemory)
+target_link_libraries(nxcrypto ${CMAKE_SOURCE_DIR}/deps/${LIBRESSL}/crypto/.libs/libcrypto.a)
 target_link_libraries(nxnetwork nxcrypto)
-target_link_libraries(nxnetwork nxio)
-target_link_libraries(nxnetwork nxmemory)
-target_link_libraries(nxplugin nxutils)
-target_link_libraries(nxplugin nxio)
-target_link_libraries(nxplugin nxmemory)
-target_link_libraries(nxmutate nxcrypto)
-target_link_libraries(nxmutate nxutils)
-target_link_libraries(nxmutate nxplugin)
-target_link_libraries(nxmutate nxio)
-target_link_libraries(nxmutate nxmemory)
-target_link_libraries(nxresource nxcrypto)
-target_link_libraries(nxresource nxutils)
-target_link_libraries(nxresource nxnetwork)
-target_link_libraries(nxresource nxio)
-target_link_libraries(nxresource nxmemory)
-target_link_libraries(nxlog nxio)
-target_link_libraries(nxlog nxmemory)
-target_link_libraries(nxsyscall ${CMAKE_SOURCE_DIR}/deps/${CK}/src/libck.so)
-target_link_libraries(nxsyscall nxio)
-target_link_libraries(nxsyscall nxmemory)
+target_link_libraries(nxresource nxnetwork nxmemory nxutils nxcrypto)
+target_link_libraries(nxconcurrent ${CMAKE_SOURCE_DIR}/deps/${CK}/src/libck.so nxutils)
+target_link_libraries(nxruntime nxio nxdependinject nxmemory nxsyscall)
 target_link_libraries(nxsyscall nxconcurrent)
-target_link_libraries(nxsyscall nxresource)
-target_link_libraries(nxsyscall nxutils)
-target_link_libraries(nxsyscall nxlog)
-target_link_libraries(nxsyscall nxmutate)
-target_link_libraries(nxsyscall nxnetwork)
-target_link_libraries(nxsyscall nxcrypto)
-target_link_libraries(nxgenetic nxsyscall)
-target_link_libraries(nxgenetic nxio)
-target_link_libraries(nxgenetic nxmemory)
-target_link_libraries(nxruntime ${CMAKE_SOURCE_DIR}/deps/${CK}/src/libck.so)
-target_link_libraries(nxruntime nxio)
-target_link_libraries(nxruntime nxmemory)
-target_link_libraries(nxruntime nxconcurrent)
-target_link_libraries(nxruntime nxresource)
-target_link_libraries(nxruntime nxutils)
-target_link_libraries(nxruntime nxlog)
-target_link_libraries(nxruntime nxmutate)
-target_link_libraries(nxruntime nxnetwork)
-target_link_libraries(nxruntime nxcrypto)
-target_link_libraries(nxruntime nxsyscall)
-target_link_libraries(nxruntime nxgenetic)
-target_link_libraries(nextgen nxutils)
-target_link_libraries(nextgen nxruntime)
-target_link_libraries(nextgen nxmemory)
-target_link_libraries(nextgen nxio)
+target_link_libraries(nxruntime nxresource nxcrypto)
+target_link_libraries(nxgenetic nxmemory nxio)
 
-install(TARGETS nextgen nxio nxmemory nxconcurrent nxcrypto nxutils nxnetwork nxplugin nxmutate nxresource nxlog nxsyscall nxgenetic nxruntime
+add_executable(nextgen ${MAIN})
+target_link_libraries(nextgen nxio nxdependinject nxmemory nxruntime)
+
+install(TARGETS nextgen nxio nxmemory nxconcurrent nxcrypto nxutils nxnetwork nxmutate nxresource nxlog nxsyscall nxgenetic nxruntime
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib/static)
@@ -309,64 +112,34 @@ add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --verbose)
 include_directories(deps/${UNITY}/src)
 
 add_executable(concurrent-unit-test EXCLUDE_FROM_ALL tests/concurrent/unit/tests.c deps/${UNITY}/src/unity.c)
-target_link_libraries(concurrent-unit-test nxconcurrent)
-target_link_libraries(concurrent-unit-test nxmemory)
-target_link_libraries(concurrent-unit-test ${CMAKE_SOURCE_DIR}/deps/${CK}/src/libck.so)
-target_link_libraries(concurrent-unit-test pthread)
+target_link_libraries(concurrent-unit-test nxconcurrent nxio nxmemory)
 
 add_executable(memory-unit-test EXCLUDE_FROM_ALL tests/memory/unit/tests.c deps/${UNITY}/src/unity.c)
-target_link_libraries(memory-unit-test nxconcurrent)
-target_link_libraries(memory-unit-test nxmemory)
-target_link_libraries(memory-unit-test ${CMAKE_SOURCE_DIR}/deps/${CK}/src/libck.so)
+target_link_libraries(memory-unit-test nxconcurrent nxmemory)
 
 add_executable(memory-intergration-test EXCLUDE_FROM_ALL tests/memory/unit/tests.c deps/${UNITY}/src/unity.c)
-target_link_libraries(memory-intergration-test nxconcurrent)
-target_link_libraries(memory-intergration-test nxmemory)
-target_link_libraries(memory-intergration-test ${CMAKE_SOURCE_DIR}/deps/${CK}/src/libck.so)
+target_link_libraries(memory-intergration-test nxconcurrent nxmemory)
 
 add_executable(crypto-unit-test EXCLUDE_FROM_ALL tests/crypto/unit/tests.c deps/${UNITY}/src/unity.c)
-target_link_libraries(crypto-unit-test nxconcurrent)
-target_link_libraries(crypto-unit-test nxmemory)
-target_link_libraries(crypto-unit-test nxcrypto)
-target_link_libraries(crypto-unit-test crypto)
-target_link_libraries(crypto-unit-test ${CMAKE_SOURCE_DIR}/deps/${CK}/src/libck.so)
+target_link_libraries(crypto-unit-test nxconcurrent nxmemory nxcrypto nxio nxdependinject)
 
 add_executable(utils-unit-test EXCLUDE_FROM_ALL tests/utils/unit/tests.c deps/${UNITY}/src/unity.c)
-target_link_libraries(utils-unit-test nxconcurrent)
-target_link_libraries(utils-unit-test nxmemory)
-target_link_libraries(utils-unit-test nxutils)
-target_link_libraries(utils-unit-test nxcrypto)
-target_link_libraries(utils-unit-test crypto)
-target_link_libraries(utils-unit-test ${CMAKE_SOURCE_DIR}/deps/${CK}/src/libck.so)
+target_link_libraries(utils-unit-test nxconcurrent nxmemory nxutils nxcrypto nxio nxdependinject)
 
 add_executable(resource-integration-test EXCLUDE_FROM_ALL tests/resource/integration/tests.c deps/${UNITY}/src/unity.c)
-target_link_libraries(resource-integration-test nxnetwork)
-target_link_libraries(resource-integration-test nxconcurrent)
-target_link_libraries(resource-integration-test nxmemory)
-target_link_libraries(resource-integration-test nxutils)
-target_link_libraries(resource-integration-test nxcrypto)
-target_link_libraries(resource-integration-test crypto)
+target_link_libraries(resource-integration-test nxnetwork nxdependinject nxio nxconcurrent nxmemory nxutils nxcrypto)
 
 add_executable(runtime-integration-test EXCLUDE_FROM_ALL tests/runtime/integration/tests.c deps/${UNITY}/src/unity.c)
 target_link_libraries(runtime-integration-test nxruntime)
 
 add_executable(depend-inject-integration-test EXCLUDE_FROM_ALL tests/depend-inject/integration/tests.c deps/${UNITY}/src/unity.c)
-target_link_libraries(depend-inject-integration-test nxio)
-target_link_libraries(depend-inject-integration-test nxdependinject)
-target_link_libraries(depend-inject-integration-test nxmemory)
-target_link_libraries(depend-inject-integration-test nxcrypto)
+target_link_libraries(depend-inject-integration-test nxmemory nxdependinject nxio nxconcurrent nxcrypto)
 
 add_executable(syscall-unit-test EXCLUDE_FROM_ALL tests/syscall/unit/tests.c src/syscall/syscall.c src/syscall/arg_types.c src/syscall/signals.c src/syscall/generate.c deps/${UNITY}/src/unity.c)
-target_link_libraries(syscall-unit-test nxmemory)
-target_link_libraries(syscall-unit-test nxdependinject)
-target_link_libraries(syscall-unit-test nxio)
-target_link_libraries(syscall-unit-test nxconcurrent)
+target_link_libraries(syscall-unit-test nxmemory nxdependinject nxio nxconcurrent)
 
 add_executable(syscall-integration-test EXCLUDE_FROM_ALL tests/syscall/integration/tests.c src/syscall/syscall-macos.c src/syscall/arg_types.c src/syscall/signals.c src/syscall/generate.c ${ENTRY_SOURCES} deps/${UNITY}/src/unity.c)
-target_link_libraries(syscall-integration-test nxmemory)
-target_link_libraries(syscall-integration-test nxdependinject)
-target_link_libraries(syscall-integration-test nxio)
-target_link_libraries(syscall-integration-test nxconcurrent)
+target_link_libraries(syscall-integration-test nxmemory nxdependinject nxio nxconcurrent nxcrypto)
 
 add_sanitizers(depend-inject-integration-test)
 add_sanitizers(runtime-integration-test)
