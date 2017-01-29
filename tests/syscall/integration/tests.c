@@ -18,7 +18,7 @@
 #include "memory/memory.h"
 #include "crypto/crypto.h"
 #include "crypto/random.h"
-#include "syscall/syscall.h"
+#include "syscall/syscall.c"
 #include "syscall/generate.h"
 #include "syscall/child.c"
 
@@ -70,15 +70,54 @@ static void setup_tests(void)
   inject_syscall_deps(ctx);
 }
 
+static void test_get_total_args(void)
+{
+    const uint32_t total_args = 8;
+    struct test_case *test = NULL;
+
+    test = malloc(sizeof(struct test_case));
+    TEST_ASSERT_NOT_NULL(test);
+
+    test->total_args = total_args;
+    TEST_ASSERT(get_total_args(test) == total_args);
+}
+
 static void test_create_test_case(void)
 {
     struct test_case *test = NULL;
 
     test = create_test_case();
     TEST_ASSERT_NOT_NULL(test);
-    // TEST_ASSERT_NOT_NULL(test->arg_value_array);
+    TEST_ASSERT_NOT_NULL(get_argument_array(test));
+
+    // uint32_t i;
+    uint32_t total_args = get_total_args(test);
+    TEST_ASSERT(total_args >= 0);
+
+    // for(i = 0; i < total_args; i++)
+    // {
+    //     TEST_ASSERT_NOT_NULL(test->arg_value_array[i]);
+    // }
 
     return;
+}
+
+static void test_get_argument_array(void)
+{
+    struct test_case *test = NULL;
+
+    test = malloc(sizeof(struct test_case));
+    TEST_ASSERT_NOT_NULL(test);
+    test->arg_value_array = NULL;
+
+    uint64_t **args = get_argument_array(test);
+    TEST_ASSERT_NULL(args);
+
+    test->arg_value_array = malloc(sizeof(struct test_case) * 8);
+    TEST_ASSERT_NOT_NULL(test->arg_value_array);
+
+    args = get_argument_array(test);
+    TEST_ASSERT_NOT_NULL(args);
 }
 
 static void check_entry(struct syscall_entry *entry)
@@ -149,15 +188,30 @@ static void test_generate_pid(void)
     TEST_ASSERT(kill((*pid), SIGKILL) == 0);
 }
 
+static void test_pick_syscall(void)
+{
+    struct syscall_entry *entry = NULL;
+    struct syscall_table *table = NULL;
+
+    table = get_table();
+    TEST_ASSERT_NOT_NULL(table);
+
+    entry = pick_syscall(table);
+    check_entry(entry);
+}
+
 int main(void)
 {
     setup_tests();
 
-    test_create_test_case();
     test_generate_ptr();
     test_generate_int();
     test_generate_pid();
+    test_get_argument_array();
+    test_get_total_args();
     test_get_table();
+    test_pick_syscall();
+    test_create_test_case();
 
     return (0);
 }

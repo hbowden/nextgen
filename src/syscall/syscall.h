@@ -35,6 +35,27 @@ extern struct syscall_table *get_table(void);
 
 extern struct test_case *create_test_case(void);
 
+/**
+ * Return the total amount of arguments that a test case has.
+ * @param A test_case struct.
+ * @return A uint32_t that is the total amount of arguments.
+ */
+ extern inline uint32_t get_total_args(struct test_case *test);
+
+/**
+ * Get the array of syscall arguments from the a test case.
+ * @param A pointer to a test case struct/object.
+ * @return An array of syscall arguments.
+ */
+extern inline uint64_t **get_argument_array(struct test_case *test);
+
+/**
+ * Picks and returns a syscall entry at random.
+ * @param
+ * @return Returns a syscall entry on success and NULL on failure.
+ */
+extern struct syscall_entry *pick_syscall(struct syscall_table *table);
+
 extern void inject_syscall_deps(struct dependency_context *ctx);
 
 #endif

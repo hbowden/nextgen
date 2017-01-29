@@ -18,15 +18,18 @@
 #include "child.h"
 #include "signals.h"
 #include "generate.h"
+#include "crypto/random.h"
 #include "memory/memory.h"
 #include "io/io.h"
 
 static struct memory_allocator *allocator;
 static struct output_writter *output;
+static struct random_generator *random_gen;
 
 struct test_case
 {
-    int value;
+    uint32_t total_args;
+    uint64_t **arg_value_array;
 };
 
 struct test_case *create_test_case(void)
@@ -41,6 +44,36 @@ struct test_case *create_test_case(void)
     }
 
     return (test);
+}
+
+inline uint64_t **get_argument_array(struct test_case *test)
+{
+    return (test->arg_value_array);
+}
+
+inline uint32_t get_total_args(struct test_case *test)
+{
+    return (test->total_args);
+}
+
+struct syscall_entry *pick_syscall(struct syscall_table *table)
+{
+    uint32_t offset = 0;
+
+    int32_t rtrn = random_gen->range(table->total_syscalls, &offset);
+    if(rtrn < 0)
+    {
+        output->write(ERROR, "Failed to calculate offset\n");
+        return (NULL);
+    }
+
+    if(offset > table->total_syscalls)
+    {
+        output->write(ERROR, "Offset is out of bounds\n");
+        return (NULL);
+    }
+
+    return (atomic_load_ptr(&table->sys_entry[offset]));
 }
 
 void inject_syscall_deps(struct dependency_context *ctx)
@@ -62,6 +95,10 @@ void inject_syscall_deps(struct dependency_context *ctx)
 
             case OUTPUT:
                 output = (struct output_writter *)ctx->array[i]->interface;
+                break;
+
+            case RANDOM_GEN:
+                random_gen = (struct random_generator *)ctx->array[i]->interface;
                 break;
         }
     }
