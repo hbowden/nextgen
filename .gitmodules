@@ -1,6 +1,0 @@
-[submodule "deps/sanitizers-cmake"]
-	path = deps/sanitizers-cmake
-	url = git://github.com/arsenm/sanitizers-cmake.git
-[submodule "tools/entrygen"]
-	path = tools/entrygen
-	url = https://github.com/2trill2spill/entrygen
