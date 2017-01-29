@@ -132,7 +132,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set_source_files_properties(src/utils/set_process_name.c PROPERTIES COMPILE_FLAGS "-Wno-deprecated-declarations -Wno-pedantic")
 
     # Set standard compiler flags for all files.
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -fstack-protector-all -fno-strict-aliasing -Werror -Wno-unknown-warning-option -Wno-used-but-marked-unused -Wno-padded")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -fstack-protector-all -fPIE -D_FORTIFY_SOURCE=2 -Wno-macro-redefined -fno-strict-aliasing -Werror -Wno-unknown-warning-option -Wno-used-but-marked-unused -Wno-padded")
 
     # Ignore some objective-c specific warnings.
     set(OBJC_IGNORE_FLAGS "${CMAKE_C_FLAGS} -Wno-direct-ivar-access -Wno-objc-interface-ivars -Wno-unused-parameter")
@@ -362,7 +362,7 @@ target_link_libraries(syscall-unit-test nxdependinject)
 target_link_libraries(syscall-unit-test nxio)
 target_link_libraries(syscall-unit-test nxconcurrent)
 
-add_executable(syscall-integration-test EXCLUDE_FROM_ALL tests/syscall/integration/tests.c src/syscall/syscall-macos.c src/syscall/syscall.c src/syscall/arg_types.c src/syscall/signals.c src/syscall/generate.c ${ENTRY_SOURCES} deps/${UNITY}/src/unity.c)
+add_executable(syscall-integration-test EXCLUDE_FROM_ALL tests/syscall/integration/tests.c src/syscall/syscall-macos.c src/syscall/arg_types.c src/syscall/signals.c src/syscall/generate.c ${ENTRY_SOURCES} deps/${UNITY}/src/unity.c)
 target_link_libraries(syscall-integration-test nxmemory)
 target_link_libraries(syscall-integration-test nxdependinject)
 target_link_libraries(syscall-integration-test nxio)
