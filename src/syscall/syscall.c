@@ -94,8 +94,7 @@ struct syscall_entry *pick_syscall(struct syscall_table *table)
         return (NULL);
     }
 
-    // return (atomic_load_ptr(&table->sys_entry[offset]));
-    return (table->sys_entry[offset]);
+    return (atomic_load_ptr(&table->sys_entry[offset]));
 }
 
 int32_t generate_args(struct test_case *test)
