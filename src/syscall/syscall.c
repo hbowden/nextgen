@@ -58,6 +58,13 @@ struct test_case *create_test_case(void)
         return (NULL);
     }
 
+    int32_t rtrn = generate_args(test);
+    if(rtrn < 0)
+    {
+        output->write(ERROR, "Failed to generate syscall arguments\n");
+        return (NULL);
+    }
+
     return (test);
 }
 
