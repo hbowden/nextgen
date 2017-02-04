@@ -20,6 +20,7 @@
 #include "generate.h"
 #include "crypto/random.h"
 #include "memory/memory.h"
+#include "runtime/platform.h"
 #include "io/io.h"
 
 static struct memory_allocator *allocator;
@@ -28,8 +29,8 @@ static struct random_generator *random_gen;
 
 struct test_case
 {
-    uint32_t total_args;
     uint64_t **arg_value_array;
+    struct syscall_entry *entry;
 };
 
 struct test_case *create_test_case(void)
@@ -43,6 +44,20 @@ struct test_case *create_test_case(void)
         return (NULL);
     }
 
+    test->arg_value_array = allocator->alloc(sizeof(uint64_t *) * ARG_LIMIT);
+    if(test->arg_value_array == NULL)
+    {
+        output->write(ERROR, "Allocation failed\n");
+        return (NULL);
+    }
+
+    test->entry = pick_syscall(get_table());
+    if(test->entry == NULL)
+    {
+        output->write(ERROR, "Can't pick syscall\n");
+        return (NULL);
+    }
+
     return (test);
 }
 
@@ -53,7 +68,12 @@ inline uint64_t **get_argument_array(struct test_case *test)
 
 inline uint32_t get_total_args(struct test_case *test)
 {
-    return (test->total_args);
+    return (test->entry->total_args);
+}
+
+inline struct syscall_entry *get_entry(struct test_case *test)
+{
+    return (test->entry);
 }
 
 struct syscall_entry *pick_syscall(struct syscall_table *table)
@@ -67,13 +87,28 @@ struct syscall_entry *pick_syscall(struct syscall_table *table)
         return (NULL);
     }
 
-    if(offset > table->total_syscalls)
+    // return (atomic_load_ptr(&table->sys_entry[offset]));
+    return (table->sys_entry[offset]);
+}
+
+int32_t generate_args(struct test_case *test)
+{
+    uint32_t i;
+    int32_t rtrn = 0;
+    struct syscall_entry *entry = test->entry;
+    uint32_t total_args = test->entry->total_args;
+
+    for(i = 0; i < total_args; i++)
     {
-        output->write(ERROR, "Offset is out of bounds\n");
-        return (NULL);
+        rtrn = entry->get_arg_array[i](&test->arg_value_array[i]);
+        if(rtrn < 0)
+        {
+            output->write(ERROR, "Failed to generate syscall argument\n");
+            return (-1);
+        }
     }
 
-    return (atomic_load_ptr(&table->sys_entry[offset]));
+    return (0);
 }
 
 void inject_syscall_deps(struct dependency_context *ctx)

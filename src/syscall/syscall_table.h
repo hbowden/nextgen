@@ -17,7 +17,6 @@
 #define SYSCALL_TABLE_H
 
 #include "entry.h"
-
 #include <stdint.h>
 
 struct syscall_table

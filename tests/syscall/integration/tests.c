@@ -24,50 +24,78 @@
 
 #include <signal.h>
 
+static const uint32_t iterations = 1000;
+
+static void check_entry(struct syscall_entry *entry)
+{
+    TEST_ASSERT_NOT_NULL(entry);
+    TEST_ASSERT(entry->total_args >= 0);
+    TEST_ASSERT_NOT_NULL(entry->syscall_name);
+    TEST_ASSERT_NOT_NULL(entry->return_type);
+
+    uint32_t i;
+    int32_t rtrn = 0;
+    uint64_t *arg = NULL;
+
+    if(entry->total_args == 0)
+        return;
+
+    for(i = 0; i < entry->total_args; i++)
+    {
+        rtrn = entry->get_arg_array[i](&arg);
+        TEST_ASSERT(rtrn == 0);
+        TEST_ASSERT_NOT_NULL(arg);
+        if(entry->arg_type_array[i] == PID)
+        {
+            TEST_ASSERT(kill((pid_t)(*arg), SIGKILL) == 0);
+        }
+    }
+}
+
 static void setup_tests(void)
 {
-  struct dependency_context *ctx = NULL;
-  struct output_writter *output1 = NULL;
+    struct dependency_context *ctx = NULL;
+    struct output_writter *output1 = NULL;
 
-  output1 = get_console_writter();
-  TEST_ASSERT_NOT_NULL(output1);
+    output1 = get_console_writter();
+    TEST_ASSERT_NOT_NULL(output1);
 
-  struct memory_allocator *allocator1 = NULL;
+    struct memory_allocator *allocator1 = NULL;
 
-  allocator1 = get_default_allocator();
-  TEST_ASSERT_NOT_NULL(allocator1);
+    allocator1 = get_default_allocator();
+    TEST_ASSERT_NOT_NULL(allocator1);
 
-  ctx = create_dependency_ctx(create_dependency(output1, OUTPUT),
-                              create_dependency(allocator1, ALLOCATOR),
-                              NULL);
-  TEST_ASSERT_NOT_NULL(ctx->array);
-  TEST_ASSERT(ctx->count == 2);
-  uint32_t i;
-  for(i = 0; i < ctx->count; i++)
-  {
-      TEST_ASSERT_NOT_NULL(ctx->array[i]);
-  }
+    ctx = create_dependency_ctx(create_dependency(output1, OUTPUT),
+                                create_dependency(allocator1, ALLOCATOR),
+                                NULL);
+    TEST_ASSERT_NOT_NULL(ctx->array);
+    TEST_ASSERT(ctx->count == 2);
+    uint32_t i;
+    for(i = 0; i < ctx->count; i++)
+    {
+        TEST_ASSERT_NOT_NULL(ctx->array[i]);
+    }
 
-  TEST_ASSERT(ctx->array[0]->name == OUTPUT);
-  TEST_ASSERT(ctx->array[1]->name == ALLOCATOR);
-  void *buf = NULL;
+    TEST_ASSERT(ctx->array[0]->name == OUTPUT);
+    TEST_ASSERT(ctx->array[1]->name == ALLOCATOR);
+    void *buf = NULL;
 
-  struct memory_allocator *alloc = NULL;
-  alloc = (struct memory_allocator *)ctx->array[1]->interface;
-  TEST_ASSERT_NOT_NULL(alloc);
-  buf = alloc->shared(10);
-  TEST_ASSERT_NOT_NULL(buf);
+    struct memory_allocator *alloc = NULL;
+    alloc = (struct memory_allocator *)ctx->array[1]->interface;
+    TEST_ASSERT_NOT_NULL(alloc);
+    buf = alloc->shared(10);
+    TEST_ASSERT_NOT_NULL(buf);
 
-  inject_crypto_deps(ctx);
+    inject_crypto_deps(ctx);
 
-  struct random_generator *random_gen = NULL;
+    struct random_generator *random_gen = NULL;
 
-  random_gen = get_default_random_generator();
-  TEST_ASSERT_NOT_NULL(random_gen);
+    random_gen = get_default_random_generator();
+    TEST_ASSERT_NOT_NULL(random_gen);
 
-  add_dep(ctx, create_dependency(random_gen, RANDOM_GEN));
+    add_dep(ctx, create_dependency(random_gen, RANDOM_GEN));
 
-  inject_syscall_deps(ctx);
+    inject_syscall_deps(ctx);
 }
 
 static void test_get_total_args(void)
@@ -78,26 +106,40 @@ static void test_get_total_args(void)
     test = malloc(sizeof(struct test_case));
     TEST_ASSERT_NOT_NULL(test);
 
-    test->total_args = total_args;
+    struct syscall_entry entry = {
+      .total_args = total_args
+    };
+
+    test->entry = &entry;
+
     TEST_ASSERT(get_total_args(test) == total_args);
 }
 
 static void test_create_test_case(void)
 {
     struct test_case *test = NULL;
+    struct syscall_table *table = NULL;
+
+    table = get_table();
+    TEST_ASSERT_NOT_NULL(table);
 
     test = create_test_case();
     TEST_ASSERT_NOT_NULL(test);
     TEST_ASSERT_NOT_NULL(get_argument_array(test));
 
-    // uint32_t i;
     uint32_t total_args = get_total_args(test);
     TEST_ASSERT(total_args >= 0);
 
-    // for(i = 0; i < total_args; i++)
-    // {
-    //     TEST_ASSERT_NOT_NULL(test->arg_value_array[i]);
-    // }
+    struct syscall_entry *entry = NULL;
+    entry = get_entry(test);
+    check_entry(entry);
+
+    uint32_t i;
+
+    for(i = 0; i < total_args; i++)
+    {
+        TEST_ASSERT_NOT_NULL(test->arg_value_array[i]);
+    }
 
     return;
 }
@@ -120,30 +162,25 @@ static void test_get_argument_array(void)
     TEST_ASSERT_NOT_NULL(args);
 }
 
-static void check_entry(struct syscall_entry *entry)
+static void test_get_entry(void)
 {
-    TEST_ASSERT_NOT_NULL(entry);
-    TEST_ASSERT(entry->total_args >= 0);
-    TEST_ASSERT_NOT_NULL(entry->syscall_name);
-    TEST_ASSERT_NOT_NULL(entry->return_type);
+    struct test_case *test = NULL;
 
-    uint32_t i;
-    int32_t rtrn = 0;
-    uint64_t *arg = NULL;
+    test = malloc(sizeof(struct test_case));
+    TEST_ASSERT_NOT_NULL(test);
 
-    for(i = 0; i < entry->total_args; i++)
-    {
-        if(entry->total_args != 0)
-        {
-            rtrn = entry->get_arg_array[i](&arg);
-            TEST_ASSERT(rtrn == 0);
-            TEST_ASSERT_NOT_NULL(arg);
-            if(entry->arg_type_array[i] == PID)
-            {
-                TEST_ASSERT(kill((pid_t)(*arg), SIGKILL) == 0);
-            }
-        }
-    }
+    struct syscall_table *table = NULL;
+
+    table = get_table();
+    TEST_ASSERT_NOT_NULL(table);
+
+    test->entry = pick_syscall(table);
+    TEST_ASSERT_NOT_NULL(test->entry);
+
+    struct syscall_entry *entry = NULL;
+
+    entry = get_entry(test);
+    check_entry(entry);
 }
 
 static void test_get_table(void)
@@ -196,8 +233,37 @@ static void test_pick_syscall(void)
     table = get_table();
     TEST_ASSERT_NOT_NULL(table);
 
-    entry = pick_syscall(table);
-    check_entry(entry);
+    uint32_t i;
+
+    for(i = 0; i < iterations; i++)
+    {
+        entry = pick_syscall(table);
+        check_entry(entry);
+    }
+}
+
+static void test_generate_args(void)
+{
+    struct test_case *test = NULL;
+
+    test = create_test_case();
+    TEST_ASSERT_NOT_NULL(test);
+
+    struct syscall_table *table = NULL;
+
+    table = get_table();
+    TEST_ASSERT_NOT_NULL(table);
+
+    int32_t rtrn = generate_args(test);
+    TEST_ASSERT(rtrn == 0);
+    TEST_ASSERT_NOT_NULL(test->arg_value_array);
+
+    uint32_t i;
+
+    for(i = 0; i < test->entry->total_args; i++)
+    {
+        TEST_ASSERT_NOT_NULL(test->arg_value_array[i]);
+    }
 }
 
 int main(void)
@@ -211,6 +277,8 @@ int main(void)
     test_get_total_args();
     test_get_table();
     test_pick_syscall();
+    test_get_entry();
+    test_generate_args();
     test_create_test_case();
 
     return (0);
