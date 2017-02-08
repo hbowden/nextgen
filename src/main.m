@@ -25,7 +25,6 @@ int main(int argc, const char * argv[])
     int32_t rtrn = 0;
     struct fuzzer_config *config = NULL;
     struct output_writter *output = NULL;
-    struct fuzzer_control *control = NULL;
     struct fuzzer_instance *fuzzer = NULL;
     struct memory_allocator *allocator = NULL;
 
@@ -58,13 +57,6 @@ int main(int argc, const char * argv[])
     config = parse_cmd_line(argc, argv);
     if(config == NULL)
         return (-1);
-
-    control = init_fuzzer_control();
-    if(control == NULL)
-    {
-        output->write(ERROR, "Fuzzer control object initialation failed\n");
-        return (-1);
-    }
 
     /* Get fuzzer that was selected from configuration.  */
     fuzzer = get_fuzzer(config);

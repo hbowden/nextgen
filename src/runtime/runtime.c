@@ -72,6 +72,22 @@ int32_t inject_deps(struct output_writter *output,
     inject_resource_deps(ctx);
     inject_runtime_deps(ctx);
 
+    struct fuzzer_control *control = NULL;
+
+    control = init_fuzzer_control();
+    if(control == NULL)
+    {
+        output->write(ERROR, "Fuzzer control object initialation failed\n");
+        return (-1);
+    }
+
+    add_dep(ctx, create_dependency(control, CONTROL));
+
+    /* A hack, there's definetly a better way. Currently init_fuzzer_control()
+       needs the allocator interface injected into runtime. But runtime also needs control injected
+       as well hence the double inject. */
+    inject_runtime_deps(ctx);
+
     return (0);
 }
 
