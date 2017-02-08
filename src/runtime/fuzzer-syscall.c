@@ -16,6 +16,7 @@
 #include "fuzzer.h"
 #include "io/io.h"
 #include "syscall/child.h"
+#include "syscall/syscall.h"
 #include "memory/memory.h"
 #include "syscall/signals.h"
 #include "utils/utils.h"
@@ -120,6 +121,8 @@ struct fuzzer_instance *get_syscall_fuzzer(char *output_path)
 void inject_syscall_fuzzer_deps(struct dependency_context *ctx)
 {
     uint32_t i;
+
+    inject_syscall_deps(ctx);
 
     for(i = 0; i < ctx->count; i++)
     {
