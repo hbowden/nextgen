@@ -32,9 +32,17 @@ static int32_t inject_runtime_deps(struct dependency_context *ctx)
     return (0);
 }
 
-int32_t inject_deps(struct output_writter *output,
-                    struct memory_allocator *allocator)
+int32_t inject_deps(struct output_writter *output)
 {
+    struct memory_allocator *allocator = NULL;
+
+    allocator = get_default_allocator();
+    if(allocator == NULL)
+    {
+        output->write(ERROR, "Failed to get memory allocator\n");
+        return (-1);
+    }
+
     struct dependency_context *ctx = NULL;
 
     ctx = create_dependency_ctx(create_dependency(output, OUTPUT),

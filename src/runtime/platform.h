@@ -22,7 +22,7 @@
 
 /* Define TRUE and FALSE. */
 enum local_bool { FALSE, TRUE };
-static const uint32_t ARG_LIMIT = 7;
+static const uint32_t ARG_LIMIT = 9;
 static const uint32_t ARG_BUF_LEN = 4096;
 static const uint32_t POOL_SIZE = 1024;
 static const char OPERATING_SYSTEM[] = "FREEBSD";
@@ -34,7 +34,7 @@ static const char OPERATING_SYSTEM[] = "FREEBSD";
 /* In this header TRUE and FALSE are defined. */
 #include <mach/boolean.h>
 
-static const uint32_t ARG_LIMIT = 7;
+static const uint32_t ARG_LIMIT = 9;
 static const uint32_t ARG_BUF_LEN = 4096;
 static const uint32_t POOL_SIZE = 1024;
 static const char OPERATING_SYSTEM[] = "MACOS";
@@ -46,7 +46,7 @@ static const char OPERATING_SYSTEM[] = "MACOS";
 /* Define TRUE and FALSE. */
 enum local_bool { FALSE, TRUE };
 
-static const uint32_t ARG_LIMIT = 7;
+static const uint32_t ARG_LIMIT = 9;
 static const uint32_t ARG_BUF_LEN = 4096;
 static const uint32_t POOL_SIZE = 1024;
 static const char OPERATING_SYSTEM[] = "LINUX";
@@ -58,7 +58,7 @@ static const char OPERATING_SYSTEM[] = "LINUX";
 /* Define TRUE and FALSE. */
 enum local_bool { FALSE, TRUE };
 
-static const uint32_t ARG_LIMIT = 7;
+static const uint32_t ARG_LIMIT = 9;
 static const uint32_t ARG_BUF_LEN = 4096;
 static const uint32_t POOL_SIZE = 1024;
 static const char OPERATING_SYSTEM[] = "CYGWIN";

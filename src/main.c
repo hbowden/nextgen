@@ -25,7 +25,6 @@ int main(int argc, const char * argv[])
     struct fuzzer_config *config = NULL;
     struct output_writter *output = NULL;
     struct fuzzer_instance *fuzzer = NULL;
-    struct memory_allocator *allocator = NULL;
 
     /* Use the console/terminal for our output device. */
     output = get_console_writter();
@@ -36,15 +35,7 @@ int main(int argc, const char * argv[])
         return (-1);
     }
 
-    /* Get an allocator object so we can allocate other objects in our program. */
-    allocator = get_default_allocator();
-    if(allocator == NULL)
-    {
-        output->write(ERROR, "Failed to get memory allocator\n");
-        return (-1);
-    }
-
-    rtrn = inject_deps(output, allocator);
+    rtrn = inject_deps(output);
     if(rtrn < 0)
     {
         output->write(ERROR, "Couldn't inject dependencies\n");
