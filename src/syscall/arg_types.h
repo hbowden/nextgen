@@ -21,7 +21,7 @@
 #include <stdint.h>
 #include "utils/utils.h"
 
-enum arg_type { ADDRESS, INT, PID };
+enum arg_type { ADDRESS, INT, PID, FILE_DESC, DIR_PATH, FILE_PATH, SOCKET };
 
 struct arg_context
 {
