@@ -16,6 +16,7 @@
 #include "child.h"
 #include "io/io.h"
 #include "signals.h"
+#include "syscall.h"
 #include "utils/noreturn.h"
 #include "memory/memory.h"
 #include "concurrent/concurrent.h"
@@ -35,9 +36,18 @@ static int32_t child_loop(struct syscall_child *child)
 
     setup_child_signal_handler();
 
+    struct test_case *test = NULL;
+
     while(1)
     {
+        test = create_test_case();
+        if(test == NULL)
+        {
+            output->write(ERROR, "Failed to create test case\n");
+            return (-1);
+        }
 
+        cleanup_test(test);
     }
 }
 
@@ -56,6 +66,8 @@ static int32_t start_child(struct syscall_child *child)
     pid = fork();
     if(pid == 0)
     {
+        printf("id: %d\n", getpid());
+
         atomic_store_int32(&child->pid, getpid());
         atomic_add_uint32(&state->running_children, 1);
 
@@ -180,8 +192,8 @@ struct syscall_child *get_child_with_pid(pid_t pid)
 
     for(i = 0; i < state->total_children; i++)
     {
-        if(state->children[i]->pid == pid)
-            return (state->children[i]);
+        if(atomic_load_ptr(&state->children[i]->pid) == pid)
+            return (atomic_load_ptr(&state->children[i]));
     }
 
     /* Should not get here, but if we do return NULL. */
