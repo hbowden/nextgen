@@ -190,7 +190,7 @@ int32_t copy_file_to(char *src, char *dst)
 
 int32_t check_root(void)
 {
-    printf("Making sure nextgen has root privileges\n");
+    output->write(STD, "Making sure nextgen has root privileges\n");
 
     uid_t check = 0;
 
@@ -209,14 +209,14 @@ int32_t drop_privileges(void)
     rtrn = setgid(999);
     if(rtrn < 0)
     {
-        printf("Can't drop gid: %s\n", strerror(errno));
+        output->write(ERROR, "Can't drop gid: %s\n", strerror(errno));
         return (-1);
     }
 
     rtrn = setuid(999);
     if(rtrn < 0)
     {
-        printf("Can't drop uid: %s\n", strerror(errno));
+        output->write(ERROR, "Can't drop uid: %s\n", strerror(errno));
         return (-1);
     }
 
@@ -228,14 +228,14 @@ int32_t get_extension(char *path, char **extension)
     char *pointer = strrchr(path, '.');
     if(pointer == NULL)
     {
-        printf("Can't find . %s:\n", strerror(errno));
+        output->write(ERROR, "Can't find . %s:\n", strerror(errno));
         return (-1);
     }
 
     int32_t rtrn = asprintf(extension, "%s\n", pointer + 1);
     if(rtrn < 0)
     {
-        printf("Can't alloc extension: %s\n", strerror(errno));
+        output->write(ERROR, "Can't alloc extension: %s\n", strerror(errno));
         return (-1);
     }
 
@@ -291,7 +291,7 @@ int32_t get_home(char **home)
     /* Get user password struct */
     if(!(pwd = getpwuid(uid)))
     {
-        printf("Can't Get pwd struct: %s\n", strerror(errno));
+        output->write(ERROR, "Can't Get pwd struct: %s\n", strerror(errno));
         return (-1);
     }
 
@@ -299,7 +299,7 @@ int32_t get_home(char **home)
     rtrn = asprintf(home, "%s", pwd->pw_dir);
     if(rtrn < 0)
     {
-        printf("Can't Create home string: %s\n", strerror(errno));
+        output->write(ERROR, "Can't Create home string: %s\n", strerror(errno));
         return (-1);
     }
 
@@ -315,7 +315,7 @@ int32_t ascii_to_binary(char *input, char **out, uint64_t input_len,
     /* Make sure length is not zero. */
     if(input_len == 0)
     {
-        printf("Length argument is zero\n");
+        output->write(ERROR, "Length argument is zero\n");
         return (-1);
     }
 
@@ -327,7 +327,7 @@ int32_t ascii_to_binary(char *input, char **out, uint64_t input_len,
     (*out) = malloc((*out_len) + 1);
     if((*out) == NULL)
     {
-        printf("Can't allocate binary string\n");
+        output->write(ERROR, "Can't allocate binary string\n");
         return (-1);
     }
 
@@ -446,7 +446,7 @@ int32_t binary_to_ascii(char *input, char **out, uint64_t input_len,
 
     if(input_len == 0)
     {
-        printf("Input length is zero\n");
+        output->write(ERROR, "Input length is zero\n");
         return (-1);
     }
 
@@ -455,7 +455,7 @@ int32_t binary_to_ascii(char *input, char **out, uint64_t input_len,
     (*out) = malloc((*out_len) + 1);
     if((*out) == NULL)
     {
-        printf("Can't allocate binary string\n");
+        output->write(ERROR, "Can't allocate binary string\n");
         return (-1);
     }
 
@@ -490,7 +490,7 @@ int32_t delete_dir_contents(char *dir)
     tree = fts_open(argv, FTS_LOGICAL | FTS_NOSTAT, entcmp);
     if(tree == NULL)
     {
-        printf("Can't walk directory\n");
+        output->write(ERROR, "Can't walk directory\n");
         return (-1);
     }
 
@@ -512,7 +512,7 @@ int32_t delete_dir_contents(char *dir)
         rtrn = stat(f->fts_path, &sb);
         if(rtrn < 0)
         {
-            printf("Can't get path stats: %s\n", strerror(errno));
+            output->write(ERROR, "Can't get path stats: %s\n", strerror(errno));
             return (-1);
         }
 
@@ -528,7 +528,7 @@ int32_t delete_dir_contents(char *dir)
             rtrn = unlink(f->fts_path);
             if(rtrn < 0)
             {
-                printf("Can't remove file\n");
+                output->write(ERROR, "Can't remove file\n");
                 return (-1);
             }
         }
@@ -537,7 +537,7 @@ int32_t delete_dir_contents(char *dir)
     rtrn = fts_close(tree);
     if(rtrn < 0)
     {
-        printf("fts: %s\n", strerror(errno));
+        output->write(ERROR, "fts: %s\n", strerror(errno));
         return (-1);
     }
 
@@ -549,7 +549,7 @@ int32_t delete_directory(char *path)
     /* Check for a NULL pointer being passed to us. */
     if(path == NULL)
     {
-        printf("Path pointer is NULL\n");
+        output->write(ERROR, "Path pointer is NULL\n");
         return (-1);
     }
 
@@ -560,7 +560,7 @@ int32_t delete_directory(char *path)
     rtrn = stat(path, &sb);
     if(rtrn < 0)
     {
-        printf("Can't get stats: %s\n", strerror(errno));
+        output->write(ERROR, "Can't get stats: %s\n", strerror(errno));
         return(-1);
     }
 
@@ -572,20 +572,20 @@ int32_t delete_directory(char *path)
         rtrn = delete_dir_contents(path);
         if(rtrn < 0)
         {
-            printf("Can't delete dir contents\n");
+            output->write(ERROR, "Can't delete dir contents\n");
             return (-1);
         }
     }
     else
     {
-        printf("Input path is not a directory\n");
+        output->write(ERROR, "Input path is not a directory\n");
         return (-1);
     }
 
     rtrn = rmdir(path);
     if(rtrn < 0)
     {
-        printf("Can't remove directory: %s\n", strerror(errno));
+        output->write(ERROR, "Can't remove directory: %s\n", strerror(errno));
         return (-1);
     }
 
@@ -604,7 +604,7 @@ int32_t count_files_directory(uint32_t *count, char *dir)
     directory = opendir(dir);
     if(directory == NULL)
     {
-        printf("Can't open dir: %s\n", strerror(errno));
+        output->write(ERROR, "Can't open dir: %s\n", strerror(errno));
         return (-1);
     }
 
@@ -628,7 +628,7 @@ int32_t count_files_directory(uint32_t *count, char *dir)
         rtrn = stat(file_path, &buf);
         if(rtrn < 0)
         {
-            printf("Can't get file stats: %s\n", strerror(errno));
+            output->write(ERROR, "Can't get file stats: %s\n", strerror(errno));
             closedir(directory);
             return (-1);
         }
@@ -645,7 +645,7 @@ int32_t count_files_directory(uint32_t *count, char *dir)
     rtrn = closedir(directory);
     if(rtrn < 0)
     {
-        printf("Can't close directory\n");
+        output->write(ERROR, "Can't close directory\n");
         return (-1);
     }
 
@@ -660,21 +660,21 @@ int32_t create_random_directory(char *root, char **path)
     rtrn = generate_directory_name(&name);
     if(rtrn < 0)
     {
-        printf("Failed to generate directory name\n");
+        output->write(ERROR, "Failed to generate directory name\n");
         return (-1);
     }
 
     rtrn = asprintf(path, "%s/%s", root, name);
     if(rtrn < 0)
     {
-        printf("String concatenation failed\n");
+        output->write(ERROR, "String concatenation failed\n");
         return (-1);
     }
 
     rtrn = mkdir((*path), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     if(rtrn < 0)
     {
-        printf("Directory creation failed: %s\n", strerror(errno));
+        output->write(ERROR, "Directory creation failed: %s\n", strerror(errno));
         return (-1);
     }
 
