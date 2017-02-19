@@ -118,10 +118,6 @@ static void test_get_total_args(void)
 static void test_create_test_case(void)
 {
     struct test_case *test = NULL;
-    struct syscall_table *table = NULL;
-
-    table = get_table();
-    TEST_ASSERT_NOT_NULL(table);
 
     test = create_test_case();
     TEST_ASSERT_NOT_NULL(test);
@@ -142,6 +138,33 @@ static void test_create_test_case(void)
     }
 
     return;
+}
+
+static void test_create_test_case_for(void)
+{
+    struct test_case *test = NULL;
+
+    test = create_test_case_for("invalid");
+    TEST_ASSERT_NULL(test);
+
+    test = create_test_case_for("socket");
+    TEST_ASSERT_NOT_NULL(test);
+
+    TEST_ASSERT_NOT_NULL(get_argument_array(test));
+
+    uint32_t total_args = get_total_args(test);
+    TEST_ASSERT(total_args >= 0);
+
+    struct syscall_entry *entry = NULL;
+    entry = get_entry(test);
+    check_entry(entry);
+
+    uint32_t i;
+
+    for(i = 0; i < total_args; i++)
+    {
+        TEST_ASSERT_NOT_NULL(test->arg_value_array[i]);
+    }
 }
 
 static void test_get_argument_array(void)
@@ -246,8 +269,14 @@ static void test_generate_args(void)
 {
     struct test_case *test = NULL;
 
-    test = create_test_case();
+    test = malloc(sizeof(struct test_case));
     TEST_ASSERT_NOT_NULL(test);
+
+    test->arg_value_array = allocator->alloc(sizeof(uint64_t *) * ARG_LIMIT);
+    TEST_ASSERT_NOT_NULL(test->arg_value_array);
+   
+    test->entry = pick_syscall(get_table());
+    TEST_ASSERT_NOT_NULL(test->entry);
 
     struct syscall_table *table = NULL;
 
@@ -266,6 +295,42 @@ static void test_generate_args(void)
     }
 }
 
+static void test_cleanup_test(void)
+{
+    struct syscall_table *table = NULL;
+
+    table = get_table();
+    TEST_ASSERT_NOT_NULL(table);
+
+    struct test_case *test = NULL;
+
+    /* Use ptrace so we can test killing of child processes,
+     as one of ptraces arguments are a pid. */
+    test = create_test_case_for("ptrace");
+    TEST_ASSERT_NOT_NULL(test);
+
+    cleanup_test(test);
+    // TEST_ASSERT_NULL(test);
+}
+
+static void test_find_entry(void)
+{
+    struct syscall_table *table = NULL;
+
+    table = get_table();
+    TEST_ASSERT_NOT_NULL(table);
+
+    struct syscall_entry *entry = NULL;
+
+    entry = find_entry("close", table);
+    check_entry(entry);
+    TEST_ASSERT(strcmp(entry->syscall_name, "close") == 0);
+
+    entry = find_entry("getpid", table);
+    check_entry(entry);
+    TEST_ASSERT(strcmp(entry->syscall_name, "getpid") == 0);
+}
+
 int main(void)
 {
     setup_tests();
@@ -278,7 +343,10 @@ int main(void)
     test_get_table();
     test_pick_syscall();
     test_get_entry();
+    test_find_entry();
+    test_cleanup_test();
     test_generate_args();
+    test_create_test_case_for();
     test_create_test_case();
 
     return (0);
