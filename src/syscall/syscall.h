@@ -36,6 +36,13 @@ extern struct syscall_table *get_table(void);
 extern struct test_case *create_test_case(void);
 
 /**
+ * Create a system call test case for the syscall specified by name.
+ * @param name The name of the syscall to generate a test case for.
+ * @return A test case on success and NULL on failure.
+ */
+extern struct test_case *create_test_case_for(const char *name);
+
+/**
  * Return the total amount of arguments that a test case has.
  * @param test A test_case struct.
  * @return A uint32_t that is the total amount of arguments.
@@ -71,6 +78,20 @@ extern inline struct syscall_entry *get_entry(struct test_case *test);
  * @return Zero on success and -1 on failure.
  */
  extern int32_t generate_args(struct test_case *test);
+
+ /**
+  * Free's resources such as descriptors and memory associated to a test case.
+  * @param test The test case to free resources for. 
+  */
+extern void cleanup_test(struct test_case *test);
+
+/**
+ * Grab a specific syscall entry by syscall name.
+ * @param name The name of the syscall to find.
+ * @param table The system call table to search for entries in.
+ * @return The entry requested on succes and NULL when the entry can not be found.
+ */
+extern struct syscall_entry *find_entry(const char *name, struct syscall_table *table);
 
 extern void inject_syscall_deps(struct dependency_context *ctx);
 
