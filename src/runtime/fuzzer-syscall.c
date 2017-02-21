@@ -19,6 +19,7 @@
 #include "syscall/syscall.h"
 #include "memory/memory.h"
 #include "syscall/signals.h"
+#include "concurrent/concurrent.h"
 #include "utils/utils.h"
 #include "platform.h"
 #include <stdio.h>
@@ -31,7 +32,7 @@ static struct fuzzer_control *control;
 
 static int32_t stop_syscall_fuzzer(void)
 {
-
+    atomic_store_uint32(&control->stop, TRUE);
 
     return (0);
 }
