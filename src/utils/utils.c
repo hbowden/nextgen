@@ -685,6 +685,8 @@ void inject_utils_deps(struct dependency_context *ctx)
 {
     uint32_t i;
 
+    inject_utils_os_deps(ctx);
+
     for(i = 0; i < ctx->count; i++)
     {
         switch((int32_t)ctx->array[i]->name)

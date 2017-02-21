@@ -35,7 +35,7 @@ int32_t get_core_count(uint32_t *core_count)
     int32_t rtrn = sysctl(mib, 2, core_count, &len, NULL, 0);
     if(rtrn < 0)
     {
-        printf("sysctl: %s\n", strerror(errno));
+        output->write(ERROR, "sysctl: %s\n", strerror(errno));
         return (-1);
     }
 
@@ -131,5 +131,20 @@ void set_process_name(char *name)
                                            ls_display_name_key,
                                            process_name,
                                            NULL /* optional out param */);
+}
+
+void inject_utils_os_deps(struct dependency_context *ctx)
+{
+    uint32_t i;
+
+    for(i = 0; i < ctx->count; i++)
+    {
+        switch((int32_t)ctx->array[i]->name)
+        {
+            case OUTPUT:
+                output = (struct output_writter *)ctx->array[i]->interface;
+                break;
+        }
+    }
 }
 

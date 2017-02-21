@@ -129,5 +129,7 @@ extern int32_t generate_directory_name(char **);
 
 extern void inject_utils_deps(struct dependency_context *ctx);
 
+extern void inject_utils_os_deps(struct dependency_context *ctx);
+
 /* End of header. */
 #endif
