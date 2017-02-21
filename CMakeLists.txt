@@ -139,7 +139,7 @@ add_executable(depend-inject-integration-test EXCLUDE_FROM_ALL tests/depend-inje
 target_link_libraries(depend-inject-integration-test nxmemory nxdependinject nxio nxconcurrent nxcrypto)
 
 add_executable(syscall-unit-test EXCLUDE_FROM_ALL tests/syscall/unit/tests.c ${ENTRY_SOURCES} ${SYSCALL_OS_FILES} src/syscall/syscall.c src/syscall/arg_types.c src/syscall/signals.c src/syscall/generate.c deps/${UNITY}/src/unity.c)
-target_link_libraries(syscall-unit-test nxmemory nxdependinject nxio nxcrypto nxconcurrent)
+target_link_libraries(syscall-unit-test nxmemory nxdependinject nxio nxcrypto nxconcurrent nxruntime)
 
 add_executable(syscall-integration-test EXCLUDE_FROM_ALL tests/syscall/integration/tests.c ${SYSCALL_OS_FILES} src/syscall/syscall-macos.c src/syscall/arg_types.c src/syscall/signals.c src/syscall/generate.c ${ENTRY_SOURCES} deps/${UNITY}/src/unity.c)
 target_link_libraries(syscall-integration-test nxmemory nxdependinject nxio nxconcurrent nxcrypto)
