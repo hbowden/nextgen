@@ -46,7 +46,7 @@ struct fuzzer_control *init_fuzzer_control(void)
 {
     struct fuzzer_control *control = NULL;
 
-    control = allocator->alloc(sizeof(struct fuzzer_control));
+    control = allocator->shared(sizeof(struct fuzzer_control));
     if(control == NULL)
     {
         output->write(ERROR, "Failed to allocate fuzzer control\n");
