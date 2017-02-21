@@ -19,6 +19,7 @@
 #include "syscall.h"
 #include "utils/noreturn.h"
 #include "memory/memory.h"
+#include "runtime/fuzzer.h"
 #include "concurrent/concurrent.h"
 #include <stdio.h>
 #include <stdint.h>
@@ -26,8 +27,15 @@
 #include <errno.h>
 #include <signal.h>
 
+#ifdef MAC_OS
+
+#include <mach/boolean.h>
+
+#endif
+
 static struct memory_allocator *allocator;
 static struct output_writter *output;
+static struct fuzzer_control *control;
 static struct children_state *state = NULL;
 
 static int32_t child_loop(struct syscall_child *child)
@@ -38,7 +46,7 @@ static int32_t child_loop(struct syscall_child *child)
 
     struct test_case *test = NULL;
 
-    while(1)
+    while(control->stop != TRUE)
     {
         test = create_test_case();
         if(test == NULL)
@@ -49,6 +57,8 @@ static int32_t child_loop(struct syscall_child *child)
 
         cleanup_test(test);
     }
+
+    return (0);
 }
 
 static int32_t start_child(struct syscall_child *child)
@@ -66,9 +76,9 @@ static int32_t start_child(struct syscall_child *child)
     pid = fork();
     if(pid == 0)
     {
-        printf("id: %d\n", getpid());
+        if(ck_pr_cas_int(&child->pid, INITIALIZING, getpid()) != true)
+            _exit(-1);
 
-        atomic_store_int32(&child->pid, getpid());
         atomic_add_uint32(&state->running_children, 1);
 
         /* Let the parent process know it's safe to continue. */
@@ -143,6 +153,13 @@ struct syscall_child *create_syscall_child(void)
     return (NULL);
 }
 
+static int32_t stop_child(void)
+{
+    atomic_store_uint32(&control->stop, TRUE);
+
+    return (0);
+}
+
 struct children_state *create_children_state(uint32_t total_children)
 {
     struct children_state *child_state = NULL;
@@ -181,6 +198,7 @@ struct children_state *create_children_state(uint32_t total_children)
         }
 
         child_state->children[i]->start = &start_child;
+        child_state->children[i]->stop = &stop_child;
     }
 
     return (child_state);
@@ -261,6 +279,10 @@ void inject_child_deps(struct dependency_context *ctx)
 
             case OUTPUT:
                 output = (struct output_writter *)ctx->array[i]->interface;
+                break;
+
+            case CONTROL:
+                control = (struct fuzzer_control *)ctx->array[i]->interface;
                 break;
         }
     }
