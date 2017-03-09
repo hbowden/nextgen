@@ -2,10 +2,10 @@ cmake_minimum_required (VERSION 3.0)
 
 project (Nextgen C)
 
-SET(CK "ck-0.5.2")
+SET(CK "ck-0.6.0")
 SET(UNITY "Unity")
-SET(LIBRESSL "libressl-2.5.0")
-SET(CAPSTONE "capstone-3.0.4")
+SET(LIBRESSL "libressl-2.5.1")
+SET(CAPSTONE "capstone-3.0.5-rc2")
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/deps/cmake_modules" ${CMAKE_MODULE_PATH})
 
@@ -85,7 +85,7 @@ add_library(nxutils SHARED ${UTILS_OS_FILE} src/utils/utils.c src/utils/realloca
 add_library(nxconcurrent SHARED src/concurrent/concurrent.c src/concurrent/epoch.c)
 add_library(nxmutate SHARED src/mutate/mutate.c)
 add_library(nxnetwork SHARED src/network/network.c ${NETWORK_OS_FILE})
-add_library(nxresource SHARED src/resource/resource.c)
+#add_library(nxresource SHARED src/resource/resource.c)
 add_library(nxlog SHARED src/log/log.c ${LOG_OS_FILES})
 add_library(nxsyscall SHARED ${ENTRY_SOURCES} ${SYSCALL_OS_FILES} src/syscall/syscall.c src/syscall/generate.c src/syscall/set_test.c src/syscall/signals.c src/syscall/arg_types.c src/syscall/child.c)
 add_library(nxgenetic SHARED src/genetic/genetic.c)
@@ -94,17 +94,17 @@ add_library(nxruntime SHARED src/runtime/runtime.c src/runtime/fuzzer.c src/runt
 target_link_libraries(nxcrypto ${CMAKE_SOURCE_DIR}/deps/${LIBRESSL}/crypto/.libs/libcrypto.a)
 target_link_libraries(nxnetwork nxcrypto)
 target_link_libraries(nxutils ${UTILS_LINK_FILES})
-target_link_libraries(nxresource nxnetwork nxmemory nxutils nxcrypto)
+#target_link_libraries(nxresource nxnetwork nxmemory nxutils nxcrypto)
 target_link_libraries(nxconcurrent ${CMAKE_SOURCE_DIR}/deps/${CK}/src/libck.so nxutils)
 target_link_libraries(nxruntime nxio nxdependinject nxmemory nxsyscall)
 target_link_libraries(nxsyscall nxconcurrent)
-target_link_libraries(nxruntime nxresource nxcrypto)
+target_link_libraries(nxruntime nxcrypto)
 target_link_libraries(nxgenetic nxmemory nxio)
 
 add_executable(nextgen ${MAIN})
 target_link_libraries(nextgen nxio nxdependinject nxmemory nxruntime)
 
-install(TARGETS nextgen nxio nxmemory nxconcurrent nxcrypto nxutils nxnetwork nxmutate nxresource nxlog nxsyscall nxgenetic nxruntime
+install(TARGETS nextgen nxio nxmemory nxconcurrent nxcrypto nxutils nxnetwork nxmutate nxlog nxsyscall nxgenetic nxruntime
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib/static)
@@ -117,11 +117,8 @@ include_directories(deps/${UNITY}/src)
 add_executable(concurrent-unit-test EXCLUDE_FROM_ALL tests/concurrent/unit/tests.c deps/${UNITY}/src/unity.c)
 target_link_libraries(concurrent-unit-test nxconcurrent nxio nxmemory)
 
-add_executable(memory-unit-test EXCLUDE_FROM_ALL tests/memory/unit/tests.c deps/${UNITY}/src/unity.c)
-target_link_libraries(memory-unit-test nxconcurrent nxmemory)
-
-add_executable(memory-intergration-test EXCLUDE_FROM_ALL tests/memory/unit/tests.c deps/${UNITY}/src/unity.c)
-target_link_libraries(memory-intergration-test nxconcurrent nxmemory)
+add_executable(memory-intergration-test EXCLUDE_FROM_ALL tests/memory/intergration/tests.c deps/${UNITY}/src/unity.c)
+target_link_libraries(memory-intergration-test nxconcurrent)
 
 add_executable(crypto-unit-test EXCLUDE_FROM_ALL tests/crypto/unit/tests.c deps/${UNITY}/src/unity.c)
 target_link_libraries(crypto-unit-test nxconcurrent nxmemory nxcrypto nxio nxdependinject)
@@ -129,8 +126,8 @@ target_link_libraries(crypto-unit-test nxconcurrent nxmemory nxcrypto nxio nxdep
 add_executable(utils-unit-test EXCLUDE_FROM_ALL tests/utils/unit/tests.c deps/${UNITY}/src/unity.c)
 target_link_libraries(utils-unit-test nxconcurrent nxmemory nxutils nxcrypto nxio nxdependinject)
 
-add_executable(resource-integration-test EXCLUDE_FROM_ALL tests/resource/integration/tests.c deps/${UNITY}/src/unity.c)
-target_link_libraries(resource-integration-test nxnetwork nxdependinject nxio nxconcurrent nxmemory nxutils nxcrypto)
+#add_executable(resource-integration-test EXCLUDE_FROM_ALL tests/resource/integration/tests.c deps/${UNITY}/src/unity.c)
+#target_link_libraries(resource-integration-test nxnetwork nxdependinject nxio nxconcurrent nxmemory nxutils nxcrypto)
 
 add_executable(runtime-integration-test EXCLUDE_FROM_ALL tests/runtime/integration/tests.c deps/${UNITY}/src/unity.c)
 target_link_libraries(runtime-integration-test nxruntime)
@@ -147,19 +144,17 @@ target_link_libraries(syscall-integration-test nxmemory nxdependinject nxio nxco
 add_sanitizers(depend-inject-integration-test)
 add_sanitizers(runtime-integration-test)
 add_sanitizers(utils-unit-test)
-add_sanitizers(memory-unit-test)
 add_sanitizers(memory-intergration-test)
 add_sanitizers(crypto-unit-test)
 add_sanitizers(concurrent-unit-test)
-add_sanitizers(resource-integration-test)
+#add_sanitizers(resource-integration-test)
 add_sanitizers(syscall-unit-test)
 add_sanitizers(syscall-integration-test)
 
 add_test(depend-inject-integration-test depend-inject-integration-test)
 add_test(utils-unit-test utils-unit-test)
 add_test(runtime-integration-test runtime-integration-test)
-add_test(resource-integration-test resource-integration-test)
-add_test(memory-unit-test memory-unit-test)
+#add_test(resource-integration-test resource-integration-test)
 add_test(memory-intergration-test memory-intergration-test)
 add_test(crypto-unit-test crypto-unit-test)
 add_test(concurrent-unit-test concurrent-unit-test)
@@ -170,9 +165,8 @@ add_dependencies(check syscall-integration-test)
 add_dependencies(check depend-inject-integration-test)
 add_dependencies(check utils-unit-test)
 add_dependencies(check runtime-integration-test)
-add_dependencies(check resource-integration-test)
+#dd_dependencies(check resource-integration-test)
 add_dependencies(check memory-intergration-test)
-add_dependencies(check memory-unit-test)
 add_dependencies(check crypto-unit-test)
 add_dependencies(check concurrent-unit-test)
 add_dependencies(check syscall-unit-test)
