@@ -20,10 +20,12 @@
 #include "generate.h"
 #include "crypto/random.h"
 #include "memory/memory.h"
+#include "concurrent/concurrent.h"
 #include "resource/resource.h"
 #include "runtime/platform.h"
 #include "io/io.h"
 
+#include <string.h>
 #include <signal.h>
 #include <errno.h>
 

@@ -21,33 +21,35 @@
 #include "crypto/hash.h"
 #include "memory/memory.h"
 
+#include <string.h>
+
 static uint32_t iterations = 1000;
 
 static void test_get_random_generator(void)
 {
     struct random_generator *random = NULL;
-		struct memory_allocator *allocator = NULL;
-		struct output_writter *output = NULL;
+	struct memory_allocator *allocator = NULL;
+	struct output_writter *output = NULL;
 
-		output = get_console_writter();
-	  TEST_ASSERT_NOT_NULL(output);
+	output = get_console_writter();
+	TEST_ASSERT_NOT_NULL(output);
 
-		allocator = get_default_allocator();
-	  TEST_ASSERT_NOT_NULL(allocator);
+	allocator = get_default_allocator();
+	TEST_ASSERT_NOT_NULL(allocator);
 
-		random = get_default_random_generator();
-		TEST_ASSERT_NOT_NULL(random);
-	  TEST_ASSERT_NOT_NULL(random->range);
+	random = get_default_random_generator();
+	TEST_ASSERT_NOT_NULL(random);
+	TEST_ASSERT_NOT_NULL(random->range);
 
-		int32_t rtrn = 0;
-		uint32_t number = 0;
-		uint32_t i = 0;
+	int32_t rtrn = 0;
+	uint32_t number = 0;
+	uint32_t i = 0;
 
-		for(i = 0; i < iterations; i++)
-		{
-				rtrn = random->range(1000, &number);
-				TEST_ASSERT(rtrn == 0);
-				TEST_ASSERT(number <= 1000);
+	for(i = 0; i < iterations; i++)
+	{
+		rtrn = random->range(1000, &number);
+		TEST_ASSERT(rtrn == 0);
+		TEST_ASSERT(number <= 1000);
 
         char *buf auto_free = NULL;
 
@@ -55,7 +57,7 @@ static void test_get_random_generator(void)
         TEST_ASSERT(rtrn == 0);
         TEST_ASSERT_NOT_NULL(buf);
         TEST_ASSERT(strlen(buf) <= number);
-		}
+	}
 }
 
 static void test_get_hasher(void)
@@ -122,5 +124,5 @@ int main(void)
     test_get_random_generator();
     test_get_hasher();
 
-	  return (0);
+	return (0);
 }

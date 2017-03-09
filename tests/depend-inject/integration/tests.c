@@ -22,6 +22,8 @@
 #include "memory/memory.h"
 #include "depend-inject/depend-inject.h"
 
+#include <unistd.h>
+
 static void test_create_dependency(void)
 {
     struct dependency *dep = NULL;

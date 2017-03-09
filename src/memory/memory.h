@@ -13,19 +13,13 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  **/
 
-#ifndef MEMORY_H
-#define MEMORY_H
+#ifndef NX_MEMORY_H
+#define NX_MEMORY_H
 
-#include "utils/deprecate.h"
-#include "concurrent/concurrent.h"
 #include <stdint.h>
 
-struct memory_block
-{
-    void *ptr;
-
-    NX_SLIST_ENTRY(memory_block);
-};
+struct shared_pool;
+struct memory_block;
 
 struct memory_allocator
 {
@@ -33,45 +27,21 @@ struct memory_allocator
     void *(*shared) (uint64_t);
     void (*free) (void **);
     void (*free_shared) (void **, uint64_t);
-};
-
-/* Memory pool data structure. */
-struct mem_pool_shared
-{
-    /* Spin lock used to protect underlying data structures in the pool. */
-    ck_spinlock_t lock;
-
-    /* The size of the memory block that ptr points at. */
-    uint32_t block_size;
-
-    /* The number of blocks in the memory pool. */
-    uint32_t block_count;
-
-    const char padding[4];
-
-    /* Shared memory list that represents the memory pool. */
-    NX_SLIST_HEAD(free_list, memory_block);
-
-    /* Shared memory list that represents the memory pool. */
-    NX_SLIST_HEAD(allocated_list, memory_block);
+    struct shared_pool *(*shared_pool) (uint64_t, uint64_t);
 };
 
 /**
  * Macro for initializing a shared memory pool.
+ * @param A shared_pool pointer returned from allocator->shared_pool().
+ * @param A memory block pointer.
  */
-#define init_shared_pool(pool,block) CK_SLIST_FOREACH(block, pool->free_list, list_entry)
+#define init_shared_pool(pool, block) CK_SLIST_FOREACH(block, pool->free_list, list_entry)
 
 /**
- * @return the default heap memory allocator.
+ * This function returns the default memory allocator interface.
+ * Use for dynamic and shared memory allocations.
+ * @return the default memory allocator.
  */
 extern struct memory_allocator *get_default_allocator(void);
-
-extern void mem_clean_shared_pool(struct mem_pool_shared *pool);
-
-extern struct memory_block *mem_get_shared_block(struct mem_pool_shared *pool);
-
-extern void mem_free_shared_block(struct memory_block *block, struct mem_pool_shared *pool);
-
-extern struct mem_pool_shared *mem_create_shared_pool(uint32_t block_size, uint32_t block_count);
 
 #endif

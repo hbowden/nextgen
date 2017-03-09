@@ -22,6 +22,8 @@
 #include "runtime/nextgen.h"
 #include "utils/utils.h"
 
+#include <unistd.h>
+#include <string.h>
 #include <sys/mman.h>
 #include <errno.h>
 

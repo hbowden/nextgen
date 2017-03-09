@@ -17,6 +17,8 @@
 #include "io/io.h"
 #include "utils/utils.h"
 
+#include <string.h>
+
 struct thread_ctx
 {
 	  epoch_record *record;
