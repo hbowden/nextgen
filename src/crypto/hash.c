@@ -17,6 +17,7 @@
 #include "memory/memory.h"
 #include "openssl/sha.h"
 #include "io/io.h"
+#include <string.h>
 #include <stdio.h>
 
 static struct memory_allocator *allocator;
