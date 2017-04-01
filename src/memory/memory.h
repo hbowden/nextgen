@@ -17,9 +17,29 @@
 #define NX_MEMORY_H
 
 #include <stdint.h>
+#include "concurrent/concurrent.h"
 
-struct shared_pool;
-struct memory_block;
+struct memory_block
+{
+    void *ptr;
+
+    NX_SLIST_ENTRY(memory_block);
+};
+
+struct shared_pool
+{
+    uint64_t block_size;
+    uint64_t block_count;
+
+    /* Spin lock used to protect underlying data structures in the pool. */
+    ck_spinlock_t lock;
+
+    /* Shared memory list that represents the memory pool. */
+    NX_SLIST_HEAD(free_list, memory_block);
+
+    /* Shared memory list that represents the memory pool. */
+    NX_SLIST_HEAD(allocated_list, memory_block);
+};
 
 struct memory_allocator
 {
@@ -28,6 +48,8 @@ struct memory_allocator
     void (*free) (void **);
     void (*free_shared) (void **, uint64_t);
     struct shared_pool *(*shared_pool) (uint64_t, uint64_t);
+    struct memory_block *(*get_block) (struct shared_pool *);
+    void (*free_block) (struct memory_block *, struct shared_pool *pool);
 };
 
 /**
@@ -35,7 +57,7 @@ struct memory_allocator
  * @param A shared_pool pointer returned from allocator->shared_pool().
  * @param A memory block pointer.
  */
-#define init_shared_pool(pool, block) CK_SLIST_FOREACH(block, pool->free_list, list_entry)
+#define init_shared_pool(pool, block) CK_SLIST_FOREACH(block, &pool->free_list, list_entry)
 
 /**
  * This function returns the default memory allocator interface.

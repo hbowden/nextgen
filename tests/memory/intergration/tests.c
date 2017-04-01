@@ -15,16 +15,40 @@
 
 #include "unity.h"
 #include "memory/memory.c"
+#include "concurrent/concurrent.h"
 #include <pthread.h>
 
 static uint32_t count = 1024;
-// static uint32_t iterations = 100000;
+static uint32_t iterations = 100000;
 
 struct test_obj
 {
 	uint32_t var;
 	uint32_t var2;
 };
+
+static void *thread_start(void *arg)
+{
+    struct memory_allocator *allocator = NULL;
+    allocator = get_default_allocator();
+
+    uint32_t i;
+    struct shared_pool *pool = (struct shared_pool *)arg;
+    struct memory_block *m_blk = NULL;
+
+    /* Retrieve all the blocks, then return them. */
+    for(i = 0; i < iterations; i++)
+    {
+        m_blk = allocator->get_block(pool);
+
+        TEST_ASSERT_NOT_NULL(m_blk);
+        TEST_ASSERT_NOT_NULL(m_blk->ptr);
+
+        allocator->free_block(m_blk, pool);
+    }
+
+    return (NULL);
+}
 
 static void test_default_memory_allocator(void)
 {
@@ -52,26 +76,6 @@ static void test_default_memory_allocator(void)
     TEST_ASSERT_NOT_NULL(pool);
 }
 
-// static void *thread_start(void *arg)
-// {
-//     uint32_t i;
-//     struct mem_pool_shared *pool = (struct mem_pool_shared *)arg;
-//     struct memory_block *m_blk = NULL;
-
-//     /* Retrieve all the blocks, then return them. */
-//     for(i = 0; i < iterations; i++)
-//     {
-//         m_blk = mem_get_shared_block(pool);
-
-//         TEST_ASSERT_NOT_NULL(m_blk);
-//         TEST_ASSERT_NOT_NULL(m_blk->ptr);
-
-//         mem_free_shared_block(m_blk, pool);
-//     }
-
-//     return (NULL);
-// }
-
 static void test_shared_pool(void)
 {
     struct shared_pool *pool = NULL;
@@ -90,7 +94,7 @@ static void test_shared_pool(void)
     uint32_t total_blocks = 0;
 
     /* Initialize and insert the objects we want to store into the pool. */
-    init_shared_pool(&pool, m_blk)
+    init_shared_pool(pool, m_blk)
     {
         TEST_ASSERT_NOT_NULL(pool);
         TEST_ASSERT_NOT_NULL(m_blk);
@@ -98,61 +102,61 @@ static void test_shared_pool(void)
 
         struct test_obj *obj = NULL;
         obj = allocator->shared(sizeof(struct test_obj));
-
         TEST_ASSERT_NOT_NULL(obj);
 
         m_blk->ptr = obj;
-
         total_blocks++;
     }
 
     // /* Make sure the number of blocks we put in is how much that came out. */
-    // TEST_ASSERT(number_of_blocks == count);
+    TEST_ASSERT(total_blocks == count);
 
-    // /* Retrieve all the blocks, then return them. */
-    // for(i = 0; i < iterations; i++)
-    // {
-    //     m_blk = mem_get_shared_block(pool);
+    uint32_t i;
 
-    //     TEST_ASSERT_NOT_NULL(m_blk);
-    //     TEST_ASSERT_NOT_NULL(m_blk->ptr);
+    /* Retrieve all the blocks, then return them. */
+    for(i = 0; i < iterations; i++)
+    {
+        m_blk = allocator->get_block(pool);
 
-    //     mem_free_shared_block(m_blk, pool);
-    // }
+        TEST_ASSERT_NOT_NULL(m_blk);
+        TEST_ASSERT_NOT_NULL(m_blk->ptr);
 
-    // int32_t rtrn = 0;
-    // pthread_t thread1, thread2, thread3;
+        allocator->free_block(m_blk, pool);
+    }
 
-    // rtrn = pthread_create(&thread1, NULL, thread_start, pool);
-    // TEST_ASSERT(rtrn == 0)
+    int32_t rtrn = 0;
+    pthread_t thread1, thread2, thread3;
 
-    // rtrn = pthread_create(&thread2, NULL, thread_start, pool);
-    // TEST_ASSERT(rtrn == 0)
+    rtrn = pthread_create(&thread1, NULL, thread_start, pool);
+    TEST_ASSERT(rtrn == 0)
 
-    // rtrn = pthread_create(&thread3, NULL, thread_start, pool);
-    // TEST_ASSERT(rtrn == 0)
+    rtrn = pthread_create(&thread2, NULL, thread_start, pool);
+    TEST_ASSERT(rtrn == 0)
+
+    rtrn = pthread_create(&thread3, NULL, thread_start, pool);
+    TEST_ASSERT(rtrn == 0)
 
     // /* Retrieve some blocks, then return them. */
     // for(i = 0; i < iterations; i++)
     // {
-    //     m_blk = mem_get_shared_block(pool);
+    //     m_blk = allocator->get_block(pool);
 
     //     TEST_ASSERT_NOT_NULL(m_blk);
     //     TEST_ASSERT_NOT_NULL(m_blk->ptr);
 
-    //     mem_free_shared_block(m_blk, pool);
+    //     allocator->free_block(m_blk, pool);
     // }
 
-    // void *buf = NULL;
+    void *buf = NULL;
 
-    // rtrn = pthread_join(thread1, &buf);
-    // TEST_ASSERT(rtrn == 0)
+    rtrn = pthread_join(thread1, &buf);
+    TEST_ASSERT(rtrn == 0)
 
-    // rtrn = pthread_join(thread2, &buf);
-    // TEST_ASSERT(rtrn == 0)
+    rtrn = pthread_join(thread2, &buf);
+    TEST_ASSERT(rtrn == 0)
 
-    // rtrn = pthread_join(thread3, &buf);
-    // TEST_ASSERT(rtrn == 0)
+    rtrn = pthread_join(thread3, &buf);
+    TEST_ASSERT(rtrn == 0)
 
 	return;
 }
