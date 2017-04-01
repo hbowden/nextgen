@@ -42,11 +42,11 @@ static struct output_writter *output;
 static struct random_generator *random_gen;
 
 /* Shared memory pools. */
-static struct mem_pool_shared *desc_pool;
+static struct shared_pool *desc_pool;
 // static struct mem_pool_shared *mount_pool;
-static struct mem_pool_shared *dirpath_pool;
-static struct mem_pool_shared *file_pool;
-static struct mem_pool_shared *socket_pool;
+static struct shared_pool *dirpath_pool;
+static struct shared_pool *file_pool;
+static struct shared_pool *socket_pool;
 
 static char *get_dirpath_nocached(void)
 {
