@@ -43,7 +43,7 @@ static struct random_generator *random_gen;
 
 /* Shared memory pools. */
 static struct shared_pool *desc_pool;
-// static struct mem_pool_shared *mount_pool;
+// static struct shared_pool *mount_pool;
 static struct shared_pool *dirpath_pool;
 static struct shared_pool *file_pool;
 static struct shared_pool *socket_pool;
@@ -223,7 +223,7 @@ static int32_t free_filepath_cached(char **path)
         /* If the filepaths match, free the memory block.*/
         if(memcmp((*path), filepath, strlen(filepath)) == 0)
         {
-            mem_free_shared_block(m_blk, file_pool);
+            allocator->free_block(m_blk, file_pool);
             break;
         }
     }
@@ -248,7 +248,7 @@ static int32_t free_filepath_cached(char **path)
 //         /* If the dirpaths match, free the memory block.*/
 //         if(strcmp((*path), dirpath) == 0)
 //         {
-//             mem_free_shared_block(m_blk, mount_pool);
+//             allocator->free_block(m_blk, mount_pool);
 //             break;
 //         }
 //     }
@@ -273,7 +273,7 @@ static int32_t free_dirpath_cached(char **path)
         /* If the dirpaths match, free the memory block.*/
         if(strcmp((*path), dirpath) == 0)
         {
-            mem_free_shared_block(m_blk, dirpath_pool);
+            allocator->free_block(m_blk, dirpath_pool);
             break;
         }
     }
@@ -298,7 +298,7 @@ static int32_t free_socket_cached(int32_t *sock_fd)
         /* If the descriptors match, free the memory block.*/
         if((*sock) == (*sock_fd))
         {
-            mem_free_shared_block(m_blk, socket_pool);
+            allocator->free_block(m_blk, socket_pool);
             break;
         }
     }
@@ -323,7 +323,7 @@ static int32_t free_desc_cached(int32_t *fd)
         /* If the descriptors match, free the memory block.*/
         if((*fd) == (*desc))
         {
-            mem_free_shared_block(m_blk, desc_pool);
+            allocator->free_block(m_blk, desc_pool);
             break;
         }
     }
@@ -337,7 +337,7 @@ static char *get_dirpath_cached(void)
     struct memory_block *m_blk = NULL;
 
     /* Grab a shared memory block from the dirpath pool. */
-    m_blk = mem_get_shared_block(dirpath_pool);
+    m_blk = allocator->get_block(dirpath_pool);
     if(m_blk == NULL)
     {
         printf("Can't get shared block\n");
@@ -359,7 +359,7 @@ static char *get_filepath_cached(void)
     struct memory_block *m_blk = NULL;
 
     /* Grab a shared memory block from the file pool. */
-    m_blk = mem_get_shared_block(file_pool);
+    m_blk = allocator->get_block(file_pool);
     if(m_blk == NULL)
     {
         printf("Can't get shared block\n");
@@ -382,7 +382,7 @@ static char *get_filepath_cached(void)
 //     struct memory_block *m_blk = NULL;
 //
 //     /* Grab a shared memory block from the mountpath pool. */
-//     m_blk = mem_get_shared_block(mount_pool);
+//     m_blk = allocator->get_block(mount_pool);
 //     if(m_blk == NULL)
 //     {
 //         printf("Can't get shared block\n");
@@ -403,7 +403,7 @@ static int32_t get_socket_cached(void)
     struct memory_block *m_blk = NULL;
 
     /* Grab a shared memory block from the socket pool. */
-    m_blk = mem_get_shared_block(socket_pool);
+    m_blk = allocator->get_block(socket_pool);
     if(m_blk == NULL)
     {
         printf("Can't get shared block\n");
@@ -425,7 +425,7 @@ static int32_t get_desc_cached(void)
     struct memory_block *m_blk = NULL;
 
     /* Grab a shared memory block from the decriptor pool. */
-    m_blk = mem_get_shared_block(desc_pool);
+    m_blk = allocator->get_block(desc_pool);
     if(m_blk == NULL)
     {
         printf("Can't get shared block\n");
@@ -461,13 +461,13 @@ static int32_t init_resource_ctx(struct resource_ctx **resource, uint32_t size)
     return (0);
 }
 
-static struct mem_pool_shared *create_fd_pool(char *path)
+static struct shared_pool *create_fd_pool(char *path)
 {
     int32_t rtrn = 0;
     struct memory_block *m_blk = NULL;
-    struct mem_pool_shared *pool = NULL;
+    struct shared_pool *pool = NULL;
 
-    pool = mem_create_shared_pool(sizeof(int32_t *), POOL_SIZE);
+    pool = allocator->shared_pool(sizeof(int32_t *), POOL_SIZE);
     if(pool == NULL)
     {
         printf("Can't allocate descriptor memory pool\n");
@@ -475,7 +475,7 @@ static struct mem_pool_shared *create_fd_pool(char *path)
     }
 
     /* Create a bunch of file descriptors and stick them into the resource pool. */
-    init_shared_pool(&pool, m_blk)
+    init_shared_pool(pool, m_blk)
     {
         uint64_t size = 0;
 
@@ -521,14 +521,14 @@ static struct mem_pool_shared *create_fd_pool(char *path)
     return (pool);
 }
 
-static struct mem_pool_shared *create_file_pool(char *path)
+static struct shared_pool *create_file_pool(char *path)
 {
     int32_t rtrn = 0;
     struct memory_block *m_blk = NULL;
-    struct mem_pool_shared *pool = NULL;
+    struct shared_pool *pool = NULL;
 
     /* Create shared memory pool. */
-    pool = mem_create_shared_pool(sizeof(char *), POOL_SIZE);
+    pool = allocator->shared_pool(sizeof(char *), POOL_SIZE);
     if(pool == NULL)
     {
         printf("Can't allocate file path memory pool\n");
@@ -536,7 +536,7 @@ static struct mem_pool_shared *create_file_pool(char *path)
     }
 
     /* Initialize shared pool with file paths. */
-    init_shared_pool(&pool, m_blk)
+    init_shared_pool(pool, m_blk)
     {
         uint64_t file_size = 0;
 
@@ -575,7 +575,7 @@ static struct mem_pool_shared *create_file_pool(char *path)
 
 /*static int32_t create_mount_pool(char *path)
 {
-	mount_pool = mem_create_shared_pool(sizeof(char *), POOL_SIZE);
+	mount_pool = allocator->shared_pool(sizeof(char *), POOL_SIZE);
 	if(mount_pool == NULL)
 	{
 		printf("Can't allocate mount path memory pool\n");
@@ -622,11 +622,11 @@ static struct mem_pool_shared *create_file_pool(char *path)
 	return (0);
 } */
 
-static struct mem_pool_shared *create_dirpath_pool(char *path)
+static struct shared_pool *create_dirpath_pool(char *path)
 {
-    struct mem_pool_shared *pool = NULL;
+    struct shared_pool *pool = NULL;
 
-    pool = mem_create_shared_pool(sizeof(char *), POOL_SIZE);
+    pool = allocator->shared_pool(sizeof(char *), POOL_SIZE);
     if(pool == NULL)
     {
         printf("Can't allocate dir path memory pool\n");
@@ -686,7 +686,7 @@ static struct mem_pool_shared *create_dirpath_pool(char *path)
     return (pool);
 }
 
-// static int32_t clean_allocated_file_list(struct mem_pool_shared *pool)
+// static int32_t clean_allocated_file_list(struct shared_pool *pool)
 // {
 //     int32_t rtrn = 0;
 //
@@ -712,7 +712,7 @@ static struct mem_pool_shared *create_dirpath_pool(char *path)
 //     return (0);
 // }
 //
-// static int32_t clean_free_file_list(struct mem_pool_shared *pool)
+// static int32_t clean_free_file_list(struct shared_pool *pool)
 // {
 //     int32_t rtrn = 0;
 //
@@ -737,7 +737,7 @@ static struct mem_pool_shared *create_dirpath_pool(char *path)
 //     return (0);
 // }
 //
-// static int32_t clean_file_pool(struct mem_pool_shared *pool)
+// static int32_t clean_file_pool(struct shared_pool *pool)
 // {
 //     int32_t rtrn = 0;
 //
@@ -777,11 +777,11 @@ static struct mem_pool_shared *create_dirpath_pool(char *path)
 //     return (0);
 // }
 
-static struct mem_pool_shared *create_socket_pool(void)
+static struct shared_pool *create_socket_pool(void)
 {
-    struct mem_pool_shared *pool = NULL;
+    struct shared_pool *pool = NULL;
 
-    pool = mem_create_shared_pool(sizeof(int32_t), POOL_SIZE);
+    pool = allocator->shared_pool(sizeof(int32_t), POOL_SIZE);
     if(pool == NULL)
     {
         printf("Can't allocate socket memory pool\n");
