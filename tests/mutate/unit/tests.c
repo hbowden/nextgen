@@ -1,7 +1,5 @@
-
-
-/**
- * Copyright (c) 2015, Harrison Bowden, Minneapolis, MN
+/*
+ * Copyright (c) 2017, Harrison Bowden, Minneapolis, MN
  *
  * Permission to use, copy, modify, and/or distribute this software for any purpose
  * with or without fee is hereby granted, provided that the above copyright notice
@@ -13,13 +11,24 @@
  * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
  * WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- **/
+ */
 
-#ifndef MUTATE_H
-#define MUTATE_H
+#include "unity.h"
+#include "mutate/mutate.h"
 
-#include <stdint.h>
+static void test_mutate_test_case(void)
+{
+	int32_t rtrn = 0;
 
-extern int32_t mutate_test_case(void);
+	rtrn = mutate_test_case();
+	TEST_ASSERT(rtrn == 1);
 
-#endif
+    return;
+}
+
+int main(void)
+{
+	test_mutate_test_case();
+
+	return (0);
+}
