@@ -22,22 +22,19 @@ static struct output_writter *output;
 struct arg_context address_ctx = {
     .name = "ADDRESS",
     .type = ADDRESS,
-    .should_free = NX_YES,
-    .log_type = POINTER
+    .should_free = NX_YES
 };
 
 struct arg_context int_ctx = {
     .name = "INT",
     .type = INT,
-    .should_free = NX_NO,
-    .log_type = NUMBER
+    .should_free = NX_NO
 };
 
 struct arg_context pid_ctx = {
     .name = "PID",
     .type = PID,
-    .should_free = NX_NO,
-    .log_type = NUMBER
+    .should_free = NX_NO
 };
 
 

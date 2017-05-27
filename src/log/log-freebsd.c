@@ -15,57 +15,5 @@
 
 #include "log.h"
 #include "io/io.h"
-#include "utils/autofree.h"
 #include "memory/memory.h"
 
-int32_t log_arguments(uint32_t total_args, const char *syscall_name, uint64_t **arg_value_array)
-{
-    char *arg_value auto_free = allocator->alloc(1024);
-    if(arg_value == NULL)
-    {
-       output->write(ERROR, "Can't create arg_value buffer\n");
-       return (-1);
-    }
-
-    char *syscall_log_buf auto_free = allocator->alloc(4096);
-    if(syscall_log_buf == NULL)
-    {
-       output->write(ERROR, "Can't create syscall_log_buf buffer\n");
-       return (-1);
-    }
-
-    sprintf(syscall_log_buf, "%s:", syscall_name);
-
-    uint32_t i;
-
-    for(i = 0; i < total_args; i++)
-    {
-    	switch((int32_t)arg_context_array[i]->log_type)
-    	{
-    		/* File and directory paths. */
-    		case PATH:
-    		    sprintf(arg_value, " %s=%s", arg_context_array[i]->name, (char *)arg_value_array[i]);
-    		    break;
-
-            /* Pointers. */
-    		case POINTER:
-    		    sprintf(arg_value, " %s=%p", arg_context_array[i]->name, (void *)arg_value_array[i]);
-    		    break;
-
-            /* Non pointer values. */
-            case NUMBER:
-                sprintf(arg_value, " %s=%lu", arg_context_array[i]->name, *(arg_value_array[i]));
-                break;
-
-            default:
-                output->write(ERROR, "Unknown log type\n");
-                return (-1);
-    	}
-
-    	strncat(syscall_log_buf, arg_value, strlen(arg_value));
-    }
-
-    output->write(STD, "%s", syscall_log_buf);
-
-	return (0);
-}

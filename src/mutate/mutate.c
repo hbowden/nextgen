@@ -16,9 +16,37 @@
 #include "mutate.h"
 #include <stdio.h>
 
-int32_t mutate_test_case(void)
+static struct memory_allocator *allocator;
+static struct output_writter *output;
+static struct random_generator *random_gen;
+
+int32_t mutate_buffer(void **ptr, uint64_t len)
 {
-	printf("Running\n");
+    char *buf = (*ptr);
+    buf[2] = 'c';
 
 	return (0);
+}
+
+void inject_mutate_deps(struct dependency_context *ctx)
+{
+    uint32_t i;
+
+    for(i = 0; i < ctx->count; i++)
+    {
+        switch((int32_t)ctx->array[i]->name)
+        {
+            case ALLOCATOR:
+                allocator = (struct memory_allocator *)ctx->array[i]->interface;
+                break;
+
+            case OUTPUT:
+                output = (struct output_writter *)ctx->array[i]->interface;
+                break;
+
+            case RANDOM_GEN:
+                random_gen = (struct random_generator *)ctx->array[i]->interface;
+                break;
+        }
+    }
 }

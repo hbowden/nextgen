@@ -19,7 +19,10 @@
 #define MUTATE_H
 
 #include <stdint.h>
+#include "depend-inject/depend-inject.h"
 
-extern int32_t mutate_test_case(void);
+extern int32_t mutate_buffer(void **ptr, uint64_t len);
+
+extern void inject_mutate_deps(struct dependency_context *ctx);
 
 #endif

@@ -16,22 +16,12 @@
 #ifndef LOG_H
 #define LOG_H
 
-#include "utils/private.h"
 #include "depend-inject/depend-inject.h"
-#include "syscall/arg_types.h"
 #include <stdint.h>
 
-enum logging_type { POINTER, PATH, NUMBER };
+extern int32_t create_db(char *path);
 
-extern int32_t log_arguments(uint32_t total_args, const char *syscall_name, uint64_t **arg_value_array, struct arg_context **arg_context_array);
-
-extern int32_t write_arguments_to_log(uint32_t total_args, uint64_t **arg_value_array, uint32_t syscall_number);
-
-extern int32_t log_results(int32_t had_error, int32_t ret_value, char *err_value);
-
-extern int32_t log_file(char *file_path, char *file_extension);
-
-extern private void inject_log_deps_os(struct dependency_context *ctx);
+extern void inject_log_deps_os(struct dependency_context *ctx);
 
 extern void inject_log_deps(struct dependency_context *ctx);
 

@@ -21,6 +21,7 @@
 #include "syscall/signals.h"
 #include "concurrent/concurrent.h"
 #include "utils/utils.h"
+#include "log/log.h"
 #include "platform.h"
 #include <stdio.h>
 #include <errno.h>
@@ -29,6 +30,8 @@
 static struct output_writter *output;
 static struct memory_allocator *allocator;
 static struct fuzzer_control *control;
+
+static char *db_path = NULL;
 
 static int32_t stop_syscall_fuzzer(void)
 {
@@ -91,6 +94,14 @@ static int32_t start_syscall_fuzzer(void)
 
 static int32_t setup_syscall_fuzzer(void)
 {
+    int32_t rtrn = 0;
+
+    rtrn = create_db(db_path);
+    if(rtrn < 0)
+    {
+        output->write(ERROR, "Failed to create output file\n");
+        return (-1);
+    }
 
     return (0);
 }
@@ -115,6 +126,7 @@ struct fuzzer_instance *get_syscall_fuzzer(char *output_path)
     fuzzer->setup = &setup_syscall_fuzzer;
     fuzzer->start = &start_syscall_fuzzer;
     fuzzer->stop = &stop_syscall_fuzzer;
+    db_path = output_path;
 
     return (fuzzer);
 }

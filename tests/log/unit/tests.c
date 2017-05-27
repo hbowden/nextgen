@@ -15,36 +15,14 @@
 
 #include "unity.h"
 #include "io/io.h"
-#include "crypto/crypto.h"
-#include "crypto/random.h"
-#include "mutate/mutate.h"
+#include "log/log.c"
 #include "memory/memory.h"
-#include "syscall/syscall.h"
-
-#include <string.h>
-#include <stdlib.h>
-
-static void test_mutate_buffer(void)
-{
-	int32_t rtrn = 0;
-	char *str = "hfd94hf497grh49fh";
-	char *buffer = malloc(strlen(str));
-	TEST_ASSERT_NOT_NULL(buffer);
-
-	memcpy(buffer, str, strlen(str));
-
-	TEST_ASSERT(strncmp(buffer, str, strlen(str)) == 0);
-
-	rtrn = mutate_buffer((void **)&buffer, strlen(str));
-	TEST_ASSERT(rtrn == 0);
-	TEST_ASSERT(strncmp(buffer, str, strlen(str)) != 0);
-
-    return;
-}
+#include "depend-inject/depend-inject.h"
+#include <fcntl.h>
 
 static void setup_tests(void)
 {
-	struct dependency_context *ctx = NULL;
+    struct dependency_context *ctx = NULL;
     struct output_writter *output = NULL;
 
     output = get_console_writter();
@@ -58,22 +36,35 @@ static void setup_tests(void)
     ctx = create_dependency_ctx(create_dependency(output, OUTPUT),
                                 create_dependency(allocator, ALLOCATOR),
                                 NULL);
-    inject_crypto_deps(ctx);
+    inject_log_deps(ctx);
+}
 
-    struct random_generator *random_gen = NULL;
+static void test_create_db(void)
+{
+	int32_t rtrn = 0;
+	char *path = "/tmp/nextgen.nx";
 
-    random_gen = get_default_random_generator();
-    TEST_ASSERT_NOT_NULL(random_gen);
+	rtrn = create_db(path);
+	TEST_ASSERT(rtrn == 0);
+	TEST_ASSERT_NOT_NULL(db);
 
-    add_dep(ctx, create_dependency(random_gen, RANDOM_GEN));
+	int32_t fd = 0;
+	fd = open(path, O_RDONLY);
+	TEST_ASSERT(fd > 0);
+}
 
-    inject_mutate_deps(ctx);
+static void test_log_ptr(void)
+{
+	// char *msg = "message";
+
+	// log_ptr();
 }
 
 int main(void)
 {
-	setup_tests();
-	test_mutate_buffer();
+    setup_tests();
+    test_create_db();
+    test_log_ptr();
 
-	return (0);
+    return (0);
 }

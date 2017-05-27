@@ -47,14 +47,14 @@ extern struct test_case *create_test_case_for(const char *name);
  * @param test A test_case struct.
  * @return A uint32_t that is the total amount of arguments.
  */
- extern inline uint32_t get_total_args(struct test_case *test);
+ extern uint32_t get_total_args(struct test_case *test);
 
 /**
  * Get the array of syscall arguments from the a test case.
  * @param test A pointer to a test case struct/object.
  * @return An array of syscall arguments.
  */
-extern inline uint64_t **get_argument_array(struct test_case *test);
+extern uint64_t **get_argument_array(struct test_case *test);
 
 /**
  * Picks and returns a syscall entry at random.

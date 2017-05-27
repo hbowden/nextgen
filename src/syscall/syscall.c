@@ -180,12 +180,12 @@ void cleanup_test(struct test_case *test)
 }
 
  
-inline uint64_t **get_argument_array(struct test_case *test)
+uint64_t **get_argument_array(struct test_case *test)
 {
     return (test->arg_value_array);
 }
 
-inline uint32_t get_total_args(struct test_case *test)
+uint32_t get_total_args(struct test_case *test)
 {
     return (test->entry->total_args);
 }

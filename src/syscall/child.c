@@ -19,6 +19,7 @@
 #include "syscall.h"
 #include "utils/noreturn.h"
 #include "memory/memory.h"
+#include "mutate/mutate.h"
 #include "runtime/fuzzer.h"
 #include "concurrent/concurrent.h"
 #include <stdio.h>
@@ -54,6 +55,8 @@ static int32_t child_loop(struct syscall_child *child)
             output->write(ERROR, "Failed to create test case\n");
             return (-1);
         }
+
+        mutate_buffer((void **)get_argument_array(test), get_total_args(test));
 
         cleanup_test(test);
     }
