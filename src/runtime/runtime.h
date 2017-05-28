@@ -18,7 +18,6 @@
 
 #include <stdint.h>
 #include "io/io.h"
-#include "memory/memory.h"
 
 extern int32_t inject_deps(struct output_writter *output);
 

@@ -18,6 +18,7 @@
 #include "platform.h"
 #include "crypto/crypto.h"
 #include "crypto/random.h"
+#include "memory/memory.h"
 #include "crypto/hash.h"
 #include "utils/utils.h"
 #include "resource/resource.h"
