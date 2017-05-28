@@ -15,6 +15,7 @@
 
 #include "runtime/nextgen.c" // Include the .c file so we can test static functions.
 #include "runtime/fuzzer.h"
+#include "runtime/runtime.h"
 #include "memory/memory.h"
 #include "depend-inject/depend-inject.h"
 #include "io/io.h"
@@ -152,9 +153,27 @@ static void setup_tests(void)
     inject_runtime_deps(ctx);
 }
 
+static void test_get_verbosity(void)
+{
+    int32_t verbose = 9;
+    verbose = get_verbosity();
+
+    TEST_ASSERT(verbose != 9);
+}
+
+static void test_set_verbosity(void)
+{
+    int32_t verbose = 9;
+    set_verbosity(verbose);
+
+    TEST_ASSERT(get_verbosity() == 9);
+}
+
 int main(void)
 {
     setup_tests();
+    test_get_verbosity();
+    test_set_verbosity();
     test_set_fuzz_mode();
     test_init_fuzzer_config();
     test_get_syscall_fuzzer();

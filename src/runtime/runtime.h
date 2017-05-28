@@ -24,4 +24,8 @@ extern int32_t inject_deps(struct output_writter *output);
 
 const char *get_os(void);
 
+extern int32_t get_verbosity(void);
+
+extern void set_verbosity(int32_t v);
+
 #endif

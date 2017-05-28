@@ -30,7 +30,7 @@ struct fuzzer_config
     char *args;
     int32_t smart_mode;
     enum fuzz_mode mode;
-    const char padding[4];
+    const char paddding[4];
 };
 
 /**

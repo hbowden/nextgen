@@ -24,6 +24,7 @@
 #endif
 
 #include "nextgen.h"
+#include "runtime.h"
 #include "platform.h"
 #include "crypto/crypto.h"
 #include "io/io.h"
@@ -56,6 +57,7 @@ static struct option longopts[] = {{"in", required_argument, NULL, 'i'},
                                    {"syscall", 0, NULL, 's'},
                                    {"help", 0, NULL, 'h'},
                                    {"dumb", 0, NULL, 'd'},
+                                   {"verbose", 0, NULL, 'v'},
                                    {NULL, 0, NULL, 0}};
 
 static void display_help_banner(void)
@@ -362,6 +364,10 @@ struct fuzzer_config *parse_cmd_line(int32_t argc, const char *argv[])
                     allocator->free((void **)&config);
                     return (NULL);
                 }
+                break;
+
+            case 'v':
+                set_verbosity(TRUE);
                 break;
 
             default:

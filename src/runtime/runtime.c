@@ -23,6 +23,18 @@
 #include "resource/resource.h"
 #include "depend-inject/depend-inject.h"
 
+static int32_t verbose;
+
+int32_t get_verbosity(void)
+{
+    return (verbose);
+}
+
+void set_verbosity(int32_t v)
+{
+    verbose = v;
+}
+
 static int32_t inject_runtime_deps(struct dependency_context *ctx)
 {
     inject_fuzzer_deps(ctx);
